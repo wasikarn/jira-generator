@@ -1,6 +1,6 @@
-# Jira Generator - Claude Project Instructions
+# CLAUDE.md
 
-> **Version:** 2.3 | **Updated:** 2026-01-22
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ---
 
@@ -8,7 +8,13 @@
 
 Agile Documentation System สำหรับ **Tathep Platform** - สร้าง Epics, User Stories, และ Sub-tasks ผ่าน Jira/Confluence
 
----
+## Project Settings
+
+| Setting | Value |
+| --- | --- |
+| Jira Site | `100-stars.atlassian.net` |
+| Project Key | `BEP` |
+| Confluence Space | `BEP` |
 
 ## Quick Start
 
@@ -20,8 +26,6 @@ Agile Documentation System สำหรับ **Tathep Platform** - สร้า
 | Update Sub-task | `prompts/04-update-subtask.md` | Updated Sub-task |
 | สร้าง Test Plan | `prompts/05-senior-qa-analyst.md` | Test Plan + [QA] Sub-tasks |
 
----
-
 ## Workflow Chain
 
 ```
@@ -31,59 +35,11 @@ Stakeholder → PM → PO → TA → QA
            Epic   Story  Sub-tasks  Test Cases
 ```
 
-### Handoff Flow
-
-```
+Each role uses **Handoff Protocol** to pass context to next:
 1. PM creates Epic → hands off to PO
 2. PO creates User Stories → hands off to TA
 3. TA creates Sub-tasks → hands off to QA
 4. QA creates Test Plan + [QA] Sub-tasks (terminal)
-```
-
-Each role uses **Handoff Protocol** to pass context clearly.
-
----
-
-## Project Settings
-
-| Setting | Value |
-| --- | --- |
-| Jira Site | `100-stars.atlassian.net` |
-| Project Key | `BEP` |
-| Confluence Space | `BEP` |
-
-See `references/shared-config.md` for complete settings.
-
----
-
-## File Structure
-
-```
-jira-generator/
-├── CLAUDE.md                    ← You are here
-├── prompts/
-│   ├── 01-senior-product-manager.md    ← Epic (PM)
-│   ├── 02-senior-product-owner.md      ← User Story (PO)
-│   ├── 03-senior-technical-analyst.md  ← Sub-task (TA)
-│   ├── 04-update-subtask.md            ← Update existing sub-tasks
-│   └── 05-senior-qa-analyst.md         ← Test Plan (QA)
-├── references/                  ← Load when needed
-│   ├── shared-config.md        ← Project settings, tools
-│   ├── templates.md            ← All templates
-│   └── checklists.md           ← All quality checklists
-├── confluence-templates/
-│   ├── 01-epic-doc.md
-│   ├── 02-technical-note.md
-│   └── 03-test-plan.md
-├── jira-templates/
-│   ├── 01-epic.md
-│   ├── 02-user-story.md
-│   ├── 03-sub-task.md
-│   └── 04-qa-test-case.md
-└── tasks/                       ← Task outputs
-```
-
----
 
 ## Role Selection
 
@@ -95,19 +51,33 @@ jira-generator/
 | "update sub-task", "แก้ sub-task" | TA | `04-update-subtask.md` |
 | "สร้าง test plan", "QA", "test coverage", "test case" | QA | `05-senior-qa-analyst.md` |
 
----
+## Service Tags
 
-## References
+| Tag | Service | Local Path |
+| --- | --- | --- |
+| `[BE]` | Backend | `~/Codes/Works/tathep/tathep-platform-api` |
+| `[FE-Admin]` | Admin | `~/Codes/Works/tathep/tathep-admin` |
+| `[FE-Web]` | Website | `~/Codes/Works/tathep/tathep-website` |
 
-โหลดเมื่อต้องการ detail:
+## MCP Tools
+
+| Tool | Use |
+| --- | --- |
+| `Atlassian:createJiraIssue` | Create Epic/Story/Sub-task |
+| `Atlassian:getJiraIssue` | Get issue details |
+| `Atlassian:editJiraIssue` | Update issue |
+| `Atlassian:createConfluencePage` | Create doc page |
+| `Atlassian:searchJiraIssuesUsingJql` | JQL search |
+
+Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
+
+## References (load when needed)
 
 | Need | File |
 | --- | --- |
-| Project settings, tools | `references/shared-config.md` |
-| Templates (PM/PO/TA/QA) | `references/templates.md` |
+| Complete project settings | `references/shared-config.md` |
+| All templates | `references/templates.md` |
 | Quality checklists | `references/checklists.md` |
-
----
 
 ## Core Principles
 
@@ -116,48 +86,6 @@ jira-generator/
 3. **INVEST compliance** - All items pass INVEST criteria
 4. **Traceability** - Everything links back to parent (Story→Epic, Sub-task→Story)
 
----
-
-## Usage Examples
-
-### Create Epic
-```
-User: สร้าง epic สำหรับ User Authentication
-Claude: [Loads prompts/01-senior-product-manager.md]
-        → Creates Epic in Jira (BEP-xxx)
-        → Creates Epic Doc in Confluence
-        → Hands off context to PO
-```
-
-### Create User Story
-```
-User: สร้าง user story จาก BEP-123
-Claude: [Loads prompts/02-senior-product-owner.md]
-        → Reads Epic from Jira
-        → Creates User Stories (BEP-124, BEP-125, ...)
-        → Hands off context to TA
-```
-
-### Create Sub-tasks
-```
-User: วิเคราะห์ BEP-124
-Claude: [Loads prompts/03-senior-technical-analyst.md]
-        → Analyzes User Story
-        → Creates Sub-tasks with [BE]/[FE] tags
-        → Creates Technical Note in Confluence
-```
-
-### Create Test Plan
-```
-User: สร้าง test plan จาก BEP-124
-Claude: [Loads prompts/05-senior-qa-analyst.md]
-        → Analyzes User Story ACs
-        → Creates Test Plan in Confluence
-        → Creates [QA] Sub-tasks in Jira
-```
-
----
-
 ## Troubleshooting
 
 | Issue | Solution |
@@ -165,34 +93,5 @@ Claude: [Loads prompts/05-senior-qa-analyst.md]
 | MCP tool not found | Check `references/shared-config.md` for correct tool names |
 | Wrong project key | Ensure using `BEP` project key |
 | Missing parent link | Always specify parent Epic/Story when creating |
-| Template mismatch | Reference `jira-templates/` for current formats |
-| AC format wrong | Use Given-When-Then format per checklist |
-
-### Common Errors
-
-| Error | Cause | Fix |
-| --- | --- | --- |
-| "Issue not found" | Wrong issue key | Verify key format: `BEP-XXX` |
-| "Permission denied" | Atlassian auth | Re-authenticate MCP |
-| "Invalid field" | Wrong issue type | Check issue type in project |
-
----
-
-## MCP Tools
-
-| Tool | Use |
-| --- | --- |
-| Atlassian | Jira/Confluence operations |
-| Repomix | Local codebase (primary) |
-| Github | Remote codebase (fallback) |
-
-See `references/shared-config.md` for details.
-
-
-<claude-mem-context>
-# Recent Activity
-
-<!-- This section is auto-generated by claude-mem. Edit content outside the tags. -->
-
-*No recent activity*
-</claude-mem-context>
+| "Issue not found" | Verify key format: `BEP-XXX` |
+| "Permission denied" | Re-authenticate MCP |
