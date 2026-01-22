@@ -1,22 +1,29 @@
 # Jira QA Test Case Template
 
-> **Version:** 1.0 | **Updated:** 2026-01-22
+> **Version:** 1.1 | **Updated:** 2026-01-22
+
+---
+
+## หลักการสำคัญ
+
+**1 User Story = 1 [QA] Sub-task** (รวมทุก test scenario ไว้ใน sub-task เดียว)
 
 ---
 
 ## Summary Format
 
 ```
-[QA] - Test: [brief description]
+[QA] - Test: [Story title หรือ feature name]
 ```
 
 **Tag:** `[QA]` เท่านั้น
 
 **Examples:**
-- ✅ `[QA] - Test: User login with valid credentials`
-- ✅ `[QA] - Test: Product search validation`
+- ✅ `[QA] - Test: หน้าเมนูคูปอง (Coupon Menu)`
+- ✅ `[QA] - Test: User Authentication Flow`
+- ✅ `[QA] - Test: Product Search & Filter`
+- ❌ `[QA] - Test: Display cards` (เฉพาะเจาะจงเกินไป - ควรรวมทั้ง story)
 - ❌ `Test login` (ไม่มี tag)
-- ❌ `[QA] Create test for login` (ไม่ใช่ format)
 
 ---
 
@@ -31,37 +38,44 @@
 
 ## Test Objective
 
-[What this test validates - 1-2 ประโยค]
+[What this test validates - อธิบาย scope ทั้งหมดของ story]
 
 ---
 
-## Related AC
+## AC Coverage
 
-- **AC[X]:** [copy AC from User Story]
+| AC | Description | Test Scenarios |
+| --- | --- | --- |
+| AC1 | [desc] | TC1, TC2 |
+| AC2 | [desc] | TC3 |
+| AC3 | [desc] | TC4, TC5 |
 
----
-
-## Test Scenarios
-
-| ID | Scenario | Type | Priority |
-| --- | --- | --- | --- |
-| TC1 | [Happy path scenario] | Happy | High |
-| TC2 | [Error scenario] | Error | Medium |
-| TC3 | [Edge case scenario] | Edge | Low |
+**Coverage:** [X] scenarios / [Y] ACs
 
 ---
 
-## Test Steps
+## Test Scenarios Summary
+
+| ID | Scenario | AC | Type | Priority |
+| --- | --- | --- | --- | --- |
+| TC1 | [Happy path scenario] | AC1 | Happy | High |
+| TC2 | [Alternative path] | AC1 | Happy | Medium |
+| TC3 | [Error scenario] | AC2 | Error | High |
+| TC4 | [Edge case] | AC3 | Edge | Medium |
+| TC5 | [UI/Responsive] | AC3 | UI | Low |
+
+---
+
+## Test Steps Detail
 
 ### TC1: [Scenario Name]
 
+**AC:** AC1
 **Type:** Happy Path
+**Priority:** High
 
 **Preconditions:**
 - [Setup required]
-
-**Test Data:**
-- [Required data]
 
 **Steps:**
 1. [Step 1]
@@ -75,27 +89,39 @@
 
 ### TC2: [Scenario Name]
 
-**Type:** Error/Validation
+**AC:** AC1
+**Type:** Happy Path
+**Priority:** Medium
 
 **Preconditions:**
 - [Setup required]
-
-**Test Data:**
-- [Invalid data]
 
 **Steps:**
 1. [Step 1]
 2. [Step 2]
 
 **Expected Result:**
-- [Error message/behavior]
+- [Expected outcome]
+
+---
+
+(เพิ่ม TC3, TC4, ... ตามจำนวน scenario)
+
+---
+
+## Test Data Requirements
+
+| Data | Description | Source |
+| --- | --- | --- |
+| [Data type] | [Description] | [Manual/Seed/API] |
 
 ---
 
 ## Notes
 
 - [Edge case to watch]
-- [Related test dependencies]
+- [Dependencies]
+- [Risks]
 
 ---
 
@@ -120,13 +146,13 @@
 
 ## Effort Size
 
-| Size | Scope | When |
+| Size | Scenarios | When |
 | --- | --- | --- |
-| S | 1-3 scenarios | Simple validation |
-| M | 4-6 scenarios | Moderate flow |
-| ❌ L/XL | Split | ต้องแตกย่อย |
+| S | 1-3 | Simple story, few ACs |
+| M | 4-6 | Moderate story |
+| L | 7-10 | Complex story, many ACs |
 
-**Note:** QA test cases should be S or M only. Split larger scopes.
+**Note:** ไม่ต้อง split - รวมทุก scenario ไว้ใน sub-task เดียว
 
 ---
 
@@ -156,12 +182,13 @@
 ## Quality Check
 
 Before submit:
-- [ ] **Clear objective** - อธิบาย test ชัดเจน
-- [ ] **Linked to AC** - map กับ AC ใน Story
+- [ ] **1 sub-task per story** - รวมทุก scenario ไว้ใน sub-task เดียว
+- [ ] **Clear objective** - อธิบาย test scope ของทั้ง story
+- [ ] **AC coverage table** - map ทุก AC กับ scenarios
+- [ ] **All scenarios included** - Happy, Error, Edge, UI
 - [ ] **Specific steps** - steps ละเอียด reproducible
 - [ ] **Expected results** - ผลลัพธ์ชัดเจน verifiable
 - [ ] **Test data defined** - ข้อมูล test ระบุครบ
-- [ ] **Effort S or M** - ไม่เกิน M
 
 ---
 

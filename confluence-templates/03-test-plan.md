@@ -1,6 +1,6 @@
 # Test Plan Template
 
-> **Version:** 1.0 | **Updated:** 2026-01-22
+> **Version:** 1.1 | **Updated:** 2026-01-22
 
 ---
 
@@ -13,6 +13,8 @@
 **Owner:** QA Analyst
 
 **When:** Story มี multiple ACs, complex flows, หรือต้องการ track test coverage
+
+**หลักการ:** 1 User Story = 1 Test Plan + 1 [QA] Sub-task
 
 ---
 
@@ -112,12 +114,13 @@
 
 ---
 
-## Test Cases (Jira Links)
+## QA Sub-task (Jira Link)
 
-| Key | Summary | Priority | Status |
+| Key | Summary | Scenarios | Status |
 | --- | --- | --- | --- |
-| [BEP-XXX](link) | [QA] - Test: [desc] | High | ⬜ |
-| [BEP-YYY](link) | [QA] - Test: [desc] | Medium | ⬜ |
+| [BEP-XXX](link) | [QA] - Test: [Story title] | X scenarios | ⬜ |
+
+**Note:** 1 User Story = 1 [QA] Sub-task (รวมทุก scenario ไว้ใน sub-task เดียว)
 
 ---
 
@@ -146,7 +149,7 @@ _Updated: YYYY-MM-DD_
 | Test Data | ⚠️ If specific data needed |
 | Environment | ⚠️ If multiple envs |
 | Risk Assessment | ⚠️ If risks identified |
-| Test Cases | ✅ Always (after creating Jira) |
+| QA Sub-task | ✅ Always (1 sub-task per story) |
 | Links | ✅ Always |
 
 ---
