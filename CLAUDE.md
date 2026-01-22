@@ -71,6 +71,26 @@ Each role uses **Handoff Protocol** to pass context to next:
 
 Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 
+## File Structure
+
+```
+prompts/              # Role-specific prompts (load one per task)
+├── 01-senior-product-manager.md    → Epic creation
+├── 02-senior-product-owner.md      → User Story creation
+├── 03-senior-technical-analyst.md  → Sub-task breakdown
+├── 04-update-subtask.md            → Sub-task updates
+└── 05-senior-qa-analyst.md         → Test Plan + QA tasks
+
+references/           # Shared resources (load on demand)
+├── shared-config.md  → Project settings, MCP tools
+├── templates.md      → All Jira/Confluence templates
+└── checklists.md     → Quality validation checklists
+
+jira-templates/       # Issue formats
+confluence-templates/ # Page formats
+tasks/                # Generated outputs (gitignored)
+```
+
 ## References (load when needed)
 
 | Need | File |
