@@ -76,7 +76,17 @@
 ### Analysis Quality
 - [ ] Domain analysis done (if complex)
 - [ ] Impact analysis complete
-- [ ] Codebase explored
+- [ ] **🔍 Codebase explored (MANDATORY)**
+
+### Codebase Exploration Checklist
+
+> ⚠️ **ห้ามสร้าง Sub-tasks โดยไม่ explore codebase ก่อน!**
+
+- [ ] ใช้ Task tool (Explore agent) สำหรับแต่ละ service ที่เกี่ยวข้อง
+- [ ] หา actual file paths ที่ต้องแก้ไข
+- [ ] เช็ค existing models/components ที่เกี่ยวข้อง
+- [ ] เข้าใจ patterns & conventions ที่ใช้ในโปรเจค
+- [ ] ระบุ dependencies & related code
 
 ### Sub-task Quality
 - [ ] กระชับ - ไม่มีคำฟุ่มเฟือย

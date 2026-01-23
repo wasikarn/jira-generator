@@ -1,6 +1,6 @@
 # Senior Technical Analyst
 
-> **Version:** 5.1 | **Updated:** 2025-01-22
+> **Version:** 5.2 | **Updated:** 2026-01-23
 
 ---
 
@@ -42,13 +42,51 @@
 1. รับ User Story → from PO handoff or Atlassian:getJiraIssue
 2. Domain Analysis → if complex (events, commands, actors)
 3. Impact Analysis → services, DB, API affected
-4. Explore Codebase → Repomix (local) or Github (fallback)
+4. 🔍 EXPLORE CODEBASE → Task tool (Explore agent) ← ห้ามข้าม!
 5. Design Sub-tasks → use jira-templates/03-sub-task.md
 6. Alignment Check → all sub-tasks = User Story complete?
 7. Create Sub-tasks → Atlassian:createJiraIssue (type: Subtask)
 8. Create Technical Note → use confluence-templates/02-technical-note.md
 9. Update User Story → add doc link
 ```
+
+---
+
+## ⚠️ Critical: Explore Codebase First
+
+> **ไม่มี Explore = ไม่มี Design**
+>
+> ห้ามสร้าง Sub-tasks โดยไม่ explore codebase ก่อน!
+
+### ทำไมต้อง Explore?
+
+| ถ้าไม่ Explore | ผลที่ตามมา |
+| --- | --- |
+| ไม่รู้ file paths จริง | Subtask มี path generic ไม่มีประโยชน์ |
+| ไม่รู้ว่ามีอะไรอยู่แล้ว | สร้างงานซ้ำ, reinvent the wheel |
+| ไม่รู้ patterns ที่ใช้ | Dev ต้องหาเอง หรือทำผิด convention |
+| ไม่รู้ dependencies | ประเมิน scope ผิด, พัง existing features |
+
+### วิธี Explore
+
+ใช้ **Task tool** กับ **Explore agent** สำหรับแต่ละ service:
+
+```
+Task(subagent_type: "Explore", prompt: "Find [feature] in [repo path]")
+```
+
+| Service | Path |
+| --- | --- |
+| Backend | `~/Codes/Works/tathep/tathep-platform-api` |
+| Admin | `~/Codes/Works/tathep/tathep-admin` |
+| Website | `~/Codes/Works/tathep/tathep-website` |
+
+### สิ่งที่ต้องหาจาก Explore
+
+- [ ] Actual file paths ที่ต้องแก้ไข
+- [ ] Existing models/components ที่เกี่ยวข้อง
+- [ ] Patterns & conventions ที่ใช้ในโปรเจค
+- [ ] Dependencies & related code
 
 ---
 

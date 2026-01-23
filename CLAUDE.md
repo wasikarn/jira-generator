@@ -191,6 +191,51 @@ tasks/                # Generated outputs (gitignored)
 2. **Clear handoffs** - Each role passes structured context to next
 3. **INVEST compliance** - All items pass INVEST criteria
 4. **Traceability** - Everything links back to parent (Story→Epic, Sub-task→Story)
+5. **Explore before design** - Always explore codebase before creating Sub-tasks
+
+---
+
+## ⚠️ Critical: Explore Codebase First
+
+> **ไม่มี Explore = ไม่มี Design**
+>
+> ก่อนสร้าง Sub-tasks ต้อง explore codebase เสมอ ไม่งั้นจะออกแบบผิด
+
+### Why Explore is Mandatory
+
+| ถ้าไม่ Explore | ผลที่ตามมา |
+| --- | --- |
+| ไม่รู้ file paths จริง | Subtask มี path generic ไม่มีประโยชน์ |
+| ไม่รู้ว่ามีอะไรอยู่แล้ว | สร้างงานซ้ำ, reinvent the wheel |
+| ไม่รู้ patterns ที่ใช้ | Dev ต้องหาเอง หรือทำผิด convention |
+| ไม่รู้ dependencies | ประเมิน scope ผิด, พัง existing features |
+
+### TA Workflow (Correct Order)
+
+```
+1. รับ User Story
+2. Impact Analysis (คิดว่ากระทบ services ไหน)
+3. 🔍 EXPLORE CODEBASE ← ห้ามข้าม!
+   • หา actual file paths
+   • ดู existing patterns
+   • เช็คว่ามีอะไรอยู่แล้ว
+   • เข้าใจ architecture
+4. Design Sub-tasks (ด้วยข้อมูลจริง)
+5. Create Sub-tasks
+```
+
+### How to Explore
+
+| Service | Path | Tool |
+| --- | --- | --- |
+| Backend | `~/Codes/Works/tathep/tathep-platform-api` | Task (Explore agent) |
+| Admin | `~/Codes/Works/tathep/tathep-admin` | Task (Explore agent) |
+| Website | `~/Codes/Works/tathep/tathep-website` | Task (Explore agent) |
+
+**Example prompts for Explore agent:**
+- "Find credit top-up page and related components"
+- "Find API endpoint for creating orders"
+- "Find existing billing form patterns"
 
 ## Troubleshooting
 
