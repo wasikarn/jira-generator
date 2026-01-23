@@ -533,3 +533,27 @@ flowchart TD
 | Seed data | 🌱 |
 | Manual | 🔧 |
 | API | 🔌 |
+
+---
+
+## ✍️ Writing Style
+
+### หลัก 3 ข้อ
+
+| หลัก | อธิบาย |
+| :--- | :--- |
+| **กระชับ** | ไม่ฟุ่มเฟือย ตรงประเด็น ตัดคำที่ไม่จำเป็น |
+| **ทับศัพท์** | ใช้คำ technical ภาษาอังกฤษ ไม่แปลเป็นไทย |
+| **เป็นกันเอง** | คุยกับทีม casual ไม่ต้องทางการ |
+
+### ตัวอย่าง Technical Terms (ใช้ทับศัพท์)
+
+| หมวด | คำที่ใช้ |
+| :--- | :--- |
+| Process | deploy, merge, sprint, release, commit |
+| Architecture | API, endpoint, payload, component, service |
+| Development | debug, refactor, validate, implement |
+| Agile | backlog, velocity, story point, estimate |
+| Data | schema, migration, query, cache |
+
+_See `references/shared-config.md` for full Language Guidelines_

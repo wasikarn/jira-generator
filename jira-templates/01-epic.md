@@ -139,4 +139,11 @@ Before submit:
 
 ---
 
+## Writing Style
+
+- **กระชับ** - ใช้คำน้อย ตรงประเด็น
+- **ทับศัพท์** - MVP, phase, milestone, deliverable
+- **เป็นกันเอง** - คุยกับทีม casual
+
+_See `references/shared-config.md` for Language Guidelines_
 _See `references/templates.md` for detailed examples_

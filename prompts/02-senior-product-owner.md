@@ -190,3 +190,12 @@ Before handoff to TA, verify:
 - [ ] Story points assigned
 - [ ] Priority set
 - [ ] Story created in Jira (ใช้ `jira-templates/02-user-story.md`)
+
+---
+
+## Writing Style
+
+- **กระชับ** - ไม่ฟุ่มเฟือย ตัดคำที่ไม่จำเป็น
+- **ชัดเจน** - ไม่คลุมเครือ
+- **ทับศัพท์** - sprint, backlog, story point, estimate, velocity
+- **เป็นกันเอง** - คุยกับทีมแบบ casual ไม่ต้องทางการ

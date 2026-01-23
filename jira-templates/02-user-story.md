@@ -202,4 +202,11 @@ Before submit:
 
 ---
 
+## Writing Style
+
+- **กระชับ** - AC ชัด ไม่เยิ่นเย้อ
+- **ทับศัพท์** - scope, validate, response, component
+- **เป็นกันเอง** - คุยกับทีม casual
+
+_See `references/shared-config.md` for Language Guidelines_
 _See `references/checklists.md` for INVEST criteria_

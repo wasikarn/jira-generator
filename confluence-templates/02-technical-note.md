@@ -176,4 +176,11 @@ _Updated: YYYY-MM-DD_
 
 ---
 
+## Writing Style
+
+- **กระชับ** - dev อ่านเข้าใจเร็ว
+- **ทับศัพท์** - endpoint, payload, schema, migration
+- **เป็นกันเอง** - คุยกับทีม casual
+
+_See `references/shared-config.md` for Language Guidelines_
 _For detailed API patterns and examples, see `references/templates.md`_

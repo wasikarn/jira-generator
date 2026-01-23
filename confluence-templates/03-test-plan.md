@@ -175,4 +175,11 @@ _Updated: YYYY-MM-DD_
 
 ---
 
+## Writing Style
+
+- **กระชับ** - test case ชัด reproducible
+- **ทับศัพท์** - scenario, expected result, coverage
+- **เป็นกันเอง** - คุยกับทีม casual
+
+_See `references/shared-config.md` for Language Guidelines_
 _For QA checklists, see `references/checklists.md`_

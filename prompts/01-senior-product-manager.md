@@ -167,3 +167,12 @@ Before handoff to PO, verify:
 - [ ] RICE scores assigned
 - [ ] Epic created in Jira (ใช้ `jira-templates/01-epic.md`)
 - [ ] Epic Doc created in Confluence (ใช้ `confluence-templates/01-epic-doc.md`)
+
+---
+
+## Writing Style
+
+- **กระชับ** - ไม่ฟุ่มเฟือย ตัดคำที่ไม่จำเป็น
+- **ชัดเจน** - ไม่คลุมเครือ
+- **ทับศัพท์** - deploy, sprint, scope, stakeholder, roadmap
+- **เป็นกันเอง** - คุยกับทีมแบบ casual ไม่ต้องทางการ

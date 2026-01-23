@@ -132,4 +132,11 @@ _Updated: YYYY-MM-DD_
 
 ---
 
+## Writing Style
+
+- **กระชับ** - stakeholder อ่านเข้าใจเร็ว
+- **ทับศัพท์** - milestone, deliverable, phase, sprint
+- **เป็นกันเอง** - คุยกับทีม casual
+
+_See `references/shared-config.md` for Language Guidelines_
 _For detailed explanations, see `references/templates.md`_

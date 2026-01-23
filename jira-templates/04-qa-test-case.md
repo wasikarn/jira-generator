@@ -231,4 +231,11 @@ Before submit:
 
 ---
 
+## Writing Style
+
+- **กระชับ** - test case ชัด reproducible
+- **ทับศัพท์** - scenario, expected result, test data
+- **เป็นกันเอง** - คุยกับทีม casual
+
+_See `references/shared-config.md` for Language Guidelines_
 _See `references/checklists.md` for QA checklist_

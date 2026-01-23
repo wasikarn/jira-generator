@@ -172,4 +172,11 @@ Before submit:
 
 ---
 
+## Writing Style
+
+- **กระชับ** - dev อ่านเข้าใจใน 30 วินาที
+- **ทับศัพท์** - endpoint, payload, validate, component
+- **เป็นกันเอง** - คุยกับทีม casual
+
+_See `references/shared-config.md` for Language Guidelines_
 _See `references/checklists.md` for INVEST criteria_
