@@ -46,6 +46,12 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 > - `/story-full` - เมื่อต้องการสร้าง feature ใหม่ครบ workflow (ไม่ต้อง copy-paste issue keys)
 > - `/story-cascade` - เมื่อ update Story แล้วต้องการ cascade changes ไป Sub-tasks โดยอัตโนมัติ
 
+### Utility (เครื่องมือช่วย)
+
+| Command | Description | Output |
+| --- | --- | --- |
+| `/search-issues` | ค้นหา issues ก่อนสร้างใหม่ (ป้องกันสร้างซ้ำ) | List of matching issues |
+
 **Skill Location:** `skills/jira-workflow/`
 
 ### Alternative: Manual Prompts
@@ -98,6 +104,12 @@ Each role uses **Handoff Protocol** to pass context to next:
 | --- | --- | --- |
 | "story full", "create story + subtasks" | `/story-full` | 10-phase create workflow (PO+TA) |
 | "story cascade", "update all", "cascade" | `/story-cascade` | 8-phase cascade update |
+
+### Utility Commands
+
+| Trigger | Command | Action |
+| --- | --- | --- |
+| "search", "find", "หา issue" | `/search-issues` | 3-phase search utility |
 
 **How Skill Commands Work:**
 1. Load skill from `skills/jira-workflow/SKILL.md`
@@ -248,11 +260,14 @@ skills/               # Skill commands (PREFERRED)
     │   ├── update-subtask.md → 5-phase update workflow
     │   ├── improve-issue.md  → 6-phase batch improve
     │   ├── story-full.md     → 10-phase composite (PO+TA) ⭐
-    │   └── story-cascade.md  → 8-phase cascade update ⭐
+    │   ├── story-cascade.md  → 8-phase cascade update ⭐
+    │   └── search-issues.md  → 3-phase search utility
     └── references/           → Skill-specific refs
         ├── templates.md      → ADF templates
         ├── writing-style.md  → Language guidelines
-        └── tools.md          → Tool selection guide
+        ├── tools.md          → Tool selection guide
+        ├── jql-quick-ref.md  → JQL patterns for search
+        └── troubleshooting.md → Error recovery guide
 
 prompts/              # Legacy prompts (manual use)
 ├── 01-senior-product-manager.md

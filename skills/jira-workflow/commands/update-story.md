@@ -165,6 +165,17 @@ Before updating:
 
 ---
 
+## Error Recovery
+
+| Error | Solution |
+|-------|----------|
+| Lost original content | Re-fetch story before retry |
+| Scope changed silently | Roll back, re-analyze impact |
+| acli update fails | Check JSON structure, verify issue key format |
+| Cascading changes missed | Use `/story-cascade` instead for automatic handling |
+
+---
+
 ## Common Update Scenarios
 
 ### 1. Add New AC

@@ -160,6 +160,17 @@ Before completing:
 
 ---
 
+## Error Recovery
+
+| Error | Solution |
+|-------|----------|
+| INVEST validation fails | Revisit story scope, may need to split |
+| acli JSON error | Check ADF structure, verify panel format |
+| AC not testable | Rewrite with specific Given/When/Then |
+| Scope unclear | Ask user to clarify which services involved |
+
+---
+
 ## AC Writing Tips
 
 **Good AC:**

@@ -182,6 +182,17 @@ Before completing:
 
 ---
 
+## Error Recovery
+
+| Error | Solution |
+|-------|----------|
+| Confluence create fails | Check space key (BEP), verify permissions |
+| acli JSON error | Validate ADF structure, check field names |
+| Epic Doc link fails | Manually add link via MCP jira_update_issue |
+| RICE score unclear | Re-interview stakeholder for estimates |
+
+---
+
 ## Epic vs User Story
 
 | | Epic | User Story |

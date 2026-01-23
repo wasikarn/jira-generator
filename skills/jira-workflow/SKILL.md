@@ -18,7 +18,10 @@ description: |
   - `/story-full` - สร้าง User Story + Sub-tasks ครบ workflow ในครั้งเดียว
   - `/story-cascade BEP-XXX` - Update Story + cascade ไปยัง Sub-tasks ที่เกี่ยวข้อง
 
-  Triggers: "analyze story", "create subtask", "update", "improve", "migrate", "BEP-XXX", "แก้ไข", "ปรับปรุง", "story full", "cascade"
+  **Utility Commands:**
+  - `/search-issues` - ค้นหา issues ก่อนสร้างใหม่
+
+  Triggers: "analyze story", "create subtask", "update", "improve", "migrate", "BEP-XXX", "แก้ไข", "ปรับปรุง", "story full", "cascade", "search", "find", "หา"
 ---
 
 # Jira Workflow
@@ -51,6 +54,12 @@ Agile documentation workflow สำหรับ Tathep Platform
 | `/story-full` | 10 | สร้าง Story + Sub-tasks ครบ workflow (PO+TA combined) |
 | `/story-cascade BEP-XXX` | 8 | Update Story + cascade changes ไป Sub-tasks |
 
+### Utility (เครื่องมือช่วย)
+
+| Command | Phases | Description |
+|---------|:------:|-------------|
+| `/search-issues` | 3 | ค้นหา issues - ป้องกันสร้างซ้ำ, หางานที่เกี่ยวข้อง |
+
 **Usage:** Read the command file from `commands/` directory for detailed phase instructions.
 
 ---
@@ -72,6 +81,9 @@ What do you need?
     │     ├─ แก้ Sub-task เดียว              → /update-subtask BEP-XXX
     │     ├─ ปรับปรุง format หลาย issues     → /improve-issue BEP-XXX --with-subtasks
     │     └─ แก้ Story + cascade Sub-tasks   → /story-cascade BEP-XXX ⭐
+    │
+    ├─ ค้นหา (Search)
+    │     └─ หา issues ก่อนสร้าง             → /search-issues "keyword"
     │
     └─ ⭐ = Composite command (end-to-end workflow)
 ```
@@ -128,3 +140,17 @@ Stakeholder → PM → PO → TA → QA
 | ADF Templates | [references/templates.md](references/templates.md) |
 | Writing Style | [references/writing-style.md](references/writing-style.md) |
 | Tool Selection | [references/tools.md](references/tools.md) |
+| JQL Patterns | [references/jql-quick-ref.md](references/jql-quick-ref.md) |
+| Error Recovery | [references/troubleshooting.md](references/troubleshooting.md) |
+
+---
+
+## Related Global Skills
+
+| Skill | Use When |
+|-------|----------|
+| `atlassian-cli` | Need detailed ADF format reference, automation scripts |
+| `agile-product-owner` | Deep-dive on INVEST criteria, story patterns |
+| `senior-qa` | Advanced test strategies beyond basic test plan |
+
+> Location: `~/.claude/skills/`

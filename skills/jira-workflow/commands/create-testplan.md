@@ -200,6 +200,17 @@ Before completing:
 
 ---
 
+## Error Recovery
+
+| Error | Solution |
+|-------|----------|
+| Confluence create fails | Check space key, verify parent page exists |
+| Nested table error | Use bulletList inside panels instead of tables |
+| Missing AC coverage | Review Story ACs, add missing test scenarios |
+| acli JSON error | Simplify ADF structure, validate JSON |
+
+---
+
 ## ADF Panel Color Guide
 
 | Panel Type | Color | Use For |

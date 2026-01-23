@@ -237,6 +237,18 @@ Before completing:
 
 ---
 
+## Error Recovery
+
+| Error | Solution |
+|-------|----------|
+| Story create fails | Fix JSON, retry Phase 4 |
+| Sub-task create fails | Story exists, retry Phase 9 only |
+| File paths not found | Re-run Explore (Phase 6) with different terms |
+| INVEST fails | Re-work story before creating sub-tasks |
+| Interrupted mid-workflow | Note last phase, check Jira for created items, resume |
+
+---
+
 ## Comparison with Separate Commands
 
 | Approach | Commands | Context |

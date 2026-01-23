@@ -212,6 +212,17 @@ Before applying:
 
 ---
 
+## Error Recovery
+
+| Error | Solution |
+|-------|----------|
+| ADF validation fails | Simplify structure, avoid nested tables |
+| Content lost | Re-fetch from Jira, merge carefully |
+| Partial batch update | Track which issues succeeded, retry failed only |
+| Language inconsistent | Review writing-style.md, reapply |
+
+---
+
 ## Common Improvement Scenarios
 
 ### 1. Batch Format Migration
