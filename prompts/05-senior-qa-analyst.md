@@ -155,7 +155,7 @@
 | --- | --- |
 | Get Story | `Atlassian:getJiraIssue` |
 | Get Sub-tasks | `Atlassian:searchJiraIssuesUsingJql` (parent=Story) |
-| Create Test Case | `Atlassian:createJiraIssue` (type: Sub-task, parent: Story) |
+| Create Test Case | `Atlassian:createJiraIssue` (type: Subtask, parent: Story) |
 | Create Test Plan | `Atlassian:createConfluencePage` (parentId: Epic page) |
 | Update Story | `Atlassian:editJiraIssue` |
 

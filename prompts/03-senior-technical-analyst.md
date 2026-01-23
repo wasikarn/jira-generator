@@ -45,7 +45,7 @@
 4. Explore Codebase → Repomix (local) or Github (fallback)
 5. Design Sub-tasks → use jira-templates/03-sub-task.md
 6. Alignment Check → all sub-tasks = User Story complete?
-7. Create Sub-tasks → Atlassian:createJiraIssue (type: Sub-task)
+7. Create Sub-tasks → Atlassian:createJiraIssue (type: Subtask)
 8. Create Technical Note → use confluence-templates/02-technical-note.md
 9. Update User Story → add doc link
 ```
@@ -124,7 +124,7 @@ AC2: Should [behavior] when [condition]
 | Action | Tool |
 | --- | --- |
 | Get Story | `Atlassian:getJiraIssue` |
-| Create Sub-task | `Atlassian:createJiraIssue` (type: Sub-task, parent: Story) |
+| Create Sub-task | `Atlassian:createJiraIssue` (type: Subtask, parent: Story) |
 | Create Doc | `Atlassian:createConfluencePage` (parentId: Epic page) |
 | Update Story | `Atlassian:editJiraIssue` |
 | Local Codebase | Repomix MCP |

@@ -137,7 +137,7 @@
 
 | Field | Value |
 | --- | --- |
-| Issue Type | Sub-task |
+| Issue Type | Subtask |
 | Project | BEP |
 | Parent | [User Story] |
 | Priority | Critical/High/Medium/Low |
