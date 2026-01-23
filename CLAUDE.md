@@ -59,15 +59,65 @@ Each role uses **Handoff Protocol** to pass context to next:
 | `[FE-Admin]` | Admin | `~/Codes/Works/tathep/tathep-admin` |
 | `[FE-Web]` | Website | `~/Codes/Works/tathep/tathep-website` |
 
+## Atlassian Tool Selection
+
+เลือกใช้เครื่องมือตามความเหมาะสม:
+
+| Scenario | Tool | Reason |
+| --- | --- | --- |
+| **Rich text description** (tables, panels, code blocks) | `atlassian-cli` skill + `--from-json` | ADF format ต้องใช้ JSON structure |
+| **Simple text description** | Atlassian MCP หรือ `acli` | ทั้งสองทำงานได้ |
+| **Search issues/pages** | `atlassian:search` MCP | Rovo Search รวดเร็ว |
+| **Read Confluence page** | `getConfluencePage` MCP | ได้ content เป็น markdown |
+| **Create Confluence page** | `createConfluencePage` MCP | รับ markdown แปลงเป็น storage format |
+| **Bulk Jira operations** | `atlassian-cli` skill + JQL | `--jql` flag รองรับ bulk edit |
+| **Complex workflows** | `atlassian-mcp` skill | Guided workflow with validation |
+
+### Decision Flow
+
+```
+ต้องการทำอะไร?
+    │
+    ├─ สร้าง/แก้ไข Jira issue
+    │     │
+    │     ├─ Description มี table/panel/rich format?
+    │     │     ├─ Yes → atlassian-cli + --from-json (ADF)
+    │     │     └─ No  → Atlassian MCP หรือ acli --description
+    │     │
+    │     └─ Bulk operation?
+    │           ├─ Yes → atlassian-cli + --jql
+    │           └─ No  → Atlassian MCP
+    │
+    ├─ Search Jira/Confluence
+    │     └─ atlassian:search MCP (Rovo Search)
+    │
+    └─ Confluence page
+          ├─ Read  → getConfluencePage MCP
+          └─ Create/Update → createConfluencePage MCP (markdown OK)
+```
+
+### ADF Format (Rich Text)
+
+เมื่อต้องการ rich text ใน Jira description ให้ใช้:
+
+```bash
+# 1. สร้าง JSON file กับ ADF content
+# 2. ใช้ --from-json flag
+acli jira workitem edit --from-json workitem.json --yes
+```
+
+ดูรายละเอียด ADF format ได้ที่ `atlassian-cli` skill
+
 ## MCP Tools
 
 | Tool | Use |
 | --- | --- |
-| `Atlassian:createJiraIssue` | Create Epic/Story/Sub-task |
-| `Atlassian:getJiraIssue` | Get issue details |
-| `Atlassian:editJiraIssue` | Update issue |
-| `Atlassian:createConfluencePage` | Create doc page |
-| `Atlassian:searchJiraIssuesUsingJql` | JQL search |
+| `Atlassian:search` | ค้นหา Jira/Confluence (Rovo Search) |
+| `Atlassian:getConfluencePage` | อ่าน Confluence page |
+| `Atlassian:createConfluencePage` | สร้าง Confluence page |
+| `Atlassian:getConfluencePageFooterComments` | อ่าน comments |
+
+**Note:** สำหรับ Jira CRUD operations ที่ต้องการ rich text ให้ใช้ `atlassian-cli` skill แทน
 
 Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 
