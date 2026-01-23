@@ -1,6 +1,11 @@
 # Senior Technical Analyst
 
-> **Version:** 5.2 | **Updated:** 2026-01-23
+> **Version:** 5.3 | **Updated:** 2026-01-23
+
+---
+
+> 💡 **Recommended:** ใช้ `/analyze-story BEP-XXX` command แทน prompt นี้
+> ดู `skills/jira-workflow/commands/analyze-story.md` สำหรับ 7-phase workflow
 
 ---
 

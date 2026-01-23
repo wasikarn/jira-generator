@@ -16,7 +16,39 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | Project Key | `BEP` |
 | Confluence Space | `BEP` |
 
-## Quick Start
+## Quick Start (Skill Commands)
+
+### Create (สร้างใหม่)
+
+| Command | Description | Output |
+| --- | --- | --- |
+| `/create-epic` | สร้าง Epic จาก product vision | Epic + Epic Doc |
+| `/create-story` | สร้าง User Story จาก requirements | User Story |
+| `/analyze-story BEP-XXX` | วิเคราะห์ Story → Sub-tasks | Sub-tasks + Technical Note |
+| `/create-testplan BEP-XXX` | สร้าง Test Plan จาก Story | Test Plan + [QA] Sub-tasks |
+
+### Update (แก้ไข/ปรับปรุง)
+
+| Command | Description | Output |
+| --- | --- | --- |
+| `/update-story BEP-XXX` | แก้ไข User Story - เพิ่ม/แก้ AC, scope | Updated Story |
+| `/update-subtask BEP-XXX` | แก้ไข Sub-task - format, content | Updated Sub-task |
+| `/improve-issue BEP-XXX` | Batch improve format/quality | Improved issue(s) |
+
+### Composite (End-to-End Workflow) ⭐
+
+| Command | Description | Output |
+| --- | --- | --- |
+| `/story-full` | สร้าง Story + Sub-tasks ครบ workflow ในครั้งเดียว | Story + Sub-tasks |
+| `/story-cascade BEP-XXX` | Update Story + cascade ไป Sub-tasks ที่เกี่ยวข้อง | Updated Story + Sub-tasks |
+
+> **เมื่อไหร่ควรใช้ Composite:**
+> - `/story-full` - เมื่อต้องการสร้าง feature ใหม่ครบ workflow (ไม่ต้อง copy-paste issue keys)
+> - `/story-cascade` - เมื่อ update Story แล้วต้องการ cascade changes ไป Sub-tasks โดยอัตโนมัติ
+
+**Skill Location:** `skills/jira-workflow/`
+
+### Alternative: Manual Prompts
 
 | Task | Prompt | Output |
 | --- | --- | --- |
@@ -43,13 +75,45 @@ Each role uses **Handoff Protocol** to pass context to next:
 
 ## Role Selection
 
-| Trigger | Role | Prompt |
+### Create Commands
+
+| Trigger | Command | Action |
 | --- | --- | --- |
-| "create epic", "product vision", "RICE", "PRD" | PM | `01-senior-product-manager.md` |
-| "create user story", "sprint planning", "backlog" | PO | `02-senior-product-owner.md` |
-| "analyze story", "create sub-task", "BEP-XXX" | TA | `03-senior-technical-analyst.md` |
-| "update sub-task", "edit sub-task" | TA | `04-update-subtask.md` |
-| "create test plan", "QA", "test coverage", "test case" | QA | `05-senior-qa-analyst.md` |
+| "analyze story", "BEP-XXX", "create sub-task" | `/analyze-story` | 7-phase TA workflow |
+| "create test plan", "QA", "test case" | `/create-testplan` | 6-phase QA workflow |
+| "create story", "user story" | `/create-story` | 5-phase PO workflow |
+| "create epic", "product vision", "RICE" | `/create-epic` | 5-phase PM workflow |
+
+### Update Commands
+
+| Trigger | Command | Action |
+| --- | --- | --- |
+| "update story", "แก้ไข story", "เพิ่ม AC" | `/update-story` | 5-phase update workflow |
+| "update subtask", "แก้ไข subtask" | `/update-subtask` | 5-phase update workflow |
+| "improve", "migrate", "ปรับปรุง format" | `/improve-issue` | 6-phase batch improve |
+
+### Composite Commands ⭐
+
+| Trigger | Command | Action |
+| --- | --- | --- |
+| "story full", "create story + subtasks" | `/story-full` | 10-phase create workflow (PO+TA) |
+| "story cascade", "update all", "cascade" | `/story-cascade` | 8-phase cascade update |
+
+**How Skill Commands Work:**
+1. Load skill from `skills/jira-workflow/SKILL.md`
+2. Read command file from `skills/jira-workflow/commands/`
+3. Execute phases in order (ห้ามข้ามขั้นตอน)
+4. Reference `references/` for templates and tools
+
+### Legacy Prompts (for manual use)
+
+| Trigger | Prompt |
+| --- | --- |
+| "create epic" | `prompts/01-senior-product-manager.md` |
+| "create user story" | `prompts/02-senior-product-owner.md` |
+| "analyze story" | `prompts/03-senior-technical-analyst.md` |
+| "update sub-task" | `prompts/04-update-subtask.md` |
+| "create test plan" | `prompts/05-senior-qa-analyst.md` |
 
 ## Service Tags
 
@@ -172,20 +236,38 @@ Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 ## File Structure
 
 ```
-prompts/              # Role-specific prompts (load one per task)
-├── 01-senior-product-manager.md    → Epic creation
-├── 02-senior-product-owner.md      → User Story creation
-├── 03-senior-technical-analyst.md  → Sub-task breakdown
-├── 04-update-subtask.md            → Sub-task updates
-└── 05-senior-qa-analyst.md         → Test Plan + QA tasks
+skills/               # Skill commands (PREFERRED)
+└── jira-workflow/
+    ├── SKILL.md              → Main skill entry
+    ├── commands/             → Phase-based workflows
+    │   ├── analyze-story.md  → 7-phase TA workflow (create)
+    │   ├── create-testplan.md → 6-phase QA workflow (create)
+    │   ├── create-story.md   → 5-phase PO workflow (create)
+    │   ├── create-epic.md    → 5-phase PM workflow (create)
+    │   ├── update-story.md   → 5-phase update workflow
+    │   ├── update-subtask.md → 5-phase update workflow
+    │   ├── improve-issue.md  → 6-phase batch improve
+    │   ├── story-full.md     → 10-phase composite (PO+TA) ⭐
+    │   └── story-cascade.md  → 8-phase cascade update ⭐
+    └── references/           → Skill-specific refs
+        ├── templates.md      → ADF templates
+        ├── writing-style.md  → Language guidelines
+        └── tools.md          → Tool selection guide
 
-references/           # Shared resources (load on demand)
+prompts/              # Legacy prompts (manual use)
+├── 01-senior-product-manager.md
+├── 02-senior-product-owner.md
+├── 03-senior-technical-analyst.md
+├── 04-update-subtask.md
+└── 05-senior-qa-analyst.md
+
+references/           # Shared resources
 ├── shared-config.md  → Project settings, MCP tools
 ├── templates.md      → All Jira/Confluence templates
 └── checklists.md     → Quality validation checklists
 
-jira-templates/       # Issue formats
-confluence-templates/ # Page formats
+jira-templates/       # Issue format templates
+confluence-templates/ # Page format templates
 tasks/                # Generated outputs (gitignored)
 ```
 
@@ -199,11 +281,13 @@ tasks/                # Generated outputs (gitignored)
 
 ## Core Principles
 
-1. **Slim prompts** - Core instructions only, details in references
-2. **Clear handoffs** - Each role passes structured context to next
-3. **INVEST compliance** - All items pass INVEST criteria
-4. **Traceability** - Everything links back to parent (Story→Epic, Sub-task→Story)
-5. **Explore before design** - Always explore codebase before creating Sub-tasks
+1. **Phase-based workflows** - ทำตาม phases เรียงลำดับ ห้ามข้ามขั้นตอน
+2. **Explore before design** - ต้อง explore codebase ก่อนสร้าง Sub-tasks เสมอ
+3. **ADF via acli** - ใช้ `acli --from-json` สำหรับ Jira descriptions
+4. **Thai + ทับศัพท์** - เนื้อหาภาษาไทย, technical terms ภาษาอังกฤษ
+5. **Clear handoffs** - Each role passes structured context to next
+6. **INVEST compliance** - All items pass INVEST criteria
+7. **Traceability** - Everything links back to parent (Story→Epic, Sub-task→Story)
 
 ---
 

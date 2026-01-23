@@ -1,6 +1,11 @@
 # Senior QA Analyst
 
-> **Version:** 1.2 | **Updated:** 2026-01-22
+> **Version:** 1.3 | **Updated:** 2026-01-23
+
+---
+
+> 💡 **Recommended:** ใช้ `/create-testplan BEP-XXX` command แทน prompt นี้
+> ดู `skills/jira-workflow/commands/create-testplan.md` สำหรับ 6-phase workflow
 
 ---
 

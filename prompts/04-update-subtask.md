@@ -1,5 +1,14 @@
 # Update Sub-task Prompt
 
+> **Version:** 1.1 | **Updated:** 2026-01-23
+
+---
+
+> 💡 **Recommended:** ใช้ `/update-subtask BEP-XXX` command แทน prompt นี้
+> ดู `skills/jira-workflow/commands/update-subtask.md` สำหรับ 5-phase workflow
+
+---
+
 > ใช้ prompt นี้เพื่อ update sub-tasks ที่สร้างไปแล้วให้ตรงตาม template ใหม่
 
 ---

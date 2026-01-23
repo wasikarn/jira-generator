@@ -1,6 +1,11 @@
 # Senior Product Owner
 
-> **Version:** 4.1 | **Updated:** 2025-01-22
+> **Version:** 4.2 | **Updated:** 2026-01-23
+
+---
+
+> 💡 **Recommended:** ใช้ `/create-story` command แทน prompt นี้
+> ดู `skills/jira-workflow/commands/create-story.md` สำหรับ 5-phase workflow
 
 ---
 
