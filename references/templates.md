@@ -41,6 +41,43 @@
 }
 ```
 
+### ADF Inline Code Format
+
+| Markdown | ADF Mark Type | Render |
+| :--- | :--- | :--- |
+| `` `code` `` | `{"type": "code"}` | `code` |
+| `**bold**` | `{"type": "strong"}` | **bold** |
+| `*italic*` | `{"type": "em"}` | *italic* |
+| `~~strike~~` | `{"type": "strike"}` | ~~strike~~ |
+
+**JSON Structure:**
+
+```json
+{
+  "type": "paragraph",
+  "content": [
+    {"type": "text", "text": "Normal text, then "},
+    {"type": "text", "text": "inline code", "marks": [{"type": "code"}]},
+    {"type": "text", "text": " and back to normal."}
+  ]
+}
+```
+
+**Combined Marks (Bold + Code):**
+
+```json
+{"type": "text", "text": "boldCode", "marks": [{"type": "strong"}, {"type": "code"}]}
+```
+
+**Common Use Cases:**
+
+| Use Case | Example ADF |
+| :--- | :--- |
+| File path | `{"type": "text", "text": "app/Models/User.ts", "marks": [{"type": "code"}]}` |
+| API endpoint | `{"type": "text", "text": "POST /api/v1/orders", "marks": [{"type": "code"}]}` |
+| Service tag | `{"type": "text", "text": "[BE]", "marks": [{"type": "code"}]}` |
+| Variable | `{"type": "text", "text": "userId", "marks": [{"type": "code"}]}` |
+
 ### Best Practices
 
 - ✅ Use **success** panels for happy path scenarios

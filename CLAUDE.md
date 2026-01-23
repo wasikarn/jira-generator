@@ -130,6 +130,18 @@ What do you need?
 }
 ```
 
+**Inline Code & Mark Types:**
+
+| Markdown | ADF Mark |
+| --- | --- |
+| `` `code` `` | `{"type": "code"}` |
+| `**bold**` | `{"type": "strong"}` |
+| `*italic*` | `{"type": "em"}` |
+
+```json
+{"type": "text", "text": "app/Models/User.ts", "marks": [{"type": "code"}]}
+```
+
 **Commands:**
 ```bash
 # Create new issue

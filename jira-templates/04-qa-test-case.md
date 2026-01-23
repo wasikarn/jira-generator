@@ -22,7 +22,16 @@
 | **Error Panel** | Error handling test cases | 🔴 Red |
 | **Note Panel** | Important notes, dependencies | 🟣 Purple |
 
+**Inline Code Marks:**
+
+| Markdown | ADF Mark |
+| :--- | :--- |
+| `` `code` `` | `{"type": "code"}` |
+| `**bold**` | `{"type": "strong"}` |
+
 > 💡 **Tip:** ใช้ ADF panels เพื่อแยก test case types ด้วยสี ช่วยให้อ่านง่ายขึ้น
+>
+> _See `references/templates.md` for full ADF format reference_
 
 ---
 

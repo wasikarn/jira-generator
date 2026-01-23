@@ -14,7 +14,16 @@
 | **Error Panel** | Error handling AC | 🔴 Red |
 | **Note Panel** | Important notes, references | 🟣 Purple |
 
+**Inline Code Marks:**
+
+| Markdown | ADF Mark |
+| :--- | :--- |
+| `` `code` `` | `{"type": "code"}` |
+| `**bold**` | `{"type": "strong"}` |
+
 > 💡 **Tip:** ใช้ ADF panels เพื่อแยก AC types ด้วยสี ช่วยให้ Developer อ่านง่ายขึ้น
+>
+> _See `references/templates.md` for full ADF format reference_
 
 ---
 
