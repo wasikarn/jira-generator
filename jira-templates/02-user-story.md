@@ -1,6 +1,6 @@
 # Jira User Story Template
 
-> **Version:** 2.0 | **Updated:** 2025-01-22
+> **Version:** 3.0 | **Updated:** 2026-01-23
 
 ---
 
@@ -11,64 +11,77 @@
 ```
 
 **Examples:**
-- สร้างคูปองเติมเครดิต
-- หน้า Coupon List
-- แก้ไขคูปอง
+- ✅ สร้างคูปองเติมเครดิต
+- ✅ หน้า Coupon List
+- ❌ ทำหน้า (ไม่ชัดเจน)
 
 ---
 
 ## Description Template (Copy ไปใช้เลย)
 
 ```markdown
-## User Story
+## 📖 User Story
 
-> **As a** [persona],  
-> **I want to** [action],  
+> **As a** [persona],
+> **I want to** [action],
 > **So that** [benefit].
 
 ---
 
-## Acceptance Criteria
+## ✅ Acceptance Criteria
 
-**AC1: [Happy Path]**
-Given [precondition]  
-When [action]  
-Then [result]
+> **AC1: [Happy Path - ชื่อ scenario]**
+>
+> | | |
+> | --- | --- |
+> | **Given** | [precondition - สถานะเริ่มต้น] |
+> | **When** | [action - การกระทำของ user] |
+> | **Then** | [outcome - ผลลัพธ์ที่คาดหวัง] |
 
-**AC2: [Validation]**
-Given [invalid input]  
-When [action]  
-Then [validation error]
+> **AC2: [Validation - ชื่อ scenario]**
+>
+> | | |
+> | --- | --- |
+> | **Given** | [invalid input condition] |
+> | **When** | [user action] |
+> | **Then** | [validation message/behavior] |
 
-**AC3: [Error Case]**
-Given [error condition]  
-When [action]  
-Then [error handling]
-
----
-
-## Scope
-
-| Service | Affected |
-| --- | --- |
-| Backend | ✅/❌ |
-| Admin | ✅/❌ |
-| Website | ✅/❌ |
-
----
-
-## Business Rules (ถ้ามี)
-
-| Rule | Description |
-| --- | --- |
-| BR-1 | [Rule] |
+> **AC3: [Error Case - ชื่อ scenario]**
+>
+> | | |
+> | --- | --- |
+> | **Given** | [error condition] |
+> | **When** | [user action] |
+> | **Then** | [error handling response] |
 
 ---
 
-## Links
+## 🎯 Scope
 
-- 🎨 Design: [Figma]
-- 📄 Story Doc: [Confluence]
+| Service | Impact | Notes |
+| :--- | :---: | :--- |
+| 🔧 Backend | ✅ | [brief note] |
+| 🖥️ Admin | ❌ | - |
+| 🌐 Website | ✅ | [brief note] |
+
+---
+
+## 📋 Business Rules
+
+| # | Rule | Description |
+| :---: | :--- | :--- |
+| 1 | **[Rule Name]** | [What the rule enforces] |
+| 2 | **[Rule Name]** | [What the rule enforces] |
+
+---
+
+## 🔗 Links
+
+| Type | Link |
+| :--- | :--- |
+| 🎨 Design | [Figma URL] |
+| 📄 Story Doc | [Confluence URL] |
+| 📊 Analytics | [Dashboard URL] |
 ```
 
 ---
@@ -76,46 +89,76 @@ Then [error handling]
 ## Other Fields
 
 | Field | Value |
-| --- | --- |
-| Issue Type | Story |
-| Project | BEP |
-| Epic Link | [Parent Epic] |
-| Story Points | 1, 2, 3, 5, 8, 13 |
-| Priority | Highest/High/Medium/Low |
+| :--- | :---: |
+| **Issue Type** | Story |
+| **Project** | BEP |
+| **Epic Link** | [Parent Epic] |
+| **Story Points** | [See guide below] |
+| **Priority** | [See guide below] |
 
 ---
 
-## Story Points Guide
+## 📊 Story Points Guide
 
-| Points | Complexity | Duration |
-| --- | --- | --- |
-| 1 | Very Simple | < 0.5 day |
-| 2 | Simple | 0.5-1 day |
-| 3 | Medium | 1-2 days |
-| 5 | Complex | 2-3 days |
-| 8 | Very Complex | 3-5 days |
-| 13 | ❌ Consider split | > 5 days |
+| Points | Level | Complexity | Typical Work |
+| :---: | :---: | :--- | :--- |
+| **1** | 🟢 | Very Simple | Config change, copy update |
+| **2** | 🟢 | Simple | Single component, clear scope |
+| **3** | 🟡 | Medium | Multi-component, some unknowns |
+| **5** | 🟡 | Complex | Cross-service, integration |
+| **8** | 🟠 | Very Complex | Major feature, high risk |
+| **13** | 🔴 | Epic-level | ❌ Consider splitting |
+
+---
+
+## 🚨 Priority Guide
+
+| Level | Icon | When to Use |
+| :--- | :---: | :--- |
+| **Highest** | 🔴 | Blocker, production issue |
+| **High** | 🟠 | Core feature, deadline |
+| **Medium** | 🟡 | Standard priority |
+| **Low** | 🟢 | Nice-to-have, backlog |
 
 ---
 
 ## AC Format Options
 
-**Option 1: Given-When-Then** (แนะนำ)
-```
-Given [context]
-When [action]
-Then [outcome]
+**Option 1: Table Format** (แนะนำ - อ่านง่าย)
+```markdown
+> **AC1: [Scenario Name]**
+>
+> | | |
+> | --- | --- |
+> | **Given** | [context] |
+> | **When** | [action] |
+> | **Then** | [outcome] |
 ```
 
-**Option 2: Checklist**
-```
-- [ ] [Criterion]
+**Option 2: Inline Format** (กระชับ)
+```markdown
+> **AC1: [Scenario Name]**
+> - **Given** [context]
+> - **When** [action]
+> - **Then** [outcome]
 ```
 
-**Option 3: Should-When**
+**Option 3: Checklist** (simple cases)
+```markdown
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
 ```
-Should [behavior] when [condition]
-```
+
+---
+
+## Quality Checklist
+
+Before submit:
+- [ ] **INVEST compliant** - Independent, Negotiable, Valuable, Estimable, Small, Testable
+- [ ] **Clear user benefit** - "So that" explains value
+- [ ] **Testable ACs** - Each AC can be verified
+- [ ] **Right size** - 3-8 story points
+- [ ] **Links attached** - Design, docs referenced
 
 ---
 

@@ -1,6 +1,6 @@
 # Jira Sub-task Template
 
-> **Version:** 3.0 | **Updated:** 2025-01-22
+> **Version:** 4.0 | **Updated:** 2026-01-23
 
 ---
 
@@ -10,77 +10,94 @@
 [SERVICE_TAG] - Brief description
 ```
 
-**Tags:** `[BE]`, `[FE-Admin]`, `[FE-Web]`
+**Tags:** `[BE]` | `[FE-Admin]` | `[FE-Web]`
 
 **Examples:**
 - ✅ `[BE] - เพิ่ม API filter products ตาม category`
-- ✅ `[FE-Web] - เพิ่ม category dropdown`
+- ✅ `[FE-Admin] - สร้างหน้า Credit Transaction History`
 - ❌ `Backend task` (ไม่มี tag)
+- ❌ `[BE] - ทำ API` (ไม่ชัดเจน)
 
 ---
 
 ## Description Template (Copy ไปใช้เลย)
 
 ```markdown
-## Story Narrative
+## 📖 Story Narrative
 
-> As a [persona], I want to [action] so that [benefit]
-
----
-
-## Objective
-
-[What and why - 1-2 ประโยค กระชับ]
+> **As a** [persona],
+> **I want to** [action],
+> **So that** [benefit].
 
 ---
 
-## Scope
+## 🎯 Objective
 
-**Files:**
-- `path/to/file1.ts`
-- `path/to/file2.ts`
-
-**Dependencies:**
-- [Related component/service]
+[What and why - 1-2 ประโยค กระชับ ชัดเจน]
 
 ---
 
-## Requirements
+## 📁 Scope
 
-- [Requirement 1]
-- [Requirement 2]
-
----
-
-## Acceptance Criteria
-
-**AC1: [Happy Path]**
-Given [precondition]
-When [action]
-Then [result]
-
-**AC2: [Validation]**
-Given [invalid input]
-When [action]
-Then [validation error]
-
-**AC3: [Error Handling]**
-Given [error condition]
-When [action]
-Then [error response]
+| Category | Details |
+| :--- | :--- |
+| **Files** | `path/to/file1.ts`, `path/to/file2.ts` |
+| **Dependencies** | [Related components/services] |
+| **Database** | [Tables affected, if any] |
 
 ---
 
-## Notes
+## 📋 Requirements
+
+- [Requirement 1 - what, not how]
+- [Requirement 2 - what, not how]
+- [Requirement 3 - what, not how]
+
+---
+
+## ✅ Acceptance Criteria
+
+> **AC1: [Happy Path]**
+>
+> | | |
+> | --- | --- |
+> | **Given** | [precondition] |
+> | **When** | [action/API call] |
+> | **Then** | [expected response/behavior] |
+
+> **AC2: [Validation]**
+>
+> | | |
+> | --- | --- |
+> | **Given** | [invalid input] |
+> | **When** | [action/API call] |
+> | **Then** | [validation error/response] |
+
+> **AC3: [Error Handling]**
+>
+> | | |
+> | --- | --- |
+> | **Given** | [error condition] |
+> | **When** | [action/API call] |
+> | **Then** | [error response/status code] |
+
+---
+
+## 💡 Notes
 
 - [Edge case to handle]
-- [Pattern to follow]
+- [Pattern to follow from existing code]
+- [Performance consideration]
 
 ---
 
-## Reference
+## 🔗 Reference
 
-📄 User Story Doc: [Confluence link]
+| Type | Link |
+| :--- | :--- |
+| 📄 User Story | [BEP-XXX](link) |
+| 📝 Technical Doc | [Confluence URL] |
+| 🎨 Design | [Figma URL] |
 ```
 
 ---
@@ -88,52 +105,52 @@ Then [error response]
 ## Other Fields
 
 | Field | Value |
-| --- | --- |
-| Issue Type | Subtask |
-| Project | BEP |
-| Parent | [User Story] |
-| Priority | Critical/High/Medium/Low |
+| :--- | :---: |
+| **Issue Type** | Subtask |
+| **Project** | BEP |
+| **Parent** | [User Story] |
+| **Priority** | [See guide below] |
 
 ---
 
-## Effort Size
+## ⏱️ Effort Size
 
-| Size | Duration | When |
-| --- | --- | --- |
-| S | 0.5-1 day | Simple, 1 component |
-| M | 1-2 days | Multi-component |
-| L | 2-3 days | Complex, integration |
-| XL | ❌ Split | ต้องแตกย่อย |
-
----
-
-## Priority Guide
-
-| Priority | When |
-| --- | --- |
-| 🔴 Critical | Security, blocking, data loss |
-| 🟠 High | Core functionality |
-| 🟡 Medium | Improvements |
-| 🟢 Low | Nice-to-have |
+| Size | Icon | Duration | When to Use |
+| :---: | :---: | :---: | :--- |
+| **S** | 🟢 | 0.5-1 day | Simple, 1 component, clear scope |
+| **M** | 🟡 | 1-2 days | Multi-component, some complexity |
+| **L** | 🟠 | 2-3 days | Complex logic, integration needed |
+| **XL** | 🔴 | > 3 days | ❌ ต้องแตกย่อย |
 
 ---
 
-## Quality Check
+## 🚨 Priority Guide
+
+| Level | Icon | When to Use |
+| :--- | :---: | :--- |
+| **Critical** | 🔴 | Security fix, blocker, data loss risk |
+| **High** | 🟠 | Core functionality, deadline |
+| **Medium** | 🟡 | Standard development work |
+| **Low** | 🟢 | Nice-to-have, improvements |
+
+---
+
+## Quality Checklist
 
 Before submit:
-- [ ] **กระชับ** - อ่านเข้าใจใน 30 วินาที
-- [ ] **ชัดเจน** - ไม่คลุมเครือ
-- [ ] **ครบถ้วน** - Developer เข้าใจ scope
-- [ ] **ถูกต้อง** - File paths ตรง codebase
+- [ ] **กระชับ** - Developer อ่านเข้าใจใน 30 วินาที
+- [ ] **ชัดเจน** - ไม่คลุมเครือ, scope ชัด
+- [ ] **ถูกต้อง** - File paths ตรงกับ codebase จริง
 - [ ] **Testable** - ทุก AC verify ได้
+- [ ] **Right size** - S/M/L (ไม่ใช่ XL)
 
 ---
 
-## Note
+## 📝 Note
 
-**ไม่ต้องสร้าง Confluence doc** สำหรับ sub-tasks ส่วนใหญ่
-
-Technical details อยู่ใน User Story Doc แล้ว
+> **ไม่ต้องสร้าง Confluence doc** สำหรับ sub-tasks ส่วนใหญ่
+>
+> Technical details อยู่ใน User Story Doc แล้ว
 
 ---
 

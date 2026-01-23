@@ -1,107 +1,136 @@
 # Templates Reference
 
 > **Purpose:** รวม templates ทั้งหมดสำหรับ PM, PO, TA, QA - โหลดเมื่อต้องการใช้งาน
+>
+> **Version:** 3.0 | **Updated:** 2026-01-23
 
 ---
 
-## Product Manager Templates
+## 📋 Product Manager Templates
 
 ### Epic Description Template
 
 ```markdown
-## Overview
-[2-3 sentences about what this epic delivers]
+## 📖 Overview
 
-## Goals
-- [Goal 1]
-- [Goal 2]
+[2-3 sentences about what this epic delivers and why]
 
-## Business Value
-**Impact:** [High/Medium/Low]
-**Revenue:** [Direct/Indirect/None]
-**Users:** [Who benefits]
+---
 
-## Success Criteria
-- [ ] [Measurable outcome 1]
-- [ ] [Measurable outcome 2]
+## 🎯 Goals
 
-## User Stories
-- [ ] [Story 1 title]
-- [ ] [Story 2 title]
+| # | Goal | Measurable Outcome |
+| :---: | :--- | :--- |
+| 1 | [Goal description] | [How we measure success] |
+| 2 | [Goal description] | [How we measure success] |
 
-## Risks & Dependencies
+---
+
+## 💼 Business Value
+
+| Aspect | Details |
+| :--- | :--- |
+| **Problem** | [ปัญหาที่แก้] |
+| **Solution** | [Solution ที่ทำ] |
+| **Impact** | [Expected impact] |
+| **Users** | [Who benefits] |
+
+---
+
+## 📊 Success Criteria
+
+| Metric | Current | Target | Status |
+| :--- | :---: | :---: | :---: |
+| [Metric 1] | [baseline] | [target] | ⬜ |
+| [Metric 2] | [baseline] | [target] | ⬜ |
+
+---
+
+## 📋 User Stories
+
+**🚀 MVP (Phase 1)**
+
+| Priority | Story | Status |
+| :---: | :--- | :---: |
+| 🔴 P0 | [Story 1 title] | ⬜ |
+| 🔴 P0 | [Story 2 title] | ⬜ |
+
+---
+
+## ⚠️ Risks & Dependencies
+
 | Risk | Probability | Impact | Mitigation |
-| --- | --- | --- | --- |
-| [Risk] | H/M/L | H/M/L | [Action] |
+| :--- | :---: | :---: | :--- |
+| [Risk description] | 🟠 Medium | 🔴 High | [Action] |
 ```
 
 ### RICE Scoring Template
 
 | Feature | Reach | Impact | Confidence | Effort | Score |
-| --- | --- | --- | --- | --- | --- |
-| [Feature] | [users/qtr] | [0.25-3] | [0-100%] | [person-weeks] | `R×I×C/E` |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| [Feature name] | [users/qtr] | [0.25-3] | [0-100%] | [person-weeks] | `R×I×C/E` |
 
-**Impact Scale:** 3=Massive, 2=High, 1=Medium, 0.5=Low, 0.25=Minimal
-
-### PRD Template (Brief)
-
-```markdown
-# [Feature Name] PRD
-
-## Problem
-[What problem are we solving?]
-
-## Solution
-[How do we solve it?]
-
-## Success Metrics
-- [Metric 1]: [Target]
-- [Metric 2]: [Target]
-
-## Scope
-**In:** [What's included]
-**Out:** [What's not included]
-
-## User Stories
-1. [Story 1]
-2. [Story 2]
-```
+> **Impact Scale:** 🔴 3=Massive | 🟠 2=High | 🟡 1=Medium | 🟢 0.5=Low | ⚪ 0.25=Minimal
 
 ---
 
-## Product Owner Templates
+## 📝 Product Owner Templates
 
 ### User Story Template
 
 ```markdown
-**Title:** [Brief description]
+## 📖 User Story
 
-### Story
-As a [persona],
-I want to [action]
-so that [benefit]
+> **As a** [persona],
+> **I want to** [action],
+> **So that** [benefit].
 
-### Acceptance Criteria
+---
 
-> **✅ AC1: [Happy path scenario name]**
-> - **Given** [precondition/context]
-> - **When** [user action]
-> - **Then** [expected outcome]
+## ✅ Acceptance Criteria
 
-> **⚠️ AC2: [Edge case/validation scenario name]**
-> - **Given** [edge case condition]
-> - **When** [user action]
-> - **Then** [expected behavior]
+> **AC1: [Happy Path - scenario name]**
+>
+> | | |
+> | --- | --- |
+> | **Given** | [precondition] |
+> | **When** | [user action] |
+> | **Then** | [expected outcome] |
 
-> **❌ AC3: [Error handling scenario name]**
-> - **Given** [error condition]
-> - **When** [user action]
-> - **Then** [error response/message]
+> **AC2: [Validation - scenario name]**
+>
+> | | |
+> | --- | --- |
+> | **Given** | [invalid input] |
+> | **When** | [user action] |
+> | **Then** | [validation message] |
 
-### Notes
-- [Additional context]
+> **AC3: [Error - scenario name]**
+>
+> | | |
+> | --- | --- |
+> | **Given** | [error condition] |
+> | **When** | [user action] |
+> | **Then** | [error handling] |
 
-### Story Points: [1/2/3/5/8/13]
+---
+
+## 🎯 Scope
+
+| Service | Impact | Notes |
+| :--- | :---: | :--- |
+| 🔧 Backend | ✅ | [note] |
+| 🖥️ Admin | ❌ | - |
+| 🌐 Website | ✅ | [note] |
+
+---
+
+## 🔗 Links
+
+| Type | Link |
+| :--- | :--- |
+| 🎨 Design | [Figma URL] |
+| 📄 Story Doc | [Confluence URL] |
 ```
 
 ### Sprint Planning Template
@@ -109,87 +138,106 @@ so that [benefit]
 ```markdown
 ## Sprint [N] Plan
 
-**Capacity:** [X] points
-**Focus Factor:** 0.85
-**Effective Capacity:** [X × 0.85] points
+| Metric | Value |
+| :--- | :---: |
+| **Capacity** | [X] points |
+| **Focus Factor** | 0.85 |
+| **Effective** | [X × 0.85] points |
 
 ### Committed Stories
-| Story | Points | Priority |
-| --- | --- | --- |
-| [Story] | [pts] | [H/M/L] |
-| **Total** | [sum] | |
+
+| Story | Points | Priority | Status |
+| :--- | :---: | :---: | :---: |
+| [Story name] | 5 | 🟠 High | ⬜ |
+| [Story name] | 3 | 🟡 Medium | ⬜ |
+| **Total** | **8** | | |
 
 ### Stretch Goals
+
 | Story | Points |
-| --- | --- |
-| [Story] | [pts] |
+| :--- | :---: |
+| [Story name] | 2 |
 ```
 
 ### Backlog Item Template
 
-```markdown
 | ID | Title | Priority | Points | Status |
-| --- | --- | --- | --- | --- |
-| BEP-XXX | [Title] | [Critical/High/Medium/Low] | [1-13] | [Ready/Needs refinement] |
-```
+| :---: | :--- | :---: | :---: | :---: |
+| BEP-XXX | [Story title] | 🔴 Critical | 5 | ✅ Ready |
+| BEP-XXX | [Story title] | 🟠 High | 3 | ⏳ Refining |
+| BEP-XXX | [Story title] | 🟡 Medium | 2 | ⬜ Pending |
 
 ---
 
-## Technical Analyst Templates
+## 🔧 Technical Analyst Templates
 
 ### Sub-task Template
 
 ```markdown
-**Title:** `[TAG] - Brief description`
+## 📖 Story Narrative
 
-### Story Narrative
-As a [persona], I want to [action] so that [benefit]
+> **As a** [persona],
+> **I want to** [action],
+> **So that** [benefit].
 
-### Objective
-[What and why - concise]
+---
 
-### Scope
-- **Files:** [affected files]
-- **Dependencies:** [related components]
+## 🎯 Objective
 
-### Requirements
-[Key requirements - not implementation]
+[What and why - 1-2 sentences]
 
-### Acceptance Criteria
+---
 
-> **✅ AC1: [Happy path scenario name]**
-> - **Given** [precondition/context]
-> - **When** [action/API call]
-> - **Then** [expected outcome/response]
+## 📁 Scope
 
-> **❌ AC2: [Error handling scenario name]**
-> - **Given** [error condition]
-> - **When** [action/API call]
-> - **Then** [error response/status code]
+| Category | Details |
+| :--- | :--- |
+| **Files** | `path/to/file1.ts`, `path/to/file2.ts` |
+| **Dependencies** | [Related components] |
+| **Database** | [Tables affected] |
 
-### Notes
-[Edge cases, considerations]
+---
 
-### Priority: [Critical/High/Medium/Low]
-### Effort: [S/M/L]
-```
+## 📋 Requirements
 
-### Domain Analysis Template
+- [Requirement 1]
+- [Requirement 2]
 
-```markdown
-## Domain Analysis: [Feature]
+---
 
-### Events (🟧)
-- [Event] - [when it occurs]
+## ✅ Acceptance Criteria
 
-### Commands (🟦)
-- [Command] → triggers [Event]
+> **AC1: [Happy Path]**
+>
+> | | |
+> | --- | --- |
+> | **Given** | [precondition] |
+> | **When** | [action/API call] |
+> | **Then** | [expected response] |
 
-### Actors (🟨)
-- [Actor]: can [Commands]
+> **AC2: [Error Handling]**
+>
+> | | |
+> | --- | --- |
+> | **Given** | [error condition] |
+> | **When** | [action/API call] |
+> | **Then** | [error response] |
 
-### Aggregates
-- [Entity]: [related events]
+---
+
+## 💡 Notes
+
+- [Edge case to handle]
+- [Pattern to follow]
+
+---
+
+## 🔗 Reference
+
+| Type | Link |
+| :--- | :--- |
+| 📄 User Story | [BEP-XXX](link) |
+| 📝 Technical Doc | [Confluence URL] |
 ```
 
 ### Impact Analysis Template
@@ -198,31 +246,36 @@ As a [persona], I want to [action] so that [benefit]
 ## Impact Analysis: [Feature]
 
 ### Services Affected
+
 | Service | Impact | Changes |
-| --- | --- | --- |
-| [BE] | H/M/L | [desc] |
-| [FE-Admin] | H/M/L | [desc] |
-| [FE-Web] | H/M/L | [desc] |
+| :--- | :---: | :--- |
+| 🔧 **[BE]** | 🔴 High | [description] |
+| 🖥️ **[FE-Admin]** | 🟡 Medium | [description] |
+| 🌐 **[FE-Web]** | 🟢 Low | [description] |
 
 ### Database Changes
+
 - [ ] New tables: [list]
 - [ ] New columns: [list]
 - [ ] Migrations: Yes/No
 
 ### API Changes
+
 | Endpoint | Change | Breaking? |
-| --- | --- | --- |
-| [endpoint] | [type] | Yes/No |
+| :--- | :---: | :---: |
+| `POST /api/xxx` | ✨ New | ❌ No |
+| `PUT /api/xxx` | 🔄 Modified | ⚠️ Yes |
 
 ### Risks
-| Risk | Prob | Impact | Mitigation |
-| --- | --- | --- | --- |
-| [risk] | H/M/L | H/M/L | [action] |
+
+| Risk | Probability | Impact | Mitigation |
+| :--- | :---: | :---: | :--- |
+| [risk] | 🟠 Medium | 🔴 High | [action] |
 ```
 
 ---
 
-## Mermaid Diagram Templates
+## 📊 Mermaid Diagram Templates
 
 ### Sequence Diagram
 
@@ -252,55 +305,88 @@ flowchart TD
     Error --> End
 ```
 
-### ER Diagram
-
-```mermaid
-erDiagram
-    ENTITY1 ||--o{ ENTITY2 : has
-    ENTITY1 {
-        int id PK
-        string name
-    }
-    ENTITY2 {
-        int id PK
-        int entity1_id FK
-    }
-```
-
 ---
 
-## QA Analyst Templates
+## 🧪 QA Analyst Templates
 
 ### Test Case Template (Jira Sub-task)
 
 ```markdown
-**Title:** `[QA] - Test: [brief description]`
+## 📖 Story Narrative
 
-### Story Narrative
-As a [persona], I want to [action] so that [benefit]
+> **As a** [persona],
+> **I want to** [action],
+> **So that** [benefit].
 
-### Test Objective
+---
+
+## 🎯 Test Objective
+
 [What this test validates]
 
-### Related AC
-- AC[X]: [copy from User Story]
+---
 
-### Test Scenarios
-| ID | Scenario | Type | Priority |
-| --- | --- | --- | --- |
-| TC1 | [scenario] | Happy | High |
-| TC2 | [scenario] | Error | Medium |
+## 📊 AC Coverage
 
-### Test Steps
-**TC1: [Scenario Name]**
-Preconditions: [setup]
-Steps:
-1. [step 1]
-2. [step 2]
-Expected: [result]
+| # | Acceptance Criteria | Scenarios | Status |
+| :---: | :--- | :---: | :---: |
+| 1 | [AC description] | TC1, TC2 | ✅ |
+| 2 | [AC description] | TC3 | ✅ |
 
-### Priority: [Critical/High/Medium/Low]
-### Effort: [S/M]
+> 📈 **Coverage:** [X] scenarios → [Y] ACs (100%)
+
+---
+
+## 🧪 Test Scenarios
+
+| ID | Scenario | AC | Type |
+| :---: | :--- | :---: | :---: |
+| 🟠 TC1 | [Happy path] | 1 | ✅ Happy |
+| 🟠 TC2 | [Error case] | 2 | ❌ Error |
+
+> **Priority:** 🔴 Critical | 🟠 High | 🟡 Medium | 🟢 Low
+
+---
+
+## 📝 Test Cases
+
+> **✅ TC1: [Happy Path Scenario]**
+>
+> | | |
+> | --- | --- |
+> | **AC** | 1 |
+> | **Priority** | 🟠 High |
+> | **Given** | [preconditions] |
+> | **When** | [action steps] |
+> | **Then** | [expected result] |
+
+> **❌ TC2: [Error Handling]**
+>
+> | | |
+> | --- | --- |
+> | **AC** | 2 |
+> | **Priority** | 🟠 High |
+> | **Given** | [error condition] |
+> | **When** | [action] |
+> | **Then** | [error response] |
+
+---
+
+## 📦 Test Data
+
+| Data | Description | Source |
+| :--- | :--- | :---: |
+| [data type] | [description] | 🌱 Seed |
+| [data type] | [description] | 🔧 Manual |
+
+---
+
+## 🔗 Reference
+
+| Type | Link |
+| :--- | :--- |
+| 📋 User Story | [BEP-XXX](link) |
+| 📄 Test Plan | [Confluence URL] |
 ```
 
 ### Test Plan Template (Confluence)
@@ -312,37 +398,93 @@ Expected: [result]
 > **Status:** Draft / Ready
 
 ## Test Scope
-- In: [areas to test]
-- Out: [excluded]
+
+| In Scope | Out of Scope |
+| :--- | :--- |
+| [area to test] | [excluded] |
 
 ## AC Coverage Matrix
-| AC | Description | Test Cases | Priority |
-| --- | --- | --- | --- |
-| AC1 | [desc] | TC1, TC2 | High |
+
+| # | Acceptance Criteria | Scenarios | Status |
+| :---: | :--- | :---: | :---: |
+| 1 | [AC description] | TC1, TC2 | ✅ |
+| 2 | [AC description] | TC3 | ✅ |
+
+> 📈 **Coverage:** [X] scenarios → [Y] ACs (100%)
 
 ## Test Scenarios
-### Happy Path
-| ID | Scenario | AC |
-| TC1 | [scenario] | AC1 |
 
-### Error Cases
+### ✅ Happy Path
+
 | ID | Scenario | AC |
-| TC2 | [scenario] | AC2 |
+| :---: | :--- | :---: |
+| 🟠 TC1 | [scenario] | 1 |
+
+### ❌ Error Cases
+
+| ID | Scenario | AC |
+| :---: | :--- | :---: |
+| 🟠 TC2 | [scenario] | 2 |
 
 ## Test Data Requirements
-| Data | Source |
-| [data] | [source] |
+
+| Data | Description | Source |
+| :--- | :--- | :---: |
+| [data] | [description] | 🌱 Seed |
 
 ## Links
-- Story: [link]
-- Technical Note: [link]
+
+| Type | Link |
+| :--- | :--- |
+| 📋 Story | [BEP-XXX](link) |
+| 📝 Technical Note | [Confluence URL] |
 ```
 
-### Coverage Matrix Template
+---
 
-| AC | Description | Test Cases | Status |
-| --- | --- | --- | --- |
-| AC1 | [desc] | TC1, TC2 | ⬜/✅ |
-| AC2 | [desc] | TC3 | ⬜/✅ |
+## 🏷️ Quick Reference
 
-**Coverage:** [X] test cases / [Y] ACs
+### Priority Colors
+
+| Level | Icon | When to Use |
+| :--- | :---: | :--- |
+| **Critical** | 🔴 | Blocker, production, security |
+| **High** | 🟠 | Core feature, deadline |
+| **Medium** | 🟡 | Standard work |
+| **Low** | 🟢 | Nice-to-have |
+
+### Status Icons
+
+| Status | Icon |
+| :--- | :---: |
+| Pending | ⬜ |
+| In Progress | ⏳ |
+| Done | ✅ |
+| Blocked | 🚫 |
+
+### Test Type Icons
+
+| Type | Icon |
+| :--- | :---: |
+| Happy Path | ✅ |
+| Error | ❌ |
+| Edge/Validation | ⚠️ |
+| Security | 🔒 |
+| UI | 📱 |
+
+### Service Tags
+
+| Service | Tag | Icon |
+| :--- | :--- | :---: |
+| Backend | `[BE]` | 🔧 |
+| Admin | `[FE-Admin]` | 🖥️ |
+| Website | `[FE-Web]` | 🌐 |
+| QA | `[QA]` | 🧪 |
+
+### Data Source Icons
+
+| Source | Icon |
+| :--- | :---: |
+| Seed data | 🌱 |
+| Manual | 🔧 |
+| API | 🔌 |

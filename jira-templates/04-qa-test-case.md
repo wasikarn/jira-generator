@@ -1,12 +1,14 @@
 # Jira QA Test Case Template
 
-> **Version:** 1.1 | **Updated:** 2026-01-22
+> **Version:** 2.0 | **Updated:** 2026-01-23
 
 ---
 
 ## หลักการสำคัญ
 
-**1 User Story = 1 [QA] Sub-task** (รวมทุก test scenario ไว้ใน sub-task เดียว)
+> 📌 **1 User Story = 1 [QA] Sub-task**
+>
+> รวมทุก test scenario ไว้ใน sub-task เดียว
 
 ---
 
@@ -20,9 +22,8 @@
 
 **Examples:**
 - ✅ `[QA] - Test: หน้าเมนูคูปอง (Coupon Menu)`
-- ✅ `[QA] - Test: User Authentication Flow`
-- ✅ `[QA] - Test: Product Search & Filter`
-- ❌ `[QA] - Test: Display cards` (เฉพาะเจาะจงเกินไป - ควรรวมทั้ง story)
+- ✅ `[QA] - Test: Credit Transaction History`
+- ❌ `[QA] - Test: Display cards` (เจาะจงเกินไป)
 - ❌ `Test login` (ไม่มี tag)
 
 ---
@@ -30,105 +31,115 @@
 ## Description Template (Copy ไปใช้เลย)
 
 ```markdown
-## Story Narrative
+## 📖 Story Narrative
 
-> As a [persona], I want to [action] so that [benefit]
+> **As a** [persona],
+> **I want to** [action],
+> **So that** [benefit].
 
 ---
 
-## Test Objective
+## 🎯 Test Objective
 
 [What this test validates - อธิบาย scope ทั้งหมดของ story]
 
 ---
 
-## AC Coverage
+## 📊 AC Coverage
 
-| AC | Description | Test Scenarios |
-| --- | --- | --- |
-| AC1 | [desc] | TC1, TC2 |
-| AC2 | [desc] | TC3 |
-| AC3 | [desc] | TC4, TC5 |
+| # | Acceptance Criteria | Scenarios | Status |
+| :---: | :--- | :---: | :---: |
+| 1 | [AC description] | TC1, TC2 | ✅ |
+| 2 | [AC description] | TC3 | ✅ |
+| 3 | [AC description] | TC4, TC5 | ✅ |
 
-**Coverage:** [X] scenarios / [Y] ACs
-
----
-
-## Test Scenarios Summary
-
-| ID | Scenario | AC | Type | Priority |
-| --- | --- | --- | --- | --- |
-| TC1 | [Happy path scenario] | AC1 | Happy | High |
-| TC2 | [Alternative path] | AC1 | Happy | Medium |
-| TC3 | [Error scenario] | AC2 | Error | High |
-| TC4 | [Edge case] | AC3 | Edge | Medium |
-| TC5 | [UI/Responsive] | AC3 | UI | Low |
+> 📈 **Coverage:** 5 scenarios → 3 ACs (100%)
 
 ---
 
-## Test Steps Detail
+## 🧪 Test Scenarios
 
-### TC1: [Scenario Name]
+| ID | Scenario | AC | Type |
+| :---: | :--- | :---: | :---: |
+| 🟠 TC1 | [Happy path scenario] | 1 | ✅ Happy |
+| 🟡 TC2 | [Alternative path] | 1 | ✅ Happy |
+| 🟠 TC3 | [Error scenario] | 2 | ❌ Error |
+| 🟡 TC4 | [Edge case] | 3 | ⚠️ Edge |
+| 🟢 TC5 | [UI/Responsive] | 3 | 📱 UI |
 
-**AC:** AC1
-**Type:** Happy Path
-**Priority:** High
-
-**Preconditions:**
-- [Setup required]
-
-**Steps:**
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
-
-**Expected Result:**
-- [Expected outcome - specific, measurable]
+> **Priority:** 🔴 Critical | 🟠 High | 🟡 Medium | 🟢 Low
 
 ---
 
-### TC2: [Scenario Name]
+## 📝 Test Cases
 
-**AC:** AC1
-**Type:** Happy Path
-**Priority:** Medium
+> **✅ TC1: [Happy Path Scenario Name]**
+>
+> | | |
+> | --- | --- |
+> | **AC** | 1 |
+> | **Priority** | 🟠 High |
+> | **Given** | [preconditions/setup] |
+> | **When** | [action steps] |
+> | **Then** | [expected result - specific, measurable] |
 
-**Preconditions:**
-- [Setup required]
+> **✅ TC2: [Alternative Happy Path]**
+>
+> | | |
+> | --- | --- |
+> | **AC** | 1 |
+> | **Priority** | 🟡 Medium |
+> | **Given** | [preconditions/setup] |
+> | **When** | [action steps] |
+> | **Then** | [expected result] |
 
-**Steps:**
-1. [Step 1]
-2. [Step 2]
+> **❌ TC3: [Error Handling Scenario]**
+>
+> | | |
+> | --- | --- |
+> | **AC** | 2 |
+> | **Priority** | 🟠 High |
+> | **Given** | [error condition setup] |
+> | **When** | [action that triggers error] |
+> | **Then** | [error handling response] |
 
-**Expected Result:**
-- [Expected outcome]
+> **⚠️ TC4: [Edge Case / Validation]**
+>
+> | | |
+> | --- | --- |
+> | **AC** | 3 |
+> | **Priority** | 🟡 Medium |
+> | **Given** | [boundary/edge condition] |
+> | **When** | [action at boundary] |
+> | **Then** | [expected boundary behavior] |
 
 ---
 
-(เพิ่ม TC3, TC4, ... ตามจำนวน scenario)
-
----
-
-## Test Data Requirements
+## 📦 Test Data
 
 | Data | Description | Source |
-| --- | --- | --- |
-| [Data type] | [Description] | [Manual/Seed/API] |
+| :--- | :--- | :---: |
+| [Data type] | [What it contains] | 🌱 Seed |
+| [Data type] | [What it contains] | 🔧 Manual |
+| [Data type] | [What it contains] | 🔌 API |
 
 ---
 
-## Notes
+## 💡 Notes
 
 - [Edge case to watch]
 - [Dependencies]
-- [Risks]
+- [Environment requirements]
 
 ---
 
-## Reference
+## 🔗 Reference
 
-📋 User Story: [BEP-XXX](link)
-📄 Test Plan: [Confluence link]
+| Type | Link |
+| :--- | :--- |
+| 📋 User Story | [BEP-XXX](link) |
+| 📄 Test Plan | [Confluence URL] |
+| 📝 Technical Note | [Confluence URL] |
 ```
 
 ---
@@ -136,57 +147,57 @@
 ## Other Fields
 
 | Field | Value |
-| --- | --- |
-| Issue Type | Subtask |
-| Project | BEP |
-| Parent | [User Story] |
-| Priority | Critical/High/Medium/Low |
+| :--- | :---: |
+| **Issue Type** | Subtask |
+| **Project** | BEP |
+| **Parent** | [User Story] |
+| **Priority** | [See guide below] |
 
 ---
 
-## Effort Size
+## ⏱️ Effort Size
 
-| Size | Scenarios | When |
-| --- | --- | --- |
-| S | 1-3 | Simple story, few ACs |
-| M | 4-6 | Moderate story |
-| L | 7-10 | Complex story, many ACs |
+| Size | Icon | Scenarios | Typical Story |
+| :---: | :---: | :---: | :--- |
+| **S** | 🟢 | 1-3 | Simple story, 1-2 ACs |
+| **M** | 🟡 | 4-6 | Moderate story, 3-4 ACs |
+| **L** | 🟠 | 7-10 | Complex story, 5+ ACs |
 
-**Note:** ไม่ต้อง split - รวมทุก scenario ไว้ใน sub-task เดียว
-
----
-
-## Priority Guide
-
-| Priority | When | Example |
-| --- | --- | --- |
-| 🔴 Critical | Core flow, data integrity | Payment, authentication |
-| 🟠 High | Primary features | CRUD operations |
-| 🟡 Medium | Secondary features | Filters, sorting |
-| 🟢 Low | Nice-to-have | UI feedback |
+> 💡 **Note:** ไม่ต้อง split - รวมทุก scenario ไว้ใน sub-task เดียว
 
 ---
 
-## Test Type Reference
+## 🚨 Priority Guide
 
-| Type | Focus | Example |
-| --- | --- | --- |
-| Happy | Normal flow succeeds | Login with valid creds |
-| Validation | Input rules enforced | Invalid email rejected |
-| Error | Failure handled | Network error shows message |
-| Edge | Boundary cases | Max 100 items limit |
-| Security | Access control | Unauthorized returns 403 |
+| Level | Icon | When to Use | Example |
+| :--- | :---: | :--- | :--- |
+| **Critical** | 🔴 | Core flow, data integrity | Payment, authentication |
+| **High** | 🟠 | Primary features | CRUD operations |
+| **Medium** | 🟡 | Secondary features | Filters, sorting |
+| **Low** | 🟢 | Nice-to-have | UI polish |
 
 ---
 
-## Quality Check
+## 🏷️ Test Type Reference
+
+| Icon | Type | Focus | Example |
+| :---: | :--- | :--- | :--- |
+| ✅ | Happy | Normal flow succeeds | Login with valid creds |
+| ⚠️ | Edge | Boundary/validation | Max 100 items, invalid email |
+| ❌ | Error | Failure handled | Network timeout message |
+| 🔒 | Security | Access control | Unauthorized returns 403 |
+| 📱 | UI | Display/responsive | Mobile layout |
+
+---
+
+## Quality Checklist
 
 Before submit:
 - [ ] **1 sub-task per story** - รวมทุก scenario ไว้ใน sub-task เดียว
 - [ ] **Clear objective** - อธิบาย test scope ของทั้ง story
 - [ ] **AC coverage table** - map ทุก AC กับ scenarios
 - [ ] **All scenarios included** - Happy, Error, Edge, UI
-- [ ] **Specific steps** - steps ละเอียด reproducible
+- [ ] **Specific steps** - Given/When/Then ละเอียด reproducible
 - [ ] **Expected results** - ผลลัพธ์ชัดเจน verifiable
 - [ ] **Test data defined** - ข้อมูล test ระบุครบ
 
