@@ -83,16 +83,20 @@ so that [benefit]
 
 ### Acceptance Criteria
 
-AC1: [Happy path]
-Given [precondition]
-When [action]
-Then [outcome]
+> **✅ AC1: [Happy path scenario name]**
+> - **Given** [precondition/context]
+> - **When** [user action]
+> - **Then** [expected outcome]
 
-AC2: [Validation]
-Should [behavior] when [condition]
+> **⚠️ AC2: [Edge case/validation scenario name]**
+> - **Given** [edge case condition]
+> - **When** [user action]
+> - **Then** [expected behavior]
 
-AC3: [Error handling]
-Must [handle error] when [failure]
+> **❌ AC3: [Error handling scenario name]**
+> - **Given** [error condition]
+> - **When** [user action]
+> - **Then** [error response/message]
 
 ### Notes
 - [Additional context]
@@ -152,15 +156,16 @@ As a [persona], I want to [action] so that [benefit]
 [Key requirements - not implementation]
 
 ### Acceptance Criteria
-AC1: [Happy path]
-Given [precondition]
-When [action]
-Then [outcome]
 
-AC2: [Error handling]
-Given [error condition]
-When [action]
-Then [error response]
+> **✅ AC1: [Happy path scenario name]**
+> - **Given** [precondition/context]
+> - **When** [action/API call]
+> - **Then** [expected outcome/response]
+
+> **❌ AC2: [Error handling scenario name]**
+> - **Given** [error condition]
+> - **When** [action/API call]
+> - **Then** [error response/status code]
 
 ### Notes
 [Edge cases, considerations]
