@@ -6,3 +6,6 @@
 
 # Generated output
 output/
+
+# Playwright test artifacts
+.playwright-mcp/
