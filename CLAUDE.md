@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Agile Documentation System สำหรับ **Tathep Platform** - สร้าง Epics, User Stories, และ Sub-tasks ผ่าน Jira/Confluence
+Agile Documentation System for **Tathep Platform** - Create Epics, User Stories, and Sub-tasks via Jira/Confluence
 
 ## Project Settings
 
@@ -18,13 +18,13 @@ Agile Documentation System สำหรับ **Tathep Platform** - สร้า
 
 ## Quick Start
 
-| ต้องการ | Prompt | Output |
+| Task | Prompt | Output |
 | --- | --- | --- |
-| สร้าง Epic | `prompts/01-senior-product-manager.md` | Epic + Epic Doc |
-| สร้าง User Story | `prompts/02-senior-product-owner.md` | User Story |
-| วิเคราะห์ Story | `prompts/03-senior-technical-analyst.md` | Sub-tasks + Technical Note |
+| Create Epic | `prompts/01-senior-product-manager.md` | Epic + Epic Doc |
+| Create User Story | `prompts/02-senior-product-owner.md` | User Story |
+| Analyze Story | `prompts/03-senior-technical-analyst.md` | Sub-tasks + Technical Note |
 | Update Sub-task | `prompts/04-update-subtask.md` | Updated Sub-task |
-| สร้าง Test Plan | `prompts/05-senior-qa-analyst.md` | Test Plan + [QA] Sub-tasks |
+| Create Test Plan | `prompts/05-senior-qa-analyst.md` | Test Plan + [QA] Sub-tasks |
 
 ## Workflow Chain
 
@@ -45,11 +45,11 @@ Each role uses **Handoff Protocol** to pass context to next:
 
 | Trigger | Role | Prompt |
 | --- | --- | --- |
-| "สร้าง epic", "product vision", "RICE", "PRD" | PM | `01-senior-product-manager.md` |
-| "สร้าง user story", "sprint planning", "backlog" | PO | `02-senior-product-owner.md` |
-| "วิเคราะห์ story", "สร้าง sub-task", "BEP-XXX" | TA | `03-senior-technical-analyst.md` |
-| "update sub-task", "แก้ sub-task" | TA | `04-update-subtask.md` |
-| "สร้าง test plan", "QA", "test coverage", "test case" | QA | `05-senior-qa-analyst.md` |
+| "create epic", "product vision", "RICE", "PRD" | PM | `01-senior-product-manager.md` |
+| "create user story", "sprint planning", "backlog" | PO | `02-senior-product-owner.md` |
+| "analyze story", "create sub-task", "BEP-XXX" | TA | `03-senior-technical-analyst.md` |
+| "update sub-task", "edit sub-task" | TA | `04-update-subtask.md` |
+| "create test plan", "QA", "test coverage", "test case" | QA | `05-senior-qa-analyst.md` |
 
 ## Service Tags
 
@@ -61,63 +61,99 @@ Each role uses **Handoff Protocol** to pass context to next:
 
 ## Atlassian Tool Selection
 
-เลือกใช้เครื่องมือตามความเหมาะสม:
+### Jira Issue Create/Update - Always Use ADF
+
+> **IMPORTANT:** When creating or updating Jira issues, **always use ADF format via `acli --from-json`**
+>
+> MCP tools (jira_create_issue, jira_update_issue) convert markdown to wiki format which doesn't render as nicely as ADF
+
+| Operation | Command | Note |
+| --- | --- | --- |
+| **Create issue** | `acli jira workitem create --from-json issue.json` | ADF description |
+| **Update issue** | `acli jira workitem edit --from-json issue.json --yes` | ADF description |
+| **Simple field update** | MCP `jira_update_issue` | Does not touch description |
+
+### Other Tools
 
 | Scenario | Tool | Reason |
 | --- | --- | --- |
-| **Rich text description** (tables, panels, code blocks) | `atlassian-cli` skill + `--from-json` | ADF format ต้องใช้ JSON structure |
-| **Simple text description** | Atlassian MCP หรือ `acli` | ทั้งสองทำงานได้ |
-| **Search issues/pages** | `atlassian:search` MCP | Rovo Search รวดเร็ว |
-| **Read Confluence page** | `getConfluencePage` MCP | ได้ content เป็น markdown |
-| **Create Confluence page** | `createConfluencePage` MCP | รับ markdown แปลงเป็น storage format |
-| **Bulk Jira operations** | `atlassian-cli` skill + JQL | `--jql` flag รองรับ bulk edit |
-| **Complex workflows** | `atlassian-mcp` skill | Guided workflow with validation |
+| **Search issues/pages** | MCP `jira_search` or `confluence_search` | Fast |
+| **Read issue details** | MCP `jira_get_issue` | Full data |
+| **Read Confluence page** | MCP `confluence_get_page` | Returns markdown |
+| **Create Confluence page** | MCP `confluence_create_page` | Accepts markdown, converts to storage format |
+| **Bulk Jira operations** | `acli` + `--jql` flag | Supports bulk edit |
 
 ### Decision Flow
 
 ```
-ต้องการทำอะไร?
+What do you need?
     │
-    ├─ สร้าง/แก้ไข Jira issue
+    ├─ Create/Update Jira issue description
     │     │
-    │     ├─ Description มี table/panel/rich format?
-    │     │     ├─ Yes → atlassian-cli + --from-json (ADF)
-    │     │     └─ No  → Atlassian MCP หรือ acli --description
-    │     │
-    │     └─ Bulk operation?
-    │           ├─ Yes → atlassian-cli + --jql
-    │           └─ No  → Atlassian MCP
+    │     └─ Always use acli + --from-json (ADF)
+    │           • Create JSON file with ADF content
+    │           • acli jira workitem create --from-json issue.json
+    │           • acli jira workitem edit --from-json issue.json --yes
+    │
+    ├─ Update other fields (not description)
+    │     └─ MCP jira_update_issue is OK
     │
     ├─ Search Jira/Confluence
-    │     └─ atlassian:search MCP (Rovo Search)
+    │     └─ MCP jira_search / confluence_search
     │
     └─ Confluence page
-          ├─ Read  → getConfluencePage MCP
-          └─ Create/Update → createConfluencePage MCP (markdown OK)
+          ├─ Read  → MCP confluence_get_page
+          └─ Create/Update → MCP confluence_create_page (markdown OK)
 ```
 
-### ADF Format (Rich Text)
+### ADF JSON Structure
 
-เมื่อต้องการ rich text ใน Jira description ให้ใช้:
+```json
+{
+  "issues": ["BEP-XXX"],
+  "projectKey": "BEP",
+  "type": "Subtask",
+  "parent": "BEP-YYY",
+  "summary": "[TAG] - Title",
+  "description": {
+    "type": "doc",
+    "version": 1,
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "Section"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "Normal "}, {"type": "text", "text": "bold", "marks": [{"type": "strong"}]}]},
+      {"type": "rule"},
+      {"type": "table", "attrs": {"isNumberColumnEnabled": false, "layout": "default"}, "content": [...]},
+      {"type": "blockquote", "content": [{"type": "paragraph", "content": [...]}]},
+      {"type": "bulletList", "content": [{"type": "listItem", "content": [{"type": "paragraph", "content": [...]}]}]}
+    ]
+  }
+}
+```
 
+**Commands:**
 ```bash
-# 1. สร้าง JSON file กับ ADF content
-# 2. ใช้ --from-json flag
-acli jira workitem edit --from-json workitem.json --yes
+# Create new issue
+acli jira workitem create --from-json issue.json
+
+# Update existing issue (requires "issues": ["BEP-XXX"] in JSON)
+acli jira workitem edit --from-json issue.json --yes
 ```
 
-ดูรายละเอียด ADF format ได้ที่ `atlassian-cli` skill
+See `atlassian-cli` skill for detailed ADF format reference.
 
 ## MCP Tools
 
 | Tool | Use |
 | --- | --- |
-| `Atlassian:search` | ค้นหา Jira/Confluence (Rovo Search) |
-| `Atlassian:getConfluencePage` | อ่าน Confluence page |
-| `Atlassian:createConfluencePage` | สร้าง Confluence page |
-| `Atlassian:getConfluencePageFooterComments` | อ่าน comments |
+| `jira_search` | Search Jira issues with JQL |
+| `jira_get_issue` | Read issue details |
+| `jira_update_issue` | Update fields (excluding description) |
+| `confluence_search` | Search Confluence pages |
+| `confluence_get_page` | Read Confluence page |
+| `confluence_create_page` | Create Confluence page (markdown OK) |
 
-**Note:** สำหรับ Jira CRUD operations ที่ต้องการ rich text ให้ใช้ `atlassian-cli` skill แทน
+> **WARNING:** Do not use `jira_create_issue` or `jira_update_issue` for description field.
+> It converts to wiki format which doesn't render nicely. Use `acli --from-json` instead.
 
 Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 
@@ -160,8 +196,10 @@ tasks/                # Generated outputs (gitignored)
 
 | Issue | Solution |
 | --- | --- |
+| Description renders as ugly wiki format | Use `acli --from-json` with ADF format instead of MCP |
+| `acli` error: unknown field | Check JSON structure (use `projectKey` not `project`, use `issues` array for edit) |
 | MCP tool not found | Check `references/shared-config.md` for correct tool names |
 | Wrong project key | Ensure using `BEP` project key |
-| Missing parent link | Always specify parent Epic/Story when creating |
+| Missing parent link | Always specify parent Epic/Story when creating subtask |
 | "Issue not found" | Verify key format: `BEP-XXX` |
 | "Permission denied" | Re-authenticate MCP |
