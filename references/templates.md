@@ -2,7 +2,52 @@
 
 > **Purpose:** รวม templates ทั้งหมดสำหรับ PM, PO, TA, QA - โหลดเมื่อต้องการใช้งาน
 >
-> **Version:** 3.0 | **Updated:** 2026-01-23
+> **Version:** 3.1 | **Updated:** 2026-01-23
+
+---
+
+## 🎨 ADF Cosmetic Guide
+
+### Panel Types (Color-Coded Containers)
+
+| Panel Type | Color | Visual | Use Case |
+| :--- | :--- | :---: | :--- |
+| `info` | Blue | 🔵 | Story narratives, objectives, general information |
+| `success` | Green | 🟢 | Happy path AC, positive test cases |
+| `warning` | Yellow | 🟡 | Validation AC, edge cases, warnings |
+| `error` | Red | 🔴 | Error handling AC, negative test cases |
+| `note` | Purple | 🟣 | Important notes, dependencies, references |
+
+### ADF Panel JSON Structure
+
+```json
+{
+  "type": "panel",
+  "attrs": {"panelType": "success"},
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [{"type": "text", "text": "🟢 AC1: Happy Path", "marks": [{"type": "strong"}]}]
+    },
+    {
+      "type": "bulletList",
+      "content": [
+        {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Given: [context]", "marks": [{"type": "strong"}]}]}]},
+        {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "When: [action]"}]}]},
+        {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Then: [outcome]"}]}]}
+      ]
+    }
+  ]
+}
+```
+
+### Best Practices
+
+- ✅ Use **success** panels for happy path scenarios
+- ✅ Use **warning** panels for validation/edge cases
+- ✅ Use **error** panels for error handling scenarios
+- ✅ Use **info** panels for context and objectives
+- ✅ Use **note** panels for important reminders
 
 ---
 

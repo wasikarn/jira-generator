@@ -1,6 +1,6 @@
 # Jira QA Test Case Template
 
-> **Version:** 2.0 | **Updated:** 2026-01-23
+> **Version:** 2.1 | **Updated:** 2026-01-23
 
 ---
 
@@ -9,6 +9,20 @@
 > 📌 **1 User Story = 1 [QA] Sub-task**
 >
 > รวมทุก test scenario ไว้ใน sub-task เดียว
+
+---
+
+## 🎨 ADF Cosmetic Features
+
+| Feature | Usage | Visual |
+| :--- | :--- | :---: |
+| **Info Panel** | Test objective, coverage summary | 🔵 Blue |
+| **Success Panel** | Happy path test cases | 🟢 Green |
+| **Warning Panel** | Edge case test cases | 🟡 Yellow |
+| **Error Panel** | Error handling test cases | 🔴 Red |
+| **Note Panel** | Important notes, dependencies | 🟣 Purple |
+
+> 💡 **Tip:** ใช้ ADF panels เพื่อแยก test case types ด้วยสี ช่วยให้อ่านง่ายขึ้น
 
 ---
 
@@ -73,7 +87,13 @@
 
 ## 📝 Test Cases
 
-> **✅ TC1: [Happy Path Scenario Name]**
+> 💡 **ADF Panel Guide:** ใช้ `success` panel สำหรับ Happy Path, `error` panel สำหรับ Error Cases, `warning` panel สำหรับ Edge Cases
+
+---
+
+### ✅ Happy Path Tests
+
+> **🟢 TC1: [Happy Path Scenario Name]** `[panel: success]`
 >
 > | | |
 > | --- | --- |
@@ -83,7 +103,7 @@
 > | **When** | [action steps] |
 > | **Then** | [expected result - specific, measurable] |
 
-> **✅ TC2: [Alternative Happy Path]**
+> **🟢 TC2: [Alternative Happy Path]** `[panel: success]`
 >
 > | | |
 > | --- | --- |
@@ -93,7 +113,11 @@
 > | **When** | [action steps] |
 > | **Then** | [expected result] |
 
-> **❌ TC3: [Error Handling Scenario]**
+---
+
+### ❌ Error Handling Tests
+
+> **🔴 TC3: [Error Handling Scenario]** `[panel: error]`
 >
 > | | |
 > | --- | --- |
@@ -103,7 +127,11 @@
 > | **When** | [action that triggers error] |
 > | **Then** | [error handling response] |
 
-> **⚠️ TC4: [Edge Case / Validation]**
+---
+
+### ⚠️ Edge Case Tests
+
+> **🟡 TC4: [Edge Case / Validation]** `[panel: warning]`
 >
 > | | |
 > | --- | --- |

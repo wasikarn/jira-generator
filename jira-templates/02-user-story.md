@@ -1,6 +1,20 @@
 # Jira User Story Template
 
-> **Version:** 3.0 | **Updated:** 2026-01-23
+> **Version:** 3.1 | **Updated:** 2026-01-23
+
+---
+
+## 🎨 ADF Cosmetic Features
+
+| Feature | Usage | Visual |
+| :--- | :--- | :---: |
+| **Info Panel** | User story narrative | 🔵 Blue |
+| **Success Panel** | Happy path AC | 🟢 Green |
+| **Warning Panel** | Validation AC | 🟡 Yellow |
+| **Error Panel** | Error handling AC | 🔴 Red |
+| **Note Panel** | Business rules, important notes | 🟣 Purple |
+
+> 💡 **Tip:** ใช้ ADF panels เพื่อแยก AC types ด้วยสี ช่วยให้ทีมอ่านและเข้าใจได้ง่ายขึ้น
 
 ---
 
@@ -30,7 +44,11 @@
 
 ## ✅ Acceptance Criteria
 
-> **AC1: [Happy Path - ชื่อ scenario]**
+> 💡 **ADF Panel Guide:** ใช้ `success` panel สำหรับ Happy Path, `warning` panel สำหรับ Validation, `error` panel สำหรับ Error Case
+
+---
+
+> **🟢 AC1: [Happy Path - ชื่อ scenario]** `[panel: success]`
 >
 > | | |
 > | --- | --- |
@@ -38,7 +56,7 @@
 > | **When** | [action - การกระทำของ user] |
 > | **Then** | [outcome - ผลลัพธ์ที่คาดหวัง] |
 
-> **AC2: [Validation - ชื่อ scenario]**
+> **🟡 AC2: [Validation - ชื่อ scenario]** `[panel: warning]`
 >
 > | | |
 > | --- | --- |
@@ -46,7 +64,7 @@
 > | **When** | [user action] |
 > | **Then** | [validation message/behavior] |
 
-> **AC3: [Error Case - ชื่อ scenario]**
+> **🔴 AC3: [Error Case - ชื่อ scenario]** `[panel: error]`
 >
 > | | |
 > | --- | --- |
@@ -124,7 +142,23 @@
 
 ## AC Format Options
 
-**Option 1: Table Format** (แนะนำ - อ่านง่าย)
+**Option 1: ADF Panel + Bullet List** (แนะนำ - สวยงามใน Jira)
+```json
+{
+  "type": "panel",
+  "attrs": {"panelType": "success"},
+  "content": [
+    {"type": "paragraph", "content": [{"type": "text", "text": "🟢 AC1: Happy Path", "marks": [{"type": "strong"}]}]},
+    {"type": "bulletList", "content": [
+      {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Given: [context]"}]}]},
+      {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "When: [action]"}]}]},
+      {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Then: [outcome]"}]}]}
+    ]}
+  ]
+}
+```
+
+**Option 2: Markdown Table Format** (ใช้กับ markdown)
 ```markdown
 > **AC1: [Scenario Name]**
 >
@@ -135,7 +169,7 @@
 > | **Then** | [outcome] |
 ```
 
-**Option 2: Inline Format** (กระชับ)
+**Option 3: Inline Format** (กระชับ)
 ```markdown
 > **AC1: [Scenario Name]**
 > - **Given** [context]
@@ -143,11 +177,17 @@
 > - **Then** [outcome]
 ```
 
-**Option 3: Checklist** (simple cases)
-```markdown
-- [ ] [Criterion 1]
-- [ ] [Criterion 2]
-```
+---
+
+## 🎨 ADF Panel Types Reference
+
+| Panel Type | Color | Use Case |
+| :--- | :---: | :--- |
+| `success` | 🟢 Green | Happy path, positive scenarios |
+| `warning` | 🟡 Yellow | Validation, edge cases |
+| `error` | 🔴 Red | Error handling, negative scenarios |
+| `info` | 🔵 Blue | Informational, context |
+| `note` | 🟣 Purple | Important notes, references |
 
 ---
 

@@ -1,6 +1,20 @@
 # Jira Sub-task Template
 
-> **Version:** 4.0 | **Updated:** 2026-01-23
+> **Version:** 4.1 | **Updated:** 2026-01-23
+
+---
+
+## 🎨 ADF Cosmetic Features
+
+| Feature | Usage | Visual |
+| :--- | :--- | :---: |
+| **Info Panel** | Story narrative, objective | 🔵 Blue |
+| **Success Panel** | Happy path AC | 🟢 Green |
+| **Warning Panel** | Validation AC | 🟡 Yellow |
+| **Error Panel** | Error handling AC | 🔴 Red |
+| **Note Panel** | Important notes, references | 🟣 Purple |
+
+> 💡 **Tip:** ใช้ ADF panels เพื่อแยก AC types ด้วยสี ช่วยให้ Developer อ่านง่ายขึ้น
 
 ---
 
@@ -57,7 +71,11 @@
 
 ## ✅ Acceptance Criteria
 
-> **AC1: [Happy Path]**
+> 💡 **ADF Panel Guide:** ใช้ `success` panel สำหรับ Happy Path, `warning` panel สำหรับ Validation, `error` panel สำหรับ Error Handling
+
+---
+
+> **🟢 AC1: [Happy Path]** `[panel: success]`
 >
 > | | |
 > | --- | --- |
@@ -65,7 +83,7 @@
 > | **When** | [action/API call] |
 > | **Then** | [expected response/behavior] |
 
-> **AC2: [Validation]**
+> **🟡 AC2: [Validation]** `[panel: warning]`
 >
 > | | |
 > | --- | --- |
@@ -73,7 +91,7 @@
 > | **When** | [action/API call] |
 > | **Then** | [validation error/response] |
 
-> **AC3: [Error Handling]**
+> **🔴 AC3: [Error Handling]** `[panel: error]`
 >
 > | | |
 > | --- | --- |
