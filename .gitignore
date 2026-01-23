@@ -9,3 +9,9 @@ output/
 
 # Playwright test artifacts
 .playwright-mcp/
+
+# Tasks
+.tasks/
+
+# Claude-Mem
+**/CLAUDE.md
