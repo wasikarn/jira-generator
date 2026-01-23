@@ -11,7 +11,7 @@ output/
 .playwright-mcp/
 
 # Tasks
-.tasks/
+tasks/
 
 # Claude-Mem
 **/CLAUDE.md
