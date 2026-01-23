@@ -231,3 +231,22 @@ Before completing:
 | 🟠 High | Primary features, CRUD operations |
 | 🟡 Medium | Secondary features, filters |
 | 🟢 Low | Nice-to-have, UI polish |
+
+---
+
+## Verification
+
+หลังสร้าง [QA] Sub-task แล้ว ให้ verify:
+
+```
+/verify-issue BEP-QQQ
+```
+
+**Checks:**
+- ✅ ADF format ถูกต้อง
+- ✅ ครอบคลุมทุก Story ACs
+- ✅ Panel colors ตรงกับ test type
+- ✅ Test scenarios ชัดเจน
+- ✅ Language เป็น Thai + ทับศัพท์
+
+See `references/verification-checklist.md` for full checklist.

@@ -51,6 +51,12 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | Command | Description | Output |
 | --- | --- | --- |
 | `/search-issues` | ค้นหา issues ก่อนสร้างใหม่ (ป้องกันสร้างซ้ำ) | List of matching issues |
+| `/verify-issue BEP-XXX` | ตรวจสอบคุณภาพ issue (ADF, INVEST, language) | Verification report |
+
+> **เมื่อไหร่ควรใช้ Verify:**
+> - หลังสร้าง issue ใหม่ → ตรวจสอบคุณภาพก่อน handoff
+> - หลัง improve/update → ยืนยันว่า format ถูกต้อง
+> - `/verify-issue BEP-XXX --with-subtasks` → ตรวจสอบ Story + Sub-tasks ทั้งหมด
 
 **Skill Location:** `skills/jira-workflow/`
 
@@ -110,6 +116,7 @@ Each role uses **Handoff Protocol** to pass context to next:
 | Trigger | Command | Action |
 | --- | --- | --- |
 | "search", "find", "หา issue" | `/search-issues` | 3-phase search utility |
+| "verify", "validate", "ตรวจสอบ" | `/verify-issue` | 4-phase verification |
 
 **How Skill Commands Work:**
 1. Load skill from `skills/jira-workflow/SKILL.md`
@@ -261,13 +268,15 @@ skills/               # Skill commands (PREFERRED)
     │   ├── improve-issue.md  → 6-phase batch improve
     │   ├── story-full.md     → 10-phase composite (PO+TA) ⭐
     │   ├── story-cascade.md  → 8-phase cascade update ⭐
-    │   └── search-issues.md  → 3-phase search utility
+    │   ├── search-issues.md  → 3-phase search utility
+    │   └── verify-issue.md   → 4-phase verification
     └── references/           → Skill-specific refs
         ├── templates.md      → ADF templates
         ├── writing-style.md  → Language guidelines
         ├── tools.md          → Tool selection guide
         ├── jql-quick-ref.md  → JQL patterns for search
-        └── troubleshooting.md → Error recovery guide
+        ├── troubleshooting.md → Error recovery guide
+        └── verification-checklist.md → Quality checklists
 
 prompts/              # Legacy prompts (manual use)
 ├── 01-senior-product-manager.md

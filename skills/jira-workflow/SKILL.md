@@ -20,8 +20,9 @@ description: |
 
   **Utility Commands:**
   - `/search-issues` - ค้นหา issues ก่อนสร้างใหม่
+  - `/verify-issue BEP-XXX` - ตรวจสอบคุณภาพ issue (ADF, INVEST, language)
 
-  Triggers: "analyze story", "create subtask", "update", "improve", "migrate", "BEP-XXX", "แก้ไข", "ปรับปรุง", "story full", "cascade", "search", "find", "หา"
+  Triggers: "analyze story", "create subtask", "update", "improve", "migrate", "BEP-XXX", "แก้ไข", "ปรับปรุง", "story full", "cascade", "search", "find", "หา", "verify", "validate", "ตรวจสอบ"
 ---
 
 # Jira Workflow
@@ -59,6 +60,7 @@ Agile documentation workflow สำหรับ Tathep Platform
 | Command | Phases | Description |
 |---------|:------:|-------------|
 | `/search-issues` | 3 | ค้นหา issues - ป้องกันสร้างซ้ำ, หางานที่เกี่ยวข้อง |
+| `/verify-issue BEP-XXX` | 4 | ตรวจสอบคุณภาพ - ADF format, INVEST, language |
 
 **Usage:** Read the command file from `commands/` directory for detailed phase instructions.
 
@@ -84,6 +86,10 @@ What do you need?
     │
     ├─ ค้นหา (Search)
     │     └─ หา issues ก่อนสร้าง             → /search-issues "keyword"
+    │
+    ├─ ตรวจสอบ (Verify)
+    │     ├─ ตรวจสอบ issue เดียว            → /verify-issue BEP-XXX
+    │     └─ ตรวจสอบ Story + Sub-tasks      → /verify-issue BEP-XXX --with-subtasks
     │
     └─ ⭐ = Composite command (end-to-end workflow)
 ```
@@ -142,6 +148,7 @@ Stakeholder → PM → PO → TA → QA
 | Tool Selection | [references/tools.md](references/tools.md) |
 | JQL Patterns | [references/jql-quick-ref.md](references/jql-quick-ref.md) |
 | Error Recovery | [references/troubleshooting.md](references/troubleshooting.md) |
+| Verification | [references/verification-checklist.md](references/verification-checklist.md) |
 
 ---
 

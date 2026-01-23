@@ -212,3 +212,22 @@ Before completing:
 | 5-10 | 🟠 High - Do soon |
 | 2-5 | 🟡 Medium - Plan for |
 | < 2 | 🟢 Low - Maybe later |
+
+---
+
+## Verification
+
+หลังสร้าง Epic แล้ว ให้ verify:
+
+```
+/verify-issue BEP-XXX
+```
+
+**Checks:**
+- ✅ ADF format ถูกต้อง
+- ✅ RICE score calculated
+- ✅ Scope defined (must/should/nice)
+- ✅ Epic Doc linked
+- ✅ Language เป็น Thai + ทับศัพท์
+
+See `references/verification-checklist.md` for full checklist.

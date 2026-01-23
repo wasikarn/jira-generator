@@ -229,3 +229,22 @@ Before completing:
 | ADF validation error | Simplify structure (no nested tables in panels) |
 | File paths not found | Re-run Explore agent with different search terms |
 | MCP timeout | Retry or use acli alternative |
+
+---
+
+## Verification
+
+หลังสร้าง Sub-tasks แล้ว ให้ verify ทั้ง Story และ Sub-tasks:
+
+```
+/verify-issue BEP-XXX --with-subtasks
+```
+
+**Checks:**
+- ✅ ADF format ถูกต้อง
+- ✅ File paths เป็น real paths
+- ✅ ACs มี Given/When/Then
+- ✅ Parent links ถูกต้อง
+- ✅ Language เป็น Thai + ทับศัพท์
+
+See `references/verification-checklist.md` for full checklist.

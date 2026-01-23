@@ -261,3 +261,20 @@ Before completing:
 - Context preserved ตลอด workflow
 - Faster overall execution
 - Consistent quality checks
+
+---
+
+## Verification
+
+หลังสร้าง Story + Sub-tasks แล้ว ให้ verify ทั้งหมด:
+
+```
+/verify-issue BEP-XXX --with-subtasks
+```
+
+**Checks:**
+- ✅ Story: INVEST, ADF, narrative, ACs
+- ✅ Sub-tasks: File paths, ACs, parent links
+- ✅ All: Language เป็น Thai + ทับศัพท์
+
+See `references/verification-checklist.md` for full checklist.

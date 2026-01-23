@@ -198,3 +198,22 @@ Then: แสดงรายการ transactions ของเดือนปั
 | 5 | Complex, multi-service |
 | 8 | Very complex, integration |
 | 13+ | ❌ ต้องแตก story |
+
+---
+
+## Verification
+
+หลังสร้าง Story แล้ว ให้ verify:
+
+```
+/verify-issue BEP-XXX
+```
+
+**Checks:**
+- ✅ ADF format ถูกต้อง
+- ✅ INVEST criteria ผ่าน
+- ✅ Narrative format ครบ
+- ✅ ACs มี Given/When/Then
+- ✅ Language เป็น Thai + ทับศัพท์
+
+See `references/verification-checklist.md` for full checklist.
