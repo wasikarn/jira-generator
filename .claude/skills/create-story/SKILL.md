@@ -2,240 +2,62 @@
 name: create-story
 description: |
   สร้าง User Story ใหม่จาก requirements ด้วย 5-phase PO workflow
-
-  Phases: Discovery → Write Story → INVEST Validation → Create in Jira → Handoff
-
-  Output: User Story in Jira with ADF format
-
-  Triggers: "create story", "user story", "new story", "feature request"
-disable-model-invocation: true
+  ใช้เมื่อต้องการสร้าง story ใหม่, มี feature request, หรือต้องการแปลง requirements เป็น story
 argument-hint: "[story-description]"
 ---
 
-# /create-story Command
+# /create-story
 
-> **Role:** Senior Product Owner
-> **Input:** Feature requirements / Epic context
-> **Output:** User Story in Jira
+**Role:** Senior Product Owner
+**Output:** User Story in Jira with ADF format
 
----
+## Phases
 
-## Usage
+### 1. Discovery
+- ถ้ามี Epic → `MCP: jira_get_issue` เพื่อดู context
+- ถาม user: Who? What? Why? Constraints?
+- **Gate:** User confirms understanding
 
+### 2. Write Story
 ```
-/create-story
-/create-story "ต้องการให้ผู้ใช้สามารถดูประวัติการใช้เครดิตได้"
+As a [persona],
+I want to [action],
+So that [benefit].
 ```
+- กำหนด ACs: Given/When/Then format
+- ระบุ Scope (affected services) และ DoD
+- ใช้ภาษาไทย + ทับศัพท์
+- **Gate:** User reviews draft
 
----
-
-## Five Phases
-
-### Phase 1: Discovery
-
-**Goal:** ทำความเข้าใจ requirements
-
-**Actions:**
-1. ถ้ามี Epic → Fetch Epic context:
-   ```
-   MCP: jira_get_issue(issue_key: "BEP-XXX")
-   ```
-2. ถาม user เกี่ยวกับ:
-   - Who is the user? (persona)
-   - What do they want to do?
-   - Why? (business value)
-   - Any constraints or dependencies?
-
-**Output:** Requirements summary
-
-**Gate:** User confirms understanding
-
----
-
-### Phase 2: Write User Story
-
-**Goal:** เขียน User Story ตาม format
-
-**Actions:**
-1. เขียน narrative:
-   ```
-   As a [persona],
-   I want to [action],
-   So that [benefit].
-   ```
-
-2. กำหนด Acceptance Criteria:
-   - AC1: Given/When/Then
-   - AC2: Given/When/Then
-   - ...
-
-3. ระบุ:
-   - Scope (affected services)
-   - DoD (Definition of Done)
-   - Story Points (ถ้ามี)
-
-**Template:** See `jira-templates/02-user-story.md`
-
-**Writing Style:**
-- ภาษาไทย + ทับศัพท์
-- กระชับ, ชัดเจน
-
-**Output:** Draft User Story
-
-**Gate:** User reviews story
-
----
-
-### Phase 3: INVEST Validation
-
-**Goal:** ตรวจสอบคุณภาพ User Story
-
-**Checklist:**
-
-| Criteria | Check | Note |
-|----------|-------|------|
-| **I**ndependent | ✅/❌ | ไม่พึ่งพา story อื่น |
-| **N**egotiable | ✅/❌ | มี room สำหรับ discussion |
-| **V**aluable | ✅/❌ | มี business value ชัดเจน |
-| **E**stimable | ✅/❌ | ประเมิน effort ได้ |
-| **S**mall | ✅/❌ | ทำเสร็จใน 1 sprint |
-| **T**estable | ✅/❌ | ทุก AC verify ได้ |
-
-**Output:** INVEST validation result
+### 3. INVEST Validation
+| ✓ | Criteria | Question |
+|---|----------|----------|
+| | Independent | ไม่พึ่งพา story อื่น? |
+| | Negotiable | มี room สำหรับ discussion? |
+| | Valuable | มี business value ชัดเจน? |
+| | Estimable | ประเมิน effort ได้? |
+| | Small | ทำเสร็จใน 1 sprint? |
+| | Testable | ทุก AC verify ได้? |
 
 **Gate:** All criteria pass
 
----
-
-### Phase 4: Create in Jira
-
-**Goal:** สร้าง User Story ใน Jira
-
-**Actions:**
-1. Generate ADF JSON:
-   - File: `tasks/bep-xxx-story.json`
-
-2. Create via acli:
-   ```bash
-   acli jira workitem create --from-json tasks/bep-xxx-story.json
-   ```
-
-**ADF Structure:**
-- Info panel: User Story narrative
-- Success panels: Each AC with Given/When/Then
-- Table: Scope (Backend/Admin/Website)
-- Bullet list: DoD
-- Table: Links (Design, Technical Note)
-
-**Output:** User Story URL
-
----
-
-### Phase 5: Handoff
-
-**Goal:** ส่งต่อให้ TA
-
-**Output Format:**
-
-```markdown
-## User Story Created: [Title] (BEP-XXX)
-
-### Summary
-- **As a:** [persona]
-- **I want to:** [action]
-- **So that:** [benefit]
-
-### Acceptance Criteria
-1. [AC1 summary]
-2. [AC2 summary]
-3. [AC3 summary]
-
-### Handoff to TA
-Story: BEP-XXX
-ACs: [count]
-Ready for: Technical Analysis
-
-Use `/analyze-story BEP-XXX` to continue
+### 4. Create in Jira
+```bash
+acli jira workitem create --from-json tasks/story.json
 ```
+- ADF: Info panel (narrative) + Success panels (ACs)
 
----
-
-## Quality Checklist
-
-Before completing:
-- [ ] User Story follows As a/I want/So that format
-- [ ] All ACs have Given/When/Then
-- [ ] INVEST criteria pass
-- [ ] Scope is clear (which services)
-- [ ] DoD is defined
-- [ ] ADF format via acli
-- [ ] Content is Thai + ทับศัพท์
-- [ ] Handoff summary provided
-
----
-
-## Error Recovery
-
-| Error | Solution |
-|-------|----------|
-| INVEST validation fails | Revisit story scope, may need to split |
-| acli JSON error | Check ADF structure, verify panel format |
-| AC not testable | Rewrite with specific Given/When/Then |
-| Scope unclear | Ask user to clarify which services involved |
-
----
-
-## AC Writing Tips
-
-**Good AC:**
+### 5. Handoff
 ```
-Given: ผู้ใช้อยู่หน้า Credit History
-When: คลิก filter "เดือนนี้"
-Then: แสดงรายการ transactions ของเดือนปัจจุบันเท่านั้น
+## Story Created: [Title] (BEP-XXX)
+ACs: N | Scope: [services]
+→ Use /analyze-story BEP-XXX to continue
 ```
-
-**Bad AC:**
-```
-- ต้องมี filter (ไม่ชัดเจน)
-- หน้าต้องทำงานได้ (ไม่ testable)
-```
-
----
-
-## Story Points Guide
-
-| Points | Complexity |
-|--------|------------|
-| 1 | Simple, config only |
-| 2 | Small feature, 1 service |
-| 3 | Medium, 1-2 services |
-| 5 | Complex, multi-service |
-| 8 | Very complex, integration |
-| 13+ | ❌ ต้องแตก story |
-
----
-
-## Verification
-
-หลังสร้าง Story แล้ว ให้ verify:
-
-```
-/verify-issue BEP-XXX
-```
-
-**Checks:**
-- ✅ ADF format ถูกต้อง
-- ✅ INVEST criteria ผ่าน
-- ✅ Narrative format ครบ
-- ✅ ACs มี Given/When/Then
-- ✅ Language เป็น Thai + ทับศัพท์
-
-See `shared-references/verification-checklist.md` for full checklist.
 
 ---
 
 ## References
 
-- [ADF Templates](../shared-references/templates.md)
-- [Writing Style](../shared-references/writing-style.md)
-- [Tool Selection](../shared-references/tools.md)
+- [ADF Templates](../shared-references/templates.md) - Story ADF structure
+- [Workflows](../shared-references/workflows.md) - INVEST, AC format
+- After creation: `/verify-issue BEP-XXX`
