@@ -1,3 +1,16 @@
+---
+name: create-testplan
+description: |
+  สร้าง Test Plan + [QA] Sub-task จาก User Story ด้วย 6-phase QA workflow
+
+  Phases: Discovery → Test Scope Analysis → Design Test Cases → Create Test Plan Doc → Create [QA] Sub-task → Summary
+
+  Output: Test Plan in Confluence + [QA] Sub-task in Jira
+
+  Triggers: "create test plan", "QA", "test case", "testing"
+argument-hint: "[issue-key]"
+---
+
 # /create-testplan Command
 
 > **Role:** Senior QA Analyst
@@ -249,4 +262,12 @@ Before completing:
 - ✅ Test scenarios ชัดเจน
 - ✅ Language เป็น Thai + ทับศัพท์
 
-See `references/verification-checklist.md` for full checklist.
+See `shared-references/verification-checklist.md` for full checklist.
+
+---
+
+## References
+
+- [ADF Templates](../shared-references/templates.md)
+- [Writing Style](../shared-references/writing-style.md)
+- [Tool Selection](../shared-references/tools.md)

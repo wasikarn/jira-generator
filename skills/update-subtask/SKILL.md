@@ -1,3 +1,16 @@
+---
+name: update-subtask
+description: |
+  แก้ไข Sub-task ที่มีอยู่ ด้วย 5-phase update workflow
+
+  Phases: Fetch Current → Identify Changes → Preserve Intent → Generate Update → Apply Update
+
+  รองรับ: format migration, add details, language fix, add AC
+
+  Triggers: "update subtask", "แก้ไข subtask", "ปรับ subtask"
+argument-hint: "[issue-key] [changes]"
+---
+
 # /update-subtask Command
 
 > **Role:** Senior Technical Analyst
@@ -196,3 +209,11 @@ Before updating:
 | Lost original content | Re-fetch from Jira before retry |
 | User rejects changes | Revise based on feedback |
 | acli error | Check JSON structure |
+
+---
+
+## References
+
+- [ADF Templates](../shared-references/templates.md)
+- [Writing Style](../shared-references/writing-style.md)
+- [Tool Selection](../shared-references/tools.md)

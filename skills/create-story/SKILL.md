@@ -1,3 +1,17 @@
+---
+name: create-story
+description: |
+  สร้าง User Story ใหม่จาก requirements ด้วย 5-phase PO workflow
+
+  Phases: Discovery → Write Story → INVEST Validation → Create in Jira → Handoff
+
+  Output: User Story in Jira with ADF format
+
+  Triggers: "create story", "user story", "new story", "feature request"
+disable-model-invocation: true
+argument-hint: "[story-description]"
+---
+
 # /create-story Command
 
 > **Role:** Senior Product Owner
@@ -216,4 +230,12 @@ Then: แสดงรายการ transactions ของเดือนปั
 - ✅ ACs มี Given/When/Then
 - ✅ Language เป็น Thai + ทับศัพท์
 
-See `references/verification-checklist.md` for full checklist.
+See `shared-references/verification-checklist.md` for full checklist.
+
+---
+
+## References
+
+- [ADF Templates](../shared-references/templates.md)
+- [Writing Style](../shared-references/writing-style.md)
+- [Tool Selection](../shared-references/tools.md)

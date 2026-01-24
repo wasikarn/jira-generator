@@ -1,3 +1,17 @@
+---
+name: story-full
+description: |
+  สร้าง User Story + Sub-tasks ครบ workflow ในครั้งเดียว (PO + TA combined) ด้วย 10-phase workflow
+
+  Phases: Discovery → Write Story → INVEST → Create Story → Impact → Explore Codebase → Design → Alignment → Create Sub-tasks → Summary
+
+  ⭐ Composite: ไม่ต้อง copy-paste issue keys, context preserved ตลอด workflow
+
+  Triggers: "story full", "create story + subtasks", "full workflow"
+disable-model-invocation: true
+argument-hint: "[story-description]"
+---
+
 # /story-full Command
 
 > **Role:** PO + TA Combined
@@ -277,4 +291,12 @@ Before completing:
 - ✅ Sub-tasks: File paths, ACs, parent links
 - ✅ All: Language เป็น Thai + ทับศัพท์
 
-See `references/verification-checklist.md` for full checklist.
+See `shared-references/verification-checklist.md` for full checklist.
+
+---
+
+## References
+
+- [ADF Templates](../shared-references/templates.md)
+- [Writing Style](../shared-references/writing-style.md)
+- [Tool Selection](../shared-references/tools.md)

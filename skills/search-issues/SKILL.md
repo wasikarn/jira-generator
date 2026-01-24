@@ -1,3 +1,14 @@
+---
+name: search-issues
+description: |
+  ค้นหา issues ก่อนสร้างใหม่ (ป้องกันสร้างซ้ำ) ด้วย 3-phase workflow
+
+  รองรับ: keyword search, JQL query, filters (sprint, assignee, status, type)
+
+  Triggers: "search", "find", "หา issue", "มีอยู่แล้วไหม"
+argument-hint: "[keyword] [--filters]"
+---
+
 # /search-issues Command
 
 > **Role:** Any
@@ -159,5 +170,12 @@
 
 ## Related
 
-- JQL patterns: `references/jql-quick-ref.md`
+- JQL patterns: `shared-references/jql-quick-ref.md`
 - After finding: `/analyze-story BEP-XXX`
+
+---
+
+## References
+
+- [JQL Quick Reference](../shared-references/jql-quick-ref.md)
+- [Tool Selection](../shared-references/tools.md)

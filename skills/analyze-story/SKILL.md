@@ -1,3 +1,16 @@
+---
+name: analyze-story
+description: |
+  วิเคราะห์ User Story และสร้าง Sub-tasks + Technical Note ด้วย 7-phase TA workflow
+
+  Phases: Discovery → Impact Analysis → Codebase Exploration → Design → Alignment → Create Artifacts → Handoff
+
+  ⚠️ MANDATORY: ต้อง explore codebase ก่อนสร้าง Sub-tasks เสมอ
+
+  Triggers: "analyze story", "create subtask", "technical analysis", "BEP-XXX"
+argument-hint: "[issue-key]"
+---
+
 # /analyze-story Command
 
 > **Role:** Senior Technical Analyst
@@ -247,4 +260,12 @@ Before completing:
 - ✅ Parent links ถูกต้อง
 - ✅ Language เป็น Thai + ทับศัพท์
 
-See `references/verification-checklist.md` for full checklist.
+See `shared-references/verification-checklist.md` for full checklist.
+
+---
+
+## References
+
+- [ADF Templates](../shared-references/templates.md)
+- [Writing Style](../shared-references/writing-style.md)
+- [Tool Selection](../shared-references/tools.md)

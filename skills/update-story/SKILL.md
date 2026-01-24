@@ -1,3 +1,16 @@
+---
+name: update-story
+description: |
+  แก้ไข User Story ที่มีอยู่ ด้วย 5-phase update workflow
+
+  Phases: Fetch Current → Impact Analysis → Preserve Intent → Generate Update → Apply Update
+
+  รองรับ: เพิ่ม AC, แก้ไข AC, ปรับ scope, format migration
+
+  Triggers: "update story", "แก้ไข story", "เพิ่ม AC"
+argument-hint: "[issue-key] [changes]"
+---
+
 # /update-story Command
 
 > **Role:** Senior Product Owner
@@ -226,3 +239,11 @@ Story updated. Related items that may need updating:
 
 Use `/update-subtask BEP-YYY` to update
 ```
+
+---
+
+## References
+
+- [ADF Templates](../shared-references/templates.md)
+- [Writing Style](../shared-references/writing-style.md)
+- [Tool Selection](../shared-references/tools.md)

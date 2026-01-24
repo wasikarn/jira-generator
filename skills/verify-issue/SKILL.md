@@ -1,3 +1,16 @@
+---
+name: verify-issue
+description: |
+  ตรวจสอบคุณภาพ issue (ADF format, INVEST, language) ด้วย 4-phase workflow
+
+  Checks: ADF render, panel structure, links, inline code, INVEST criteria, Given/When/Then, file paths, language consistency
+
+  รองรับ: --with-subtasks (batch verify), --fix (auto-fix)
+
+  Triggers: "verify", "validate", "ตรวจสอบ", "check quality"
+argument-hint: "[issue-key] [--with-subtasks] [--fix]"
+---
+
 # /verify-issue Command
 
 > **Role:** Any
@@ -195,7 +208,7 @@ Apply fixes? (yes/no)
 
 ## Verification Checklist Reference
 
-See `references/verification-checklist.md` for complete checklist by issue type.
+See `shared-references/verification-checklist.md` for complete checklist by issue type.
 
 ---
 
@@ -246,3 +259,11 @@ Use `/verify-issue BEP-XXX --with-subtasks --fix`
 | `/create-testplan` | `/verify-issue BEP-QQQ` |
 | `/story-full` | `/verify-issue BEP-XXX --with-subtasks` |
 | `/improve-issue` | `/verify-issue BEP-XXX` |
+
+---
+
+## References
+
+- [Verification Checklist](../shared-references/verification-checklist.md)
+- [ADF Templates](../shared-references/templates.md)
+- [Writing Style](../shared-references/writing-style.md)

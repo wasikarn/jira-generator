@@ -1,3 +1,16 @@
+---
+name: improve-issue
+description: |
+  ปรับปรุง format/quality ของ issue(s) แบบ batch ด้วย 6-phase workflow
+
+  Phases: Discovery → Analyze Quality → Load Templates → Generate Improvements → Apply Updates → Cleanup
+
+  รองรับ: batch format migration, language standardization, template compliance
+
+  Triggers: "improve", "migrate", "ปรับปรุง format", "standardize"
+argument-hint: "[issue-key] [--with-subtasks]"
+---
+
 # /improve-issue Command
 
 > **Role:** Technical Analyst
@@ -97,10 +110,10 @@
 | Sub-task (QA) | `jira-templates/04-qa-test-case.md` |
 
 2. Load style guide:
-   - `skills/jira-workflow/references/writing-style.md`
+   - `shared-references/writing-style.md`
 
 3. Load ADF templates:
-   - `skills/jira-workflow/references/templates.md`
+   - `shared-references/templates.md`
 
 **Output:** Templates loaded
 
@@ -282,3 +295,11 @@ h2. AC
 - Inline code marks for paths, routes, components
 - Structured tables
 - Proper Given/When/Then formatting
+
+---
+
+## References
+
+- [ADF Templates](../shared-references/templates.md)
+- [Writing Style](../shared-references/writing-style.md)
+- [Tool Selection](../shared-references/tools.md)

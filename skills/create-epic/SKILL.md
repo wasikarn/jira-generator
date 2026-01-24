@@ -1,3 +1,17 @@
+---
+name: create-epic
+description: |
+  สร้าง Epic + Epic Doc จาก product vision ด้วย 5-phase PM workflow
+
+  Phases: Discovery → RICE Prioritization → Define Scope → Create Artifacts → Handoff
+
+  Output: Epic in Jira + Epic Doc in Confluence
+
+  Triggers: "create epic", "product vision", "RICE", "new initiative"
+disable-model-invocation: true
+argument-hint: "[epic-title]"
+---
+
 # /create-epic Command
 
 > **Role:** Senior Product Manager
@@ -230,4 +244,12 @@ Before completing:
 - ✅ Epic Doc linked
 - ✅ Language เป็น Thai + ทับศัพท์
 
-See `references/verification-checklist.md` for full checklist.
+See `shared-references/verification-checklist.md` for full checklist.
+
+---
+
+## References
+
+- [ADF Templates](../shared-references/templates.md)
+- [Writing Style](../shared-references/writing-style.md)
+- [Tool Selection](../shared-references/tools.md)
