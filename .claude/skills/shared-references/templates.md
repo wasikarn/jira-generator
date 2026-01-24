@@ -16,17 +16,95 @@
 
 | Section | Format | ❌ Never Use |
 |---------|--------|--------------|
-| **Acceptance Criteria** | panels + Given/When/Then | table |
+| **Acceptance Criteria** | panels + Given/When/Then | table alone |
+| **AC Summary** | table (optional) | - |
 | **Fields/Spec** | table | panels |
 | **Notes/Dependencies** | panel (note) | table |
 
-> **AC ต้องใช้ panels เสมอ ห้ามใช้ table**
+### AC Format: Hybrid Approach (Recommended)
+
+**Primary:** panels + Given/When/Then (ต้องมีเสมอ)
+**Optional:** AC Summary table (สำหรับ Stories ที่มี AC ≥ 5 ตัว)
+
+**AC Summary Table (ADF):**
+
+```json
+{"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": "📋 AC Summary"}]},
+{
+  "type": "table",
+  "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
+  "content": [
+    {"type": "tableRow", "content": [
+      {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "ID"}]}]},
+      {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Title"}]}]},
+      {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
+      {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Description"}]}]}
+    ]},
+    {"type": "tableRow", "content": [
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "AC-01", "marks": [{"type": "strong"}]}]}]},
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "แสดง Fields"}]}]},
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "✅ Happy"}]}]},
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "ระบบแสดง field ที่เกี่ยวข้องเมื่อเลือกประเภท"}]}]}
+    ]},
+    {"type": "tableRow", "content": [
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "AC-02", "marks": [{"type": "strong"}]}]}]},
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Validation ช่องทาง"}]}]},
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "⚠️ Edge"}]}]},
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "ต้องเลือกช่องทางอย่างน้อย 1 ช่องทาง"}]}]}
+    ]}
+  ]
+},
+{"type": "rule"},
+{"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": "📝 AC Details"}]}
+```
+
+**Table Design Tips:**
+- **ID column:** ใช้ `strong` mark เพื่อเน้น
+- **Type column:** ใช้ emoji (✅/⚠️/❌) บอก AC type
+- **Description column:** สรุปสั้นๆ 1 บรรทัด
+- ตามด้วย `rule` แล้วค่อย panels
+
+> **Rule:** AC Details (panels) ต้องมีเสมอ - Summary table เป็น optional
 >
 > แม้ข้อมูลเดิม (wiki markup) จะเป็น table ก็ต้องแปลงเป็น panels + Given/When/Then format
 >
 > - Happy path → `panelType: "success"`
 > - Validation/Edge cases → `panelType: "warning"`
 > - Error handling → `panelType: "error"`
+
+---
+
+## Table Styling
+
+### Header Background Colors
+
+ใช้ `attrs.background` attribute กับ `tableHeader` เพื่อเพิ่มสีพื้นหลัง:
+
+```json
+{"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [...]}
+```
+
+### Atlassian Color Palette
+
+| Color | Hex Code | Usage |
+|-------|----------|-------|
+| Grey light | `#f4f5f7` | Header rows (default) |
+| Blue light | `#e6fcff` | Information highlight |
+| Green light | `#e3fcef` | Success/Happy path |
+| Yellow light | `#fffae6` | Warning/Edge cases |
+| Red light | `#ffebe6` | Error/Critical |
+| Purple light | `#eae6ff` | Notes/Special |
+
+### Row Highlighting Example
+
+สำหรับ highlight row สำคัญ (เช่น Total row):
+
+```json
+{"type": "tableRow", "content": [
+  {"type": "tableCell", "attrs": {"background": "#f4f5f7"}, "content": [...]},
+  {"type": "tableCell", "attrs": {"background": "#f4f5f7"}, "content": [...]}
+]}
+```
 
 ---
 
@@ -107,9 +185,9 @@
         "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
         "content": [
           {"type": "tableRow", "content": [
-            {"type": "tableHeader", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Factor"}]}]},
-            {"type": "tableHeader", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Score"}]}]},
-            {"type": "tableHeader", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Rationale"}]}]}
+            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Factor"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Score"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Rationale"}]}]}
           ]},
           {"type": "tableRow", "content": [
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Reach"}]}]},
@@ -145,9 +223,9 @@
         "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
         "content": [
           {"type": "tableRow", "content": [
-            {"type": "tableHeader", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Metric"}]}]},
-            {"type": "tableHeader", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Target"}]}]},
-            {"type": "tableHeader", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Measurement"}]}]}
+            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Metric"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Target"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Measurement"}]}]}
           ]},
           {"type": "tableRow", "content": [
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Metric 1]"}]}]},
@@ -199,8 +277,8 @@
         "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
         "content": [
           {"type": "tableRow", "content": [
-            {"type": "tableHeader", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
-            {"type": "tableHeader", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}]}
+            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}]}
           ]},
           {"type": "tableRow", "content": [
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Epic Doc"}]}]},
@@ -227,6 +305,8 @@
 ---
 
 ## User Story Template (ADF)
+
+**Note:** สำหรับ Stories ที่มี AC ≥ 5 ตัว อาจเพิ่ม AC Summary table ก่อน panels (ดู Important Rules)
 
 ```json
 {
@@ -325,8 +405,8 @@
         "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
         "content": [
           {"type": "tableRow", "content": [
-            {"type": "tableHeader", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Category"}]}]},
-            {"type": "tableHeader", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Details"}]}]}
+            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Category"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Details"}]}]}
           ]},
           {"type": "tableRow", "content": [
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Files"}]}]},
@@ -395,9 +475,9 @@
         "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
         "content": [
           {"type": "tableRow", "content": [
-            {"type": "tableHeader", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "#"}]}]},
-            {"type": "tableHeader", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "AC"}]}]},
-            {"type": "tableHeader", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Scenarios"}]}]}
+            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "#"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "AC"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Scenarios"}]}]}
           ]},
           {"type": "tableRow", "content": [
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "1"}]}]},
