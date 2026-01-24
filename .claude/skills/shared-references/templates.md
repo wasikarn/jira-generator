@@ -12,6 +12,24 @@
 
 ---
 
+## ⚠️ Important Rules
+
+| Section | Format | ❌ Never Use |
+|---------|--------|--------------|
+| **Acceptance Criteria** | panels + Given/When/Then | table |
+| **Fields/Spec** | table | panels |
+| **Notes/Dependencies** | panel (note) | table |
+
+> **AC ต้องใช้ panels เสมอ ห้ามใช้ table**
+>
+> แม้ข้อมูลเดิม (wiki markup) จะเป็น table ก็ต้องแปลงเป็น panels + Given/When/Then format
+>
+> - Happy path → `panelType: "success"`
+> - Validation/Edge cases → `panelType: "warning"`
+> - Error handling → `panelType: "error"`
+
+---
+
 ## Epic Template (ADF)
 
 **Structure:**
