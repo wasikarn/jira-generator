@@ -179,25 +179,21 @@ Each role uses **Handoff Protocol** to pass context to next:
 
 ### Decision Flow
 
-```
-What do you need?
-    │
-    ├─ Create/Update Jira issue description
-    │     │
-    │     └─ Always use acli + --from-json (ADF)
-    │           • Create JSON file with ADF content
-    │           • acli jira workitem create --from-json issue.json
-    │           • acli jira workitem edit --from-json issue.json --yes
-    │
-    ├─ Update other fields (not description)
-    │     └─ MCP jira_update_issue is OK
-    │
-    ├─ Search Jira/Confluence
-    │     └─ MCP jira_search / confluence_search
-    │
-    └─ Confluence page
-          ├─ Read  → MCP confluence_get_page
-          └─ Create/Update → MCP confluence_create_page (markdown OK)
+```mermaid
+flowchart TD
+    Q{What do you need?}
+
+    Q --> |Create/Update<br>Jira description| A[acli --from-json]
+    A --> A1["acli jira workitem create --from-json issue.json"]
+    A --> A2["acli jira workitem edit --from-json issue.json --yes"]
+
+    Q --> |Update other fields<br>not description| B[MCP jira_update_issue]
+
+    Q --> |Search Jira/Confluence| C[MCP jira_search<br>confluence_search]
+
+    Q --> |Confluence page| D{Read or Write?}
+    D --> |Read| D1[MCP confluence_get_page]
+    D --> |Create/Update| D2[MCP confluence_create_page]
 ```
 
 ### ADF JSON Structure
