@@ -74,7 +74,26 @@ Changes: [list]
 
 ---
 
+## Epic Structure (ADF)
+
+| Section | Panel Type | Content |
+|---------|------------|---------|
+| 🎯 Epic Overview | `info` | Summary + scope statement |
+| 💰 Business Value | `success` | Revenue, Retention, Operations |
+| 📦 Scope | `info` + table | Features/modules breakdown |
+| 📊 RICE Score | table | R/I/C/E + final score |
+| 🎯 Success Metrics | table | KPIs + targets |
+| 📋 User Stories | `info` panels | Grouped by feature area |
+| 📈 Progress | `note` | Done/In Progress/To Do counts |
+| 🔗 Links | table | Epic Doc, Technical Notes |
+
+**ข้อห้าม ADF:**
+- ❌ ห้าม nest table ใน panel (จะ error)
+- ✅ ใช้ paragraphs หรือ bulletList ใน panel แทน
+
+---
+
 ## References
 
-- [ADF Templates](../shared-references/templates.md)
+- [ADF Templates](../shared-references/templates.md) - Epic ADF structure
 - [Workflows](../shared-references/workflows.md) - Update phase pattern

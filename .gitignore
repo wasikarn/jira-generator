@@ -13,5 +13,6 @@ output/
 # Tasks
 tasks/
 
-# Claude-Mem
+# Claude-Mem (ignore subdirectory CLAUDE.md, keep root)
 **/CLAUDE.md
+!/CLAUDE.md
