@@ -6,11 +6,12 @@
 
 ## Summary Format
 
-```
+```text
 [Epic Name]
 ```
 
 **Examples:**
+
 - ✅ ระบบจัดการคูปอง
 - ✅ ระบบเชิญเพื่อน Phase 1
 - ❌ ทำหน้าใหม่ (ไม่ชัดเจน)
@@ -131,6 +132,7 @@
 ## Quality Checklist
 
 Before submit:
+
 - [ ] **Clear overview** - Anyone understands purpose in 30 seconds
 - [ ] **Measurable goals** - Success criteria defined
 - [ ] **Stories prioritized** - P0/P1/P2 assigned

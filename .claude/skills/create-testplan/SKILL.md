@@ -21,23 +21,26 @@ argument-hint: "[issue-key]"
 ## Phases
 
 ### 1. Discovery
+
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
 - `MCP: jira_search(jql: "parent = BEP-XXX")` → Sub-tasks
 - อ่าน: Narrative, ACs, Technical Note (ถ้ามี)
 - **Gate:** User confirms scope
 
 ### 2. Test Scope Analysis
+
 - Map ACs → Test scenarios
 - 100% AC coverage required
 - Test types: ✅ Happy / ⚠️ Edge / ❌ Error / 📱 UI
 
 | AC | Description | Test Scenarios |
-|----|-------------|----------------|
+| --- | --- | --- |
 | 1 | [AC1 desc] | TC1, TC2 |
 
 **Gate:** Coverage matrix approved
 
 ### 3. Design Test Cases
+
 - ID, AC coverage, Priority (🔴/🟠/🟡/🟢)
 - Type: ✅ Happy / ⚠️ Edge / ❌ Error
 - Given/When/Then format
@@ -50,7 +53,7 @@ argument-hint: "[issue-key]"
 
 #### Step 1: Create Subtask Shell
 
-```
+```text
 MCP: jira_create_issue(
   project_key: "BEP",
   summary: "[QA] - Test: [Feature Name]",
@@ -79,13 +82,13 @@ MCP: jira_create_issue(
 > ⚠️ **สำคัญ:** ใช้ `"issues": ["BEP-QQQ"]` ไม่ใช่ `"parent"` หรือ `"parentKey"` หรือ `"parentIssueId"`
 > acli edit ต้องการ issues array สำหรับระบุ issue ที่จะแก้ไข
 
-2. Run acli:
+1. Run acli:
 
 ```bash
 acli jira workitem edit --from-json tasks/bep-xxx-qa.json --yes
 ```
 
-3. ลบไฟล์ temp:
+1. ลบไฟล์ temp:
 
 ```bash
 rm tasks/bep-xxx-qa.json
@@ -94,7 +97,7 @@ rm tasks/bep-xxx-qa.json
 #### ADF Panel Colors
 
 | Panel Type | Color | Usage |
-|------------|-------|-------|
+| --- | --- | --- |
 | `info` | 🔵 Blue | Test objective, summary |
 | `success` | 🟢 Green | Happy path tests |
 | `warning` | 🟡 Yellow | Edge cases, validation |
@@ -103,7 +106,7 @@ rm tasks/bep-xxx-qa.json
 
 ### 5. Summary
 
-```
+```text
 ## QA Complete: [Title] (BEP-XXX)
 
 [QA] Sub-task: BEP-QQQ (N scenarios)
@@ -117,12 +120,13 @@ Coverage: X ACs → Y test scenarios (100%)
 ## Common Errors & Fixes
 
 | Error | Cause | Fix |
-|-------|-------|-----|
+| --- | --- | --- |
 | `json: unknown field "parent"` | ใช้ field ผิดใน JSON | ใช้ MCP สร้างก่อน แล้ว acli edit |
 | `json: unknown field "parentKey"` | ใช้ field ผิดใน JSON | ใช้ MCP สร้างก่อน แล้ว acli edit |
 | `Could not find issue by id or key` | parentIssueId ไม่ถูกต้อง | ใช้ MCP สร้างก่อน แล้ว acli edit |
 
 **Recommended Workflow:**
+
 1. **Create** ด้วย MCP `jira_create_issue` (รองรับ parent ผ่าน additional_fields)
 2. **Edit** ด้วย `acli --from-json` (ใส่ ADF description)
 

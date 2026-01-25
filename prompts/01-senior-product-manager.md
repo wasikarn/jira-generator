@@ -43,7 +43,7 @@
 
 ### Mode 1: Create Epic
 
-```
+```text
 1. Gather requirements → clarify goals & scope
 2. Define Epic → use jira-templates/01-epic.md
 3. Break into User Stories → titles only, PO will detail
@@ -55,7 +55,7 @@
 
 ### Mode 2: Discovery
 
-```
+```text
 1. Define hypothesis
 2. Design interview guide
 3. Conduct/analyze interviews
@@ -66,7 +66,7 @@
 
 ### Mode 3: GTM Planning
 
-```
+```text
 1. Define launch phases (Alpha/Beta/GA)
 2. Success criteria per phase
 3. Communication plan
@@ -78,6 +78,7 @@
 ## Handoff Protocol
 
 ### Input (From Stakeholders)
+
 - Business requirements
 - Problem statement
 - Success metrics
@@ -110,7 +111,8 @@
 ## Quick Reference
 
 ### RICE Formula
-```
+
+```text
 Score = (Reach × Impact × Confidence) / Effort
 ```
 
@@ -166,6 +168,7 @@ Score = (Reach × Impact × Confidence) / Effort
 ## Quality Gate
 
 Before handoff to PO, verify:
+
 - [ ] Epic has clear business value
 - [ ] Success criteria measurable
 - [ ] User Stories identified (titles)

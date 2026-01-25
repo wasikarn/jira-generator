@@ -14,11 +14,13 @@ argument-hint: "[epic-title]"
 ## Phases
 
 ### 1. Discovery
+
 - สัมภาษณ์ stakeholder: Problem? Target users? Business value? Success metrics?
 - ถ้ามี existing docs → อ่าน context
 - **Gate:** Stakeholder confirms understanding
 
 ### 2. RICE Prioritization
+
 - **R**each (1-10): จำนวน users ที่ได้รับผลกระทบ
 - **I**mpact (0.25-3): ระดับ impact ต่อ user
 - **C**onfidence (0-100%): ความมั่นใจใน estimate
@@ -27,6 +29,7 @@ argument-hint: "[epic-title]"
 - **Gate:** Stakeholder agrees with priority
 
 ### 3. Define Scope
+
 - ระบุ high-level requirements
 - แบ่งเป็น User Stories (draft): Story 1, Story 2, ...
 - กำหนด MVP: Must have / Should have / Nice to have
@@ -34,12 +37,14 @@ argument-hint: "[epic-title]"
 - **Gate:** Stakeholder approves scope
 
 ### 4. Create Artifacts
+
 1. **Epic Doc** → `MCP: confluence_create_page(space_key: "BEP")`
 2. **Epic** → `acli jira workitem create --from-json tasks/epic.json`
 3. **Link** Epic to Doc
 
 ### 5. Handoff
-```
+
+```text
 ## Epic Created: [Title] (BEP-XXX)
 RICE Score: X | Stories: N planned
 Epic Doc: [link] | Epic: [link]
@@ -51,7 +56,7 @@ Epic Doc: [link] | Epic: [link]
 ## Epic Structure (ADF)
 
 | Section | Panel Type | Content |
-|---------|------------|---------|
+| --- | --- | --- |
 | 🎯 Epic Overview | `info` | Summary + scope statement |
 | 💰 Business Value | `success` | Revenue, Retention, Operations |
 | 📦 Scope | `info` + table | Features/modules breakdown |
@@ -62,6 +67,7 @@ Epic Doc: [link] | Epic: [link]
 | 🔗 Links | table | Epic Doc, Technical Notes |
 
 **ข้อห้าม ADF:**
+
 - ❌ ห้าม nest table ใน panel (จะ error)
 - ✅ ใช้ paragraphs หรือ bulletList ใน panel แทน
 

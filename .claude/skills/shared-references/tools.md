@@ -2,7 +2,7 @@
 
 ## Decision Flow
 
-```
+```text
 What do you need?
     │
     ├─ Create/Update Jira issue description
@@ -36,7 +36,7 @@ What do you need?
 ### Jira Operations
 
 | Operation | Tool | Command/Syntax |
-|-----------|------|----------------|
+| --- | --- | --- |
 | **Search issues** | MCP | `jira_search(jql: "project = BEP AND ...")` |
 | **Get issue details** | MCP | `jira_get_issue(issue_key: "BEP-XXX")` |
 | **Create issue** | acli | `acli jira workitem create --from-json file.json` |
@@ -48,7 +48,7 @@ What do you need?
 ### Confluence Operations
 
 | Operation | Tool | Command/Syntax |
-|-----------|------|----------------|
+| --- | --- | --- |
 | **Search pages** | MCP | `confluence_search(query: "...")` |
 | **Get page** | MCP | `confluence_get_page(page_id: "...")` |
 | **Create page** | MCP | `confluence_create_page(space_key: "BEP", ...)` |
@@ -57,7 +57,7 @@ What do you need?
 ### Codebase Exploration
 
 | Operation | Tool | Syntax |
-|-----------|------|--------|
+| --- | --- | --- |
 | **Deep exploration** | Task | `Task(subagent_type: "Explore", prompt: "...")` |
 | **Quick file search** | Glob | `Glob(pattern: "**/*.tsx")` |
 | **Code search** | Grep | `Grep(pattern: "functionName")` |
@@ -99,26 +99,31 @@ What do you need?
 ### Common ADF Elements
 
 **Heading:**
+
 ```json
 {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "Title"}]}
 ```
 
 **Paragraph:**
+
 ```json
 {"type": "paragraph", "content": [{"type": "text", "text": "Content"}]}
 ```
 
 **Bold text:**
+
 ```json
 {"type": "text", "text": "Bold", "marks": [{"type": "strong"}]}
 ```
 
 **Inline code:**
+
 ```json
 {"type": "text", "text": "/api/endpoint", "marks": [{"type": "code"}]}
 ```
 
 **Panel (info/success/warning/error/note):**
+
 ```json
 {
   "type": "panel",
@@ -130,6 +135,7 @@ What do you need?
 ```
 
 **Bullet list:**
+
 ```json
 {
   "type": "bulletList",
@@ -140,6 +146,7 @@ What do you need?
 ```
 
 **Table:**
+
 ```json
 {
   "type": "table",
@@ -158,6 +165,7 @@ What do you need?
 ```
 
 **Rule (horizontal line):**
+
 ```json
 {"type": "rule"}
 ```
@@ -167,7 +175,7 @@ What do you need?
 ## Common Errors & Solutions
 
 | Error | Cause | Solution |
-|-------|-------|----------|
+| --- | --- | --- |
 | `INVALID_INPUT` | Nested tables in panels | Use bulletList instead of table in panels |
 | `Unknown field` | Wrong JSON field name | Use `projectKey` not `project`, use `issues` array for edit |
 | Description renders as wiki | Used MCP for description | Use `acli --from-json` with ADF |
@@ -196,7 +204,7 @@ acli jira workitem get BEP-XXX
 
 ## MCP JQL Examples
 
-```
+```text
 # All stories in project
 project = BEP AND issuetype = Story
 

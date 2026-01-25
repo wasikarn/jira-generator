@@ -19,6 +19,7 @@ argument-hint: "[issue-key] [--with-subtasks] [--fix]"
 ## Phases
 
 ### 1. Fetch & Identify
+
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
 - ถ้า `--with-subtasks` → `MCP: jira_search(jql: "parent = BEP-XXX")`
 - Identify type → Select checklist
@@ -26,7 +27,7 @@ argument-hint: "[issue-key] [--with-subtasks] [--fix]"
 ### 2. Technical Verification
 
 | Check | Pass Criteria |
-|-------|---------------|
+| --- | --- |
 | ADF Format | Has `type: "doc"` |
 | Panels | Correct `panelType` |
 | Inline Code | Technical terms marked |
@@ -36,24 +37,27 @@ argument-hint: "[issue-key] [--with-subtasks] [--fix]"
 ### 3. Quality Verification
 
 **Story Checks:**
+
 - INVEST criteria (6 points)
 - Narrative format
 - AC Given/When/Then
 - Language Thai + ทับศัพท์
 
 **Sub-task Checks:**
+
 - Objective clear
 - File paths real (not generic)
 - AC format correct
 
 **QA Checks:**
+
 - All Story ACs covered
 - Test scenarios clear
 - Priority assigned
 
 ### 4. Report & Fix
 
-```
+```text
 ## Verification: BEP-XXX
 
 | Category | Score | Status |
@@ -73,12 +77,12 @@ Issues:
 
 ## Batch Verification
 
-```
+```text
 /verify-issue BEP-XXX --with-subtasks
 ```
 
 | Key | Technical | Quality | Overall |
-|-----|-----------|---------|---------|
+| --- | --- | --- | --- |
 | BEP-XXX | 5/5 ✅ | 4/6 ⚠️ | ⚠️ |
 | BEP-YYY | 5/5 ✅ | 6/6 ✅ | ✅ |
 
@@ -87,7 +91,7 @@ Issues:
 ## Integration
 
 | After Command | Verify With |
-|---------------|-------------|
+| --- | --- |
 | `/create-story` | `/verify-issue BEP-XXX` |
 | `/analyze-story` | `/verify-issue BEP-XXX --with-subtasks` |
 | `/story-full` | `/verify-issue BEP-XXX --with-subtasks` |

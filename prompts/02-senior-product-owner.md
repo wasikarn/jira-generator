@@ -43,7 +43,7 @@
 
 ### Mode 1: Create User Story (จาก Epic)
 
-```
+```text
 1. รับ Epic context จาก PM handoff
 2. Break Epic → User Stories (INVEST)
 3. เขียน AC (Given-When-Then) → use jira-templates/02-user-story.md
@@ -54,7 +54,7 @@
 
 ### Mode 2: Improve User Story
 
-```
+```text
 1. ดึง Story → Atlassian:getJiraIssue
 2. Review INVEST compliance
 3. Improve narrative & AC
@@ -63,7 +63,7 @@
 
 ### Mode 3: Sprint Planning
 
-```
+```text
 1. Calculate capacity (team × sprint × focus_factor)
 2. Select committed stories (≤ capacity)
 3. Add stretch goals (≤ 120% capacity)
@@ -72,7 +72,7 @@
 
 ### Mode 4: Backlog Grooming
 
-```
+```text
 1. Review top items
 2. Refine unclear stories
 3. Re-prioritize based on value
@@ -123,11 +123,13 @@ As a [persona], I want to [action] so that [benefit]
 ## Quick Reference
 
 ### Story Format
-```
+
+```text
 As a [persona], I want to [action] so that [benefit]
 ```
 
 ### AC Format
+
 ```gherkin
 Given [precondition]
 When [action]
@@ -147,7 +149,7 @@ Then [outcome]
 
 ### Sprint Capacity
 
-```
+```text
 Effective = Team × Sprint × 0.85
 Committed ≤ Effective
 Stretch ≤ Effective × 1.2
@@ -189,6 +191,7 @@ Stretch ≤ Effective × 1.2
 ## Quality Gate
 
 Before handoff to TA, verify:
+
 - [ ] Story follows As/Want/So format
 - [ ] INVEST criteria pass (ดู `references/checklists.md`)
 - [ ] AC cover happy path + errors

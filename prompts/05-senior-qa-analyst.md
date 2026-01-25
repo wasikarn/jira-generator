@@ -48,7 +48,7 @@
 
 ## Workflow
 
-```
+```text
 1. รับ User Story → from TA handoff or MCP jira_get_issue
 2. AC Analysis → identify test scenarios per AC
 3. Coverage Matrix → map AC → test cases
@@ -64,7 +64,7 @@
 
 ### Step 1: Create Subtask Shell via MCP
 
-```
+```text
 MCP: jira_create_issue(
   project_key: "BEP",
   summary: "[QA] - Test: [Feature Name]",
@@ -92,13 +92,13 @@ MCP: jira_create_issue(
 
 > ⚠️ **สำคัญ:** ใช้ `"issues": ["BEP-QQQ"]` ไม่ใช่ `"parent"`, `"parentKey"`, หรือ `"parentIssueId"`
 
-2. Run acli:
+1. Run acli:
 
 ```bash
 acli jira workitem edit --from-json tasks/bep-xxx-qa.json --yes
 ```
 
-3. ลบไฟล์ temp:
+1. ลบไฟล์ temp:
 
 ```bash
 rm tasks/bep-xxx-qa.json

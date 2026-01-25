@@ -52,6 +52,7 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | `/story-cascade BEP-XXX` | Update Story + cascade ไป Sub-tasks ที่เกี่ยวข้อง | Updated Story + Sub-tasks |
 
 > **เมื่อไหร่ควรใช้ Composite:**
+>
 > - `/story-full` - เมื่อต้องการสร้าง feature ใหม่ครบ workflow (ไม่ต้อง copy-paste issue keys)
 > - `/story-cascade` - เมื่อ update Story แล้วต้องการ cascade changes ไป Sub-tasks โดยอัตโนมัติ
 
@@ -63,6 +64,7 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | `/verify-issue BEP-XXX` | ตรวจสอบคุณภาพ issue (ADF, INVEST, language) | Verification report |
 
 > **เมื่อไหร่ควรใช้ Verify:**
+>
 > - หลังสร้าง issue ใหม่ → ตรวจสอบคุณภาพก่อน handoff
 > - หลัง improve/update → ยืนยันว่า format ถูกต้อง
 > - `/verify-issue BEP-XXX --with-subtasks` → ตรวจสอบ Story + Sub-tasks ทั้งหมด
@@ -81,7 +83,7 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 
 ## Workflow Chain
 
-```
+```text
 Stakeholder → PM → PO → TA → QA
               │     │     │     │
               ↓     ↓     ↓     ↓
@@ -91,6 +93,7 @@ Stakeholder → PM → PO → TA → QA
 ```
 
 Each role uses **Handoff Protocol** to pass context to next:
+
 1. PM creates Epic → hands off to PO
 2. PO creates User Stories → hands off to TA
 3. TA creates Sub-tasks → hands off to QA
@@ -131,6 +134,7 @@ Each role uses **Handoff Protocol** to pass context to next:
 | "verify", "validate", "ตรวจสอบ" | `/verify-issue` | 4-phase verification |
 
 **How Skill Commands Work:**
+
 1. Load skill from `.claude/skills/[command-name]/SKILL.md` (e.g., `.claude/skills/create-story/SKILL.md`)
 2. Execute phases in order (ห้ามข้ามขั้นตอน)
 3. Reference `.claude/skills/shared-references/` for templates and tools
@@ -233,6 +237,7 @@ flowchart TD
 ```
 
 **Commands:**
+
 ```bash
 # Create new issue
 acli jira workitem create --from-json issue.json
@@ -261,7 +266,7 @@ Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 
 ## File Structure
 
-```
+```text
 .claude/skills/            # Skill commands (each dir = 1 slash command)
 ├── create-epic/           → /create-epic (5-phase PM workflow)
 │   └── SKILL.md
@@ -351,7 +356,7 @@ tasks/                     # Generated outputs (gitignored)
 
 ### TA Workflow (Correct Order)
 
-```
+```text
 1. รับ User Story
 2. Impact Analysis (คิดว่ากระทบ services ไหน)
 3. 🔍 EXPLORE CODEBASE ← ห้ามข้าม!
@@ -372,6 +377,7 @@ tasks/                     # Generated outputs (gitignored)
 | Website | `~/Codes/Works/tathep/tathep-website` | Task (Explore agent) |
 
 **Example prompts for Explore agent:**
+
 - "Find credit top-up page and related components"
 - "Find API endpoint for creating orders"
 - "Find existing billing form patterns"

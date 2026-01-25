@@ -16,7 +16,7 @@
 
 ### Step 1: Create Subtask Shell via MCP
 
-```
+```text
 MCP: jira_create_issue(
   project_key: "BEP",
   summary: "[QA] - Test: [Feature Name]",
@@ -93,7 +93,7 @@ rm tasks/bep-xxx-qa.json
 
 ## Summary Format
 
-```
+```text
 [QA] - Test: [Story title หรือ feature name]
 ```
 

@@ -19,6 +19,7 @@ argument-hint: "[issue-key] [changes]"
 ## Phases
 
 ### 1. Fetch Current State
+
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
 - `MCP: jira_search(jql: "parent = BEP-XXX")`
 - Build inventory: Story + all Sub-tasks
@@ -27,7 +28,7 @@ argument-hint: "[issue-key] [changes]"
 ### 2. Understand Changes
 
 | Change Type | Impact Level |
-|-------------|--------------|
+| --- | --- |
 | Format only | 🟢 Low |
 | Clarify AC | 🟢 Low |
 | Add AC | 🟡 Medium |
@@ -40,7 +41,7 @@ argument-hint: "[issue-key] [changes]"
 ### 3. Impact Analysis
 
 | AC | Related Sub-tasks | Impact |
-|----|-------------------|--------|
+| --- | --- | --- |
 | AC1 | BEP-YYY | ❌ No change |
 | AC2 | BEP-YYY, BEP-ZZZ | ✏️ Must update |
 | AC3 (new) | - | ➕ Need new |
@@ -48,16 +49,19 @@ argument-hint: "[issue-key] [changes]"
 **Gate:** User approves cascade plan
 
 ### 4. Codebase Exploration (if needed)
+
 - Run only if: New sub-task needed OR scope changed
 - `Task(subagent_type: "Explore")`
 - Skip if format-only changes
 
 ### 5. Generate Story Update
+
 - Apply changes: narrative, ACs, scope
 - Generate ADF JSON → `tasks/bep-xxx-update.json`
 - Show comparison table
 
 ### 6. Generate Sub-task Updates
+
 - Preserve original intent
 - Update ACs to align
 - New sub-tasks: follow template
@@ -65,6 +69,7 @@ argument-hint: "[issue-key] [changes]"
 - **Gate:** User approves all
 
 ### 7. Apply All Updates
+
 ```bash
 # Story first
 acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
@@ -75,11 +80,12 @@ acli jira workitem create --from-json tasks/new-subtask.json
 ```
 
 ### 8. Cleanup & Summary
+
 ```bash
 rm tasks/bep-*-update.json tasks/new-*.json
 ```
 
-```
+```text
 ## Cascade Complete
 Story: BEP-XXX (AC2 modified, AC3 added)
 Updated: BEP-YYY, BEP-ZZZ
@@ -92,7 +98,7 @@ Created: BEP-NEW
 ## Cascade vs Separate
 
 | Approach | Commands | Issues |
-|----------|----------|--------|
+| --- | --- | --- |
 | Separate | `/update-story` + N × `/update-subtask` | Lost context |
 | Cascade | `/story-cascade BEP-XXX` | Auto impact |
 

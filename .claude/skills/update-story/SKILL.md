@@ -19,6 +19,7 @@ argument-hint: "[issue-key] [changes]"
 ## Phases
 
 ### 1. Fetch Current State
+
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
 - `MCP: jira_search(jql: "parent = BEP-XXX")` → Sub-tasks
 - อ่าน: Narrative, ACs, Scope, Status
@@ -27,7 +28,7 @@ argument-hint: "[issue-key] [changes]"
 ### 2. Impact Analysis
 
 | Change Type | Impact on Sub-tasks | Impact on QA |
-|-------------|---------------------|--------------|
+| --- | --- | --- |
 | Add AC | ต้องสร้าง sub-task? | ต้องเพิ่ม test? |
 | Remove AC | ต้องลบ sub-task? | ต้องลบ test? |
 | Modify AC | ต้อง update sub-task? | ต้อง update test? |
@@ -36,12 +37,14 @@ argument-hint: "[issue-key] [changes]"
 **Gate:** User acknowledges impact
 
 ### 3. Preserve Intent
+
 - ✅ เพิ่ม AC ได้
 - ✅ ปรับ wording ได้
 - ⚠️ ระวังเปลี่ยน scope (ต้อง re-analyze)
 - ❌ ห้ามเปลี่ยน core value proposition โดยไม่บอก
 
 ### 4. Generate Update
+
 - Generate ADF JSON → `tasks/bep-xxx-update.json`
 - Show comparison:
   - Narrative: [No change / Changed]
@@ -49,12 +52,14 @@ argument-hint: "[issue-key] [changes]"
 - **Gate:** User approves changes
 
 ### 5. Apply Update
+
 ```bash
 acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 ```
 
 **Output:**
-```
+
+```text
 ## Story Updated: [Title] (BEP-XXX)
 Changes: [list]
 → May need: /update-subtask BEP-YYY
@@ -66,7 +71,7 @@ Changes: [list]
 ## Common Scenarios
 
 | Scenario | Command | Impact |
-|----------|---------|--------|
+| --- | --- | --- |
 | Add AC | `/update-story BEP-XXX "เพิ่ม AC mobile"` | 🟡 Medium |
 | Format migrate | `/update-story BEP-XXX "migrate ADF"` | 🟢 Low |
 | Clarify AC | `/update-story BEP-XXX "AC2 ไม่ชัด"` | 🟢 Low |

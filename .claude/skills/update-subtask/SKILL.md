@@ -19,6 +19,7 @@ argument-hint: "[issue-key] [changes]"
 ## Phases
 
 ### 1. Fetch Current State
+
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
 - Fetch parent story for context
 - อ่าน: Description, Summary, Status
@@ -27,7 +28,7 @@ argument-hint: "[issue-key] [changes]"
 ### 2. Identify Changes
 
 | Type | Description | Example |
-|------|-------------|---------|
+| --- | --- | --- |
 | **Format** | ปรับ format | wiki → ADF |
 | **Content** | เพิ่ม/แก้ไข | เพิ่ม AC |
 | **Language** | ปรับภาษา | EN → Thai + ทับศัพท์ |
@@ -36,6 +37,7 @@ argument-hint: "[issue-key] [changes]"
 **Gate:** User approves change scope
 
 ### 3. Preserve Intent
+
 - ✅ ปรับ format ได้
 - ✅ เพิ่ม details ได้
 - ✅ แปลภาษาได้
@@ -43,12 +45,14 @@ argument-hint: "[issue-key] [changes]"
 - ❌ ห้ามลบ AC ที่มีอยู่
 
 ### 4. Generate Update
+
 - ถ้าต้อง update file paths → `Task(Explore)`
 - Generate ADF JSON → `tasks/bep-xxx-update.json`
 - Show Before/After comparison
 - **Gate:** User approves changes
 
 ### 5. Apply Update
+
 ```bash
 acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 ```
@@ -58,7 +62,7 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 ## Common Scenarios
 
 | Scenario | Command |
-|----------|---------|
+| --- | --- |
 | Format migrate | `/update-subtask BEP-XXX "migrate ADF"` |
 | Add file paths | `/update-subtask BEP-XXX "เพิ่ม file paths"` |
 | Fix language | `/update-subtask BEP-XXX "แก้เป็นไทย"` |

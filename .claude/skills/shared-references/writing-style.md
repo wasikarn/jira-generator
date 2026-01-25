@@ -7,7 +7,7 @@
 **หลักการ:** เนื้อหาหลักเป็นภาษาไทย, technical terms เป็นภาษาอังกฤษ
 
 | Content Type | Language | Example |
-|--------------|----------|---------|
+| --- | --- | --- |
 | User Story narrative | Thai | "แอดมินต้องการดูรายการคูปอง" |
 | AC descriptions | Thai | "เมื่อคลิกปุ่ม Submit" |
 | Technical terms | English | endpoint, payload, component |
@@ -17,7 +17,7 @@
 ### ทับศัพท์ที่ใช้บ่อย
 
 | Thai | English (keep as-is) |
-|------|----------------------|
+| --- | --- |
 | - | endpoint |
 | - | payload |
 | - | validate |
@@ -35,14 +35,16 @@
 ### ตัวอย่างที่ถูกต้อง
 
 **Good:**
-```
+
+```text
 Given: แอดมินเข้าหน้า `/coupon`
 When: คลิก "คูปองเติมเครดิต"
 Then: ไปหน้า `/coupon/topup-credit`
 ```
 
 **Bad:**
-```
+
+```text
 Given: Admin enters the coupon page  (❌ ภาษาอังกฤษทั้งหมด)
 When: Click "Top-up Credit Coupon"
 Then: Navigate to topup credit page
@@ -59,12 +61,14 @@ Then: Navigate to topup credit page
 - 1 ประโยค = 1 idea
 
 **Good:**
-```
+
+```text
 แสดงการ์ด 3 ประเภทตามดีไซน์
 ```
 
 **Bad:**
-```
+
+```text
 ระบบจะต้องทำการแสดงผลการ์ดจำนวน 3 ประเภทให้ตรงตามที่ได้ออกแบบไว้
 ```
 
@@ -75,12 +79,14 @@ Then: Navigate to topup credit page
 - ใช้ภาษาที่ทีมเข้าใจ
 
 **Good:**
-```
+
+```text
 AC1: Display - โหลดหน้าแล้วเห็นการ์ด 3 อัน
 ```
 
 **Bad:**
-```
+
+```text
 AC1: การแสดงผล - เมื่อระบบโหลดหน้าเสร็จสมบูรณ์แล้ว ผู้ใช้งานจะสามารถมองเห็นการ์ดจำนวน 3 รายการ
 ```
 
@@ -91,12 +97,14 @@ AC1: การแสดงผล - เมื่อระบบโหลดหน
 - Testable
 
 **Good:**
-```
+
+```text
 Then: แสดง error "กรุณากรอกจำนวนเงิน"
 ```
 
 **Bad:**
-```
+
+```text
 Then: แสดง error ที่เหมาะสม
 ```
 
@@ -107,6 +115,7 @@ Then: แสดง error ที่เหมาะสม
 ### Inline Code
 
 ใช้ inline code สำหรับ:
+
 - File paths: `src/pages/coupon/index.tsx`
 - Routes: `/coupon/topup-credit`
 - Component names: `CouponCard`
@@ -114,6 +123,7 @@ Then: แสดง error ที่เหมาะสม
 - Config keys: `COUPON_TYPES`
 
 **ADF Mark:**
+
 ```json
 {"type": "text", "text": "/coupon/topup-credit", "marks": [{"type": "code"}]}
 ```
@@ -121,11 +131,13 @@ Then: แสดง error ที่เหมาะสม
 ### Bold Text
 
 ใช้ bold สำหรับ:
+
 - Labels: **Given**, **When**, **Then**
 - Emphasis: **สำคัญ**
 - Section headers in content
 
 **ADF Mark:**
+
 ```json
 {"type": "text", "text": "Given:", "marks": [{"type": "strong"}]}
 ```
@@ -136,11 +148,12 @@ Then: แสดง error ที่เหมาะสม
 
 ### User Story
 
-```
+```text
 [Service Tag] - [Thai description] ([English feature name])
 ```
 
 Examples:
+
 - ✅ `[FE-Admin] - สร้างหน้าเมนูคูปอง (Coupon Menu)`
 - ✅ `[BE] - เพิ่ม API filter coupons`
 - ❌ `Create coupon menu page` (ไม่มี tag, English only)
@@ -148,7 +161,7 @@ Examples:
 
 ### Sub-task
 
-```
+```text
 [TAG] - [Brief description - Thai or Thai+English]
 ```
 
@@ -156,7 +169,7 @@ Tags: `[BE]`, `[FE-Admin]`, `[FE-Web]`
 
 ### QA Sub-task
 
-```
+```text
 [QA] - Test: [Story title or feature name]
 ```
 
@@ -165,7 +178,7 @@ Tags: `[BE]`, `[FE-Admin]`, `[FE-Web]`
 ## Common Mistakes
 
 | Mistake | Correct |
-|---------|---------|
+| --- | --- |
 | ภาษาอังกฤษทั้งหมด | Thai + ทับศัพท์ |
 | ยาวเกินไป | กระชับ, ตัดคำฟุ่มเฟือย |
 | คลุมเครือ | Specific, testable |

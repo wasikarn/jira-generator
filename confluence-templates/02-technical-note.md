@@ -18,7 +18,7 @@
 
 ## Template (Copy ไปใช้เลย)
 
-```markdown
+````markdown
 # Technical Note: [Feature Name]
 
 > **Story:** [BEP-XXX](https://100-stars.atlassian.net/browse/BEP-XXX)  
@@ -72,6 +72,7 @@ sequenceDiagram
 **Endpoint:** `[METHOD] /api/v[X]/[path]`
 
 **Request:**
+
 ```json
 {
   "field": "value"
@@ -79,6 +80,7 @@ sequenceDiagram
 ```
 
 **Response (200):**
+
 ```json
 {
   "status": "success",
@@ -87,6 +89,7 @@ sequenceDiagram
 ```
 
 **Errors:**
+
 | Code | Message |
 | --- | --- |
 | 400 | Validation error |
@@ -109,16 +112,19 @@ sequenceDiagram
 ## Business Logic
 
 ### Happy Path
+
 **Given** [precondition]  
 **When** [action]  
 **Then** [result 1], [result 2]
 
 ### Validation
+
 **Given** [invalid input]  
 **When** [action]  
 **Then** [error handling]
 
 ### Business Rules
+
 | Rule | Description |
 | --- | --- |
 | BR-1 | [Rule] |
@@ -133,9 +139,8 @@ sequenceDiagram
 | [BEP-YYY](link) | [FE-Admin] | [Desc] | S |
 
 **Dependencies:**
-```
+
 BEP-XXX (BE) → BEP-YYY (FE-Admin)
-```
 
 ---
 
@@ -148,7 +153,8 @@ BEP-XXX (BE) → BEP-YYY (FE-Admin)
 ---
 
 _Updated: YYYY-MM-DD_
-```
+
+````
 
 ---
 

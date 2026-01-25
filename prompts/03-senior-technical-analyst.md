@@ -43,7 +43,7 @@
 
 ## Workflow
 
-```
+```text
 1. รับ User Story → from PO handoff or Atlassian:getJiraIssue
 2. Domain Analysis → if complex (events, commands, actors)
 3. Impact Analysis → services, DB, API affected
@@ -76,7 +76,7 @@
 
 ใช้ **Task tool** กับ **Explore agent** สำหรับแต่ละ service:
 
-```
+```text
 Task(subagent_type: "Explore", prompt: "Find [feature] in [repo path]")
 ```
 
@@ -199,6 +199,7 @@ AC2: Should [behavior] when [condition]
 ## Quality Gate
 
 Before creating sub-tasks:
+
 - [ ] Domain analysis done (if complex)
 - [ ] Impact analysis complete
 - [ ] Codebase explored, files identified
@@ -215,6 +216,7 @@ Before creating sub-tasks:
 ## Diagram Guidelines
 
 Create diagram when:
+
 - Multi-service interaction → Sequence
 - Complex business logic → Flowchart
 - New data models → ER diagram

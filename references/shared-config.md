@@ -56,7 +56,7 @@
 
 ## Documentation Hierarchy
 
-```
+```text
 Epic (BEP-XXX)
 ├── Epic Doc (Confluence)
 └── User Stories (BEP-YYY)
@@ -98,6 +98,7 @@ Epic (BEP-XXX)
 ### Editing Guidelines
 
 เมื่อแก้ไขเนื้อหาที่มีอยู่:
+
 1. **รักษา core message** - ไม่เปลี่ยนวัตถุประสงค์เดิม
 2. **ปรับแค่ภาษา/flow** - ไม่เปลี่ยน meaning หรือ intent
 3. **ถามก่อนแก้** - หากไม่แน่ใจว่าจะกระทบความหมายเดิม

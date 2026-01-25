@@ -19,7 +19,7 @@ argument-hint: "[keyword] [--filters]"
 ### 1. Parse Search Criteria
 
 | Input | Generated JQL |
-|-------|---------------|
+| --- | --- |
 | `"credit"` | `project = BEP AND summary ~ "credit"` |
 | `BEP-123` | `key = BEP-123` |
 | `BEP-123 --children` | `parent = BEP-123` |
@@ -29,12 +29,14 @@ argument-hint: "[keyword] [--filters]"
 | `--type Story` | `type = Story` |
 
 ### 2. Execute Search
-```
+
+```text
 MCP: jira_search(jql: "[generated JQL]", limit: 20)
 ```
 
 ### 3. Display Results
-```
+
+```text
 ## Search Results
 Query: `project = BEP AND summary ~ "credit"`
 Found: 5 issues
@@ -50,7 +52,7 @@ Found: 5 issues
 ## Filter Options
 
 | Flag | Example |
-|------|---------|
+| --- | --- |
 | `--sprint` | `--sprint current`, `--sprint "Sprint 5"` |
 | `--assignee` | `--assignee me` |
 | `--status` | `--status "In Progress"` |
@@ -64,7 +66,7 @@ Found: 5 issues
 ## Use Cases
 
 | Purpose | Command |
-|---------|---------|
+| --- | --- |
 | Before creating | `/search-issues "credit top-up"` |
 | View sub-tasks | `/search-issues BEP-123 --children` |
 | My sprint work | `/search-issues --sprint current --assignee me` |

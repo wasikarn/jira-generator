@@ -3,7 +3,7 @@
 ## Panel Types & Colors
 
 | Panel Type | Color | Usage |
-|------------|-------|-------|
+| --- | --- | --- |
 | `info` | 🔵 Blue | Story narrative, objective, summary |
 | `success` | 🟢 Green | Happy path AC, completed items |
 | `warning` | 🟡 Yellow | Edge cases, validation, UI tests |
@@ -15,7 +15,7 @@
 ## ⚠️ Important Rules
 
 | Section | Format | ❌ Never Use |
-|---------|--------|--------------|
+| --- | --- | --- |
 | **Acceptance Criteria** | panels + Given/When/Then | table alone |
 | **AC Summary** | table (optional) | - |
 | **Fields/Spec** | table | panels |
@@ -59,6 +59,7 @@
 ```
 
 **Table Design Tips:**
+
 - **ID column:** ใช้ `strong` mark เพื่อเน้น
 - **Type column:** ใช้ emoji (✅/⚠️/❌) บอก AC type
 - **Description column:** สรุปสั้นๆ 1 บรรทัด
@@ -87,7 +88,7 @@
 ### Atlassian Color Palette
 
 | Color | Hex Code | Usage |
-|-------|----------|-------|
+| --- | --- | --- |
 | Grey light | `#f4f5f7` | Header rows (default) |
 | Blue light | `#e6fcff` | Information highlight |
 | Green light | `#e3fcef` | Success/Happy path |
@@ -111,6 +112,7 @@
 ## Epic Template (ADF)
 
 **Structure:**
+
 - 🎯 Epic Overview (panel: info)
 - 💰 Business Value (panel: success)
 - 📦 Scope (panel: info + table)
@@ -294,8 +296,9 @@
 ```
 
 **Panel Usage in Epic:**
+
 | Section | Panel Type | Purpose |
-|---------|------------|---------|
+| --- | --- | --- |
 | Overview | `info` | Summary of what epic delivers |
 | Business Value | `success` | Benefits/outcomes |
 | Scope | `info` | Features/modules included |
@@ -546,21 +549,25 @@
 ## Inline Code Examples
 
 **File path:**
+
 ```json
 {"type": "text", "text": "src/pages/coupon/index.tsx", "marks": [{"type": "code"}]}
 ```
 
 **Route:**
+
 ```json
 {"type": "text", "text": "/coupon/topup-credit", "marks": [{"type": "code"}]}
 ```
 
 **Component:**
+
 ```json
 {"type": "text", "text": "CouponCard", "marks": [{"type": "code"}]}
 ```
 
 **Combined text:**
+
 ```json
 {"type": "paragraph", "content": [
   {"type": "text", "text": "Navigate to "},
@@ -574,7 +581,7 @@
 ## Common Mistakes
 
 | Mistake | Correct |
-|---------|---------|
+| --- | --- |
 | Table inside panel | Use bulletList inside panel |
 | Missing `version: 1` | Always include in doc root |
 | Using wiki format | Use ADF JSON with acli |

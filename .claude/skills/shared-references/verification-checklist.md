@@ -7,7 +7,8 @@
 ## Technical Checks (All Issue Types)
 
 ### T1: ADF Format
-```
+
+```text
 □ Description has type: "doc"
 □ Version is 1
 □ Content array exists
@@ -15,14 +16,16 @@
 ```
 
 ### T2: Panel Structure
-```
+
+```text
 □ Panels have valid panelType (info, success, warning, error, note)
 □ Panel content is array
 □ No nested tables in panels
 ```
 
 ### T3: Inline Code Marks
-```
+
+```text
 □ File paths have code marks (e.g., `app/Models/User.ts`)
 □ API routes have code marks (e.g., `/api/v1/credits`)
 □ Component names have code marks (e.g., `CreditHistoryPage`)
@@ -30,7 +33,8 @@
 ```
 
 ### T4: Links
-```
+
+```text
 □ Parent link exists (for sub-tasks)
 □ Epic link exists (for stories)
 □ Child count matches (for parents)
@@ -38,7 +42,8 @@
 ```
 
 ### T5: Required Fields
-```
+
+```text
 □ Summary filled
 □ Description not empty
 □ Issue type correct
@@ -51,7 +56,8 @@
 ## Story Quality Checks
 
 ### S1: INVEST Criteria
-```
+
+```text
 □ Independent - ไม่พึ่งพา story อื่นในการ deliver value
 □ Negotiable - มี room สำหรับ discussion
 □ Valuable - มี business value ชัดเจน
@@ -61,7 +67,8 @@
 ```
 
 ### S2: Narrative Format
-```
+
+```text
 □ Has "As a [persona]"
 □ Has "I want to [action]"
 □ Has "So that [benefit]"
@@ -70,7 +77,8 @@
 ```
 
 ### S3: Acceptance Criteria
-```
+
+```text
 □ All ACs have Given clause
 □ All ACs have When clause
 □ All ACs have Then clause
@@ -82,7 +90,8 @@
 ```
 
 ### S4: Scope Definition
-```
+
+```text
 □ Services impacted listed
 □ In-scope clearly defined
 □ Out-of-scope mentioned
@@ -90,7 +99,8 @@
 ```
 
 ### S5: Language
-```
+
+```text
 □ Thai language for content
 □ English for technical terms (ทับศัพท์)
 □ Consistent throughout
@@ -102,14 +112,16 @@
 ## Sub-task Quality Checks
 
 ### ST1: Objective
-```
+
+```text
 □ Clear 1-2 sentence objective
 □ Answers "what" and "why"
 □ Specific to this sub-task
 ```
 
 ### ST2: Scope & Files
-```
+
+```text
 □ File paths are real (not generic)
 □ Paths verified against codebase
 □ Dependencies listed
@@ -117,7 +129,8 @@
 ```
 
 ### ST3: Acceptance Criteria
-```
+
+```text
 □ Given/When/Then format
 □ Specific expected behavior
 □ Error handling covered
@@ -125,14 +138,16 @@
 ```
 
 ### ST4: Tag & Summary
-```
+
+```text
 □ Tag matches service: [BE], [FE-Admin], [FE-Web]
 □ Summary is descriptive
 □ Summary starts with tag
 ```
 
 ### ST5: Language
-```
+
+```text
 □ Thai + ทับศัพท์ consistent
 □ Technical terms in English
 □ Code/paths in English
@@ -143,7 +158,8 @@
 ## QA Sub-task Quality Checks
 
 ### QA1: Coverage
-```
+
+```text
 □ All Story ACs have test coverage
 □ Happy path covered
 □ Edge cases covered
@@ -151,7 +167,8 @@
 ```
 
 ### QA2: Test Format
-```
+
+```text
 □ Test objective clear
 □ Preconditions stated
 □ Steps are specific
@@ -160,7 +177,8 @@
 ```
 
 ### QA3: Test Scenarios
-```
+
+```text
 □ Scenarios grouped by type (happy, edge, error)
 □ Priority assigned to each test
 □ Panel colors match type:
@@ -170,14 +188,16 @@
 ```
 
 ### QA4: Test Data
-```
+
+```text
 □ Test data requirements listed
 □ Preconditions for tests defined
 □ Environment requirements noted
 ```
 
 ### QA5: Language
-```
+
+```text
 □ Thai + ทับศัพท์ consistent
 □ Technical terms in English
 □ Clear, actionable language
@@ -188,7 +208,8 @@
 ## Epic Quality Checks
 
 ### E1: Vision
-```
+
+```text
 □ Problem statement clear
 □ Target users defined
 □ Business value articulated
@@ -196,7 +217,8 @@
 ```
 
 ### E2: RICE Score
-```
+
+```text
 □ Reach estimated
 □ Impact scored (0.25-3)
 □ Confidence percentage
@@ -205,7 +227,8 @@
 ```
 
 ### E3: Scope
-```
+
+```text
 □ Must-have features listed
 □ Should-have features listed
 □ Nice-to-have features listed
@@ -213,7 +236,8 @@
 ```
 
 ### E4: User Stories
-```
+
+```text
 □ Stories identified (draft)
 □ Stories cover must-have scope
 □ Stories are independent
@@ -224,15 +248,17 @@
 ## Scoring Guide
 
 ### Per Check
+
 | Status | Score | Meaning |
-|--------|-------|---------|
+| --- | --- | --- |
 | ✅ Pass | 1 | Meets criteria |
 | ⚠️ Warning | 0.5 | Partially meets, needs attention |
 | ❌ Fail | 0 | Does not meet criteria |
 
 ### Overall Score
+
 | Score % | Status | Action |
-|---------|--------|--------|
+| --- | --- | --- |
 | 90-100% | ✅ Pass | Ready |
 | 70-89% | ⚠️ Warning | Review recommended |
 | < 70% | ❌ Fail | Must fix before proceeding |
@@ -242,7 +268,7 @@
 ## Auto-Fix Capabilities
 
 | Issue | Can Auto-Fix? | How |
-|-------|---------------|-----|
+| --- | --- | --- |
 | Missing code marks | ✅ Yes | Detect paths, add marks |
 | Language mixed | ⚠️ Partial | Basic translation |
 | Missing Given/When/Then | ❌ No | Requires understanding |
@@ -255,21 +281,25 @@
 ## Quick Reference
 
 ### Verify Story + Sub-tasks
-```
+
+```text
 /verify-issue BEP-XXX --with-subtasks
 ```
 
 ### Verify and Auto-Fix
-```
+
+```text
 /verify-issue BEP-XXX --fix
 ```
 
 ### After Creating Story
-```
+
+```text
 /create-story → /verify-issue BEP-XXX
 ```
 
 ### After Full Workflow
-```
+
+```text
 /story-full → /verify-issue BEP-XXX --with-subtasks
 ```

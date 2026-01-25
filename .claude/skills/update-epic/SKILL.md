@@ -19,6 +19,7 @@ argument-hint: "[issue-key] [changes]"
 ## Phases
 
 ### 1. Fetch Current State
+
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
 - `MCP: jira_search(jql: "parent = BEP-XXX OR 'Epic Link' = BEP-XXX")`
 - `MCP: confluence_search(query: "Epic: [title]")`
@@ -28,7 +29,7 @@ argument-hint: "[issue-key] [changes]"
 ### 2. Impact Analysis
 
 | Change Type | Impact on Stories | Impact on Planning |
-|-------------|-------------------|-------------------|
+| --- | --- | --- |
 | Add scope | ต้องสร้าง story ใหม่ | Re-estimate |
 | Remove scope | ต้อง close stories | Timeline shorter |
 | RICE update | ❌ No impact | May reprioritize |
@@ -37,6 +38,7 @@ argument-hint: "[issue-key] [changes]"
 **Gate:** User acknowledges impact
 
 ### 3. Preserve Intent
+
 - ✅ ปรับ wording/clarify ได้
 - ✅ Update RICE ได้
 - ✅ เพิ่ม success metrics ได้
@@ -44,17 +46,20 @@ argument-hint: "[issue-key] [changes]"
 - ❌ ห้ามเปลี่ยน core business value โดยไม่บอก
 
 ### 4. Generate Update
+
 - Generate ADF JSON → `tasks/bep-xxx-epic-update.json`
 - Show comparison: Before/After for RICE, objectives, scope
 - **Gate:** User approves changes
 
 ### 5. Apply Update
+
 ```bash
 acli jira workitem edit --from-json tasks/bep-xxx-epic-update.json --yes
 ```
 
 **Output:**
-```
+
+```text
 ## Epic Updated: [Title] (BEP-XXX)
 Changes: [list]
 → Update Epic Doc if needed
@@ -66,7 +71,7 @@ Changes: [list]
 ## Common Scenarios
 
 | Scenario | Command | Impact |
-|----------|---------|--------|
+| --- | --- | --- |
 | Adjust scope | `/update-epic BEP-XXX "ลด scope"` | ⚠️ High |
 | Update RICE | `/update-epic BEP-XXX "RICE update"` | 🟢 Low |
 | Add metrics | `/update-epic BEP-XXX "เพิ่ม metric"` | 🟢 Low |
@@ -77,7 +82,7 @@ Changes: [list]
 ## Epic Structure (ADF)
 
 | Section | Panel Type | Content |
-|---------|------------|---------|
+| --- | --- | --- |
 | 🎯 Epic Overview | `info` | Summary + scope statement |
 | 💰 Business Value | `success` | Revenue, Retention, Operations |
 | 📦 Scope | `info` + table | Features/modules breakdown |
@@ -88,6 +93,7 @@ Changes: [list]
 | 🔗 Links | table | Epic Doc, Technical Notes |
 
 **ข้อห้าม ADF:**
+
 - ❌ ห้าม nest table ใน panel (จะ error)
 - ✅ ใช้ paragraphs หรือ bulletList ใน panel แทน
 

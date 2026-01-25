@@ -593,4 +593,4 @@ flowchart TD
 | Agile | backlog, velocity, story point, estimate |
 | Data | schema, migration, query, cache |
 
-_See `references/shared-config.md` for full Language Guidelines_
+*See `references/shared-config.md` for full Language Guidelines*

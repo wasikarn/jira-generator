@@ -69,9 +69,7 @@
 
 ## Dependencies (ถ้ามี)
 
-```
 BEP-XXX → BEP-YYY → BEP-ZZZ
-```
 
 | Story | Depends On | Status |
 | --- | --- | --- |

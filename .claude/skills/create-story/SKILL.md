@@ -14,24 +14,28 @@ argument-hint: "[story-description]"
 ## Phases
 
 ### 1. Discovery
+
 - ถ้ามี Epic → `MCP: jira_get_issue` เพื่อดู context
 - ถาม user: Who? What? Why? Constraints?
 - **Gate:** User confirms understanding
 
 ### 2. Write Story
-```
+
+```text
 As a [persona],
 I want to [action],
 So that [benefit].
 ```
+
 - กำหนด ACs: Given/When/Then format
 - ระบุ Scope (affected services) และ DoD
 - ใช้ภาษาไทย + ทับศัพท์
 - **Gate:** User reviews draft
 
 ### 3. INVEST Validation
+
 | ✓ | Criteria | Question |
-|---|----------|----------|
+| --- | --- | --- |
 | | Independent | ไม่พึ่งพา story อื่น? |
 | | Negotiable | มี room สำหรับ discussion? |
 | | Valuable | มี business value ชัดเจน? |
@@ -42,13 +46,16 @@ So that [benefit].
 **Gate:** All criteria pass
 
 ### 4. Create in Jira
+
 ```bash
 acli jira workitem create --from-json tasks/story.json
 ```
+
 - ADF: Info panel (narrative) + Success panels (ACs)
 
 ### 5. Handoff
-```
+
+```text
 ## Story Created: [Title] (BEP-XXX)
 ACs: N | Scope: [services]
 → Use /analyze-story BEP-XXX to continue

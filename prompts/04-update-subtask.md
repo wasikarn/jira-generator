@@ -15,7 +15,7 @@
 
 ## Prompt (Copy ไปใช้เลย)
 
-```
+```text
 คุณคือ Senior Technical Analyst
 
 ## Task
@@ -50,21 +50,24 @@ Update sub-task [BEP-XXX] ให้ตรงตาม template ใน `jira-temp
 ## ตัวอย่างการใช้งาน
 
 ### Single Sub-task
-```
+
+```text
 Update sub-task BEP-123 ให้ตรงตาม template ใน jira-templates/03-sub-task.md
 
 Rules: รักษา original intent, ปรับ format only
 ```
 
 ### Multiple Sub-tasks (ทีละตัว)
-```
+
+```text
 Update sub-tasks ทั้งหมดใน User Story BEP-100 ให้ตรงตาม template
 
 เริ่มจาก sub-task แรก แสดง before/after ให้ผมยืนยันก่อน update แต่ละตัว
 ```
 
 ### Batch Update (ถ้ามั่นใจ)
-```
+
+```text
 Update sub-tasks ทั้งหมดใน User Story BEP-100 ให้ตรงตาม template
 
 แสดง summary ของ changes ทั้งหมดก่อน แล้ว update ทีเดียว

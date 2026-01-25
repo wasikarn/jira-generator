@@ -19,20 +19,24 @@ argument-hint: "[story-description]"
 ## Part A: Create Story (Phases 1-4)
 
 ### 1. Discovery
+
 - ถาม: Who? What? Why? Constraints?
 - ถ้ามี Epic → `MCP: jira_get_issue(issue_key: "BEP-XXX")`
 - **Gate:** User confirms requirements
 
 ### 2. Write User Story
-```
+
+```text
 As a [persona],
 I want to [action],
 So that [benefit].
 ```
+
 - กำหนด ACs, Scope, DoD
 - **Gate:** User reviews story
 
 ### 3. INVEST Validation
+
 - [ ] **I**ndependent - ไม่พึ่งพา story อื่น
 - [ ] **N**egotiable - มี room สำหรับ discussion
 - [ ] **V**aluable - มี business value ชัดเจน
@@ -43,9 +47,11 @@ So that [benefit].
 **Gate:** All criteria pass
 
 ### 4. Create Story in Jira
+
 ```bash
 acli jira workitem create --from-json tasks/story.json
 ```
+
 **Capture story key → BEP-XXX**
 
 ---
@@ -55,7 +61,7 @@ acli jira workitem create --from-json tasks/story.json
 ### 5. Impact Analysis
 
 | Service | Impact | Reason |
-|---------|--------|--------|
+| --- | --- | --- |
 | Backend | ✅/❌ | [why] |
 | Admin | ✅/❌ | [why] |
 | Website | ✅/❌ | [why] |
@@ -63,14 +69,17 @@ acli jira workitem create --from-json tasks/story.json
 **Gate:** User confirms scope
 
 ### 6. Codebase Exploration ⚠️ MANDATORY
-```
+
+```text
 Task(subagent_type: "Explore", prompt: "Find [feature] in [path]")
 ```
+
 รวบรวม: Actual file paths, patterns, dependencies
 
 **Gate:** มี actual file paths
 
 ### 7. Design Sub-tasks
+
 - 1 sub-task per service
 - Summary: `[TAG] - Description`
 - Scope: Files จาก Phase 6
@@ -78,18 +87,21 @@ Task(subagent_type: "Explore", prompt: "Find [feature] in [path]")
 - **Gate:** User approves design
 
 ### 8. Alignment Check
+
 - [ ] Sum of sub-tasks = Complete Story?
 - [ ] No gaps? No scope creep?
 - [ ] File paths exist?
 
 ### 9. Create Sub-tasks
+
 ```bash
 acli jira workitem create --from-json tasks/subtask-be.json
 acli jira workitem create --from-json tasks/subtask-fe.json
 ```
 
 ### 10. Summary
-```
+
+```text
 ## Story Full Complete
 Story: BEP-XXX
 Sub-tasks: BEP-YYY [BE], BEP-ZZZ [FE-Admin]
@@ -102,7 +114,7 @@ Sub-tasks: BEP-YYY [BE], BEP-ZZZ [FE-Admin]
 ## Benefits vs Separate Commands
 
 | Approach | Commands | Context |
-|----------|----------|---------|
+| --- | --- | --- |
 | Separate | `/create-story` + `/analyze-story` | Lost between |
 | Combined | `/story-full` | Preserved |
 

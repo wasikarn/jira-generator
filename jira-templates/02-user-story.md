@@ -29,11 +29,12 @@
 
 ## Summary Format
 
-```
+```text
 [Feature Name]
 ```
 
 **Examples:**
+
 - ✅ สร้างคูปองเติมเครดิต
 - ✅ หน้า Coupon List
 - ❌ ทำหน้า (ไม่ชัดเจน)
@@ -152,6 +153,7 @@
 ## AC Format Options
 
 **Option 1: ADF Panel + Bullet List** (แนะนำ - สวยงามใน Jira)
+
 ```json
 {
   "type": "panel",
@@ -168,6 +170,7 @@
 ```
 
 **Option 2: Markdown Table Format** (ใช้กับ markdown)
+
 ```markdown
 > **AC1: [Scenario Name]**
 >
@@ -179,6 +182,7 @@
 ```
 
 **Option 3: Inline Format** (กระชับ)
+
 ```markdown
 > **AC1: [Scenario Name]**
 > - **Given** [context]
@@ -203,6 +207,7 @@
 ## Quality Checklist
 
 Before submit:
+
 - [ ] **INVEST compliant** - Independent, Negotiable, Valuable, Estimable, Small, Testable
 - [ ] **Clear user benefit** - "So that" explains value
 - [ ] **Testable ACs** - Each AC can be verified

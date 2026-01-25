@@ -29,13 +29,14 @@
 
 ## Summary Format
 
-```
+```text
 [SERVICE_TAG] - Brief description
 ```
 
 **Tags:** `[BE]` | `[FE-Admin]` | `[FE-Web]`
 
 **Examples:**
+
 - ✅ `[BE] - เพิ่ม API filter products ตาม category`
 - ✅ `[FE-Admin] - สร้างหน้า Credit Transaction History`
 - ❌ `Backend task` (ไม่มี tag)
@@ -165,6 +166,7 @@
 ## Quality Checklist
 
 Before submit:
+
 - [ ] **กระชับ** - Developer อ่านเข้าใจใน 30 วินาที
 - [ ] **ชัดเจน** - ไม่คลุมเครือ, scope ชัด
 - [ ] **ถูกต้อง** - File paths ตรงกับ codebase จริง

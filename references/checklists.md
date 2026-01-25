@@ -20,6 +20,7 @@
 ## Product Manager Checklist
 
 ### Epic Quality
+
 - [ ] Clear business value articulated
 - [ ] Success criteria are measurable
 - [ ] User stories identified
@@ -27,12 +28,14 @@
 - [ ] Dependencies mapped
 
 ### RICE Prioritization
+
 - [ ] Reach estimated with data
 - [ ] Impact scored objectively
 - [ ] Confidence level honest
 - [ ] Effort estimated by team
 
 ### PRD Quality
+
 - [ ] Problem clearly defined
 - [ ] Solution addresses problem
 - [ ] Scope is explicit (in/out)
@@ -43,6 +46,7 @@
 ## Product Owner Checklist
 
 ### User Story Quality
+
 - [ ] Follows "As a... I want... So that..." format
 - [ ] Persona is specific (not generic)
 - [ ] Action is clear and specific
@@ -50,6 +54,7 @@
 - [ ] INVEST criteria all pass
 
 ### Acceptance Criteria Quality
+
 - [ ] Happy path covered
 - [ ] Validation rules specified
 - [ ] Error handling defined
@@ -57,6 +62,7 @@
 - [ ] All AC are testable (no vague words)
 
 ### Sprint Planning
+
 - [ ] Capacity calculated (with focus factor)
 - [ ] Committed ≤ capacity
 - [ ] Stretch ≤ 120% capacity
@@ -64,6 +70,7 @@
 - [ ] Dependencies identified
 
 ### Backlog Health
+
 - [ ] Stories prioritized
 - [ ] Top items refined
 - [ ] No items > 13 points
@@ -74,6 +81,7 @@
 ## Technical Analyst Checklist
 
 ### Analysis Quality
+
 - [ ] Domain analysis done (if complex)
 - [ ] Impact analysis complete
 - [ ] **🔍 Codebase explored (MANDATORY)**
@@ -89,6 +97,7 @@
 - [ ] ระบุ dependencies & related code
 
 ### Sub-task Quality
+
 - [ ] กระชับ - ไม่มีคำฟุ่มเฟือย
 - [ ] ชัดเจน - ไม่มีคำคลุมเครือ
 - [ ] ข้อมูลครบ - context เพียงพอ
@@ -96,12 +105,14 @@
 - [ ] เป็นกันเอง - ใช้ทับศัพท์
 
 ### Coherence & Alignment
+
 - [ ] ทุก sub-task ตอบโจทย์ User Story
 - [ ] รวมทุก sub-tasks = User Story สำเร็จ
 - [ ] ไม่มี task ที่เพิ่มเองนอก scope
 - [ ] Dependencies ระบุครบ
 
-### Scope Check
+### TA Scope Check
+
 - [ ] มีเฉพาะ [BE], [FE-Admin], [FE-Web]
 - [ ] ไม่มี QA/Testing sub-tasks
 
@@ -110,6 +121,7 @@
 ## QA Analyst Checklist
 
 ### Test Plan Quality
+
 - [ ] ทุก AC มี test case อย่างน้อย 1 case
 - [ ] Happy path covered
 - [ ] Error cases covered
@@ -118,6 +130,7 @@
 - [ ] Risk assessment completed (if applicable)
 
 ### Test Case Quality
+
 - [ ] Clear test objective
 - [ ] Preconditions defined
 - [ ] Steps are specific and reproducible
@@ -126,12 +139,14 @@
 - [ ] Effort is S or M (no L/XL)
 
 ### Coverage Check
+
 - [ ] Coverage matrix complete (AC → Test Cases)
 - [ ] All critical paths tested
 - [ ] Validation rules covered
 - [ ] Error handling covered
 
-### Scope Check
+### QA Scope Check
+
 - [ ] มีเฉพาะ [QA] tag
 - [ ] ไม่มี dev sub-tasks
 
