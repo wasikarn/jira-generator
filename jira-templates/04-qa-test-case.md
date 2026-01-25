@@ -1,21 +1,77 @@
 # Jira QA Test Case Template
 
-> **Version:** 2.1 | **Updated:** 2026-01-23
+> **Version:** 2.2 | **Updated:** 2026-01-25
 
 ---
 
 ## หลักการสำคัญ
 
-> 📌 **1 User Story = 1 [QA] Sub-task**
+> **1 User Story = 1 [QA] Sub-task**
 >
-> รวมทุก test scenario ไว้ใน sub-task เดียว
+> รวมทุก test scenario + Test Plan ไว้ใน sub-task เดียว (ไม่ต้องสร้าง Confluence page แยก)
 
 ---
 
-## 🎨 ADF Cosmetic Features
+## Creating [QA] Sub-task (2-Step Process)
+
+### Step 1: Create Subtask Shell via MCP
+
+```
+MCP: jira_create_issue(
+  project_key: "BEP",
+  summary: "[QA] - Test: [Feature Name]",
+  issue_type: "Subtask",
+  additional_fields: {"parent": "BEP-XXX"}
+)
+```
+
+→ ได้ issue key: BEP-QQQ
+
+### Step 2: Update with ADF Description via acli
+
+สร้างไฟล์ `tasks/bep-xxx-qa.json`:
+
+```json
+{
+  "issues": ["BEP-QQQ"],
+  "description": {
+    "type": "doc",
+    "version": 1,
+    "content": [...]
+  }
+}
+```
+
+> ⚠️ **สำคัญ:** ใช้ `"issues": ["BEP-QQQ"]` ไม่ใช่ `"parent"`, `"parentKey"`, หรือ `"parentIssueId"`
+
+Run acli:
+
+```bash
+acli jira workitem edit --from-json tasks/bep-xxx-qa.json --yes
+```
+
+ลบไฟล์ temp:
+
+```bash
+rm tasks/bep-xxx-qa.json
+```
+
+---
+
+## Common Errors & Fixes
+
+| Error | Cause | Fix |
+| --- | --- | --- |
+| `json: unknown field "parent"` | ใช้ field ผิดใน JSON | ใช้ MCP สร้างก่อน แล้ว acli edit |
+| `json: unknown field "parentKey"` | ใช้ field ผิดใน JSON | ใช้ MCP สร้างก่อน แล้ว acli edit |
+| `Could not find issue by id or key` | parentIssueId ไม่ถูกต้อง | ใช้ MCP สร้างก่อน แล้ว acli edit |
+
+---
+
+## ADF Cosmetic Features
 
 | Feature | Usage | Visual |
-| :--- | :--- | :---: |
+| --- | --- | --- |
 | **Info Panel** | Test objective, coverage summary | 🔵 Blue |
 | **Success Panel** | Happy path test cases | 🟢 Green |
 | **Warning Panel** | Edge case test cases | 🟡 Yellow |
@@ -25,13 +81,13 @@
 **Inline Code Marks:**
 
 | Markdown | ADF Mark |
-| :--- | :--- |
+| --- | --- |
 | `` `code` `` | `{"type": "code"}` |
 | `**bold**` | `{"type": "strong"}` |
 
-> 💡 **Tip:** ใช้ ADF panels เพื่อแยก test case types ด้วยสี ช่วยให้อ่านง่ายขึ้น
+> **Tip:** ใช้ ADF panels เพื่อแยก test case types ด้วยสี ช่วยให้อ่านง่ายขึ้น
 >
-> _See `references/templates.md` for full ADF format reference_
+> _See `.claude/skills/shared-references/templates.md` for full ADF format reference_
 
 ---
 
@@ -44,6 +100,7 @@
 **Tag:** `[QA]` เท่านั้น
 
 **Examples:**
+
 - ✅ `[QA] - Test: หน้าเมนูคูปอง (Coupon Menu)`
 - ✅ `[QA] - Test: Credit Transaction History`
 - ❌ `[QA] - Test: Display cards` (เจาะจงเกินไป)
@@ -54,129 +111,78 @@
 ## Description Template (Copy ไปใช้เลย)
 
 ```markdown
-## 📖 Story Narrative
-
-> **As a** [persona],
-> **I want to** [action],
-> **So that** [benefit].
-
----
-
 ## 🎯 Test Objective
 
-[What this test validates - อธิบาย scope ทั้งหมดของ story]
+> [What this test validates - อธิบาย scope ทั้งหมดของ story]
+> Flow: [step1 → step2 → step3]
+> Total: X Test Scenarios (Y Happy / Z Edge / W Error)
 
 ---
 
 ## 📊 AC Coverage
 
-| # | Acceptance Criteria | Scenarios | Status |
-| :---: | :--- | :---: | :---: |
-| 1 | [AC description] | TC1, TC2 | ✅ |
-| 2 | [AC description] | TC3 | ✅ |
-| 3 | [AC description] | TC4, TC5 | ✅ |
-
-> 📈 **Coverage:** 5 scenarios → 3 ACs (100%)
+| AC | Description | Type | Scenarios |
+| --- | --- | --- | --- |
+| AC1 | [AC description] | ✅ Happy | TC1, TC2 |
+| AC2 | [AC description] | ⚠️ Edge | TC3 |
+| AC3 | [AC description] | ❌ Error | TC4, TC5 |
 
 ---
 
-## 🧪 Test Scenarios
+## 🧪 Test Cases
 
-| ID | Scenario | AC | Type |
-| :---: | :--- | :---: | :---: |
-| 🟠 TC1 | [Happy path scenario] | 1 | ✅ Happy |
-| 🟡 TC2 | [Alternative path] | 1 | ✅ Happy |
-| 🟠 TC3 | [Error scenario] | 2 | ❌ Error |
-| 🟡 TC4 | [Edge case] | 3 | ⚠️ Edge |
-| 🟢 TC5 | [UI/Responsive] | 3 | 📱 UI |
+### AC1: [AC Title]
 
-> **Priority:** 🔴 Critical | 🟠 High | 🟡 Medium | 🟢 Low
-
----
-
-## 📝 Test Cases
-
-> 💡 **ADF Panel Guide:** ใช้ `success` panel สำหรับ Happy Path, `error` panel สำหรับ Error Cases, `warning` panel สำหรับ Edge Cases
-
----
-
-### ✅ Happy Path Tests
-
-> **🟢 TC1: [Happy Path Scenario Name]** `[panel: success]`
+> **🟢 TC1: [Happy Path Scenario Name]**
 >
-> | | |
-> | --- | --- |
-> | **AC** | 1 |
-> | **Priority** | 🟠 High |
-> | **Given** | [preconditions/setup] |
-> | **When** | [action steps] |
-> | **Then** | [expected result - specific, measurable] |
+> - Priority: 🔴 High | Type: ✅ Happy
+> - **Given:** [preconditions/setup]
+> - **When:** [action steps]
+> - **Then:** [expected result - specific, measurable]
 
-> **🟢 TC2: [Alternative Happy Path]** `[panel: success]`
+> **🟢 TC2: [Alternative Happy Path]**
 >
-> | | |
-> | --- | --- |
-> | **AC** | 1 |
-> | **Priority** | 🟡 Medium |
-> | **Given** | [preconditions/setup] |
-> | **When** | [action steps] |
-> | **Then** | [expected result] |
+> - Priority: 🟡 Medium | Type: ✅ Happy
+> - **Given:** [preconditions/setup]
+> - **When:** [action steps]
+> - **Then:** [expected result]
 
----
+### AC2: [AC Title]
 
-### ❌ Error Handling Tests
-
-> **🔴 TC3: [Error Handling Scenario]** `[panel: error]`
+> **🟡 TC3: [Edge Case / Validation]**
 >
-> | | |
-> | --- | --- |
-> | **AC** | 2 |
-> | **Priority** | 🟠 High |
-> | **Given** | [error condition setup] |
-> | **When** | [action that triggers error] |
-> | **Then** | [error handling response] |
+> - Priority: 🟠 High | Type: ⚠️ Edge
+> - **Given:** [boundary/edge condition]
+> - **When:** [action at boundary]
+> - **Then:** [expected boundary behavior]
+> - **Test Data:** `value1`, `value2`, `value3`
 
----
+### Error Handling
 
-### ⚠️ Edge Case Tests
-
-> **🟡 TC4: [Edge Case / Validation]** `[panel: warning]`
+> **🔴 TC4: [Error Handling Scenario]**
 >
-> | | |
-> | --- | --- |
-> | **AC** | 3 |
-> | **Priority** | 🟡 Medium |
-> | **Given** | [boundary/edge condition] |
-> | **When** | [action at boundary] |
-> | **Then** | [expected boundary behavior] |
+> - Priority: 🔴 High | Type: ❌ Error
+> - **Given:** [error condition setup]
+> - **When:** [action that triggers error]
+> - **Then:** [error handling response]
 
 ---
 
-## 📦 Test Data
+## 📝 Notes
 
-| Data | Description | Source |
-| :--- | :--- | :---: |
-| [Data type] | [What it contains] | 🌱 Seed |
-| [Data type] | [What it contains] | 🔧 Manual |
-| [Data type] | [What it contains] | 🔌 API |
-
----
-
-## 💡 Notes
-
-- [Edge case to watch]
-- [Dependencies]
-- [Environment requirements]
+> **Environment:** Staging
+> **Related:** [BEP-XXX](link) (related story/feature)
+> **Figma:** [Design Link](url)
 
 ---
 
 ## 🔗 Reference
 
 | Type | Link |
-| :--- | :--- |
-| 📋 User Story | [BEP-XXX](link) |
-| 📄 Test Plan | [Confluence URL] |
-| 📝 Technical Note | [Confluence URL] |
+| --- | --- |
+| User Story | [BEP-XXX](link) |
+| Backend | [BEP-YYY](link) |
+| Frontend | [BEP-ZZZ](link) |
 ```
 
 ---
@@ -184,7 +190,7 @@
 ## Other Fields
 
 | Field | Value |
-| :--- | :---: |
+| --- | --- |
 | **Issue Type** | Subtask |
 | **Project** | BEP |
 | **Parent** | [User Story] |
@@ -192,22 +198,22 @@
 
 ---
 
-## ⏱️ Effort Size
+## Effort Size
 
 | Size | Icon | Scenarios | Typical Story |
-| :---: | :---: | :---: | :--- |
+| --- | --- | --- | --- |
 | **S** | 🟢 | 1-3 | Simple story, 1-2 ACs |
 | **M** | 🟡 | 4-6 | Moderate story, 3-4 ACs |
 | **L** | 🟠 | 7-10 | Complex story, 5+ ACs |
 
-> 💡 **Note:** ไม่ต้อง split - รวมทุก scenario ไว้ใน sub-task เดียว
+> **Note:** ไม่ต้อง split - รวมทุก scenario ไว้ใน sub-task เดียว
 
 ---
 
-## 🚨 Priority Guide
+## Priority Guide
 
 | Level | Icon | When to Use | Example |
-| :--- | :---: | :--- | :--- |
+| --- | --- | --- | --- |
 | **Critical** | 🔴 | Core flow, data integrity | Payment, authentication |
 | **High** | 🟠 | Primary features | CRUD operations |
 | **Medium** | 🟡 | Secondary features | Filters, sorting |
@@ -215,10 +221,10 @@
 
 ---
 
-## 🏷️ Test Type Reference
+## Test Type Reference
 
 | Icon | Type | Focus | Example |
-| :---: | :--- | :--- | :--- |
+| --- | --- | --- | --- |
 | ✅ | Happy | Normal flow succeeds | Login with valid creds |
 | ⚠️ | Edge | Boundary/validation | Max 100 items, invalid email |
 | ❌ | Error | Failure handled | Network timeout message |
@@ -230,6 +236,7 @@
 ## Quality Checklist
 
 Before submit:
+
 - [ ] **1 sub-task per story** - รวมทุก scenario ไว้ใน sub-task เดียว
 - [ ] **Clear objective** - อธิบาย test scope ของทั้ง story
 - [ ] **AC coverage table** - map ทุก AC กับ scenarios
@@ -237,6 +244,7 @@ Before submit:
 - [ ] **Specific steps** - Given/When/Then ละเอียด reproducible
 - [ ] **Expected results** - ผลลัพธ์ชัดเจน verifiable
 - [ ] **Test data defined** - ข้อมูล test ระบุครบ
+- [ ] **Panel colors correct** - success=happy, warning=edge, error=error
 
 ---
 
@@ -246,5 +254,5 @@ Before submit:
 - **ทับศัพท์** - scenario, expected result, test data
 - **เป็นกันเอง** - คุยกับทีม casual
 
-_See `references/shared-config.md` for Language Guidelines_
+_See `.claude/skills/shared-references/templates.md` for ADF format_
 _See `references/checklists.md` for QA checklist_

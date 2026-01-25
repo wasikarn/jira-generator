@@ -1,11 +1,11 @@
 ---
 name: create-testplan
 description: |
-  สร้าง Test Plan + [QA] Sub-task จาก User Story ด้วย 6-phase QA workflow
+  สร้าง Test Plan + [QA] Sub-task จาก User Story ด้วย 5-phase QA workflow
 
-  Phases: Discovery → Test Scope Analysis → Design Test Cases → Create Test Plan Doc → Create [QA] Sub-task → Summary
+  Phases: Discovery → Test Scope Analysis → Design Test Cases → Create [QA] Sub-task → Summary
 
-  Output: Test Plan in Confluence + [QA] Sub-task in Jira
+  Output: [QA] Sub-task in Jira (รวม Test Plan ไว้ใน description)
 
   Triggers: "create test plan", "QA", "test case", "testing"
 argument-hint: "[issue-key]"
@@ -14,7 +14,9 @@ argument-hint: "[issue-key]"
 # /create-testplan
 
 **Role:** Senior QA Analyst
-**Output:** Test Plan + [QA] Sub-task
+**Output:** [QA] Sub-task (with embedded Test Plan)
+
+> **Note:** Test Plan รวมไว้ใน [QA] Sub-task description แทนการสร้าง Confluence page แยก
 
 ## Phases
 
@@ -42,41 +44,91 @@ argument-hint: "[issue-key]"
 - Test data requirements
 - **Gate:** User reviews test coverage
 
-### 4. Create Test Plan Doc
+### 4. Create [QA] Sub-task
+
+> **หลักการ:** 1 Story = 1 [QA] Sub-task (รวม Test Plan ไว้ใน description)
+
+#### Step 1: Create Subtask Shell
+
 ```
-MCP: confluence_create_page(
-  space_key: "BEP",
-  title: "Test Plan: [Story Title]",
-  content: [markdown]
+MCP: jira_create_issue(
+  project_key: "BEP",
+  summary: "[QA] - Test: [Feature Name]",
+  issue_type: "Subtask",
+  additional_fields: {"parent": "BEP-XXX"}
 )
 ```
-**Output:** Test Plan page URL
 
-### 5. Create [QA] Sub-task
-> **หลักการ:** 1 Story = 1 [QA] Sub-task
+→ ได้ issue key: BEP-QQQ
+
+#### Step 2: Update with Full Description
+
+1. สร้างไฟล์ `tasks/bep-xxx-qa.json`:
+
+```json
+{
+  "issues": ["BEP-QQQ"],
+  "description": {
+    "type": "doc",
+    "version": 1,
+    "content": [...]
+  }
+}
+```
+
+> ⚠️ **สำคัญ:** ใช้ `"issues": ["BEP-QQQ"]` ไม่ใช่ `"parent"` หรือ `"parentKey"` หรือ `"parentIssueId"`
+> acli edit ต้องการ issues array สำหรับระบุ issue ที่จะแก้ไข
+
+2. Run acli:
 
 ```bash
-acli jira workitem create --from-json tasks/bep-xxx-qa.json
+acli jira workitem edit --from-json tasks/bep-xxx-qa.json --yes
 ```
 
-**ADF Panel Colors:**
-- 🔵 info: objective/summary
-- 🟢 success: happy path
-- 🟡 warning: edge cases
-- 🔴 error: error handling
+3. ลบไฟล์ temp:
 
-### 6. Summary
+```bash
+rm tasks/bep-xxx-qa.json
+```
+
+#### ADF Panel Colors
+
+| Panel Type | Color | Usage |
+|------------|-------|-------|
+| `info` | 🔵 Blue | Test objective, summary |
+| `success` | 🟢 Green | Happy path tests |
+| `warning` | 🟡 Yellow | Edge cases, validation |
+| `error` | 🔴 Red | Error handling tests |
+| `note` | 🟣 Purple | Notes, dependencies |
+
+### 5. Summary
+
 ```
 ## QA Complete: [Title] (BEP-XXX)
-Test Plan: [link]
+
 [QA] Sub-task: BEP-QQQ (N scenarios)
+Coverage: X ACs → Y test scenarios (100%)
+
 → /verify-issue BEP-QQQ to verify
 ```
+
+---
+
+## Common Errors & Fixes
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `json: unknown field "parent"` | ใช้ field ผิดใน JSON | ใช้ MCP สร้างก่อน แล้ว acli edit |
+| `json: unknown field "parentKey"` | ใช้ field ผิดใน JSON | ใช้ MCP สร้างก่อน แล้ว acli edit |
+| `Could not find issue by id or key` | parentIssueId ไม่ถูกต้อง | ใช้ MCP สร้างก่อน แล้ว acli edit |
+
+**Recommended Workflow:**
+1. **Create** ด้วย MCP `jira_create_issue` (รองรับ parent ผ่าน additional_fields)
+2. **Edit** ด้วย `acli --from-json` (ใส่ ADF description)
 
 ---
 
 ## References
 
 - [ADF Templates](../shared-references/templates.md) - QA test case structure
-- [Workflows](../shared-references/workflows.md) - Phase patterns, tool selection
 - [Verification](../shared-references/verification-checklist.md) - QA checklist
