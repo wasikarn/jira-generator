@@ -38,7 +38,22 @@ What do you need?
 | Operation | Tool | Command/Syntax |
 | --- | --- | --- |
 | **Search issues** | MCP | `jira_search(jql: "project = BEP AND ...")` |
-| **Get issue details** | MCP | `jira_get_issue(issue_key: "BEP-XXX")` |
+| **Get issue details** | MCP | `jira_get_issue(issue_key: "BEP-XXX", fields: "summary,status,description")` |
+
+> ⚠️ **IMPORTANT:** ใช้ `fields` parameter เสมอเพื่อป้องกัน token limit error!
+>
+> ```python
+> # ❌ Bad - อาจเกิน token limit ถ้า issue มีข้อมูลเยอะ
+> jira_get_issue(issue_key="BEP-XXX")
+>
+> # ✅ Good - ระบุ fields ที่ต้องการ
+> jira_get_issue(
+>     issue_key="BEP-XXX",
+>     fields="summary,status,description,issuetype,parent",
+>     comment_limit=5
+> )
+> ```
+
 | **Create issue** | acli | `acli jira workitem create --from-json file.json` |
 | **Update description** | acli | `acli jira workitem edit --from-json file.json --yes` |
 | **Update other fields** | MCP | `jira_update_issue(issue_key: "BEP-XXX", fields: {...})` |
@@ -74,18 +89,28 @@ What do you need?
 | Field | Required | Notes |
 | --- | --- | --- |
 | `projectKey` | ✅ | เช่น `"BEP"` |
-| `type` | ✅ | `"Epic"`, `"Story"`, `"Subtask"` |
+| `type` | ✅ | `"Epic"`, `"Story"` (ไม่รวม Subtask - ดูด้านล่าง) |
 | `summary` | ✅ | Issue title |
-| `parent` | ⚠️ | Required for Subtask only |
 | `description` | ✅ | ADF content |
 | ~~`issues`~~ | ❌ | ห้ามใช้! |
+| ~~`parent`~~ | ❌ | ไม่รองรับ! ใช้ Two-Step Workflow แทน |
+
+> ⚠️ **CRITICAL: Subtask Creation**
+>
+> `acli jira workitem create` **ไม่รองรับ `parent` field!**
+>
+> ต้องใช้ **Two-Step Workflow** สำหรับ Subtask:
+>
+> 1. สร้าง shell ด้วย MCP: `jira_create_issue(issue_type="Subtask", additional_fields={parent:{key:"BEP-XXX"}})`
+> 2. Update description ด้วย: `acli jira workitem edit --from-json ... --yes`
+
+**Epic/Story CREATE Example:**
 
 ```json
 {
   "projectKey": "BEP",
-  "type": "Subtask",
-  "parent": "BEP-XXX",
-  "summary": "[TAG] - Title",
+  "type": "Story",
+  "summary": "[Feature] - Title",
   "description": {
     "type": "doc",
     "version": 1,
@@ -227,11 +252,14 @@ acli jira workitem get BEP-XXX
 # All stories in project
 project = BEP AND issuetype = Story
 
-# Sub-tasks of a story
+# Sub-tasks of a story (without ORDER BY)
 parent = BEP-XXX
 
+# Sub-tasks of a story (with ORDER BY - use "Parent Link")
+"Parent Link" = BEP-XXX ORDER BY created DESC
+
 # Recently updated
-project = BEP AND updated >= -7d
+project = BEP AND updated >= -7d ORDER BY updated DESC
 
 # By status
 project = BEP AND status = "In Progress"
@@ -242,3 +270,6 @@ project = BEP AND assignee = currentUser()
 # Epics only
 project = BEP AND issuetype = Epic
 ```
+
+> ⚠️ **JQL Gotcha:** `parent = BEP-XXX ORDER BY...` จะเกิด error!
+> ใช้ `"Parent Link" = BEP-XXX ORDER BY...` แทน

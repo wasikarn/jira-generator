@@ -18,6 +18,19 @@ project = BEP AND type = Story AND sprint IN openSprints()
 parent = BEP-XXX
 ```
 
+> ⚠️ **WARNING:** เมื่อใช้กับ MCP `jira_search` ห้ามใส่ ORDER BY ใน parent query!
+>
+> ```text
+> ❌ parent = BEP-XXX ORDER BY created DESC  → Error: Expecting ')' but got 'ORDER'
+> ✅ parent = BEP-XXX                        → ใช้งานได้
+> ```
+>
+> ถ้าต้องการ sort ให้ใช้ `"Parent Link"` แทน:
+>
+> ```text
+> ✅ "Parent Link" = BEP-XXX ORDER BY created DESC
+> ```
+
 ### Find My Assigned Issues
 
 ```text
@@ -124,7 +137,7 @@ ORDER BY priority DESC, created ASC # Combined
 | --- | --- |
 | Find story before creating | `project = BEP AND type = Story AND summary ~ "keyword"` |
 | Check my sprint work | `project = BEP AND assignee = currentUser() AND sprint IN openSprints()` |
-| Review sub-tasks | `parent = BEP-XXX ORDER BY created` |
+| Review sub-tasks | `"Parent Link" = BEP-XXX ORDER BY created` |
 | Find blockers | `project = BEP AND priority = Highest AND status != Done` |
 | Overdue items | `project = BEP AND duedate < now() AND status != Done` |
 

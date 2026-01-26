@@ -11,6 +11,7 @@
 | Error | Cause | Solution |
 | --- | --- | --- |
 | `unknown field "project"` | Wrong field name | Use `projectKey` not `project` |
+| `unknown field "parent"` | acli ไม่รองรับ parent field | ใช้ Two-Step Workflow: MCP create + acli edit |
 | `missing required field` | Incomplete JSON | Check all required fields present |
 | `invalid JSON syntax` | Malformed JSON | Validate JSON structure |
 | `issues field required` | Edit without issue key | Add `"issues": ["BEP-XXX"]` for edits |
@@ -26,6 +27,35 @@
 ```
 
 Note: CREATE has no "issues" field, EDIT requires `"issues": ["BEP-XXX"]`.
+
+### Subtask Creation (Two-Step Workflow)
+
+> ⚠️ **เจอ `unknown field "parent"`?** ใช้ workflow นี้
+
+**Step 1: Create shell ด้วย MCP**
+
+```typescript
+jira_create_issue({
+  project_key: "BEP",
+  summary: "[TAG] - Description",
+  issue_type: "Subtask",
+  additional_fields: { parent: { key: "BEP-XXX" } }
+})
+// Returns: BEP-YYY (new subtask key)
+```
+
+**Step 2: Update description ด้วย acli**
+
+```json
+{
+  "issues": ["BEP-YYY"],
+  "description": { "type": "doc", "version": 1, "content": [...] }
+}
+```
+
+```bash
+acli jira workitem edit --from-json tasks/subtask.json --yes
+```
 
 ### Authentication Errors
 
@@ -65,6 +95,7 @@ Note: CREATE has no "issues" field, EDIT requires `"issues": ["BEP-XXX"]`.
 | Error | Cause | Solution |
 | --- | --- | --- |
 | `JQL syntax error` | Invalid query | Check JQL operators and field names |
+| `Expecting ')' but got 'ORDER'` | ORDER BY กับ parent query | ใช้ `"Parent Link" = BEP-XXX ORDER BY...` แทน `parent = BEP-XXX ORDER BY...` |
 | `Field not found` | Wrong field name | Use `issuetype` not `type` for search |
 | `No issues found` | Empty result | Broaden search criteria |
 
@@ -75,6 +106,39 @@ Note: CREATE has no "issues" field, EDIT requires `"issues": ["BEP-XXX"]`.
 | `Issue not found` | Wrong key | Verify format: `BEP-XXX` |
 | `Cannot read property` | Issue deleted | Issue may have been removed |
 | `Rate limited` | Too many requests | Wait and retry |
+| `exceeds maximum allowed tokens` | Issue มีข้อมูลเยอะเกินไป | ใช้ `fields` parameter จำกัด fields ที่ดึง |
+
+### Large Output Error
+
+เมื่อเจอ error นี้:
+
+```text
+Error: result (73,235 characters) exceeds maximum allowed tokens.
+Output has been saved to /path/to/tool-results/...
+```
+
+**Solution:** ใช้ `fields` parameter เพื่อจำกัดข้อมูลที่ดึง:
+
+```python
+# ❌ Bad - ดึงทุก field ทำให้ข้อมูลเยอะ
+jira_get_issue(issue_key="BEP-XXX")
+
+# ✅ Good - ระบุเฉพาะ fields ที่ต้องการ
+jira_get_issue(
+    issue_key="BEP-XXX",
+    fields="summary,status,description,issuetype,parent",
+    comment_limit=5
+)
+```
+
+**Recommended fields for common operations:**
+
+| Use Case | Fields |
+| --- | --- |
+| Quick status check | `summary,status,assignee` |
+| Read description | `summary,status,description` |
+| Check parent/links | `summary,status,issuetype,parent` |
+| Full analysis | `summary,status,description,issuetype,parent,labels` |
 
 ---
 

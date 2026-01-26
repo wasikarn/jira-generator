@@ -62,9 +62,27 @@ Task(subagent_type: "Explore", prompt: "Find [feature] in [service path]")
 
 ### 6. Create Artifacts
 
-```bash
-acli jira workitem create --from-json tasks/subtask.json
+> ⚠️ **CRITICAL:** ต้องใช้ Two-Step Workflow สำหรับ Subtask (acli ไม่รองรับ `parent` field)
+
+**Step 1: สร้าง Sub-task shell ด้วย MCP**
+
+```typescript
+jira_create_issue({
+  project_key: "BEP",
+  summary: "[TAG] - Description",
+  issue_type: "Subtask",
+  additional_fields: { parent: { key: "BEP-XXX" } }  // Parent Story key
+})
+// Returns: BEP-YYY (new subtask key)
 ```
+
+**Step 2: Update description ด้วย acli + ADF**
+
+```bash
+acli jira workitem edit --from-json tasks/subtask-bep-yyy.json --yes
+```
+
+> JSON file ต้องใช้ format: `{"issues": ["BEP-YYY"], "description": {...}}`
 
 - Technical Note (ถ้าจำเป็น) → `MCP: confluence_create_page`
 

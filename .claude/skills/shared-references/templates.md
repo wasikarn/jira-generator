@@ -529,36 +529,37 @@
 
 ---
 
-## Sub-task Template (ADF) - CREATE
+## Sub-task Template (ADF) - TWO-STEP WORKFLOW
 
-> ใช้กับ `acli jira workitem create --from-json`
+> ⚠️ **CRITICAL:** `acli jira workitem create` ไม่รองรับ `parent` field!
+>
+> **ต้องใช้ Two-Step Workflow:**
+>
+> 1. **Step 1:** สร้าง Sub-task shell ด้วย MCP (รองรับ parent)
+> 2. **Step 2:** Update description ด้วย acli + ADF
+
+### Step 1: Create Sub-task Shell (MCP)
+
+```typescript
+jira_create_issue({
+  project_key: "BEP",
+  summary: "[TAG] - Description",
+  issue_type: "Subtask",
+  additional_fields: { parent: { key: "BEP-XXX" } }  // Parent Story key
+})
+```
+
+### Step 2: Update Description (acli + ADF)
+
+> ใช้กับ `acli jira workitem edit --from-json ... --yes`
 
 ```json
 {
-  "projectKey": "BEP",
-  "type": "Subtask",
-  "parent": "BEP-XXX",
-  "summary": "[TAG] - Description",
+  "issues": ["BEP-YYY"],
   "description": {
     "type": "doc",
     "version": 1,
     "content": [
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "📖 Story Narrative"}]},
-      {
-        "type": "panel",
-        "attrs": {"panelType": "info"},
-        "content": [
-          {"type": "paragraph", "content": [
-            {"type": "text", "text": "As a ", "marks": [{"type": "strong"}]},
-            {"type": "text", "text": "[persona], "},
-            {"type": "text", "text": "I want to ", "marks": [{"type": "strong"}]},
-            {"type": "text", "text": "[action], "},
-            {"type": "text", "text": "So that ", "marks": [{"type": "strong"}]},
-            {"type": "text", "text": "[benefit]."}
-          ]}
-        ]
-      },
-      {"type": "rule"},
       {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🎯 Objective"}]},
       {"type": "paragraph", "content": [{"type": "text", "text": "[What and why - 1-2 sentences]"}]},
       {"type": "rule"},
@@ -647,18 +648,30 @@
 
 ---
 
-## QA Test Case Template (ADF) - CREATE
+## QA Test Case Template (ADF) - TWO-STEP WORKFLOW
 
-> ใช้กับ `acli jira workitem create --from-json`
+> ⚠️ **CRITICAL:** ใช้ Two-Step Workflow เหมือน Sub-task Template
+
+### Step 1: Create QA Sub-task Shell (MCP)
+
+```typescript
+jira_create_issue({
+  project_key: "BEP",
+  summary: "[QA] - Test: [Feature Name]",
+  issue_type: "Subtask",
+  additional_fields: { parent: { key: "BEP-XXX" } }  // Parent Story key
+})
+```
+
+### Step 2: Update QA Description (acli + ADF)
+
+> ใช้กับ `acli jira workitem edit --from-json ... --yes`
 
 **Important:** ใช้ bulletList ใน panel (ไม่ใช้ nested table)
 
 ```json
 {
-  "projectKey": "BEP",
-  "type": "Subtask",
-  "parent": "BEP-XXX",
-  "summary": "[QA] - Test: [Feature Name]",
+  "issues": ["BEP-YYY"],
   "description": {
     "type": "doc",
     "version": 1,
