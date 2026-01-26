@@ -1,5 +1,41 @@
 # ADF Templates Reference
 
+## ⚠️ CREATE vs EDIT - JSON Format ที่ต่างกัน
+
+> **CRITICAL:** JSON สำหรับ create และ edit มี format ต่างกัน ห้ามใช้สลับกัน!
+
+| Operation | Required Fields | Forbidden Fields |
+| --- | --- | --- |
+| **CREATE** (new issue) | `projectKey`, `type`, `summary`, `description` | `issues` |
+| **EDIT** (existing issue) | `issues`, `description` | `projectKey`, `type`, `summary`, `parent` |
+
+### CREATE Example
+
+```json
+{
+  "projectKey": "BEP",
+  "type": "Story",
+  "summary": "Feature title",
+  "description": { "type": "doc", "version": 1, "content": [...] }
+}
+```
+
+### EDIT Example
+
+```json
+{
+  "issues": ["BEP-XXX"],
+  "description": { "type": "doc", "version": 1, "content": [...] }
+}
+```
+
+> **Error Prevention:**
+>
+> - ถ้าเจอ `Error: json: unknown field "projectKey"` → กำลังใช้ CREATE format กับ EDIT command
+> - ถ้าเจอ `Error: json: unknown field "issues"` → กำลังใช้ EDIT format กับ CREATE command
+
+---
+
 ## Panel Types & Colors
 
 | Panel Type | Color | Usage |
@@ -109,7 +145,9 @@
 
 ---
 
-## Epic Template (ADF)
+## Epic Template (ADF) - CREATE
+
+> ใช้กับ `acli jira workitem create --from-json`
 
 **Structure:**
 
@@ -307,7 +345,9 @@
 
 ---
 
-## User Story Template (ADF)
+## User Story Template (ADF) - CREATE
+
+> ใช้กับ `acli jira workitem create --from-json`
 
 **Note:** สำหรับ Stories ที่มี AC ≥ 5 ตัว อาจเพิ่ม AC Summary table ก่อน panels (ดู Important Rules)
 
@@ -371,7 +411,9 @@
 
 ---
 
-## Sub-task Template (ADF)
+## Sub-task Template (ADF) - CREATE
+
+> ใช้กับ `acli jira workitem create --from-json`
 
 ```json
 {
@@ -449,7 +491,9 @@
 
 ---
 
-## QA Test Case Template (ADF)
+## QA Test Case Template (ADF) - CREATE
+
+> ใช้กับ `acli jira workitem create --from-json`
 
 **Important:** ใช้ bulletList ใน panel (ไม่ใช้ nested table)
 
@@ -546,6 +590,51 @@
 
 ---
 
+## EDIT Template (All Issue Types)
+
+> ใช้กับ `acli jira workitem edit --from-json ... --yes`
+
+**สำหรับ update description ของ issue ที่มีอยู่แล้ว** - ใช้ format เดียวกันทุก issue type
+
+```json
+{
+  "issues": ["BEP-XXX"],
+  "description": {
+    "type": "doc",
+    "version": 1,
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "Section Title"}]},
+      {
+        "type": "panel",
+        "attrs": {"panelType": "info"},
+        "content": [
+          {"type": "paragraph", "content": [{"type": "text", "text": "Content here..."}]}
+        ]
+      }
+    ]
+  }
+}
+```
+
+**⚠️ สิ่งที่ห้ามใส่ใน EDIT JSON:**
+
+- ❌ `projectKey` - Error: unknown field
+- ❌ `type` - Error: unknown field
+- ❌ `summary` - Error: unknown field (ใช้ MCP `jira_update_issue` แทน)
+- ❌ `parent` - Error: unknown field
+
+**Update summary/fields อื่นๆ (ไม่ใช่ description):**
+
+```typescript
+// ใช้ MCP แทน acli
+jira_update_issue({
+  issue_key: "BEP-XXX",
+  fields: { summary: "New Summary" }
+})
+```
+
+---
+
 ## Inline Code Examples
 
 **File path:**
@@ -583,6 +672,9 @@
 | Mistake | Correct |
 | --- | --- |
 | Table inside panel | Use bulletList inside panel |
+| Using `projectKey` in EDIT JSON | Remove - only use `issues` array |
+| Using `issues` in CREATE JSON | Remove - use `projectKey`, `type`, `summary` |
+| `Error: unknown field "projectKey"` | You're using CREATE format with EDIT command |
 | Missing `version: 1` | Always include in doc root |
 | Using wiki format | Use ADF JSON with acli |
 | Nested tables | Flatten or use lists |

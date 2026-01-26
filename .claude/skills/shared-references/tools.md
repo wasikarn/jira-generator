@@ -67,7 +67,18 @@ What do you need?
 
 ## ADF JSON Structure
 
-### Create New Issue
+> ⚠️ **CRITICAL:** CREATE และ EDIT ใช้ JSON format ที่ต่างกัน - ห้ามใช้สลับกัน!
+
+### Create New Issue (`acli jira workitem create`)
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `projectKey` | ✅ | เช่น `"BEP"` |
+| `type` | ✅ | `"Epic"`, `"Story"`, `"Subtask"` |
+| `summary` | ✅ | Issue title |
+| `parent` | ⚠️ | Required for Subtask only |
+| `description` | ✅ | ADF content |
+| ~~`issues`~~ | ❌ | ห้ามใช้! |
 
 ```json
 {
@@ -83,7 +94,15 @@ What do you need?
 }
 ```
 
-### Update Existing Issue
+### Update Existing Issue (`acli jira workitem edit`)
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `issues` | ✅ | Array of issue keys เช่น `["BEP-XXX"]` |
+| `description` | ✅ | ADF content |
+| ~~`projectKey`~~ | ❌ | ห้ามใช้! Error: unknown field |
+| ~~`type`~~ | ❌ | ห้ามใช้! |
+| ~~`summary`~~ | ❌ | ห้ามใช้! (ใช้ MCP แทนถ้าต้องการ update) |
 
 ```json
 {
