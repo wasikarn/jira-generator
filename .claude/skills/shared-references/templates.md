@@ -145,6 +145,100 @@
 
 ---
 
+## Semantic Table Headers (Colored by Category)
+
+> **Concept:** ใช้สี header แยก semantic meaning - มองปุ๊บรู้ประเภททันที
+
+### Color Scheme by Category
+
+| Category | Color | Hex Code | Usage |
+| --- | --- | --- | --- |
+| **New / Create** | 🟢 Green | `#e3fcef` | Files ที่ต้องสร้างใหม่ |
+| **Modify / Change** | 🟡 Yellow | `#fffae6` | Files ที่ต้องแก้ไข |
+| **Delete / Remove** | 🔴 Red | `#ffebe6` | Files ที่ต้องลบ |
+| **Reference / Info** | 🟣 Purple | `#eae6ff` | Links, dependencies, notes |
+| **Requirements** | 🔵 Blue | `#deebff` | Specs, requirements |
+| **Default** | ⚪ Grey | `#f4f5f7` | Generic tables |
+
+### ADF Example: Scope Tables with Semantic Colors
+
+**Files (New) - Green Header:**
+
+```json
+{"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": "Files (New)"}]},
+{
+  "type": "table",
+  "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
+  "content": [
+    {"type": "tableRow", "content": [
+      {"type": "tableHeader", "attrs": {"background": "#e3fcef"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "File Path"}]}]},
+      {"type": "tableHeader", "attrs": {"background": "#e3fcef"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Description"}]}]}
+    ]},
+    {"type": "tableRow", "content": [
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "src/pages/feature/index.tsx", "marks": [{"type": "code"}]}]}]},
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "หน้าหลักของ feature"}]}]}
+    ]}
+  ]
+}
+```
+
+**Files (Modify) - Yellow Header:**
+
+```json
+{"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": "Files (Modify)"}]},
+{
+  "type": "table",
+  "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
+  "content": [
+    {"type": "tableRow", "content": [
+      {"type": "tableHeader", "attrs": {"background": "#fffae6"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "File Path"}]}]},
+      {"type": "tableHeader", "attrs": {"background": "#fffae6"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Changes"}]}]}
+    ]},
+    {"type": "tableRow", "content": [
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "src/services/auth.service.ts", "marks": [{"type": "code"}]}]}]},
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "เพิ่ม API calls สำหรับ feature"}]}]}
+    ]}
+  ]
+}
+```
+
+**Reference - Purple Header:**
+
+```json
+{
+  "type": "table",
+  "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
+  "content": [
+    {"type": "tableRow", "content": [
+      {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
+      {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}]}
+    ]},
+    {"type": "tableRow", "content": [
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "User Story"}]}]},
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [
+        {"type": "text", "text": "BEP-XXX", "marks": [{"type": "link", "attrs": {"href": "https://100-stars.atlassian.net/browse/BEP-XXX"}}]}
+      ]}]}
+    ]}
+  ]
+}
+```
+
+### When to Use Semantic Colors
+
+| Section | Recommended Color |
+| --- | --- |
+| 📁 Scope > Files (New) | 🟢 `#e3fcef` |
+| 📁 Scope > Files (Modify) | 🟡 `#fffae6` |
+| 📁 Scope > Files (Delete) | 🔴 `#ffebe6` |
+| 🔗 Reference | 🟣 `#eae6ff` |
+| 📋 Requirements | 🔵 `#deebff` |
+| 📊 RICE Score, Metrics | ⚪ `#f4f5f7` (default) |
+| 📊 AC Coverage | ⚪ `#f4f5f7` (default) |
+
+> **Tip:** ใช้สี header เดียวกันทั้ง row - ไม่ mix สีใน header row เดียวกัน
+
+---
+
 ## Epic Template (ADF) - CREATE
 
 > ใช้กับ `acli jira workitem create --from-json`
@@ -317,8 +411,8 @@
         "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
         "content": [
           {"type": "tableRow", "content": [
-            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
-            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}]}
+            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}]}
           ]},
           {"type": "tableRow", "content": [
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Epic Doc"}]}]},
@@ -403,6 +497,30 @@
             ]}]}
           ]}
         ]
+      },
+      {"type": "rule"},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔗 Reference"}]},
+      {
+        "type": "table",
+        "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
+        "content": [
+          {"type": "tableRow", "content": [
+            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}]}
+          ]},
+          {"type": "tableRow", "content": [
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Epic"}]}]},
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
+              {"type": "text", "text": "BEP-XXX", "marks": [{"type": "link", "attrs": {"href": "https://100-stars.atlassian.net/browse/BEP-XXX"}}]}
+            ]}]}
+          ]},
+          {"type": "tableRow", "content": [
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Figma"}]}]},
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
+              {"type": "text", "text": "Design", "marks": [{"type": "link", "attrs": {"href": "[Figma URL]"}}]}
+            ]}]}
+          ]}
+        ]
       }
     ]
   }
@@ -445,19 +563,33 @@
       {"type": "paragraph", "content": [{"type": "text", "text": "[What and why - 1-2 sentences]"}]},
       {"type": "rule"},
       {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "📁 Scope"}]},
+      {"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": "Files (New)"}]},
       {
         "type": "table",
         "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
         "content": [
           {"type": "tableRow", "content": [
-            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Category"}]}]},
-            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Details"}]}]}
+            {"type": "tableHeader", "attrs": {"background": "#e3fcef"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "File Path"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#e3fcef"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Description"}]}]}
           ]},
           {"type": "tableRow", "content": [
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Files"}]}]},
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
-              {"type": "text", "text": "src/pages/feature/index.tsx", "marks": [{"type": "code"}]}
-            ]}]}
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "src/pages/feature/index.tsx", "marks": [{"type": "code"}]}]}]},
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "หน้าหลักของ feature"}]}]}
+          ]}
+        ]
+      },
+      {"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": "Files (Modify)"}]},
+      {
+        "type": "table",
+        "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
+        "content": [
+          {"type": "tableRow", "content": [
+            {"type": "tableHeader", "attrs": {"background": "#fffae6"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "File Path"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#fffae6"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Changes"}]}]}
+          ]},
+          {"type": "tableRow", "content": [
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "src/services/auth.service.ts", "marks": [{"type": "code"}]}]}]},
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "เพิ่ม API calls"}]}]}
           ]}
         ]
       },
@@ -480,6 +612,30 @@
             {"type": "listItem", "content": [{"type": "paragraph", "content": [
               {"type": "text", "text": "Then: ", "marks": [{"type": "strong"}]},
               {"type": "text", "text": "[result]"}
+            ]}]}
+          ]}
+        ]
+      },
+      {"type": "rule"},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔗 Reference"}]},
+      {
+        "type": "table",
+        "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
+        "content": [
+          {"type": "tableRow", "content": [
+            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}]}
+          ]},
+          {"type": "tableRow", "content": [
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "User Story"}]}]},
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
+              {"type": "text", "text": "BEP-XXX", "marks": [{"type": "link", "attrs": {"href": "https://100-stars.atlassian.net/browse/BEP-XXX"}}]}
+            ]}]}
+          ]},
+          {"type": "tableRow", "content": [
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Figma"}]}]},
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
+              {"type": "text", "text": "Design", "marks": [{"type": "link", "attrs": {"href": "[Figma URL]"}}]}
             ]}]}
           ]}
         ]
@@ -579,6 +735,24 @@
             {"type": "listItem", "content": [{"type": "paragraph", "content": [
               {"type": "text", "text": "Then: ", "marks": [{"type": "strong"}]},
               {"type": "text", "text": "[expected result]"}
+            ]}]}
+          ]}
+        ]
+      },
+      {"type": "rule"},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔗 Reference"}]},
+      {
+        "type": "table",
+        "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
+        "content": [
+          {"type": "tableRow", "content": [
+            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}]}
+          ]},
+          {"type": "tableRow", "content": [
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "User Story"}]}]},
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
+              {"type": "text", "text": "BEP-XXX", "marks": [{"type": "link", "attrs": {"href": "https://100-stars.atlassian.net/browse/BEP-XXX"}}]}
             ]}]}
           ]}
         ]
