@@ -216,6 +216,50 @@ For MCP: Use `jira_get_issue(issue_key: "BEP-1")`
 
 ---
 
+## Confluence Scripts Errors
+
+### Python Script Errors
+
+| Error | Cause | Solution |
+| --- | --- | --- |
+| `SSL: CERTIFICATE_VERIFY_FAILED` | macOS SSL cert issue | Scripts มี SSL bypass อยู่แล้ว - ถ้ายังเจอ check Python version |
+| `401 Unauthorized` | Invalid credentials | Check `~/.config/atlassian/.env` |
+| `404 Not Found` | Wrong page ID | Verify page ID from URL |
+| `ModuleNotFoundError` | Missing module | Scripts ใช้ stdlib เท่านั้น (ไม่ต้อง pip install) |
+
+### MCP Confluence Limitations
+
+| Issue | Cause | Solution |
+| --- | --- | --- |
+| Code blocks ไม่ syntax highlight | MCP แปลง format ผิด | ใช้ `create_confluence_page.py` |
+| Macros แสดงเป็น text | MCP ไม่เข้าใจ storage format | ใช้ `update_page_storage.py` |
+| ย้าย page ไม่ได้ | MCP ไม่มี move API | ใช้ `move_confluence_page.py` |
+
+### Script Locations
+
+```text
+.claude/skills/confluence-scripts/scripts/
+├── create_confluence_page.py   → Create/update with code blocks
+├── update_confluence_page.py   → Find/replace text
+├── move_confluence_page.py     → Move page(s) to new parent
+├── update_page_storage.py      → Add macros (ToC, Children)
+└── fix_confluence_code_blocks.py → Fix broken code blocks
+```
+
+### Credentials File
+
+```bash
+# Check credentials
+cat ~/.config/atlassian/.env
+
+# Expected format:
+CONFLUENCE_URL=https://100-stars.atlassian.net/wiki
+CONFLUENCE_USERNAME=your-email@example.com
+CONFLUENCE_API_TOKEN=your-api-token
+```
+
+---
+
 ## Quick Fixes
 
 | Problem | Quick Fix |

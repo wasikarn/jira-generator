@@ -36,7 +36,8 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | `/create-task` | สร้าง Task (tech-debt, bug, chore, spike) | Task |
 | `/analyze-story BEP-XXX` | วิเคราะห์ Story → Sub-tasks | Sub-tasks + Technical Note |
 | `/create-testplan BEP-XXX` | สร้าง Test Plan จาก Story | Test Plan + [QA] Sub-tasks |
-| `/create-doc` | สร้าง Confluence page (tech-spec, adr) | Confluence Page |
+| `/create-doc` | สร้าง Confluence page (tech-spec, adr, parent) | Confluence Page |
+| `/update-doc` | Update/Move Confluence page | Updated/Moved Page |
 
 ### Update (แก้ไข/ปรับปรุง)
 
@@ -115,6 +116,7 @@ Each role uses **Handoff Protocol** to pass context to next:
 | "create epic", "product vision", "RICE" | `/create-epic` | 5-phase PM workflow |
 | "create task", "สร้าง task", "tech-debt", "bug", "chore", "spike" | `/create-task` | 5-phase task workflow |
 | "create doc", "สร้าง doc", "technical spec", "ADR" | `/create-doc` | 4-phase doc workflow |
+| "update doc", "แก้ไข doc", "move page", "ย้าย page" | `/update-doc` | 5-phase doc update workflow |
 
 ### Update Commands
 
@@ -185,8 +187,15 @@ Each role uses **Handoff Protocol** to pass context to next:
 | **Search issues/pages** | MCP `jira_search` or `confluence_search` | Fast |
 | **Read issue details** | MCP `jira_get_issue` | Full data |
 | **Read Confluence page** | MCP `confluence_get_page` | Returns markdown |
-| **Create Confluence page** | MCP `confluence_create_page` | Accepts markdown, converts to storage format |
+| **Create Confluence page (simple)** | MCP `confluence_create_page` | Accepts markdown, converts to storage format |
+| **Confluence with code blocks** | Python script | MCP breaks code block formatting |
+| **Confluence with macros** | Python script | MCP แปลง macros เป็น text |
+| **Move Confluence page** | Python script | MCP ไม่รองรับการ move |
 | **Bulk Jira operations** | `acli` + `--jql` flag | Supports bulk edit |
+
+> **Confluence Scripts:** `.claude/skills/confluence-scripts/scripts/`
+>
+> ใช้ scripts สำหรับ code blocks, macros (ToC, Children), และ page moves
 
 ### Decision Flow
 
@@ -204,7 +213,8 @@ flowchart TD
 
     Q --> |Confluence page| D{Read or Write?}
     D --> |Read| D1[MCP confluence_get_page]
-    D --> |Create/Update| D2[MCP confluence_create_page]
+    D --> |Create simple| D2[MCP confluence_create_page]
+    D --> |Code blocks/Macros/Move| D3[Python scripts]
 ```
 
 ### ADF JSON Structure
@@ -264,10 +274,18 @@ See `atlassian-cli` skill for detailed ADF format reference.
 | `jira_update_issue` | Update fields (excluding description) |
 | `confluence_search` | Search Confluence pages |
 | `confluence_get_page` | Read Confluence page |
-| `confluence_create_page` | Create Confluence page (markdown OK) |
+| `confluence_create_page` | Create simple Confluence page (no code/macros) |
 
-> **WARNING:** Do not use `jira_create_issue` or `jira_update_issue` for description field.
+> **WARNING - Jira:** Do not use `jira_create_issue` or `jira_update_issue` for description field.
 > It converts to wiki format which doesn't render nicely. Use `acli --from-json` instead.
+>
+> **WARNING - Confluence:** MCP `confluence_create_page` และ `confluence_update_page` มีข้อจำกัด:
+>
+> - Code blocks จะ render ผิด (ไม่ syntax highlight)
+> - Macros (ToC, Children, Status) จะแสดงเป็น text แทน
+> - ไม่รองรับการ move page
+>
+> **ใช้ Python scripts แทน:** `.claude/skills/confluence-scripts/scripts/`
 
 Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 
@@ -287,6 +305,8 @@ Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 │   └── SKILL.md
 ├── create-doc/            → /create-doc (4-phase Confluence workflow)
 │   └── SKILL.md
+├── update-doc/            → /update-doc (5-phase Confluence update)
+│   └── SKILL.md
 ├── update-epic/           → /update-epic (5-phase update)
 │   └── SKILL.md
 ├── update-story/          → /update-story (5-phase update)
@@ -305,6 +325,14 @@ Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 │   └── SKILL.md
 ├── verify-issue/          → /verify-issue (4-phase verify)
 │   └── SKILL.md
+├── confluence-scripts/    # Python scripts for Confluence (code blocks, macros, move)
+│   ├── SKILL.md
+│   └── scripts/
+│       ├── create_confluence_page.py   → Create/update with code blocks
+│       ├── update_confluence_page.py   → Find/replace text
+│       ├── move_confluence_page.py     → Move page(s) to new parent
+│       ├── update_page_storage.py      → Add macros (ToC, Children)
+│       └── fix_confluence_code_blocks.py → Fix broken code blocks
 └── shared-references/     # Shared resources for all skills
     ├── templates.md       → ADF templates
     ├── writing-style.md   → Language guidelines
@@ -339,6 +367,7 @@ tasks/                     # Generated outputs (gitignored)
 | Writing style guide | `.claude/skills/shared-references/writing-style.md` |
 | JQL patterns | `.claude/skills/shared-references/jql-quick-ref.md` |
 | Troubleshooting | `.claude/skills/shared-references/troubleshooting.md` |
+| Confluence scripts | `.claude/skills/confluence-scripts/SKILL.md` |
 
 ## Core Principles
 

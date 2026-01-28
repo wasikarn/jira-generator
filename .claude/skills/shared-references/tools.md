@@ -26,7 +26,11 @@ What do you need?
     │
     └─ Confluence page
           ├─ Read  → MCP confluence_get_page
-          └─ Create/Update → MCP confluence_create_page (markdown OK)
+          ├─ Create (no code) → MCP confluence_create_page
+          ├─ Create (with code) → Python script
+          ├─ Update content → Python script
+          ├─ Move page → Python script
+          └─ Add macros (ToC, Children) → Python script
 ```
 
 ---
@@ -66,8 +70,46 @@ What do you need?
 | --- | --- | --- |
 | **Search pages** | MCP | `confluence_search(query: "...")` |
 | **Get page** | MCP | `confluence_get_page(page_id: "...")` |
-| **Create page** | MCP | `confluence_create_page(space_key: "BEP", ...)` |
-| **Update page** | MCP | `confluence_update_page(page_id: "...", ...)` |
+| **Create page (simple)** | MCP | `confluence_create_page(space_key: "BEP", ...)` |
+| **Create page (code blocks)** | Script | `python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py` |
+| **Update content** | Script | `python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py --page-id` |
+| **Find/Replace text** | Script | `python3 .claude/skills/confluence-scripts/scripts/update_confluence_page.py` |
+| **Move page** | Script | `python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py` |
+| **Add macros (ToC, Children)** | Script | `python3 .claude/skills/confluence-scripts/scripts/update_page_storage.py` |
+
+> ⚠️ **IMPORTANT:** MCP `confluence_create_page` และ `confluence_update_page` มีข้อจำกัด:
+>
+> - Code blocks จะ render ผิด (ไม่เป็น syntax highlight)
+> - Macros (ToC, Children, Status) จะ render เป็น text แทน
+> - ใช้ Python scripts ใน `.claude/skills/confluence-scripts/scripts/` แทน
+
+### Confluence Scripts Decision Flow
+
+```text
+ต้องการทำอะไร?
+    │
+    ├─ สร้าง page ใหม่ (ไม่มี code)
+    │     └─ MCP confluence_create_page
+    │
+    ├─ สร้าง page ใหม่ (มี code blocks)
+    │     └─ create_confluence_page.py --space --title
+    │
+    ├─ Update content ทั้งหมด
+    │     └─ create_confluence_page.py --page-id --content-file
+    │
+    ├─ Find/Replace text
+    │     └─ update_confluence_page.py --find --replace
+    │
+    ├─ Move page(s) to new parent
+    │     └─ move_confluence_page.py --page-id(s) --parent-id
+    │
+    └─ Add macros (ToC, Children, Status)
+          └─ update_page_storage.py --page-id --content-file
+```
+
+**Script Location:** `.claude/skills/confluence-scripts/scripts/`
+
+**Full Documentation:** `.claude/skills/confluence-scripts/SKILL.md`
 
 ### Codebase Exploration
 
