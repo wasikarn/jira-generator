@@ -2,10 +2,10 @@
 name: create-doc
 description: |
   สร้าง Confluence page จาก template ด้วย 4-phase workflow
-  รองรับ: tech-spec, adr (Architecture Decision Record)
+  รองรับ: tech-spec, adr, parent (category page)
 
   Triggers: "create doc", "สร้าง doc", "technical spec", "ADR"
-argument-hint: "[template] [title]"
+argument-hint: "[template] [title] [--parent page-id]"
 ---
 
 # /create-doc
@@ -19,6 +19,7 @@ argument-hint: "[template] [title]"
 | --- | --- | --- |
 | `tech-spec` | API design, Feature spec | Overview → Requirements → Design → API → Testing |
 | `adr` | Architecture Decision | Context → Decision → Consequences |
+| `parent` | Category/Parent page | Title → Description → Sub-pages table |
 
 ---
 
@@ -34,6 +35,7 @@ argument-hint: "[template] [title]"
 ต้องการสร้าง Document ประเภทไหน?
 1. tech-spec - Technical Specification
 2. adr - Architecture Decision Record
+3. parent - Category/Parent page (จัดกลุ่ม pages)
 ```
 
 **Gather details ตาม template:**
@@ -42,8 +44,24 @@ argument-hint: "[template] [title]"
 | --- | --- |
 | `tech-spec` | Title, Overview, Related Jira issue |
 | `adr` | Title, Context, Options considered |
+| `parent` | Title, Description, Category type |
 
-**Gate:** User provides required info
+**ถ้าต้องการสร้างเป็น child ของ page อื่น:**
+
+```text
+ต้องการสร้างภายใต้ parent page ไหน?
+1. Root (ไม่มี parent)
+2. ระบุ Page ID
+3. ค้นหาจาก title
+```
+
+**ค้นหา parent page:**
+
+```python
+confluence_search(query="title ~ \"[search term]\"", limit=5)
+```
+
+**Gate:** User provides required info + Parent page identified (if specified)
 
 ---
 
@@ -166,6 +184,28 @@ Proposed | Accepted | Deprecated | Superseded
 - [Link to related ADRs or issues]
 ```
 
+**parent Template:**
+
+```markdown
+# [Title]
+
+[Brief description of what this category contains]
+
+---
+
+## Sub-pages
+
+| Page | Description |
+| --- | --- |
+| *Child pages will appear here* | |
+
+---
+
+## Related
+
+- [Link to related pages or issues]
+```
+
 **Gate:** Content generated
 
 ---
@@ -236,6 +276,8 @@ python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
 | --- | --- |
 | สร้าง Tech Spec | `/create-doc tech-spec "Payment API"` |
 | สร้าง ADR | `/create-doc adr "Use Redis for caching"` |
+| สร้าง Parent page | `/create-doc parent "Documentation: Ads System"` |
+| สร้างเป็น child | `/create-doc tech-spec "API Spec" --parent 153518083` |
 
 ---
 

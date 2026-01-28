@@ -2,10 +2,10 @@
 name: update-doc
 description: |
   Update existing Confluence page ด้วย 5-phase workflow
-  รองรับ: content update, section update, status change
+  รองรับ: content update, section update, status change, move
 
-  Triggers: "update doc", "แก้ไข doc", "update confluence"
-argument-hint: "[page-id or title]"
+  Triggers: "update doc", "แก้ไข doc", "update confluence", "move page"
+argument-hint: "[page-id or title] [--move parent-id]"
 ---
 
 # /update-doc
@@ -21,6 +21,7 @@ argument-hint: "[page-id or title]"
 | `section` | Update specific section | Add/modify section |
 | `status` | Change document status | Draft → Published |
 | `replace` | Find and replace text | Batch text changes |
+| `move` | Move to different parent | Reorganize hierarchy |
 
 ---
 
@@ -52,6 +53,15 @@ confluence_search(query="title ~ \"[search term]\"", limit=5)
 | `section` | Section name, New content |
 | `status` | New status value |
 | `replace` | Find text, Replace text |
+| `move` | Target parent page ID |
+
+**ถ้าต้องการ move:**
+
+```text
+ต้องการย้ายไปอยู่ภายใต้ parent page ไหน?
+1. ระบุ Page ID
+2. ค้นหาจาก title
+```
 
 **Gate:** Page identified + Update type determined
 
@@ -106,7 +116,13 @@ confluence_get_page(
 - Replace with new text
 - Report count
 
-**Gate:** Updated content generated
+**Move:**
+
+- ไม่แก้ไข content
+- เปลี่ยนเฉพาะ parent page
+- รักษา page metadata
+
+**Gate:** Updated content generated (or move target identified)
 
 ---
 
@@ -163,6 +179,24 @@ python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
   --content-file tasks/temp-content.md
 ```
 
+**Option C: Move page (use Python script)**
+
+ย้าย page ไปอยู่ภายใต้ parent อื่น:
+
+```bash
+python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py \
+  --page-id [page_id] \
+  --parent-id [target_parent_id]
+```
+
+Batch move หลาย pages:
+
+```bash
+python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py \
+  --page-ids [page_id1],[page_id2],[page_id3] \
+  --parent-id [target_parent_id]
+```
+
 **Output:**
 
 ```text
@@ -180,15 +214,21 @@ python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
 ## Decision Flow
 
 ```text
-มี code blocks?
+Update type?
     │
-    ├─ No → ใช้ MCP confluence_update_page
+    ├─ Move → move_confluence_page.py --page-id --parent-id
     │
-    └─ Yes → ใช้ Python script
-              │
-              ├─ Find/Replace → update_confluence_page.py
-              │
-              └─ Full content → create_confluence_page.py --page-id
+    └─ Content/Section/Status/Replace
+          │
+          └─ มี code blocks?
+                │
+                ├─ No → ใช้ MCP confluence_update_page
+                │
+                └─ Yes → ใช้ Python script
+                          │
+                          ├─ Find/Replace → update_confluence_page.py
+                          │
+                          └─ Full content → create_confluence_page.py --page-id
 ```
 
 ---
@@ -201,6 +241,8 @@ python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
 | Replace text | `/update-doc 144244902 --find "v1" --replace "v2"` | Script |
 | Update section | `/update-doc 144244902 --section "API Spec"` | MCP or Script |
 | Full rewrite | `/update-doc 144244902` | Script |
+| Move page | `/update-doc 144244902 --move 153518083` | Script |
+| Batch move | `/update-doc --move 153518083 --pages 144244902,144015541` | Script |
 
 ---
 
