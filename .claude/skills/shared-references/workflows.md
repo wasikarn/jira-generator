@@ -57,7 +57,11 @@ Phase N: [Goal]
 | Update fields only | MCP `jira_update_issue` | Simple, fast |
 | Search Jira | MCP `jira_search` | JQL support |
 | Read issue | MCP `jira_get_issue` | Full details |
-| Create Confluence | MCP `confluence_create_page` | Accepts markdown |
+| Create Confluence (simple) | MCP `confluence_create_page` | Accepts markdown |
+| Confluence with code/macros | Python scripts | MCP breaks formatting |
+
+> **Note:** สำหรับ Confluence pages ที่มี code blocks, macros (ToC, Children), หรือต้องการ move
+> ให้ใช้ Python scripts ใน `.claude/skills/confluence-scripts/scripts/`
 
 ---
 
