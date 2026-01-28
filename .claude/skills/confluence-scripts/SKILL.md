@@ -20,6 +20,7 @@ argument-hint: "[script-name] [args]"
 | `create_confluence_page.py` | Create/Update page พร้อม proper code blocks | สร้างหรือ update page ที่มี code |
 | `update_confluence_page.py` | Find/Replace text ใน page | Batch text replacement |
 | `move_confluence_page.py` | Move page(s) to new parent | Reorganize page hierarchy |
+| `update_page_storage.py` | Update page ด้วย raw storage format | Pages ที่ต้องการ macros (ToC, Children) |
 | `fix_confluence_code_blocks.py` | แก้ไข code blocks ที่ render ผิด | Fix broken code formatting |
 
 ---
@@ -205,7 +206,62 @@ PUT /rest/api/content/{pageId}/move/append/{parentId}
 
 ---
 
-## Script 4: Fix Code Blocks
+## Script 4: Update with Storage Format
+
+Update page ด้วย raw storage format สำหรับ macros (ToC, Children, Status)
+
+**Location:** `.claude/skills/confluence-scripts/scripts/update_page_storage.py`
+
+### Usage
+
+```bash
+# Update from HTML file with macros
+python3 .claude/skills/confluence-scripts/scripts/update_page_storage.py \
+  --page-id 156598299 \
+  --content-file content.html
+
+# Update with inline storage content
+python3 .claude/skills/confluence-scripts/scripts/update_page_storage.py \
+  --page-id 156598299 \
+  --content "<h1>Title</h1><ac:structured-macro ac:name=\"toc\"/>"
+
+# Dry run (preview only)
+python3 .claude/skills/confluence-scripts/scripts/update_page_storage.py \
+  --page-id 156598299 \
+  --content-file content.html \
+  --dry-run
+```
+
+### Arguments
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `--page-id` | ✅ | Confluence page ID |
+| `--content` | ✅* | Raw storage format content (inline) |
+| `--content-file` | ✅* | Path to file with storage content |
+| `--title` | ❌ | New title (optional) |
+| `--dry-run` | ❌ | Preview changes without applying |
+
+*ต้องระบุ `--content` หรือ `--content-file` อย่างใดอย่างหนึ่ง
+
+### Common Macros
+
+| Macro | Storage Format |
+| --- | --- |
+| Table of Contents | `<ac:structured-macro ac:name="toc"><ac:parameter ac:name="maxLevel">2</ac:parameter></ac:structured-macro>` |
+| Children Display | `<ac:structured-macro ac:name="children"><ac:parameter ac:name="all">true</ac:parameter><ac:parameter ac:name="sort">title</ac:parameter></ac:structured-macro>` |
+| Status | `<ac:structured-macro ac:name="status"><ac:parameter ac:name="colour">Green</ac:parameter><ac:parameter ac:name="title">Complete</ac:parameter></ac:structured-macro>` |
+| Info Panel | `<ac:structured-macro ac:name="info"><ac:rich-text-body><p>Info text</p></ac:rich-text-body></ac:structured-macro>` |
+| Warning Panel | `<ac:structured-macro ac:name="warning"><ac:rich-text-body><p>Warning text</p></ac:rich-text-body></ac:structured-macro>` |
+
+### Why Use This Script
+
+MCP tools แปลง storage format ไม่ถูกต้อง - macros จะ render เป็น text แทน
+Script นี้ส่ง raw storage format ไปที่ API โดยตรง
+
+---
+
+## Script 5: Fix Code Blocks
 
 แก้ไข code blocks จาก `<pre class="highlight"><code>` เป็น `<ac:structured-macro ac:name="code">`
 
@@ -253,6 +309,9 @@ pages = [
     │
     ├─ Move page(s) to new parent
     │     └─ move_confluence_page.py --page-id(s) --parent-id
+    │
+    ├─ Add macros (ToC, Children, Status)
+    │     └─ update_page_storage.py --page-id --content-file
     │
     └─ Fix broken code blocks
           └─ fix_confluence_code_blocks.py
@@ -323,6 +382,7 @@ Scripts สร้าง code blocks สำหรับ mermaid แต่ไม�
 | 2026-01-29 | `fix_confluence_code_blocks.py` | Fix code block formatting |
 | 2026-01-29 | `create_confluence_page.py` | Create/update with proper code formatting |
 | 2026-01-29 | `move_confluence_page.py` | Move pages to reorganize hierarchy |
+| 2026-01-29 | `update_page_storage.py` | Update pages with macros (ToC, Children) |
 
 ---
 

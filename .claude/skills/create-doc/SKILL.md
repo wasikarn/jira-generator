@@ -191,20 +191,36 @@ Proposed | Accepted | Deprecated | Superseded
 
 [Brief description of what this category contains]
 
+{toc:maxLevel=2}
+
 ---
 
-## Sub-pages
+## 📄 Sub-pages
 
-| Page | Description |
+{children:all=true|sort=title}
+
+---
+
+## 🏷️ Topics Covered
+
+| Topic | Description |
 | --- | --- |
-| *Child pages will appear here* | |
+| [Topic 1] | [Description] |
+| [Topic 2] | [Description] |
 
 ---
 
-## Related
+## 🔗 Related
 
 - [Link to related pages or issues]
+
+---
+
+*Last updated: [date]*
 ```
+
+> **Note:** `{toc}` และ `{children}` macros จะแสดงผลเฉพาะใน Confluence
+> สำหรับ parent pages ที่ต้องการ macros ให้ใช้ `update_page_storage.py` script
 
 **Gate:** Content generated
 
