@@ -12,6 +12,37 @@ argument-hint: "[script-name] [args]"
 
 **Role:** Developer / Tech Lead
 **Output:** Created/Updated Confluence Pages
+**Version:** 2.0.0 (Refactored with SRP/OCP)
+
+## Architecture
+
+```text
+confluence-scripts/
+├── __init__.py              # Package marker
+├── lib/                     # Shared library modules
+│   ├── __init__.py          # Public exports
+│   ├── exceptions.py        # Custom exceptions
+│   ├── auth.py              # SSL, credentials, auth
+│   ├── api.py               # ConfluenceAPI class
+│   └── converters.py        # Content converters
+└── scripts/                 # CLI scripts
+    ├── create_confluence_page.py
+    ├── update_confluence_page.py
+    ├── move_confluence_page.py
+    ├── update_page_storage.py
+    └── fix_confluence_code_blocks.py
+```
+
+### Module Responsibilities (SRP)
+
+| Module | Responsibility |
+| --- | --- |
+| `exceptions.py` | Domain-specific exceptions |
+| `auth.py` | Authentication (SSL, credentials, auth header) |
+| `api.py` | HTTP/API operations via ConfluenceAPI class |
+| `converters.py` | Content transformation (markdown, code blocks) |
+
+---
 
 ## Available Scripts
 
@@ -92,6 +123,7 @@ python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
 | `--content` | Both | ✅* | Inline markdown content |
 | `--content-file` | Both | ✅* | Path to markdown file |
 | `--dry-run` | Both | ❌ | Preview without saving |
+| `--verbose` | Both | ❌ | Enable debug logging |
 
 *ต้องระบุ `--content` หรือ `--content-file` อย่างใดอย่างหนึ่ง
 
@@ -155,6 +187,7 @@ python3 .claude/skills/confluence-scripts/scripts/update_confluence_page.py \
 | `--replace` | ✅ | Replacement text (must match --find count) |
 | `--regex` | ❌ | Treat find as regex pattern |
 | `--dry-run` | ❌ | Preview changes without applying |
+| `--verbose` | ❌ | Enable debug logging |
 
 ---
 
@@ -192,6 +225,7 @@ python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py \
 | `--page-ids` | ✅* | Comma-separated list of page IDs to move |
 | `--parent-id` | ✅ | Target parent page ID |
 | `--dry-run` | ❌ | Preview changes without applying |
+| `--verbose` | ❌ | Enable debug logging |
 
 *ต้องระบุ `--page-id` หรือ `--page-ids` อย่างใดอย่างหนึ่ง
 
@@ -241,6 +275,7 @@ python3 .claude/skills/confluence-scripts/scripts/update_page_storage.py \
 | `--content-file` | ✅* | Path to file with storage content |
 | `--title` | ❌ | New title (optional) |
 | `--dry-run` | ❌ | Preview changes without applying |
+| `--verbose` | ❌ | Enable debug logging |
 
 *ต้องระบุ `--content` หรือ `--content-file` อย่างใดอย่างหนึ่ง
 
@@ -270,19 +305,30 @@ Script นี้ส่ง raw storage format ไปที่ API โดยตร
 ### Usage
 
 ```bash
-python3 .claude/skills/confluence-scripts/scripts/fix_confluence_code_blocks.py
+# Fix single page
+python3 .claude/skills/confluence-scripts/scripts/fix_confluence_code_blocks.py \
+  --page-id 144244902
+
+# Fix multiple pages
+python3 .claude/skills/confluence-scripts/scripts/fix_confluence_code_blocks.py \
+  --page-ids 144244902,144015541,144015575,143720672
+
+# Dry run (preview only)
+python3 .claude/skills/confluence-scripts/scripts/fix_confluence_code_blocks.py \
+  --page-ids 144244902,144015541 \
+  --dry-run
 ```
 
-### Default Pages (แก้ไขใน script)
+### Arguments
 
-```python
-pages = [
-    ("144244902", "Credit Coupon"),
-    ("144015541", "Discount Coupon"),
-    ("144015575", "Cashback Coupon"),
-    ("143720672", "Coupon Menu"),
-]
-```
+| Argument | Required | Description |
+| --- | --- | --- |
+| `--page-id` | ✅* | Single page ID to fix |
+| `--page-ids` | ✅* | Comma-separated list of page IDs to fix |
+| `--dry-run` | ❌ | Preview changes without applying |
+| `--verbose` | ❌ | Enable debug logging |
+
+*ต้องระบุ `--page-id` หรือ `--page-ids` อย่างใดอย่างหนึ่ง
 
 ### What it does
 
@@ -314,7 +360,7 @@ pages = [
     │     └─ update_page_storage.py --page-id --content-file
     │
     └─ Fix broken code blocks
-          └─ fix_confluence_code_blocks.py
+          └─ fix_confluence_code_blocks.py --page-id(s)
 ```
 
 ---
@@ -328,6 +374,71 @@ pages = [
 | Page with code blocks | **Script** | MCP breaks code formatting |
 | Batch text replacement | **Script** | More reliable |
 | Fix broken formatting | **Script** | Direct storage format access |
+
+---
+
+## Library API (for developers)
+
+### Using ConfluenceAPI
+
+```python
+from lib import (
+    ConfluenceAPI,
+    create_ssl_context,
+    load_credentials,
+    get_auth_header,
+)
+
+creds = load_credentials()
+api = ConfluenceAPI(
+    base_url=creds["CONFLUENCE_URL"],
+    auth_header=get_auth_header(creds["CONFLUENCE_USERNAME"], creds["CONFLUENCE_API_TOKEN"]),
+    ssl_context=create_ssl_context(),
+)
+
+# Get page
+page = api.get_page("123456")
+print(page["title"])
+
+# Create page
+result = api.create_page("BEP", "My Page", "<p>Content</p>", parent_id="123")
+
+# Update page
+result = api.update_page("123456", "Title", "<p>New content</p>", version=2)
+
+# Move page
+result = api.move_page("123456", "789012")
+```
+
+### Using Converters
+
+```python
+from lib import markdown_to_storage, create_code_macro, fix_code_blocks
+
+# Convert markdown to storage format
+storage_html = markdown_to_storage("# Hello\\n**Bold** text")
+
+# Create code macro
+macro = create_code_macro("python", "print('hello')")
+
+# Fix broken code blocks in HTML
+fixed_html = fix_code_blocks(broken_html)
+```
+
+### Custom Exceptions
+
+```python
+from lib import ConfluenceError, CredentialsError, PageNotFoundError, APIError
+
+try:
+    page = api.get_page("invalid")
+except PageNotFoundError as e:
+    print(f"Page not found: {e.page_id}")
+except APIError as e:
+    print(f"API error {e.status_code}: {e.reason}")
+except CredentialsError as e:
+    print(f"Credentials error: {e}")
+```
 
 ---
 
@@ -376,13 +487,11 @@ Scripts สร้าง code blocks สำหรับ mermaid แต่ไม�
 
 ## History
 
-| Date | Script | Purpose |
+| Date | Version | Changes |
 | --- | --- | --- |
-| 2026-01-27 | `update_confluence_page.py` | Update OTP validity 5min → 3min |
-| 2026-01-29 | `fix_confluence_code_blocks.py` | Fix code block formatting |
-| 2026-01-29 | `create_confluence_page.py` | Create/update with proper code formatting |
-| 2026-01-29 | `move_confluence_page.py` | Move pages to reorganize hierarchy |
-| 2026-01-29 | `update_page_storage.py` | Update pages with macros (ToC, Children) |
+| 2026-01-27 | 1.0.0 | Initial scripts: update_confluence_page.py |
+| 2026-01-29 | 1.1.0 | Added create, move, fix scripts |
+| 2026-01-29 | 2.0.0 | Refactored with SRP/OCP: lib/ modules, type hints, logging, custom exceptions |
 
 ---
 
