@@ -21,6 +21,7 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 1. **ต้องการสร้าง feature ใหม่?** → `/story-full` (สร้าง Story + Sub-tasks ครบ)
 2. **มี Epic แล้ว ต้องการสร้าง Story?** → `/create-story`
 3. **มี Story แล้ว ต้องการวิเคราะห์?** → `/analyze-story BEP-XXX`
+4. **ต้องการสร้าง Task?** → `/create-task` (tech-debt, bug, chore, spike)
 
 > ⚡ **หลังสร้างเสร็จ:** ใช้ `/verify-issue BEP-XXX` ตรวจสอบคุณภาพเสมอ
 
@@ -32,8 +33,10 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | --- | --- | --- |
 | `/create-epic` | สร้าง Epic จาก product vision | Epic + Epic Doc |
 | `/create-story` | สร้าง User Story จาก requirements | User Story |
+| `/create-task` | สร้าง Task (tech-debt, bug, chore, spike) | Task |
 | `/analyze-story BEP-XXX` | วิเคราะห์ Story → Sub-tasks | Sub-tasks + Technical Note |
 | `/create-testplan BEP-XXX` | สร้าง Test Plan จาก Story | Test Plan + [QA] Sub-tasks |
+| `/create-doc` | สร้าง Confluence page (tech-spec, adr) | Confluence Page |
 
 ### Update (แก้ไข/ปรับปรุง)
 
@@ -41,6 +44,7 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | --- | --- | --- |
 | `/update-epic BEP-XXX` | แก้ไข Epic - ปรับ scope, RICE, metrics | Updated Epic |
 | `/update-story BEP-XXX` | แก้ไข User Story - เพิ่ม/แก้ AC, scope | Updated Story |
+| `/update-task BEP-XXX` | แก้ไข Task - migrate format, add details | Updated Task |
 | `/update-subtask BEP-XXX` | แก้ไข Sub-task - format, content | Updated Sub-task |
 | `/improve-issue BEP-XXX` | Batch improve format/quality | Improved issue(s) |
 
@@ -109,6 +113,8 @@ Each role uses **Handoff Protocol** to pass context to next:
 | "create test plan", "QA", "test case" | `/create-testplan` | 6-phase QA workflow |
 | "create story", "user story" | `/create-story` | 5-phase PO workflow |
 | "create epic", "product vision", "RICE" | `/create-epic` | 5-phase PM workflow |
+| "create task", "สร้าง task", "tech-debt", "bug", "chore", "spike" | `/create-task` | 5-phase task workflow |
+| "create doc", "สร้าง doc", "technical spec", "ADR" | `/create-doc` | 4-phase doc workflow |
 
 ### Update Commands
 
@@ -116,6 +122,7 @@ Each role uses **Handoff Protocol** to pass context to next:
 | --- | --- | --- |
 | "update epic", "แก้ไข epic", "ปรับ epic" | `/update-epic` | 5-phase update workflow |
 | "update story", "แก้ไข story", "เพิ่ม AC" | `/update-story` | 5-phase update workflow |
+| "update task", "แก้ไข task", "ปรับ task" | `/update-task` | 5-phase update workflow |
 | "update subtask", "แก้ไข subtask" | `/update-subtask` | 5-phase update workflow |
 | "improve", "migrate", "ปรับปรุง format" | `/improve-issue` | 6-phase batch improve |
 
@@ -276,9 +283,15 @@ Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 │   └── SKILL.md
 ├── create-testplan/       → /create-testplan (6-phase QA workflow)
 │   └── SKILL.md
+├── create-task/           → /create-task (5-phase task workflow)
+│   └── SKILL.md
+├── create-doc/            → /create-doc (4-phase Confluence workflow)
+│   └── SKILL.md
 ├── update-epic/           → /update-epic (5-phase update)
 │   └── SKILL.md
 ├── update-story/          → /update-story (5-phase update)
+│   └── SKILL.md
+├── update-task/           → /update-task (5-phase update)
 │   └── SKILL.md
 ├── update-subtask/        → /update-subtask (5-phase update)
 │   └── SKILL.md
