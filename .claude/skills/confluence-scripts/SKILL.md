@@ -19,6 +19,7 @@ argument-hint: "[script-name] [args]"
 | --- | --- | --- |
 | `create_confluence_page.py` | Create/Update page พร้อม proper code blocks | สร้างหรือ update page ที่มี code |
 | `update_confluence_page.py` | Find/Replace text ใน page | Batch text replacement |
+| `move_confluence_page.py` | Move page(s) to new parent | Reorganize page hierarchy |
 | `fix_confluence_code_blocks.py` | แก้ไข code blocks ที่ render ผิด | Fix broken code formatting |
 
 ---
@@ -156,7 +157,55 @@ python3 .claude/skills/confluence-scripts/scripts/update_confluence_page.py \
 
 ---
 
-## Script 3: Fix Code Blocks
+## Script 3: Move Page
+
+ย้าย page(s) ไปอยู่ภายใต้ parent page อื่น โดยไม่แก้ไข content
+
+**Location:** `.claude/skills/confluence-scripts/scripts/move_confluence_page.py`
+
+### Usage
+
+```bash
+# Move single page
+python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py \
+  --page-id 144244902 \
+  --parent-id 153518083
+
+# Batch move multiple pages
+python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py \
+  --page-ids 144244902,144015541,144015575 \
+  --parent-id 153518083
+
+# Dry run (preview only)
+python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py \
+  --page-id 144244902 \
+  --parent-id 153518083 \
+  --dry-run
+```
+
+### Arguments
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `--page-id` | ✅* | Single page ID to move |
+| `--page-ids` | ✅* | Comma-separated list of page IDs to move |
+| `--parent-id` | ✅ | Target parent page ID |
+| `--dry-run` | ❌ | Preview changes without applying |
+
+*ต้องระบุ `--page-id` หรือ `--page-ids` อย่างใดอย่างหนึ่ง
+
+### Why Use This Script
+
+MCP `confluence_update_page` ไม่สามารถย้าย page ได้โดยไม่ overwrite content
+Script นี้ใช้ Confluence REST API โดยตรง:
+
+```text
+PUT /rest/api/content/{pageId}/move/append/{parentId}
+```
+
+---
+
+## Script 4: Fix Code Blocks
 
 แก้ไข code blocks จาก `<pre class="highlight"><code>` เป็น `<ac:structured-macro ac:name="code">`
 
@@ -201,6 +250,9 @@ pages = [
     │
     ├─ Find/Replace text
     │     └─ update_confluence_page.py --find --replace
+    │
+    ├─ Move page(s) to new parent
+    │     └─ move_confluence_page.py --page-id(s) --parent-id
     │
     └─ Fix broken code blocks
           └─ fix_confluence_code_blocks.py
@@ -270,6 +322,7 @@ Scripts สร้าง code blocks สำหรับ mermaid แต่ไม�
 | 2026-01-27 | `update_confluence_page.py` | Update OTP validity 5min → 3min |
 | 2026-01-29 | `fix_confluence_code_blocks.py` | Fix code block formatting |
 | 2026-01-29 | `create_confluence_page.py` | Create/update with proper code formatting |
+| 2026-01-29 | `move_confluence_page.py` | Move pages to reorganize hierarchy |
 
 ---
 
