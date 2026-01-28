@@ -865,6 +865,7 @@ jira_update_issue({
 | Missing `version: 1` | Always include in doc root |
 | Using wiki format | Use ADF JSON with acli |
 | Nested tables | Flatten or use lists |
+| Nested bulletList (listItem > bulletList) | Flatten to single list or use comma-separated text |
 | Missing marks array | Use `[{"type": "code"}]` not `"code"` |
 
 ---

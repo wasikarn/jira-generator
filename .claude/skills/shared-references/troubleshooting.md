@@ -73,6 +73,7 @@ acli jira workitem edit --from-json tasks/subtask.json --yes
 | `Unknown node type` | Typo in type name | Verify: heading, paragraph, bulletList, etc. |
 | `Invalid attrs` | Wrong attributes | Check panel: `panelType`, heading: `level` |
 | `Nested table error` | Tables in tables | ❌ Tables cannot contain tables - use bullets |
+| `INVALID_INPUT` (InvalidPayloadException) | Nested bulletList | ❌ listItem > bulletList ไม่ได้ - flatten หรือใช้ comma-separated text |
 
 **ADF Structure Must Have:**
 
