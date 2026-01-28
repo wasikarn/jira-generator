@@ -192,13 +192,27 @@ Proposed | Accepted | Deprecated | Superseded
 
 ### 4. Create
 
-```typescript
-confluence_create_page({
-  space_key: "BEP",
-  title: "[Title]",
-  content: "[markdown content]",
-  parent_id: "[optional parent page ID]"
-})
+**Option A: Simple content (no code blocks)**
+
+```python
+confluence_create_page(
+  space_key="BEP",
+  title="[Title]",
+  content="[markdown content]",
+  parent_id="[optional parent page ID]"
+)
+```
+
+**Option B: With code blocks (use Python script)**
+
+ถ้า content มี code blocks ให้ใช้ Python script:
+
+```bash
+python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
+  --space BEP \
+  --title "[Title]" \
+  --content-file tasks/temp-content.md \
+  --parent-id [optional parent page ID]
 ```
 
 **Output:**
@@ -229,3 +243,5 @@ confluence_create_page({
 
 - Space: `BEP`
 - MCP Tool: `confluence_create_page`
+- Scripts: `.claude/skills/confluence-scripts/scripts/`
+- Related: `/update-doc` for updating existing pages
