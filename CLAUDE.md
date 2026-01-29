@@ -78,16 +78,6 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 
 **Skill Location:** `.claude/skills/` (แต่ละ command = 1 skill directory)
 
-### Alternative: Manual Prompts
-
-| Task | Prompt | Output |
-| --- | --- | --- |
-| Create Epic | `prompts/01-senior-product-manager.md` | Epic + Epic Doc |
-| Create User Story | `prompts/02-senior-product-owner.md` | User Story |
-| Analyze Story | `prompts/03-senior-technical-analyst.md` | Sub-tasks + Technical Note |
-| Update Sub-task | `prompts/04-update-subtask.md` | Updated Sub-task |
-| Create Test Plan | `prompts/05-senior-qa-analyst.md` | Test Plan + [QA] Sub-tasks |
-
 ## Workflow Chain
 
 ```text
@@ -150,16 +140,6 @@ Each role uses **Handoff Protocol** to pass context to next:
 1. Load skill from `.claude/skills/[command-name]/SKILL.md` (e.g., `.claude/skills/create-story/SKILL.md`)
 2. Execute phases in order (ห้ามข้ามขั้นตอน)
 3. Reference `.claude/skills/shared-references/` for templates and tools
-
-### Legacy Prompts (for manual use)
-
-| Trigger | Prompt |
-| --- | --- |
-| "create epic" | `prompts/01-senior-product-manager.md` |
-| "create user story" | `prompts/02-senior-product-owner.md` |
-| "analyze story" | `prompts/03-senior-technical-analyst.md` |
-| "update sub-task" | `prompts/04-update-subtask.md` |
-| "create test plan" | `prompts/05-senior-qa-analyst.md` |
 
 ## Service Tags
 
@@ -342,27 +322,17 @@ Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 │       ├── audit_confluence_pages.py    → Verify content alignment
 │       └── update_jira_description.py   → Fix Jira descriptions (ADF)
 └── shared-references/     # Shared resources for all skills
-    ├── templates.md       → ADF templates
+    ├── templates.md       → ADF core rules (CREATE/EDIT, panels, styling)
+    ├── templates-epic.md  → Epic ADF template
+    ├── templates-story.md → Story ADF template
+    ├── templates-subtask.md → Sub-task + QA ADF template
+    ├── templates-task.md  → Task ADF template (4 types)
     ├── writing-style.md   → Language guidelines
     ├── tools.md           → Tool selection guide
     ├── jql-quick-ref.md   → JQL patterns
     ├── troubleshooting.md → Error recovery
     └── verification-checklist.md → Quality checks
 
-prompts/                   # Legacy prompts (manual use)
-├── 01-senior-product-manager.md
-├── 02-senior-product-owner.md
-├── 03-senior-technical-analyst.md
-├── 04-update-subtask.md
-└── 05-senior-qa-analyst.md
-
-references/                # Global shared resources
-├── shared-config.md       → Project settings, MCP tools
-├── templates.md           → All Jira/Confluence templates
-└── checklists.md          → Quality validation checklists
-
-jira-templates/            # Issue format templates
-confluence-templates/      # Page format templates
 tasks/                     # Generated outputs (gitignored)
 ```
 
@@ -438,7 +408,7 @@ tasks/                     # Generated outputs (gitignored)
 | --- | --- |
 | Description renders as ugly wiki format | Use `acli --from-json` with ADF format instead of MCP |
 | `acli` error: unknown field | Check JSON structure (use `projectKey` not `project`, use `issues` array for edit) |
-| MCP tool not found | Check `references/shared-config.md` for correct tool names |
+| MCP tool not found | Check `.claude/skills/shared-references/tools.md` for correct tool names |
 | Wrong project key | Ensure using `BEP` project key |
 | Missing parent link | Always specify parent Epic/Story when creating subtask |
 | "Issue not found" | Verify key format: `BEP-XXX` |

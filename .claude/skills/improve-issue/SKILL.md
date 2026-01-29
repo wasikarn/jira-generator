@@ -41,9 +41,9 @@ Score: ⭐⭐⭐☆☆ (3/5) per dimension
 
 ### 3. Load Templates
 
-- Story → `jira-templates/02-user-story.md`
-- Sub-task → `jira-templates/03-sub-task.md`
-- QA → `jira-templates/04-qa-test-case.md`
+- Story → `shared-references/templates-story.md`
+- Sub-task → `shared-references/templates-subtask.md`
+- QA → `shared-references/templates-subtask.md` (QA section)
 - Load: `shared-references/writing-style.md`, `shared-references/templates.md`
 
 ### 4. Generate Improvements

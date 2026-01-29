@@ -273,6 +273,6 @@ CONFLUENCE_API_TOKEN=your-api-token
 
 ## Related
 
-- ADF format details: `references/templates.md`
-- Tool selection: `references/tools.md`
-- Full troubleshooting: `~/.claude/skills/atlassian-cli/SKILL.md`
+- ADF format details: `templates.md`
+- Tool selection: `tools.md`
+- Atlassian scripts: `../atlassian-scripts/SKILL.md`
