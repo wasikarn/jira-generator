@@ -67,5 +67,5 @@ ACs: N | Scope: [services]
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
 - [Story Template](../shared-references/templates-story.md) - Story ADF structure
-- [Workflows](../shared-references/workflows.md) - INVEST, AC format
+- [Verification Checklist](../shared-references/verification-checklist.md) - INVEST, AC quality
 - After creation: `/verify-issue BEP-XXX`

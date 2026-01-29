@@ -62,27 +62,12 @@ Task(subagent_type: "Explore", prompt: "Find [feature] in [service path]")
 
 ### 6. Create Artifacts
 
-> ⚠️ **CRITICAL:** ต้องใช้ Two-Step Workflow สำหรับ Subtask (acli ไม่รองรับ `parent` field)
-
-**Step 1: สร้าง Sub-task shell ด้วย MCP**
-
-```typescript
-jira_create_issue({
-  project_key: "BEP",
-  summary: "[TAG] - Description",
-  issue_type: "Subtask",
-  additional_fields: { parent: { key: "BEP-XXX" } }  // Parent Story key
-})
-// Returns: BEP-YYY (new subtask key)
-```
-
-**Step 2: Update description ด้วย acli + ADF**
-
-```bash
-acli jira workitem edit --from-json tasks/subtask-bep-yyy.json --yes
-```
-
-> JSON file ต้องใช้ format: `{"issues": ["BEP-YYY"], "description": {...}}`
+> ⚠️ **CRITICAL:** Sub-task ต้องใช้ Two-Step Workflow (acli ไม่รองรับ `parent`)
+>
+> **Step 1:** MCP `jira_create_issue` (สร้าง shell + parent link)
+> **Step 2:** `acli --from-json` (update ADF description)
+>
+> ดู full pattern: [Sub-task Template](../shared-references/templates-subtask.md)
 
 - Technical Note (ถ้าจำเป็น):
   - Simple text → `MCP: confluence_create_page`
@@ -102,5 +87,5 @@ Sub-tasks: BEP-YYY, BEP-ZZZ
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
 - [Sub-task Template](../shared-references/templates-subtask.md) - Sub-task + QA ADF structure
-- [Workflows](../shared-references/workflows.md) - Service tags, effort sizing
+- [Tool Selection](../shared-references/tools.md) - Tools, service tags, effort sizing
 - After creation: `/verify-issue BEP-XXX --with-subtasks`

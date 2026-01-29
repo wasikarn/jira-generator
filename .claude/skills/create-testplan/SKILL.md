@@ -50,59 +50,15 @@ argument-hint: "[issue-key]"
 ### 4. Create [QA] Sub-task
 
 > **หลักการ:** 1 Story = 1 [QA] Sub-task (รวม Test Plan ไว้ใน description)
+>
+> ⚠️ ใช้ **Two-Step Workflow** (ดู [Sub-task Template](../shared-references/templates-subtask.md)):
+>
+> **Step 1:** MCP `jira_create_issue` → summary: `[QA] - Test: [Feature Name]`, parent: `BEP-XXX`
+> **Step 2:** `acli jira workitem edit --from-json tasks/bep-xxx-qa.json --yes`
+>
+> ⚠️ EDIT JSON ใช้ `"issues": ["BEP-QQQ"]` (ไม่ใช่ `"parent"` หรือ `"parentKey"`)
 
-#### Step 1: Create Subtask Shell
-
-```text
-MCP: jira_create_issue(
-  project_key: "BEP",
-  summary: "[QA] - Test: [Feature Name]",
-  issue_type: "Subtask",
-  additional_fields: {"parent": "BEP-XXX"}
-)
-```
-
-→ ได้ issue key: BEP-QQQ
-
-#### Step 2: Update with Full Description
-
-1. สร้างไฟล์ `tasks/bep-xxx-qa.json`:
-
-```json
-{
-  "issues": ["BEP-QQQ"],
-  "description": {
-    "type": "doc",
-    "version": 1,
-    "content": [...]
-  }
-}
-```
-
-> ⚠️ **สำคัญ:** ใช้ `"issues": ["BEP-QQQ"]` ไม่ใช่ `"parent"` หรือ `"parentKey"` หรือ `"parentIssueId"`
-> acli edit ต้องการ issues array สำหรับระบุ issue ที่จะแก้ไข
-
-1. Run acli:
-
-```bash
-acli jira workitem edit --from-json tasks/bep-xxx-qa.json --yes
-```
-
-1. ลบไฟล์ temp:
-
-```bash
-rm tasks/bep-xxx-qa.json
-```
-
-#### ADF Panel Colors
-
-| Panel Type | Color | Usage |
-| --- | --- | --- |
-| `info` | 🔵 Blue | Test objective, summary |
-| `success` | 🟢 Green | Happy path tests |
-| `warning` | 🟡 Yellow | Edge cases, validation |
-| `error` | 🔴 Red | Error handling tests |
-| `note` | 🟣 Purple | Notes, dependencies |
+Panel colors: ดู [ADF Core Rules](../shared-references/templates.md) — success=happy, warning=edge, error=error
 
 ### 5. Summary
 

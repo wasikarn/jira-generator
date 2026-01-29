@@ -112,58 +112,19 @@ Each role uses **Handoff Protocol** to pass context to next:
 
 ## Atlassian Tool Selection
 
-### Jira Issue Create/Update - Always Use ADF
+> **IMPORTANT:** Jira descriptions ต้องใช้ ADF format via `acli --from-json` เสมอ (MCP แปลงเป็น wiki format ไม่สวย)
 
-> **IMPORTANT:** When creating or updating Jira issues, **always use ADF format via `acli --from-json`**
+| Operation | Tool |
+| --- | --- |
+| **Create/Update Jira description** | `acli --from-json` (ADF) |
+| **Update fields (ไม่ใช่ description)** | MCP `jira_update_issue` |
+| **Search Jira/Confluence** | MCP `jira_search` / `confluence_search` |
+| **Read issue/page** | MCP `jira_get_issue` / `confluence_get_page` |
+| **Confluence (code blocks/macros/move)** | Python scripts (`.claude/skills/atlassian-scripts/scripts/`) |
+
+> **Full tool guide:** `.claude/skills/shared-references/tools.md`
 >
-> MCP tools (jira_create_issue, jira_update_issue) convert markdown to wiki format which doesn't render as nicely as ADF
-
-| Operation | Command | Note |
-| --- | --- | --- |
-| **Create issue** | `acli jira workitem create --from-json issue.json` | ADF description |
-| **Update issue** | `acli jira workitem edit --from-json issue.json --yes` | ADF description |
-| **Simple field update** | MCP `jira_update_issue` | Does not touch description |
-
-### Other Tools
-
-| Scenario | Tool | Reason |
-| --- | --- | --- |
-| **Search issues/pages** | MCP `jira_search` or `confluence_search` | Fast |
-| **Read issue details** | MCP `jira_get_issue` | Full data |
-| **Read Confluence page** | MCP `confluence_get_page` | Returns markdown |
-| **Create Confluence page (simple)** | MCP `confluence_create_page` | Accepts markdown, converts to storage format |
-| **Confluence with code blocks** | Python script | MCP breaks code block formatting |
-| **Confluence with macros** | Python script | MCP แปลง macros เป็น text |
-| **Move Confluence page** | Python script | MCP ไม่รองรับการ move |
-| **Bulk Jira operations** | `acli` + `--jql` flag | Supports bulk edit |
-
-> **Atlassian Scripts:** `.claude/skills/atlassian-scripts/scripts/`
->
-> ใช้ scripts สำหรับ code blocks, macros (ToC, Children), และ page moves
-
-### Decision Flow
-
-```mermaid
-flowchart TD
-    Q{What do you need?}
-
-    Q --> |Create/Update<br>Jira description| A[acli --from-json]
-    A --> A1["acli jira workitem create --from-json issue.json"]
-    A --> A2["acli jira workitem edit --from-json issue.json --yes"]
-
-    Q --> |Update other fields<br>not description| B[MCP jira_update_issue]
-
-    Q --> |Search Jira/Confluence| C[MCP jira_search<br>confluence_search]
-
-    Q --> |Confluence page| D{Read or Write?}
-    D --> |Read| D1[MCP confluence_get_page]
-    D --> |Create simple| D2[MCP confluence_create_page]
-    D --> |Code blocks/Macros/Move| D3[Python scripts]
-```
-
-> **ADF & MCP details:** See `.claude/skills/shared-references/templates.md` and `tools.md`
->
-> Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
+> **ADF format details:** `.claude/skills/shared-references/templates.md`
 
 ## File Structure
 
@@ -234,6 +195,7 @@ tasks/                     # Generated outputs (gitignored)
 | Need | File |
 | --- | --- |
 | All templates (ADF) | `.claude/skills/shared-references/templates.md` |
+| Tool selection + effort sizing | `.claude/skills/shared-references/tools.md` |
 | Quality checklists | `.claude/skills/shared-references/verification-checklist.md` |
 | Writing style guide | `.claude/skills/shared-references/writing-style.md` |
 | JQL patterns | `.claude/skills/shared-references/jql-quick-ref.md` |

@@ -77,5 +77,5 @@ Epic Doc: [link] | Epic: [link]
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
 - [Epic Template](../shared-references/templates-epic.md) - Epic ADF structure
-- [Workflows](../shared-references/workflows.md) - Phase patterns, tool selection
+- [Tool Selection](../shared-references/tools.md) - Tool selection, effort sizing
 - After creation: `/verify-issue BEP-XXX`

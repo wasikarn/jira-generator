@@ -140,6 +140,17 @@ acli jira workitem get BEP-XXX
 
 ---
 
+## Effort Sizing
+
+| Size | Description | Action |
+| --- | --- | --- |
+| S | < 2 days | Single sub-task |
+| M | 2-5 days | Single sub-task |
+| L | 5-10 days | Consider splitting |
+| XL | > 10 days | Must split |
+
+---
+
 ## See Also
 
 > Detailed references แยกไว้ใน files เฉพาะ — load เมื่อต้องการ

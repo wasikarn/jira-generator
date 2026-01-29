@@ -288,6 +288,6 @@ rm tasks/sync-*.json tasks/sync-*.md
 - [Sub-task Template](../shared-references/templates-subtask.md)
 - [Task Template](../shared-references/templates-task.md)
 - [Tool Selection](../shared-references/tools.md)
-- [Workflows](../shared-references/workflows.md)
+- [Verification Checklist](../shared-references/verification-checklist.md) - Quality checks
 - [Atlassian Scripts](../atlassian-scripts/SKILL.md)
 - [Verification Checklist](../shared-references/verification-checklist.md)
