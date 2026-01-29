@@ -1,0 +1,95 @@
+# Story Template (ADF)
+
+> Extracted from templates.md — ใช้กับ `/create-story`, `/update-story`, `/story-full`
+>
+> สำหรับ core rules (CREATE vs EDIT, Panel Types, Styling) → ดู [templates.md](templates.md)
+
+---
+
+## User Story Template (ADF) - CREATE
+
+> ใช้กับ `acli jira workitem create --from-json`
+
+**Note:** สำหรับ Stories ที่มี AC ≥ 5 ตัว อาจเพิ่ม AC Summary table ก่อน panels (ดู Important Rules)
+
+```json
+{
+  "projectKey": "BEP",
+  "type": "Story",
+  "summary": "[Feature Name] - Thai Description",
+  "description": {
+    "type": "doc",
+    "version": 1,
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "User Story"}]},
+      {
+        "type": "panel",
+        "attrs": {"panelType": "info"},
+        "content": [
+          {"type": "paragraph", "content": [
+            {"type": "text", "text": "As a ", "marks": [{"type": "strong"}]},
+            {"type": "text", "text": "[persona]"},
+            {"type": "text", "text": ","}
+          ]},
+          {"type": "paragraph", "content": [
+            {"type": "text", "text": "I want to ", "marks": [{"type": "strong"}]},
+            {"type": "text", "text": "[action]"},
+            {"type": "text", "text": ","}
+          ]},
+          {"type": "paragraph", "content": [
+            {"type": "text", "text": "So that ", "marks": [{"type": "strong"}]},
+            {"type": "text", "text": "[benefit]"}
+          ]}
+        ]
+      },
+      {"type": "rule"},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "Acceptance Criteria"}]},
+      {
+        "type": "panel",
+        "attrs": {"panelType": "success"},
+        "content": [
+          {"type": "paragraph", "content": [{"type": "text", "text": "AC1: [Title]", "marks": [{"type": "strong"}]}]},
+          {"type": "bulletList", "content": [
+            {"type": "listItem", "content": [{"type": "paragraph", "content": [
+              {"type": "text", "text": "Given: ", "marks": [{"type": "strong"}]},
+              {"type": "text", "text": "[precondition]"}
+            ]}]},
+            {"type": "listItem", "content": [{"type": "paragraph", "content": [
+              {"type": "text", "text": "When: ", "marks": [{"type": "strong"}]},
+              {"type": "text", "text": "[action]"}
+            ]}]},
+            {"type": "listItem", "content": [{"type": "paragraph", "content": [
+              {"type": "text", "text": "Then: ", "marks": [{"type": "strong"}]},
+              {"type": "text", "text": "[result]"}
+            ]}]}
+          ]}
+        ]
+      },
+      {"type": "rule"},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔗 Reference"}]},
+      {
+        "type": "table",
+        "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
+        "content": [
+          {"type": "tableRow", "content": [
+            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}]}
+          ]},
+          {"type": "tableRow", "content": [
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Epic"}]}]},
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
+              {"type": "text", "text": "BEP-XXX", "marks": [{"type": "link", "attrs": {"href": "https://100-stars.atlassian.net/browse/BEP-XXX"}}]}
+            ]}]}
+          ]},
+          {"type": "tableRow", "content": [
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Figma"}]}]},
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
+              {"type": "text", "text": "Design", "marks": [{"type": "link", "attrs": {"href": "[Figma URL]"}}]}
+            ]}]}
+          ]}
+        ]
+      }
+    ]
+  }
+}
+```

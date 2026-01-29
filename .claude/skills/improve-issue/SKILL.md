@@ -91,5 +91,9 @@ Quality: wiki → ADF, EN → Thai
 
 ## References
 
-- [ADF Templates](../shared-references/templates.md)
+- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
+- [Epic Template](../shared-references/templates-epic.md)
+- [Story Template](../shared-references/templates-story.md)
+- [Sub-task Template](../shared-references/templates-subtask.md)
+- [Task Template](../shared-references/templates-task.md)
 - [Writing Style](../shared-references/writing-style.md)

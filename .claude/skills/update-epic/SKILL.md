@@ -101,5 +101,6 @@ Changes: [list]
 
 ## References
 
-- [ADF Templates](../shared-references/templates.md) - Epic ADF structure
+- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
+- [Epic Template](../shared-references/templates-epic.md) - Epic ADF structure
 - [Workflows](../shared-references/workflows.md) - Update phase pattern

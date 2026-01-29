@@ -207,5 +207,6 @@ acli jira workitem create --from-json tasks/bep-xxx-task.json
 
 ## References
 
-- [ADF Templates](../shared-references/templates.md) - Task templates
+- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
+- [Task Template](../shared-references/templates-task.md) - Task ADF (tech-debt, bug, chore, spike)
 - After: `/verify-issue BEP-XXX` ตรวจสอบคุณภาพ

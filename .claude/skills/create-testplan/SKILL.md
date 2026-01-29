@@ -134,5 +134,6 @@ Coverage: X ACs → Y test scenarios (100%)
 
 ## References
 
-- [ADF Templates](../shared-references/templates.md) - QA test case structure
+- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
+- [Sub-task Template](../shared-references/templates-subtask.md) - Sub-task + QA ADF structure
 - [Verification](../shared-references/verification-checklist.md) - QA checklist

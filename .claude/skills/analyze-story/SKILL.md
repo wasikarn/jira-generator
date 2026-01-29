@@ -100,6 +100,7 @@ Sub-tasks: BEP-YYY, BEP-ZZZ
 
 ## References
 
-- [ADF Templates](../shared-references/templates.md) - Sub-task structure
+- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
+- [Sub-task Template](../shared-references/templates-subtask.md) - Sub-task + QA ADF structure
 - [Workflows](../shared-references/workflows.md) - Service tags, effort sizing
 - After creation: `/verify-issue BEP-XXX --with-subtasks`
