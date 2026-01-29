@@ -55,11 +55,13 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | --- | --- | --- |
 | `/story-full` | สร้าง Story + Sub-tasks ครบ workflow ในครั้งเดียว | Story + Sub-tasks |
 | `/story-cascade BEP-XXX` | Update Story + cascade ไป Sub-tasks ที่เกี่ยวข้อง | Updated Story + Sub-tasks |
+| `/sync-alignment BEP-XXX` | Sync artifacts ทั้งหมด (Jira + Confluence) bidirectional | Updated issues + pages |
 
 > **เมื่อไหร่ควรใช้ Composite:**
 >
 > - `/story-full` - เมื่อต้องการสร้าง feature ใหม่ครบ workflow (ไม่ต้อง copy-paste issue keys)
-> - `/story-cascade` - เมื่อ update Story แล้วต้องการ cascade changes ไป Sub-tasks โดยอัตโนมัติ
+> - `/story-cascade` - เมื่อ update Story แล้วต้องการ cascade เฉพาะ Jira sub-tasks (เร็ว)
+> - `/sync-alignment` - เมื่อต้องการ sync ทุกอย่างรวม Confluence (ครบ, bidirectional)
 
 ### Utility (เครื่องมือช่วย)
 
@@ -134,6 +136,7 @@ Each role uses **Handoff Protocol** to pass context to next:
 | --- | --- | --- |
 | "story full", "create story + subtasks" | `/story-full` | 10-phase create workflow (PO+TA) |
 | "story cascade", "update all", "cascade" | `/story-cascade` | 8-phase cascade update |
+| "sync alignment", "sync all", "align artifacts" | `/sync-alignment` | 8-phase bidirectional sync |
 
 ### Utility Commands
 
@@ -320,6 +323,8 @@ Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 ├── story-full/            → /story-full (10-phase composite) ⭐
 │   └── SKILL.md
 ├── story-cascade/         → /story-cascade (8-phase cascade) ⭐
+│   └── SKILL.md
+├── sync-alignment/        → /sync-alignment (8-phase bidirectional sync) ⭐
 │   └── SKILL.md
 ├── search-issues/         → /search-issues (3-phase search)
 │   └── SKILL.md
