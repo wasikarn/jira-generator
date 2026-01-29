@@ -78,6 +78,12 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 
 **Skill Location:** `.claude/skills/` (แต่ละ command = 1 skill directory)
 
+**How Skill Commands Work:**
+
+1. Load skill from `.claude/skills/[command-name]/SKILL.md` (e.g., `.claude/skills/create-story/SKILL.md`)
+2. Execute phases in order (ห้ามข้ามขั้นตอน)
+3. Reference `.claude/skills/shared-references/` for templates and tools
+
 ## Workflow Chain
 
 ```text
@@ -95,51 +101,6 @@ Each role uses **Handoff Protocol** to pass context to next:
 2. PO creates User Stories → hands off to TA
 3. TA creates Sub-tasks → hands off to QA
 4. QA creates Test Plan + [QA] Sub-tasks (terminal)
-
-## Role Selection
-
-### Create Commands
-
-| Trigger | Command | Action |
-| --- | --- | --- |
-| "analyze story", "BEP-XXX", "create sub-task" | `/analyze-story` | 7-phase TA workflow |
-| "create test plan", "QA", "test case" | `/create-testplan` | 6-phase QA workflow |
-| "create story", "user story" | `/create-story` | 5-phase PO workflow |
-| "create epic", "product vision", "RICE" | `/create-epic` | 5-phase PM workflow |
-| "create task", "สร้าง task", "tech-debt", "bug", "chore", "spike" | `/create-task` | 5-phase task workflow |
-| "create doc", "สร้าง doc", "technical spec", "ADR" | `/create-doc` | 4-phase doc workflow |
-| "update doc", "แก้ไข doc", "move page", "ย้าย page" | `/update-doc` | 5-phase doc update workflow |
-
-### Update Commands
-
-| Trigger | Command | Action |
-| --- | --- | --- |
-| "update epic", "แก้ไข epic", "ปรับ epic" | `/update-epic` | 5-phase update workflow |
-| "update story", "แก้ไข story", "เพิ่ม AC" | `/update-story` | 5-phase update workflow |
-| "update task", "แก้ไข task", "ปรับ task" | `/update-task` | 5-phase update workflow |
-| "update subtask", "แก้ไข subtask" | `/update-subtask` | 5-phase update workflow |
-| "improve", "migrate", "ปรับปรุง format" | `/improve-issue` | 6-phase batch improve |
-
-### Composite Commands ⭐
-
-| Trigger | Command | Action |
-| --- | --- | --- |
-| "story full", "create story + subtasks" | `/story-full` | 10-phase create workflow (PO+TA) |
-| "story cascade", "update all", "cascade" | `/story-cascade` | 8-phase cascade update |
-| "sync alignment", "sync all", "align artifacts" | `/sync-alignment` | 8-phase bidirectional sync |
-
-### Utility Commands
-
-| Trigger | Command | Action |
-| --- | --- | --- |
-| "search", "find", "หา issue" | `/search-issues` | 3-phase search utility |
-| "verify", "validate", "ตรวจสอบ" | `/verify-issue` | 4-phase verification |
-
-**How Skill Commands Work:**
-
-1. Load skill from `.claude/skills/[command-name]/SKILL.md` (e.g., `.claude/skills/create-story/SKILL.md`)
-2. Execute phases in order (ห้ามข้ามขั้นตอน)
-3. Reference `.claude/skills/shared-references/` for templates and tools
 
 ## Service Tags
 
@@ -200,77 +161,9 @@ flowchart TD
     D --> |Code blocks/Macros/Move| D3[Python scripts]
 ```
 
-### ADF JSON Structure
-
-```json
-{
-  "issues": ["BEP-XXX"],
-  "projectKey": "BEP",
-  "type": "Subtask",
-  "parent": "BEP-YYY",
-  "summary": "[TAG] - Title",
-  "description": {
-    "type": "doc",
-    "version": 1,
-    "content": [
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "Section"}]},
-      {"type": "paragraph", "content": [{"type": "text", "text": "Normal "}, {"type": "text", "text": "bold", "marks": [{"type": "strong"}]}]},
-      {"type": "rule"},
-      {"type": "table", "attrs": {"isNumberColumnEnabled": false, "layout": "default"}, "content": [...]},
-      {"type": "blockquote", "content": [{"type": "paragraph", "content": [...]}]},
-      {"type": "bulletList", "content": [{"type": "listItem", "content": [{"type": "paragraph", "content": [...]}]}]}
-    ]
-  }
-}
-```
-
-**Inline Code & Mark Types:**
-
-| Markdown | ADF Mark |
-| --- | --- |
-| `` `code` `` | `{"type": "code"}` |
-| `**bold**` | `{"type": "strong"}` |
-| `*italic*` | `{"type": "em"}` |
-
-```json
-{"type": "text", "text": "app/Models/User.ts", "marks": [{"type": "code"}]}
-```
-
-**Commands:**
-
-```bash
-# Create new issue
-acli jira workitem create --from-json issue.json
-
-# Update existing issue (requires "issues": ["BEP-XXX"] in JSON)
-acli jira workitem edit --from-json issue.json --yes
-```
-
-See `atlassian-cli` skill for detailed ADF format reference.
-
-## MCP Tools
-
-| Tool | Use |
-| --- | --- |
-| `jira_search` | Search Jira issues with JQL |
-| `jira_get_issue` | Read issue details |
-| `jira_update_issue` | Update fields (excluding description) |
-| `confluence_search` | Search Confluence pages |
-| `confluence_get_page` | Read Confluence page |
-| `confluence_create_page` | Create simple Confluence page (no code/macros) |
-
-> **WARNING - Jira:** Do not use `jira_create_issue` or `jira_update_issue` for description field.
-> It converts to wiki format which doesn't render nicely. Use `acli --from-json` instead.
+> **ADF & MCP details:** See `.claude/skills/shared-references/templates.md` and `tools.md`
 >
-> **WARNING - Confluence:** MCP `confluence_create_page` และ `confluence_update_page` มีข้อจำกัด:
->
-> - Code blocks จะ render ผิด (ไม่ syntax highlight)
-> - Macros (ToC, Children, Status) จะแสดงเป็น text แทน
-> - ไม่รองรับการ move page
->
-> **ใช้ Python scripts แทน:** `.claude/skills/atlassian-scripts/scripts/`
-
-Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
+> Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 
 ## File Structure
 
