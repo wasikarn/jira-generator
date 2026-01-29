@@ -65,3 +65,24 @@ class ContentConversionError(ConfluenceError):
     """
 
     pass
+
+
+# --- Jira Exceptions ---
+
+
+class JiraError(Exception):
+    """Base exception for all Jira operations."""
+
+    pass
+
+
+class IssueNotFoundError(JiraError):
+    """Raised when a Jira issue key doesn't exist.
+
+    Attributes:
+        issue_key: The issue key that was not found
+    """
+
+    def __init__(self, issue_key: str, message: str | None = None):
+        self.issue_key = issue_key
+        super().__init__(message or f"Issue not found: {issue_key}")

@@ -12,7 +12,7 @@ argument-hint: "[script-name] [args]"
 
 **Role:** Developer / Tech Lead
 **Output:** Created/Updated Confluence Pages
-**Version:** 2.0.0 (Refactored with SRP/OCP)
+**Version:** 2.2.0 (+ JiraAPI & Jira description fixer)
 
 ## Architecture
 
@@ -21,25 +21,29 @@ confluence-scripts/
 ├── __init__.py              # Package marker
 ├── lib/                     # Shared library modules
 │   ├── __init__.py          # Public exports
-│   ├── exceptions.py        # Custom exceptions
+│   ├── exceptions.py        # Custom exceptions (Confluence + Jira)
 │   ├── auth.py              # SSL, credentials, auth
 │   ├── api.py               # ConfluenceAPI class
+│   ├── jira_api.py          # JiraAPI class (REST v3, ADF)
 │   └── converters.py        # Content converters
 └── scripts/                 # CLI scripts
     ├── create_confluence_page.py
     ├── update_confluence_page.py
     ├── move_confluence_page.py
     ├── update_page_storage.py
-    └── fix_confluence_code_blocks.py
+    ├── fix_confluence_code_blocks.py
+    ├── audit_confluence_pages.py
+    └── update_jira_description.py
 ```
 
 ### Module Responsibilities (SRP)
 
 | Module | Responsibility |
 | --- | --- |
-| `exceptions.py` | Domain-specific exceptions |
+| `exceptions.py` | Domain-specific exceptions (Confluence + Jira) |
 | `auth.py` | Authentication (SSL, credentials, auth header) |
 | `api.py` | HTTP/API operations via ConfluenceAPI class |
+| `jira_api.py` | Jira REST API v3 client (ADF manipulation) |
 | `converters.py` | Content transformation (markdown, code blocks) |
 
 ---
@@ -54,6 +58,7 @@ confluence-scripts/
 | `update_page_storage.py` | Update page ด้วย raw storage format | Pages ที่ต้องการ macros (ToC, Children) |
 | `fix_confluence_code_blocks.py` | แก้ไข code blocks ที่ render ผิด | Fix broken code formatting |
 | `audit_confluence_pages.py` | ตรวจสอบ content ของหลาย pages | Alignment verification |
+| `update_jira_description.py` | Find/Replace text ใน Jira ADF descriptions | Fix Jira issue descriptions |
 
 ---
 
@@ -395,6 +400,81 @@ python3 .claude/skills/confluence-scripts/scripts/audit_confluence_pages.py \
 
 ---
 
+## Script 7: Update Jira Description
+
+แก้ไข Jira issue descriptions ผ่าน REST API v3 (ADF format) โดยตรง
+รักษา formatting ทั้งหมด (panels, tables, marks, code blocks)
+
+**Location:** `.claude/skills/confluence-scripts/scripts/update_jira_description.py`
+
+### Usage
+
+```bash
+# Single issue with inline replacements
+python3 .claude/skills/confluence-scripts/scripts/update_jira_description.py \
+  --issue BEP-2819 \
+  --find "billboard_ids" --replace "billboard_codes"
+
+# Multiple replacements for single issue
+python3 .claude/skills/confluence-scripts/scripts/update_jira_description.py \
+  --issue BEP-2819 \
+  --find "old1" --replace "new1" \
+  --find "old2" --replace "new2"
+
+# Batch from JSON config
+python3 .claude/skills/confluence-scripts/scripts/update_jira_description.py \
+  --config fixes.json
+
+# Dry run (preview only)
+python3 .claude/skills/confluence-scripts/scripts/update_jira_description.py \
+  --config fixes.json --dry-run
+```
+
+### Config JSON Format (Jira)
+
+```json
+{
+  "BEP-2819": [
+    ["billboard_ids", "billboard_codes"]
+  ],
+  "BEP-2755": [
+    ["old text 1", "new text 1"],
+    ["old text 2", "new text 2"]
+  ]
+}
+```
+
+### Arguments
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `--config` | ✅* | Path to JSON config file |
+| `--issue` | ✅* | Single issue key (e.g., BEP-2819) |
+| `--find` | ❌ | Text to find (repeatable, with --issue) |
+| `--replace` | ❌ | Replacement text (repeatable, with --issue) |
+| `--dry-run` | ❌ | Preview changes only |
+| `--verbose` | ❌ | Enable debug logging |
+
+*ต้องระบุ `--config` หรือ `--issue` อย่างใดอย่างหนึ่ง
+
+### How It Works
+
+1. GET issue via Jira REST API v3 (returns ADF format)
+2. Deep copy ADF description
+3. Walk ADF tree recursively, replace text in text nodes
+4. PUT modified ADF back via REST API v3
+5. All formatting (panels, tables, marks) preserved
+
+### Key Difference from MCP
+
+| Approach | Format | Preserves Formatting |
+| --- | --- | --- |
+| MCP `jira_update_issue` | Wiki markup | ❌ Converts to wiki |
+| `acli --from-json` | ADF (must build from scratch) | ⚠️ Replaces entire description |
+| **This script** | ADF (surgical edit) | ✅ Modifies only text nodes |
+
+---
+
 ## Script Selection Guide
 
 ```text
@@ -418,8 +498,11 @@ python3 .claude/skills/confluence-scripts/scripts/audit_confluence_pages.py \
     ├─ Fix broken code blocks
     │     └─ fix_confluence_code_blocks.py --page-id(s)
     │
-    └─ Verify content alignment
-          └─ audit_confluence_pages.py --config audit.json
+    ├─ Verify content alignment
+    │     └─ audit_confluence_pages.py --config audit.json
+    │
+    └─ Fix Jira issue descriptions (ADF)
+          └─ update_jira_description.py --config fixes.json
 ```
 
 ---
@@ -484,15 +567,61 @@ macro = create_code_macro("python", "print('hello')")
 fixed_html = fix_code_blocks(broken_html)
 ```
 
+### Using JiraAPI
+
+```python
+from lib import (
+    JiraAPI,
+    create_ssl_context,
+    load_credentials,
+    get_auth_header,
+    derive_jira_url,
+    walk_and_replace,
+)
+
+creds = load_credentials()
+jira_url = derive_jira_url(creds["CONFLUENCE_URL"])  # strips /wiki
+api = JiraAPI(
+    base_url=jira_url,
+    auth_header=get_auth_header(creds["CONFLUENCE_USERNAME"], creds["CONFLUENCE_API_TOKEN"]),
+    ssl_context=create_ssl_context(),
+)
+
+# High-level: fix description with find/replace
+had_changes, count = api.fix_description(
+    "BEP-2819",
+    [("billboard_ids", "billboard_codes")],
+    dry_run=False,
+)
+
+# Low-level: get ADF, modify, update
+issue = api.get_issue("BEP-2819")
+description = issue["fields"]["description"]  # ADF dict
+# ... modify ADF ...
+api.update_description("BEP-2819", description)
+```
+
 ### Custom Exceptions
 
 ```python
-from lib import ConfluenceError, CredentialsError, PageNotFoundError, APIError
+from lib import (
+    ConfluenceError, CredentialsError, PageNotFoundError, APIError,
+    JiraError, IssueNotFoundError,
+)
 
+# Confluence
 try:
     page = api.get_page("invalid")
 except PageNotFoundError as e:
     print(f"Page not found: {e.page_id}")
+
+# Jira
+try:
+    issue = jira_api.get_issue("BEP-9999")
+except IssueNotFoundError as e:
+    print(f"Issue not found: {e.issue_key}")
+
+# Common
 except APIError as e:
     print(f"API error {e.status_code}: {e.reason}")
 except CredentialsError as e:
@@ -552,6 +681,7 @@ Scripts สร้าง code blocks สำหรับ mermaid แต่ไม�
 | 2026-01-29 | 1.1.0 | Added create, move, fix scripts |
 | 2026-01-29 | 2.0.0 | Refactored with SRP/OCP: lib/ modules, type hints, logging, custom exceptions |
 | 2026-01-29 | 2.1.0 | Added audit_confluence_pages.py for content alignment verification |
+| 2026-01-29 | 2.2.0 | Added JiraAPI (REST v3/ADF) + update_jira_description.py for Jira description fixes |
 
 ---
 
@@ -567,5 +697,7 @@ Scripts สร้าง code blocks สำหรับ mermaid แต่ไม�
 ## References
 
 - Confluence REST API: <https://developer.atlassian.com/cloud/confluence/rest/v1/intro/>
+- Jira REST API v3: <https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/>
 - Credentials: `~/.config/atlassian/.env`
 - Storage Format: <https://developer.atlassian.com/cloud/confluence/confluence-storage-format/>
+- ADF (Atlassian Document Format): <https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/>
