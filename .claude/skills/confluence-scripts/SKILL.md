@@ -53,6 +53,7 @@ confluence-scripts/
 | `move_confluence_page.py` | Move page(s) to new parent | Reorganize page hierarchy |
 | `update_page_storage.py` | Update page ด้วย raw storage format | Pages ที่ต้องการ macros (ToC, Children) |
 | `fix_confluence_code_blocks.py` | แก้ไข code blocks ที่ render ผิด | Fix broken code formatting |
+| `audit_confluence_pages.py` | ตรวจสอบ content ของหลาย pages | Alignment verification |
 
 ---
 
@@ -339,7 +340,62 @@ python3 .claude/skills/confluence-scripts/scripts/fix_confluence_code_blocks.py 
 
 ---
 
-## Decision Flow
+## Script 6: Audit Pages
+
+ตรวจสอบ content ของหลาย Confluence pages ว่ามี/ไม่มีข้อความที่กำหนด
+
+**Location:** `.claude/skills/confluence-scripts/scripts/audit_confluence_pages.py`
+
+### Usage
+
+```bash
+# Audit single page
+python3 .claude/skills/confluence-scripts/scripts/audit_confluence_pages.py \
+  --page-id 153518083 \
+  --label "Epic Parent" \
+  --should-have "BEP-2883" "2026" \
+  --should-not-have "2025-01-21"
+
+# Audit multiple pages from JSON config
+python3 .claude/skills/confluence-scripts/scripts/audit_confluence_pages.py \
+  --config audit.json
+```
+
+### Config JSON Format
+
+```json
+[
+  {
+    "page_id": "153518083",
+    "label": "Epic Parent Page",
+    "should_have": ["BEP-2883", "2026-01-21", "15 stories"],
+    "should_not_have": ["2025-01-21"]
+  },
+  {
+    "page_id": "144244902",
+    "label": "BEP-2755 Credit",
+    "should_have": ["billboard_codes", "IN STAGING"],
+    "should_not_have": ["billboard_ids"]
+  }
+]
+```
+
+### Arguments
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `--config` | ✅* | Path to JSON config file |
+| `--page-id` | ✅* | Single page ID to audit |
+| `--label` | ❌ | Label for the page (with --page-id) |
+| `--should-have` | ❌ | Strings that MUST be present |
+| `--should-not-have` | ❌ | Strings that MUST NOT be present |
+| `--verbose` | ❌ | Enable debug logging |
+
+*ต้องระบุ `--config` หรือ `--page-id` อย่างใดอย่างหนึ่ง
+
+---
+
+## Script Selection Guide
 
 ```text
 ต้องการทำอะไร?
@@ -359,8 +415,11 @@ python3 .claude/skills/confluence-scripts/scripts/fix_confluence_code_blocks.py 
     ├─ Add macros (ToC, Children, Status)
     │     └─ update_page_storage.py --page-id --content-file
     │
-    └─ Fix broken code blocks
-          └─ fix_confluence_code_blocks.py --page-id(s)
+    ├─ Fix broken code blocks
+    │     └─ fix_confluence_code_blocks.py --page-id(s)
+    │
+    └─ Verify content alignment
+          └─ audit_confluence_pages.py --config audit.json
 ```
 
 ---
@@ -492,6 +551,7 @@ Scripts สร้าง code blocks สำหรับ mermaid แต่ไม�
 | 2026-01-27 | 1.0.0 | Initial scripts: update_confluence_page.py |
 | 2026-01-29 | 1.1.0 | Added create, move, fix scripts |
 | 2026-01-29 | 2.0.0 | Refactored with SRP/OCP: lib/ modules, type hints, logging, custom exceptions |
+| 2026-01-29 | 2.1.0 | Added audit_confluence_pages.py for content alignment verification |
 
 ---
 
