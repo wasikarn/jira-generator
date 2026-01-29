@@ -71,17 +71,17 @@ What do you need?
 | **Search pages** | MCP | `confluence_search(query: "...")` |
 | **Get page** | MCP | `confluence_get_page(page_id: "...")` |
 | **Create page (simple)** | MCP | `confluence_create_page(space_key: "BEP", ...)` |
-| **Create page (code blocks)** | Script | `python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py` |
-| **Update content** | Script | `python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py --page-id` |
-| **Find/Replace text** | Script | `python3 .claude/skills/confluence-scripts/scripts/update_confluence_page.py` |
-| **Move page** | Script | `python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py` |
-| **Add macros (ToC, Children)** | Script | `python3 .claude/skills/confluence-scripts/scripts/update_page_storage.py` |
+| **Create page (code blocks)** | Script | `python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py` |
+| **Update content** | Script | `python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py --page-id` |
+| **Find/Replace text** | Script | `python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py` |
+| **Move page** | Script | `python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py` |
+| **Add macros (ToC, Children)** | Script | `python3 .claude/skills/atlassian-scripts/scripts/update_page_storage.py` |
 
 > ⚠️ **IMPORTANT:** MCP `confluence_create_page` และ `confluence_update_page` มีข้อจำกัด:
 >
 > - Code blocks จะ render ผิด (ไม่เป็น syntax highlight)
 > - Macros (ToC, Children, Status) จะ render เป็น text แทน
-> - ใช้ Python scripts ใน `.claude/skills/confluence-scripts/scripts/` แทน
+> - ใช้ Python scripts ใน `.claude/skills/atlassian-scripts/scripts/` แทน
 
 ### Confluence Scripts Decision Flow
 
@@ -107,9 +107,9 @@ What do you need?
           └─ update_page_storage.py --page-id --content-file
 ```
 
-**Script Location:** `.claude/skills/confluence-scripts/scripts/`
+**Script Location:** `.claude/skills/atlassian-scripts/scripts/`
 
-**Full Documentation:** `.claude/skills/confluence-scripts/SKILL.md`
+**Full Documentation:** `.claude/skills/atlassian-scripts/SKILL.md`
 
 ### Codebase Exploration
 

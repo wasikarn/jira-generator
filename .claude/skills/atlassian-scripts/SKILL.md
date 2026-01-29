@@ -1,23 +1,23 @@
 ---
-name: confluence-scripts
+name: atlassian-scripts
 description: |
-  Python scripts สำหรับ update Confluence pages ผ่าน REST API โดยตรง
-  ใช้เมื่อ MCP tool มีข้อจำกัด (เช่น code macro formatting)
+  Python scripts สำหรับ update Confluence pages และ Jira issues ผ่าน REST API โดยตรง
+  ใช้เมื่อ MCP tool มีข้อจำกัด (เช่น code macro formatting, ADF manipulation)
 
-  Triggers: "fix confluence", "update confluence page", "confluence script"
+  Triggers: "fix confluence", "update confluence page", "confluence script", "fix jira description", "atlassian script"
 argument-hint: "[script-name] [args]"
 ---
 
-# Confluence Scripts
+# Atlassian Scripts
 
 **Role:** Developer / Tech Lead
-**Output:** Created/Updated Confluence Pages
-**Version:** 2.2.0 (+ JiraAPI & Jira description fixer)
+**Output:** Created/Updated Confluence Pages & Jira Issues
+**Version:** 3.0.0 (Renamed from confluence-scripts, + JiraAPI)
 
 ## Architecture
 
 ```text
-confluence-scripts/
+atlassian-scripts/
 ├── __init__.py              # Package marker
 ├── lib/                     # Shared library modules
 │   ├── __init__.py          # Public exports
@@ -78,19 +78,19 @@ CONFLUENCE_API_TOKEN=your-api-token
 
 สร้างหรือ update Confluence page พร้อม proper code block formatting
 
-**Location:** `.claude/skills/confluence-scripts/scripts/create_confluence_page.py`
+**Location:** `.claude/skills/atlassian-scripts/scripts/create_confluence_page.py`
 
 ### Create New Page
 
 ```bash
 # Basic create
-python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
   --space BEP \
   --title "Technical Spec: Feature X" \
   --content-file content.md
 
 # Create as child of parent page
-python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
   --space BEP \
   --title "Sub Page" \
   --parent-id 123456789 \
@@ -101,17 +101,17 @@ python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
 
 ```bash
 # Update from file
-python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
   --page-id 144244902 \
   --content-file updated-content.md
 
 # Update with inline content
-python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
   --page-id 144244902 \
   --content "# Updated Title\n\nNew content here"
 
 # Dry run (preview storage format)
-python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
   --space BEP \
   --title "Test" \
   --content "# Hello World" \
@@ -154,31 +154,31 @@ python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
 
 Generic script สำหรับ find/replace content ใน Confluence pages
 
-**Location:** `.claude/skills/confluence-scripts/scripts/update_confluence_page.py`
+**Location:** `.claude/skills/atlassian-scripts/scripts/update_confluence_page.py`
 
 ### Usage
 
 ```bash
 # Simple replacement
-python3 .claude/skills/confluence-scripts/scripts/update_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
   --page-id 154730498 \
   --find "5 นาที" \
   --replace "3 นาที"
 
 # Multiple replacements
-python3 .claude/skills/confluence-scripts/scripts/update_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
   --page-id 154730498 \
   --find "5 minutes" --replace "3 minutes" \
   --find "300" --replace "180"
 
 # Dry run (preview only)
-python3 .claude/skills/confluence-scripts/scripts/update_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
   --page-id 154730498 \
   --find "old text" --replace "new text" \
   --dry-run
 
 # Regex replacement
-python3 .claude/skills/confluence-scripts/scripts/update_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
   --page-id 154730498 \
   --find "v\\d+\\.\\d+" --replace "v2.0" \
   --regex
@@ -201,23 +201,23 @@ python3 .claude/skills/confluence-scripts/scripts/update_confluence_page.py \
 
 ย้าย page(s) ไปอยู่ภายใต้ parent page อื่น โดยไม่แก้ไข content
 
-**Location:** `.claude/skills/confluence-scripts/scripts/move_confluence_page.py`
+**Location:** `.claude/skills/atlassian-scripts/scripts/move_confluence_page.py`
 
 ### Usage
 
 ```bash
 # Move single page
-python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py \
   --page-id 144244902 \
   --parent-id 153518083
 
 # Batch move multiple pages
-python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py \
   --page-ids 144244902,144015541,144015575 \
   --parent-id 153518083
 
 # Dry run (preview only)
-python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py \
   --page-id 144244902 \
   --parent-id 153518083 \
   --dry-run
@@ -250,23 +250,23 @@ PUT /rest/api/content/{pageId}/move/append/{parentId}
 
 Update page ด้วย raw storage format สำหรับ macros (ToC, Children, Status)
 
-**Location:** `.claude/skills/confluence-scripts/scripts/update_page_storage.py`
+**Location:** `.claude/skills/atlassian-scripts/scripts/update_page_storage.py`
 
 ### Usage
 
 ```bash
 # Update from HTML file with macros
-python3 .claude/skills/confluence-scripts/scripts/update_page_storage.py \
+python3 .claude/skills/atlassian-scripts/scripts/update_page_storage.py \
   --page-id 156598299 \
   --content-file content.html
 
 # Update with inline storage content
-python3 .claude/skills/confluence-scripts/scripts/update_page_storage.py \
+python3 .claude/skills/atlassian-scripts/scripts/update_page_storage.py \
   --page-id 156598299 \
   --content "<h1>Title</h1><ac:structured-macro ac:name=\"toc\"/>"
 
 # Dry run (preview only)
-python3 .claude/skills/confluence-scripts/scripts/update_page_storage.py \
+python3 .claude/skills/atlassian-scripts/scripts/update_page_storage.py \
   --page-id 156598299 \
   --content-file content.html \
   --dry-run
@@ -306,21 +306,21 @@ Script นี้ส่ง raw storage format ไปที่ API โดยตร
 
 แก้ไข code blocks จาก `<pre class="highlight"><code>` เป็น `<ac:structured-macro ac:name="code">`
 
-**Location:** `.claude/skills/confluence-scripts/scripts/fix_confluence_code_blocks.py`
+**Location:** `.claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py`
 
 ### Usage
 
 ```bash
 # Fix single page
-python3 .claude/skills/confluence-scripts/scripts/fix_confluence_code_blocks.py \
+python3 .claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py \
   --page-id 144244902
 
 # Fix multiple pages
-python3 .claude/skills/confluence-scripts/scripts/fix_confluence_code_blocks.py \
+python3 .claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py \
   --page-ids 144244902,144015541,144015575,143720672
 
 # Dry run (preview only)
-python3 .claude/skills/confluence-scripts/scripts/fix_confluence_code_blocks.py \
+python3 .claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py \
   --page-ids 144244902,144015541 \
   --dry-run
 ```
@@ -349,20 +349,20 @@ python3 .claude/skills/confluence-scripts/scripts/fix_confluence_code_blocks.py 
 
 ตรวจสอบ content ของหลาย Confluence pages ว่ามี/ไม่มีข้อความที่กำหนด
 
-**Location:** `.claude/skills/confluence-scripts/scripts/audit_confluence_pages.py`
+**Location:** `.claude/skills/atlassian-scripts/scripts/audit_confluence_pages.py`
 
 ### Usage
 
 ```bash
 # Audit single page
-python3 .claude/skills/confluence-scripts/scripts/audit_confluence_pages.py \
+python3 .claude/skills/atlassian-scripts/scripts/audit_confluence_pages.py \
   --page-id 153518083 \
   --label "Epic Parent" \
   --should-have "BEP-2883" "2026" \
   --should-not-have "2025-01-21"
 
 # Audit multiple pages from JSON config
-python3 .claude/skills/confluence-scripts/scripts/audit_confluence_pages.py \
+python3 .claude/skills/atlassian-scripts/scripts/audit_confluence_pages.py \
   --config audit.json
 ```
 
@@ -405,28 +405,28 @@ python3 .claude/skills/confluence-scripts/scripts/audit_confluence_pages.py \
 แก้ไข Jira issue descriptions ผ่าน REST API v3 (ADF format) โดยตรง
 รักษา formatting ทั้งหมด (panels, tables, marks, code blocks)
 
-**Location:** `.claude/skills/confluence-scripts/scripts/update_jira_description.py`
+**Location:** `.claude/skills/atlassian-scripts/scripts/update_jira_description.py`
 
 ### Usage
 
 ```bash
 # Single issue with inline replacements
-python3 .claude/skills/confluence-scripts/scripts/update_jira_description.py \
+python3 .claude/skills/atlassian-scripts/scripts/update_jira_description.py \
   --issue BEP-2819 \
   --find "billboard_ids" --replace "billboard_codes"
 
 # Multiple replacements for single issue
-python3 .claude/skills/confluence-scripts/scripts/update_jira_description.py \
+python3 .claude/skills/atlassian-scripts/scripts/update_jira_description.py \
   --issue BEP-2819 \
   --find "old1" --replace "new1" \
   --find "old2" --replace "new2"
 
 # Batch from JSON config
-python3 .claude/skills/confluence-scripts/scripts/update_jira_description.py \
+python3 .claude/skills/atlassian-scripts/scripts/update_jira_description.py \
   --config fixes.json
 
 # Dry run (preview only)
-python3 .claude/skills/confluence-scripts/scripts/update_jira_description.py \
+python3 .claude/skills/atlassian-scripts/scripts/update_jira_description.py \
   --config fixes.json --dry-run
 ```
 
@@ -682,6 +682,7 @@ Scripts สร้าง code blocks สำหรับ mermaid แต่ไม�
 | 2026-01-29 | 2.0.0 | Refactored with SRP/OCP: lib/ modules, type hints, logging, custom exceptions |
 | 2026-01-29 | 2.1.0 | Added audit_confluence_pages.py for content alignment verification |
 | 2026-01-29 | 2.2.0 | Added JiraAPI (REST v3/ADF) + update_jira_description.py for Jira description fixes |
+| 2026-01-29 | 3.0.0 | Renamed confluence-scripts → atlassian-scripts (covers both Confluence + Jira) |
 
 ---
 

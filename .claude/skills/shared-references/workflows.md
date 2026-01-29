@@ -61,7 +61,7 @@ Phase N: [Goal]
 | Confluence with code/macros | Python scripts | MCP breaks formatting |
 
 > **Note:** สำหรับ Confluence pages ที่มี code blocks, macros (ToC, Children), หรือต้องการ move
-> ให้ใช้ Python scripts ใน `.claude/skills/confluence-scripts/scripts/`
+> ให้ใช้ Python scripts ใน `.claude/skills/atlassian-scripts/scripts/`
 
 ---
 

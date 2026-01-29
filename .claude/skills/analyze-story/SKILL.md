@@ -86,7 +86,7 @@ acli jira workitem edit --from-json tasks/subtask-bep-yyy.json --yes
 
 - Technical Note (ถ้าจำเป็น):
   - Simple text → `MCP: confluence_create_page`
-  - With code blocks → Python script (see `.claude/skills/confluence-scripts/SKILL.md`)
+  - With code blocks → Python script (see `.claude/skills/atlassian-scripts/SKILL.md`)
 
 ### 7. Handoff
 

@@ -165,7 +165,7 @@ confluence_update_page(
 ถ้า content มี code blocks ให้ใช้ Python script:
 
 ```bash
-python3 .claude/skills/confluence-scripts/scripts/update_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
   --page-id [page_id] \
   --find "[old text]" \
   --replace "[new text]"
@@ -174,7 +174,7 @@ python3 .claude/skills/confluence-scripts/scripts/update_confluence_page.py \
 หรือสำหรับ full content update:
 
 ```bash
-python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
   --page-id [page_id] \
   --content-file tasks/temp-content.md
 ```
@@ -184,7 +184,7 @@ python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
 ย้าย page ไปอยู่ภายใต้ parent อื่น:
 
 ```bash
-python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py \
   --page-id [page_id] \
   --parent-id [target_parent_id]
 ```
@@ -192,7 +192,7 @@ python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py \
 Batch move หลาย pages:
 
 ```bash
-python3 .claude/skills/confluence-scripts/scripts/move_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py \
   --page-ids [page_id1],[page_id2],[page_id3] \
   --parent-id [target_parent_id]
 ```
@@ -261,4 +261,4 @@ Update type?
 
 - Space: `BEP`
 - MCP Tool: `confluence_update_page`, `confluence_get_page`
-- Scripts: `.claude/skills/confluence-scripts/scripts/`
+- Scripts: `.claude/skills/atlassian-scripts/scripts/`

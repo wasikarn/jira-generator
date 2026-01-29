@@ -193,7 +193,7 @@ Each role uses **Handoff Protocol** to pass context to next:
 | **Move Confluence page** | Python script | MCP ไม่รองรับการ move |
 | **Bulk Jira operations** | `acli` + `--jql` flag | Supports bulk edit |
 
-> **Confluence Scripts:** `.claude/skills/confluence-scripts/scripts/`
+> **Atlassian Scripts:** `.claude/skills/atlassian-scripts/scripts/`
 >
 > ใช้ scripts สำหรับ code blocks, macros (ToC, Children), และ page moves
 
@@ -285,7 +285,7 @@ See `atlassian-cli` skill for detailed ADF format reference.
 > - Macros (ToC, Children, Status) จะแสดงเป็น text แทน
 > - ไม่รองรับการ move page
 >
-> **ใช้ Python scripts แทน:** `.claude/skills/confluence-scripts/scripts/`
+> **ใช้ Python scripts แทน:** `.claude/skills/atlassian-scripts/scripts/`
 
 Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 
@@ -325,14 +325,17 @@ Codebase: Local first (Repomix MCP), GitHub fallback (Github MCP)
 │   └── SKILL.md
 ├── verify-issue/          → /verify-issue (4-phase verify)
 │   └── SKILL.md
-├── confluence-scripts/    # Python scripts for Confluence (code blocks, macros, move)
+├── atlassian-scripts/    # Python scripts for Confluence + Jira via REST API
 │   ├── SKILL.md
+│   ├── lib/                             → Shared library (auth, API clients, exceptions)
 │   └── scripts/
-│       ├── create_confluence_page.py   → Create/update with code blocks
-│       ├── update_confluence_page.py   → Find/replace text
-│       ├── move_confluence_page.py     → Move page(s) to new parent
-│       ├── update_page_storage.py      → Add macros (ToC, Children)
-│       └── fix_confluence_code_blocks.py → Fix broken code blocks
+│       ├── create_confluence_page.py    → Create/update with code blocks
+│       ├── update_confluence_page.py    → Find/replace text in Confluence
+│       ├── move_confluence_page.py      → Move page(s) to new parent
+│       ├── update_page_storage.py       → Add macros (ToC, Children)
+│       ├── fix_confluence_code_blocks.py → Fix broken code blocks
+│       ├── audit_confluence_pages.py    → Verify content alignment
+│       └── update_jira_description.py   → Fix Jira descriptions (ADF)
 └── shared-references/     # Shared resources for all skills
     ├── templates.md       → ADF templates
     ├── writing-style.md   → Language guidelines
@@ -367,7 +370,7 @@ tasks/                     # Generated outputs (gitignored)
 | Writing style guide | `.claude/skills/shared-references/writing-style.md` |
 | JQL patterns | `.claude/skills/shared-references/jql-quick-ref.md` |
 | Troubleshooting | `.claude/skills/shared-references/troubleshooting.md` |
-| Confluence scripts | `.claude/skills/confluence-scripts/SKILL.md` |
+| Atlassian scripts | `.claude/skills/atlassian-scripts/SKILL.md` |
 
 ## Core Principles
 

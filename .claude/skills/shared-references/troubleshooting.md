@@ -238,7 +238,7 @@ For MCP: Use `jira_get_issue(issue_key: "BEP-1")`
 ### Script Locations
 
 ```text
-.claude/skills/confluence-scripts/scripts/
+.claude/skills/atlassian-scripts/scripts/
 ├── create_confluence_page.py   → Create/update with code blocks
 ├── update_confluence_page.py   → Find/replace text
 ├── move_confluence_page.py     → Move page(s) to new parent

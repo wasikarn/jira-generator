@@ -264,7 +264,7 @@ confluence_create_page(
 ถ้า content มี code blocks ให้ใช้ Python script:
 
 ```bash
-python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
+python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
   --space BEP \
   --title "[Title]" \
   --content-file tasks/temp-content.md \
@@ -301,5 +301,5 @@ python3 .claude/skills/confluence-scripts/scripts/create_confluence_page.py \
 
 - Space: `BEP`
 - MCP Tool: `confluence_create_page`
-- Scripts: `.claude/skills/confluence-scripts/scripts/`
+- Scripts: `.claude/skills/atlassian-scripts/scripts/`
 - Related: `/update-doc` for updating existing pages
