@@ -47,7 +47,6 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | `/update-story BEP-XXX` | แก้ไข User Story - เพิ่ม/แก้ AC, scope | Updated Story |
 | `/update-task BEP-XXX` | แก้ไข Task - migrate format, add details | Updated Task |
 | `/update-subtask BEP-XXX` | แก้ไข Sub-task - format, content | Updated Sub-task |
-| `/improve-issue BEP-XXX` | Batch improve format/quality | Improved issue(s) |
 
 ### Composite (End-to-End Workflow) ⭐
 
@@ -68,13 +67,14 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | Command | Description | Output |
 | --- | --- | --- |
 | `/search-issues` | ค้นหา issues ก่อนสร้างใหม่ (ป้องกันสร้างซ้ำ) | List of matching issues |
-| `/verify-issue BEP-XXX` | ตรวจสอบคุณภาพ issue (ADF, INVEST, language) | Verification report |
+| `/verify-issue BEP-XXX` | ตรวจสอบ + ปรับปรุงคุณภาพ issue (ADF, INVEST, language) | Verification report / Improved issue(s) |
 
 > **เมื่อไหร่ควรใช้ Verify:**
 >
 > - หลังสร้าง issue ใหม่ → ตรวจสอบคุณภาพก่อน handoff
-> - หลัง improve/update → ยืนยันว่า format ถูกต้อง
-> - `/verify-issue BEP-XXX --with-subtasks` → ตรวจสอบ Story + Sub-tasks ทั้งหมด
+> - หลัง update → ยืนยันว่า format ถูกต้อง
+> - `--with-subtasks` → ตรวจสอบ Story + Sub-tasks ทั้งหมด
+> - `--fix` → auto-fix + batch format migration (แทน `/improve-issue` เดิม)
 
 **Skill Location:** `.claude/skills/` (แต่ละ command = 1 skill directory)
 
@@ -152,8 +152,6 @@ Each role uses **Handoff Protocol** to pass context to next:
 │   └── SKILL.md
 ├── update-subtask/        → /update-subtask (5-phase update)
 │   └── SKILL.md
-├── improve-issue/         → /improve-issue (6-phase batch)
-│   └── SKILL.md
 ├── story-full/            → /story-full (10-phase composite) ⭐
 │   └── SKILL.md
 ├── story-cascade/         → /story-cascade (8-phase cascade) ⭐
@@ -162,7 +160,7 @@ Each role uses **Handoff Protocol** to pass context to next:
 │   └── SKILL.md
 ├── search-issues/         → /search-issues (3-phase search)
 │   └── SKILL.md
-├── verify-issue/          → /verify-issue (4-phase verify)
+├── verify-issue/          → /verify-issue (5-phase verify + fix)
 │   └── SKILL.md
 ├── atlassian-scripts/    # Python scripts for Confluence + Jira via REST API
 │   ├── SKILL.md
