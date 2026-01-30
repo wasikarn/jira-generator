@@ -1,0 +1,59 @@
+#!/bin/bash
+# Sync jira-generator skills to ~/.claude/skills/
+# Run after adding/removing skills in jira-generator project
+
+SRC="$HOME/Codes/Works/tathep/jira-generator/.claude/skills"
+DST="$HOME/.claude/skills"
+
+if [ ! -d "$SRC" ]; then
+  echo "Error: Source not found: $SRC"
+  exit 1
+fi
+
+mkdir -p "$DST"
+
+# Remove stale symlinks pointing to jira-generator
+removed=0
+for link in "$DST"/*/; do
+  link="${link%/}"
+  [ -L "$link" ] || continue
+  target=$(readlink "$link")
+  if [[ "$target" == *"jira-generator"* ]]; then
+    # Check if source still exists
+    if [ ! -e "$link" ]; then
+      echo "  remove: $(basename "$link") (broken)"
+      rm "$link"
+      ((removed++))
+    fi
+  fi
+done
+
+# Create/update symlinks from source
+added=0
+skipped=0
+for dir in "$SRC"/*/; do
+  name=$(basename "$dir")
+  dest="$DST/$name"
+
+  if [ -L "$dest" ]; then
+    existing=$(readlink "$dest")
+    if [[ "$existing" == *"jira-generator"* ]]; then
+      ((skipped++))
+      continue
+    else
+      echo "  skip: $name (owned by another source)"
+      continue
+    fi
+  elif [ -e "$dest" ]; then
+    echo "  skip: $name (direct directory, not a symlink)"
+    continue
+  fi
+
+  ln -s "$dir" "$dest"
+  echo "  add: $name"
+  ((added++))
+done
+
+echo ""
+echo "Done: +$added added, $skipped unchanged, -$removed removed"
+echo "Total jira-generator skills: $(find "$DST" -maxdepth 1 -type l | xargs -I{} readlink {} | grep -c jira-generator)"
