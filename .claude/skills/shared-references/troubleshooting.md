@@ -231,7 +231,7 @@ For MCP: Use `jira_get_issue(issue_key: "BEP-1")`
 
 | Issue | Cause | Solution |
 | --- | --- | --- |
-| Code blocks ไม่ syntax highlight | MCP แปลง format ผิด | ใช้ `create_confluence_page.py` |
+| Code blocks ไม่ syntax highlight | MCP render เป็น `<pre class="highlight">` | Run `fix_confluence_code_blocks.py --page-id` หลัง MCP create/update |
 | Macros แสดงเป็น text | MCP ไม่เข้าใจ storage format | ใช้ `update_page_storage.py` |
 | ย้าย page ไม่ได้ | MCP ไม่มี move API | ใช้ `move_confluence_page.py` |
 
