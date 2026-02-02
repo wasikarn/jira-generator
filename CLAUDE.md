@@ -68,6 +68,7 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | --- | --- | --- |
 | `/search-issues` | ค้นหา issues ก่อนสร้างใหม่ (ป้องกันสร้างซ้ำ) | List of matching issues |
 | `/verify-issue BEP-XXX` | ตรวจสอบ + ปรับปรุงคุณภาพ issue (ADF, INVEST, language) | Verification report / Improved issue(s) |
+| `/optimize-context` | Audit shared-refs → compress ลง passive context | Updated CLAUDE.md / Report (`--dry-run`) |
 
 > **เมื่อไหร่ควรใช้ Verify:**
 >
