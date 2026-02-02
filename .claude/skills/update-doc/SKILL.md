@@ -150,7 +150,7 @@ confluence_get_page(
 
 ### 5. Update
 
-**Option A: Simple update (no code blocks)**
+**Option A: Content update (MCP + fix code blocks)**
 
 ```python
 confluence_update_page(
@@ -160,9 +160,19 @@ confluence_update_page(
 )
 ```
 
-**Option B: With code blocks (use Python script)**
+**⚠️ IMPORTANT: Fix Code Blocks (mandatory if content has code blocks)**
 
-ถ้า content มี code blocks ให้ใช้ Python script:
+MCP markdown → Confluence จะ render code blocks เป็น `<pre class="highlight">` ซึ่งไม่ถูกต้อง
+**ต้อง run fix script ทันทีหลัง create/update เสมอ:**
+
+```bash
+python3 .claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py \
+  --page-id [page_id]
+```
+
+Script จะแปลงจาก `<pre class="highlight">` → `<ac:structured-macro ac:name="code">` ให้อัตโนมัติ
+
+**Option B: Find & replace**
 
 ```bash
 python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
@@ -171,17 +181,7 @@ python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
   --replace "[new text]"
 ```
 
-หรือสำหรับ full content update:
-
-```bash
-python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
-  --page-id [page_id] \
-  --content-file tasks/temp-content.md
-```
-
-**Option C: Move page (use Python script)**
-
-ย้าย page ไปอยู่ภายใต้ parent อื่น:
+**Option C: Move page**
 
 ```bash
 python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py \
@@ -189,7 +189,7 @@ python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py \
   --parent-id [target_parent_id]
 ```
 
-Batch move หลาย pages:
+Batch move:
 
 ```bash
 python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py \
@@ -218,17 +218,18 @@ Update type?
     │
     ├─ Move → move_confluence_page.py --page-id --parent-id
     │
-    └─ Content/Section/Status/Replace
+    ├─ Find/Replace → update_confluence_page.py
+    │
+    └─ Content/Section/Status
           │
-          └─ มี code blocks?
+          └─ MCP confluence_update_page
                 │
-                ├─ No → ใช้ MCP confluence_update_page
-                │
-                └─ Yes → ใช้ Python script
-                          │
-                          ├─ Find/Replace → update_confluence_page.py
-                          │
-                          └─ Full content → create_confluence_page.py --page-id
+                └─ มี code blocks?
+                      │
+                      ├─ No → Done ✅
+                      │
+                      └─ Yes → fix_confluence_code_blocks.py --page-id
+                                (MANDATORY post-step)
 ```
 
 ---
@@ -253,7 +254,7 @@ Update type?
 | Page not found | Wrong page ID | ค้นหา page ใหม่ |
 | Version conflict | Someone else updated | Fetch latest version แล้ว retry |
 | Permission denied | No edit access | ติดต่อ admin |
-| Code blocks broken | Used MCP for code | ใช้ Python script แทน |
+| Code blocks broken | MCP markdown renders `<pre class="highlight">` | Run `fix_confluence_code_blocks.py --page-id` |
 
 ---
 

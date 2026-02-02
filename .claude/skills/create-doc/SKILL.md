@@ -248,7 +248,7 @@ Proposed | Accepted | Deprecated | Superseded
 
 ### 4. Create
 
-**Option A: Simple content (no code blocks)**
+สร้าง page ด้วย MCP tool:
 
 ```python
 confluence_create_page(
@@ -259,17 +259,17 @@ confluence_create_page(
 )
 ```
 
-**Option B: With code blocks (use Python script)**
+**⚠️ IMPORTANT: Fix Code Blocks (mandatory if content has code blocks)**
 
-ถ้า content มี code blocks ให้ใช้ Python script:
+MCP markdown → Confluence จะ render code blocks เป็น `<pre class="highlight">` ซึ่งไม่ถูกต้อง
+**ต้อง run fix script ทันทีหลัง create/update เสมอ:**
 
 ```bash
-python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
-  --space BEP \
-  --title "[Title]" \
-  --content-file tasks/temp-content.md \
-  --parent-id [optional parent page ID]
+python3 .claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py \
+  --page-id [created_page_id]
 ```
+
+Script จะแปลงจาก `<pre class="highlight">` → `<ac:structured-macro ac:name="code">` ให้อัตโนมัติ
 
 **Output:**
 

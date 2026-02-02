@@ -111,10 +111,15 @@ CONFLUENCE_API_TOKEN=your-api-token
 | Scenario | Tool | Why |
 | --- | --- | --- |
 | Simple page read | MCP `confluence_get_page` | Fast, no script needed |
-| Simple page create (no code) | MCP `confluence_create_page` | Markdown works fine |
-| Page with code blocks | **Script** | MCP breaks code formatting |
-| Batch text replacement | **Script** | More reliable |
-| Fix broken formatting | **Script** | Direct storage format access |
+| Page create/update (no code) | MCP `confluence_create_page` / `update_page` | Markdown works fine |
+| Page create/update (with code) | MCP + `fix_confluence_code_blocks.py` | MCP renders code as `<pre>`, fix script converts to `<ac:structured-macro>` |
+| Batch text replacement | **Script** `update_confluence_page.py` | More reliable |
+| Raw storage format / macros | **Script** `update_page_storage.py` | Direct macro support (ToC, Children) |
+| Fix broken code blocks | **Script** `fix_confluence_code_blocks.py` | Post-step after MCP create/update |
+
+> **⚠️ Known Issue:** MCP `confluence_create_page` / `confluence_update_page` with `content_format: 'markdown'`
+> จะ render code blocks เป็น `<pre class="highlight">` แทน Confluence `<ac:structured-macro>`
+> **ต้อง run `fix_confluence_code_blocks.py --page-id` หลัง MCP create/update ที่มี code blocks เสมอ**
 
 ---
 
