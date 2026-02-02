@@ -245,6 +245,61 @@
 
 ---
 
+## Hierarchy Alignment Checks (`--with-subtasks` only)
+
+> **หลักการ:** ใช้เฉพาะข้อมูลจริงที่ fetch มาเท่านั้น — ห้ามเดาอย่างเด็ดขาด
+> ถ้าไม่แน่ใจว่า AC ไหน map กับ subtask ไหน → flag เป็น "unclear mapping"
+
+### A1: AC ↔ Subtask Coverage
+
+```text
+□ แต่ละ Story AC มี ≥1 subtask รองรับ
+□ ไม่มี AC ที่ไม่มี subtask implement
+□ Mapping ชัดเจน (ถ้าไม่ชัด → flag)
+```
+
+### A2: Service Tag Match
+
+```text
+□ Story "Services Impacted" → มี subtask tag ครบ
+□ ไม่มี subtask tag ที่ไม่อยู่ใน Story scope
+□ Tags: [BE], [FE-Admin], [FE-Web] match กับ services ที่ระบุ
+```
+
+### A3: Scope Consistency
+
+```text
+□ Story in-scope items → subtask objectives cover ครบ
+□ ไม่มี scope gap (สิ่งที่อยู่ใน Story แต่ไม่มี subtask ทำ)
+□ ไม่มี scope creep (subtask ทำเกินกว่าที่ Story ระบุ)
+```
+
+### A4: Epic ↔ Story Fit
+
+```text
+□ Story scope อยู่ใน Epic must-have/should-have
+□ Story ไม่หลุด Epic scope
+□ Skip ถ้า Story เป็น standalone (ไม่มี parent Epic)
+```
+
+### A5: Parent-Child Links
+
+```text
+□ ทุก subtask.parent = Story key
+□ Story.parent = Epic key (ถ้ามี)
+□ ไม่มี orphan subtask
+```
+
+### A6: Confluence Alignment
+
+```text
+□ Tech Note content สอดคล้องกับ Story ACs (ถ้ามี)
+□ Tech Note ไม่ขัดแย้งกับ subtask details
+□ Skip ถ้าไม่มี Confluence page, flag เป็น info
+```
+
+---
+
 ## Scoring Guide
 
 ### Per Check

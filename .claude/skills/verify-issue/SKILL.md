@@ -1,11 +1,11 @@
 ---
 name: verify-issue
 description: |
-  ตรวจสอบและปรับปรุงคุณภาพ issue (ADF format, INVEST, language) ด้วย 5-phase workflow
+  ตรวจสอบและปรับปรุงคุณภาพ issue (ADF format, INVEST, language, hierarchy alignment) ด้วย 6-phase workflow
 
-  Checks: ADF render, panel structure, links, inline code, INVEST criteria, Given/When/Then, file paths, language consistency
+  Checks: ADF render, panel structure, links, inline code, INVEST criteria, Given/When/Then, file paths, language consistency, hierarchy alignment (Epic↔Story↔Subtasks↔Docs)
 
-  รองรับ: --with-subtasks (batch), --fix (auto-fix + format migration)
+  รองรับ: --with-subtasks (batch + alignment check), --fix (auto-fix + format migration)
 
   Triggers: "verify", "validate", "ตรวจสอบ", "check quality", "improve", "migrate format"
 argument-hint: "[issue-key] [--with-subtasks] [--fix]"
@@ -54,7 +54,39 @@ Score: ⭐⭐⭐☆☆ (per dimension, 5-point scale)
 - **Sub-task:** Objective clear, File paths real (not generic), AC format correct
 - **QA:** All Story ACs covered, Test scenarios clear, Priority assigned
 
-### 4. Report
+### 4. Hierarchy Alignment (`--with-subtasks` only)
+
+> **หลักการ:** ใช้เฉพาะข้อมูลจริงที่ fetch มาจาก Jira/Confluence เท่านั้น — ห้ามเดาอย่างเด็ดขาด
+> ถ้าไม่แน่ใจว่า AC ไหน map กับ subtask ไหน → flag เป็น "unclear mapping"
+
+**Data fetching:**
+
+```text
+1. Story → jira_get_issue(story_key) — ACs, scope, services impacted
+2. Epic → jira_get_issue(story.parent) — scope, must-have list (skip ถ้าไม่มี)
+3. Subtasks → fetched แล้วจาก Phase 1
+4. Confluence → confluence_search("BEP-XXX") — Tech Note (skip ถ้าไม่มี)
+```
+
+**Alignment checks:**
+
+| ID | Check | วิธีตรวจ | Pass Criteria |
+| --- | --- | --- | --- |
+| A1 | AC ↔ Subtask Coverage | map แต่ละ Story AC → subtask(s) ที่ implement | ทุก AC มี ≥1 subtask รองรับ |
+| A2 | Service Tag Match | Story "Services Impacted" → Subtask tags `[BE]`/`[FE-*]` | ทุก service มี subtask |
+| A3 | Scope Consistency | Story in-scope items → Subtask objectives cover them | ไม่มี scope gap |
+| A4 | Epic ↔ Story Fit | Story scope อยู่ใน Epic must-have/should-have | Story ไม่หลุด Epic scope |
+| A5 | Parent-Child Links | Subtask.parent = Story, Story.parent = Epic | links ถูกต้อง |
+| A6 | Confluence Alignment | Tech Note content สอดคล้องกับ Story ACs (ถ้ามี) | ไม่ขัดแย้ง |
+
+**Rules:**
+
+- ถ้า Epic ไม่มี (standalone Story) → skip A4
+- ถ้า Confluence ไม่มี → skip A6, flag เป็น info
+- ถ้า mapping ไม่ชัด → flag "unclear mapping" (ห้ามเดา)
+- Report เฉพาะสิ่งที่ verify ได้จากข้อมูลจริง
+
+### 5. Report
 
 ```text
 ## Verification: BEP-XXX
@@ -63,18 +95,23 @@ Score: ⭐⭐⭐☆☆ (per dimension, 5-point scale)
 |----------|-------|--------|
 | Technical | 5/5 | ✅ Pass |
 | Quality | 4/6 | ⚠️ Warning |
-| **Overall** | 9/11 | ⚠️ |
+| Alignment | 5/6 | ⚠️ Warning |  ← (--with-subtasks only)
+| **Overall** | 14/17 | ⚠️ |
 
 Issues:
 1. ⚠️ AC3 missing "Then"
 2. ❌ Language mixed
 
+Alignment Issues (--with-subtasks):
+1. ⚠️ AC3 ไม่มี subtask รองรับ
+2. ⚠️ Story ระบุ [FE-Web] แต่ไม่มี subtask tag [FE-Web]
+
 → /verify-issue BEP-XXX --fix
 ```
 
-### 5. Fix (--fix flag only)
+### 6. Fix (--fix flag only)
 
-ถ้ามี `--fix` → ดำเนินการแก้ไขทั้งหมดที่พบใน Phase 2-3:
+ถ้ามี `--fix` → ดำเนินการแก้ไขทั้งหมดที่พบใน Phase 2-4:
 
 1. **Load Templates** — ดึง template ตาม issue type จาก `shared-references/`
 2. **Generate** — Preserve original intent, apply template + ADF + Thai + inline code → `tasks/bep-xxx-fixed.json`
@@ -97,10 +134,11 @@ Quality: wiki → ADF, EN → Thai
 /verify-issue BEP-XXX --with-subtasks --fix
 ```
 
-| Key | Technical | Quality | Overall |
-| --- | --- | --- | --- |
-| BEP-XXX | 5/5 ✅ | 4/6 ⚠️ | ⚠️ |
-| BEP-YYY | 5/5 ✅ | 6/6 ✅ | ✅ |
+| Key | Technical | Quality | Alignment | Overall |
+| --- | --- | --- | --- | --- |
+| BEP-XXX (Story) | 5/5 ✅ | 4/6 ⚠️ | 5/6 ⚠️ | ⚠️ |
+| BEP-YYY [BE] | 5/5 ✅ | 6/6 ✅ | — | ✅ |
+| BEP-ZZZ [FE-Web] | 5/5 ✅ | 5/6 ⚠️ | — | ⚠️ |
 
 ---
 
