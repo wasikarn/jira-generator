@@ -110,21 +110,117 @@ Each role uses **Handoff Protocol** to pass context to next:
 | `[FE-Admin]` | Admin | `~/Codes/Works/tathep/tathep-admin` |
 | `[FE-Web]` | Website | `~/Codes/Works/tathep/tathep-website` |
 
-## Atlassian Tool Selection
+## Passive Context (Always Loaded)
+
+> **Design principle:** ข้อมูลด้านล่างนี้ compress จาก shared-references เพื่อให้ agent มี context พร้อมใช้ตลอด
+> ไม่ต้อง load file เพิ่ม ลด latency + ลดโอกาสผิด (inspired by Vercel's AGENTS.md approach)
+>
+> **Full references:** โหลดเพิ่มเมื่อต้องการ template เต็ม → `.claude/skills/shared-references/`
+
+### Tool Selection
 
 > **IMPORTANT:** Jira descriptions ต้องใช้ ADF format via `acli --from-json` เสมอ (MCP แปลงเป็น wiki format ไม่สวย)
 
-| Operation | Tool |
-| --- | --- |
-| **Create/Update Jira description** | `acli --from-json` (ADF) |
-| **Update fields (ไม่ใช่ description)** | MCP `jira_update_issue` |
-| **Search Jira/Confluence** | MCP `jira_search` / `confluence_search` |
-| **Read issue/page** | MCP `jira_get_issue` / `confluence_get_page` |
-| **Confluence (code blocks/macros/move)** | Python scripts (`.claude/skills/atlassian-scripts/scripts/`) |
+| Operation | Tool | Note |
+| --- | --- | --- |
+| **Create/Update Jira description** | `acli --from-json` (ADF) | สร้าง JSON file → `acli jira workitem create/edit` |
+| **Update fields (ไม่ใช่ description)** | MCP `jira_update_issue` | summary, status, labels, etc. |
+| **Read issue** | MCP `jira_get_issue` | **ต้องใช้ `fields` parameter เสมอ** ป้องกัน token limit |
+| **Search Jira** | MCP `jira_search` | JQL query |
+| **Confluence read** | MCP `confluence_get_page` | |
+| **Confluence create/update (มี code)** | Python scripts | `.claude/skills/atlassian-scripts/scripts/` |
+| **Confluence (move/macros)** | Python scripts | move, ToC, Children macros |
 
-> **Full tool guide:** `.claude/skills/shared-references/tools.md`
->
-> **ADF format details:** `.claude/skills/shared-references/templates.md`
+**jira_get_issue — ต้องระบุ fields:**
+
+```python
+# ❌ token limit error
+jira_get_issue(issue_key="BEP-XXX")
+# ✅ ระบุ fields
+jira_get_issue(issue_key="BEP-XXX", fields="summary,status,description,issuetype,parent", comment_limit=5)
+```
+
+| Use Case | Fields |
+| --- | --- |
+| Quick check | `summary,status,assignee` |
+| Read description | `summary,status,description` |
+| Full analysis | `summary,status,description,issuetype,parent,labels` |
+
+### ADF Quick Reference
+
+**CREATE vs EDIT — JSON format ต่างกัน (ห้ามใช้สลับ!):**
+
+| Operation | Required | Forbidden |
+| --- | --- | --- |
+| **CREATE** `acli jira workitem create` | `projectKey`, `type`, `summary`, `description` | `issues` |
+| **EDIT** `acli jira workitem edit` | `issues`, `description` | `projectKey`, `type`, `summary`, `parent` |
+
+```json
+// CREATE
+{"projectKey":"BEP","type":"Story","summary":"...","description":{"type":"doc","version":1,"content":[...]}}
+// EDIT
+{"issues":["BEP-XXX"],"description":{"type":"doc","version":1,"content":[...]}}
+```
+
+**Subtask — Two-Step Workflow** (acli ไม่รองรับ `parent` field):
+
+1. MCP create shell: `jira_create_issue({project_key:"BEP", summary:"...", issue_type:"Subtask", additional_fields:{parent:{key:"BEP-XXX"}}})`
+2. acli edit description: `acli jira workitem edit --from-json subtask.json --yes`
+
+**Panel Types:**
+
+| Type | Color | Usage |
+| --- | --- | --- |
+| `info` | Blue | Story narrative, objective |
+| `success` | Green | Happy path AC |
+| `warning` | Yellow | Edge cases, validation |
+| `error` | Red | Error handling |
+| `note` | Purple | Notes, dependencies |
+
+**Table Header Colors (semantic):**
+
+| Category | Hex |
+| --- | --- |
+| Default/header | `#f4f5f7` |
+| New files | `#e3fcef` (green) |
+| Modify files | `#fffae6` (yellow) |
+| Delete files | `#ffebe6` (red) |
+| Reference | `#eae6ff` (purple) |
+| Requirements | `#deebff` (blue) |
+
+**AC Format:** panels + Given/When/Then (ต้องมีเสมอ) → Happy=`success`, Edge=`warning`, Error=`error`
+
+**Inline code:** `{"type":"text","text":"path/file.ts","marks":[{"type":"code"}]}`
+
+### Common Mistakes & Quick Fixes
+
+| Mistake | Fix |
+| --- | --- |
+| `unknown field "projectKey"` ใน edit | ใช้ CREATE format กับ EDIT → ลบ projectKey ใช้ `issues` แทน |
+| `unknown field "issues"` ใน create | ใช้ EDIT format กับ CREATE → ลบ issues ใช้ `projectKey` แทน |
+| `unknown field "parent"` | acli ไม่รองรับ parent → ใช้ Two-Step Workflow |
+| Nested bulletList → `INVALID_INPUT` | listItem > bulletList ไม่ได้ → flatten หรือ comma-separated |
+| Nested tables | Tables ซ้อน tables ไม่ได้ → ใช้ bullets แทน |
+| Table inside panel | ❌ → ใช้ bulletList inside panel |
+| Description ugly wiki format | ใช้ `acli --from-json` ไม่ใช่ MCP |
+| Token limit exceeded | ใช้ `fields` parameter กับ `jira_get_issue` |
+| Missing `version: 1` | ADF root ต้องมี `{"type":"doc","version":1,"content":[]}` |
+| Code blocks ไม่ syntax highlight (Confluence) | Run `fix_confluence_code_blocks.py --page-id` หลัง MCP |
+| Confluence macros เป็น text | ใช้ `update_page_storage.py` แทน MCP |
+
+### Agent Decision Rules
+
+> **หลักการ:** ยิ่งมี decision points น้อย ยิ่งลดโอกาสผิด — ทำให้ rules explicit ที่สุด
+
+| Decision Point | Rule |
+| --- | --- |
+| **สร้าง Technical Note?** | สร้างเมื่อ: (1) มี architecture decisions, (2) มี code patterns ที่ซับซ้อน, (3) user บอกให้สร้าง → ถ้าไม่แน่ใจ ถาม user |
+| **Confluence: MCP หรือ Script?** | มี code blocks/macros → Script เสมอ, ไม่มี → MCP ได้ |
+| **ADF mapping ไม่ชัด?** | Flag "unclear mapping" → ห้ามเดา |
+| **Issue type ไม่แน่ใจ?** | ถาม user → อย่าเดา type |
+| **Scope ใหญ่เกินไป?** | Sub-task > 5 days → แนะนำ split, ไม่ auto-split |
+
+> **Full references:** templates → `templates.md` | tools → `tools.md` | errors → `troubleshooting.md`
 
 ## File Structure
 
@@ -257,12 +353,12 @@ tasks/                     # Generated outputs (gitignored)
 
 ## Troubleshooting
 
+> Quick fixes อยู่ใน **Passive Context > Common Mistakes & Quick Fixes** ด้านบน
+> Full recovery procedures → `.claude/skills/shared-references/troubleshooting.md`
+
 | Issue | Solution |
 | --- | --- |
-| Description renders as ugly wiki format | Use `acli --from-json` with ADF format instead of MCP |
-| `acli` error: unknown field | Check JSON structure (use `projectKey` not `project`, use `issues` array for edit) |
-| MCP tool not found | Check `.claude/skills/shared-references/tools.md` for correct tool names |
-| Wrong project key | Ensure using `BEP` project key |
-| Missing parent link | Always specify parent Epic/Story when creating subtask |
-| "Issue not found" | Verify key format: `BEP-XXX` |
+| Wrong project key | ใช้ `BEP` เสมอ |
+| "Issue not found" | ตรวจ format: `BEP-XXX` |
 | "Permission denied" | Re-authenticate MCP |
+| Workflow interrupted | Note phase → search Jira → resume from last completed |
