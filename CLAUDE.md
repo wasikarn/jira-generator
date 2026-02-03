@@ -12,16 +12,6 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | Project Key | `BEP` |
 | Confluence Space | `BEP` |
 
-## Quick Start (5 min)
-
-1. **Need to create a new feature?** → `/story-full` (creates Story + Sub-tasks end-to-end)
-2. **Already have an Epic, need a Story?** → `/create-story`
-3. **Already have a Story, need to analyze?** → `/analyze-story BEP-XXX`
-4. **Need to create a Task?** → `/create-task` (tech-debt, bug, chore, spike)
-5. **Need to plan a Sprint?** → `/plan-sprint` (Tresor strategy + Jira execution)
-
-> ⚡ **After creation:** Always use `/verify-issue BEP-XXX` to verify quality
-
 ## Skill Commands
 
 ### Create
@@ -54,8 +44,6 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | `/sync-alignment BEP-XXX` | Sync all artifacts (Jira + Confluence) bidirectional | Updated issues + pages |
 | `/plan-sprint` | Sprint planning: carry-over + prioritize + assign (Tresor-powered) | Sprint plan + Jira assignments |
 
-> **When to use:** `story-full` = complete new feature, `story-cascade` = cascade Jira only, `sync-alignment` = full sync + Confluence, `plan-sprint` = plan a new sprint
-
 ### Utility
 
 | Command | Description | Output |
@@ -70,9 +58,78 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 
 ## Workflow Chain
 
-**Handoff:** PM (Epic) → PO (Story) → TA (Sub-tasks) → QA (Test Plan) → `/verify-issue` after each step
+### Skill Selection Guide
 
-> Full diagram + skill selection guide → `.claude/SKILLS-INDEX.md`
+```text
+Need a new feature?
+  ├─ Have nothing yet?           → /create-epic (PM)
+  ├─ Have Epic, need Story?      → /create-story (PO)
+  ├─ Have Epic, need full flow?  → /story-full ⭐ (PO+TA combined)
+  ├─ Have Story, need Sub-tasks? → /analyze-story (TA)
+  ├─ Have Story, need tests?     → /create-testplan (QA)
+  ├─ Need a Task (bug/chore)?   → /create-task (Dev)
+  └─ Need a Confluence page?     → /create-doc (Dev)
+
+Need to update?
+  ├─ Update one issue?           → /update-{epic,story,task,subtask}
+  ├─ Update Story + Sub-tasks?   → /story-cascade ⭐
+  ├─ Sync everything?            → /sync-alignment ⭐
+  └─ Update Confluence page?     → /update-doc
+
+Need to plan or verify?
+  ├─ Plan a sprint?              → /plan-sprint ⭐
+  ├─ Check quality?              → /verify-issue
+  └─ Prevent duplicates?         → /search-issues
+```
+
+### Handoff + Dependencies
+
+```text
+Stakeholder → PM → PO → TA → QA → /verify-issue after each step
+               │     │     │     │
+               ↓     ↓     ↓     ↓
+            Epic   Story  Sub-tasks  Test Plan
+                          ↑
+            /story-full ⭐ = PO + TA in one go
+
+/search-issues ← always run before creating (prevent duplicates)
+       ↓
+/create-epic ──→ /create-story ──→ /analyze-story ──→ /create-testplan
+                       │                 │
+                       └─ /story-full ⭐ ┘  (combines both)
+                       └─ /story-cascade ⭐  (update → cascade to subs)
+                       └─ /sync-alignment ⭐ (sync all: Jira + Confluence)
+
+/create-task, /create-doc, /update-doc ── (standalone)
+/plan-sprint ⭐ ───────────────────────── (reads Jira, assigns work)
+/verify-issue ← always run after creating/updating
+```
+
+### Common Skill Mistakes
+
+| Mistake | Correct |
+| --- | --- |
+| `/create-story` + `/analyze-story` separately | Use `/story-full` ⭐ — does both in one go |
+| `/analyze-story` without Explore | Sub-tasks will have generic paths — always Explore first |
+| Creating without `/search-issues` | May create duplicates — always search first |
+| `/update-story` when Sub-tasks also need changes | Use `/story-cascade` ⭐ to cascade automatically |
+| `/story-cascade` when Confluence also needs sync | Use `/sync-alignment` ⭐ for full bidirectional sync |
+
+### Phase Patterns
+
+| Pattern | Phases | Used By |
+| --- | --- | --- |
+| 3-phase (Search) | Parse → Search → Present | search-issues |
+| 4-phase (Create Simple) | Discovery → Design → Create → Summary | create-doc |
+| 5-phase (Standard) | Discovery → Write → Validate → Create → Summary | create-{epic,story,task}, update-* |
+| 5-phase (QA) | Discovery → Scope → Design → Create → Summary | create-testplan |
+| 6-phase (Verify) | Fetch → Technical → Quality → Hierarchy → Score → Fix | verify-issue |
+| 7-phase (Analyze) | Discovery → Impact → **Explore** → Design → Align → Create → Summary | analyze-story |
+| 8-phase (Cascade) | Fetch → Changes → Impact → Explore → Gen Story → Gen Subs → Apply → Summary | story-cascade, sync-alignment |
+| 8-phase (Sprint) | Discovery → Capacity → Carry-over → Prioritize → Distribute → Risk → Review → Execute | plan-sprint |
+| 10-phase (Full) | Discovery → Write → INVEST → Create → Impact → **Explore** → Design → Align → Create Subs → Summary | story-full |
+
+> **Bold Explore** = mandatory codebase exploration step (uses `Task(Explore)`)
 
 ## Service Tags
 
@@ -100,14 +157,7 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | **Confluence create/update (with code)** | Python scripts | `.claude/skills/atlassian-scripts/scripts/` |
 | **Confluence (move/macros)** | Python scripts | move, ToC, Children macros |
 
-**jira_get_issue — must specify fields:**
-
-```python
-# ❌ token limit error
-jira_get_issue(issue_key="BEP-XXX")
-# ✅ specify fields
-jira_get_issue(issue_key="BEP-XXX", fields="summary,status,description,issuetype,parent", comment_limit=5)
-```
+**jira_get_issue — must specify `fields` param** (without → token limit error):
 
 | Use Case | Fields |
 | --- | --- |
@@ -191,17 +241,12 @@ jira_get_issue(issue_key="BEP-XXX", fields="summary,status,description,issuetype
 
 > **Full references:** templates → `templates.md` | tools → `tools.md` | errors → `troubleshooting.md`
 
-## File Structure
-
-**Skills:** `.claude/skills/` — 18 skill dirs + `atlassian-scripts/` + `shared-references/`
-
-> Full catalog with phases, roles, triggers, dependencies → `.claude/SKILLS-INDEX.md`
-
 ## References (load when needed)
+
+> **Skills location:** `.claude/skills/` — 17 skill dirs + `atlassian-scripts/` + `shared-references/`
 
 | Need | File |
 | --- | --- |
-| **Skills Index (full catalog)** | **`.claude/SKILLS-INDEX.md`** |
 | All templates (ADF) | `.claude/skills/shared-references/templates.md` |
 | Tool selection + effort sizing | `.claude/skills/shared-references/tools.md` |
 | Quality checklists | `.claude/skills/shared-references/verification-checklist.md` |
