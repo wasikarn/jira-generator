@@ -1,9 +1,5 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
----
-
 ## Overview
 
 Agile Documentation System for **Tathep Platform** - Create Epics, User Stories, and Sub-tasks via Jira/Confluence
@@ -56,11 +52,7 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | `/story-cascade BEP-XXX` | Update Story + cascade ไป Sub-tasks ที่เกี่ยวข้อง | Updated Story + Sub-tasks |
 | `/sync-alignment BEP-XXX` | Sync artifacts ทั้งหมด (Jira + Confluence) bidirectional | Updated issues + pages |
 
-> **เมื่อไหร่ควรใช้ Composite:**
->
-> - `/story-full` - เมื่อต้องการสร้าง feature ใหม่ครบ workflow (ไม่ต้อง copy-paste issue keys)
-> - `/story-cascade` - เมื่อ update Story แล้วต้องการ cascade เฉพาะ Jira sub-tasks (เร็ว)
-> - `/sync-alignment` - เมื่อต้องการ sync ทุกอย่างรวม Confluence (ครบ, bidirectional)
+> **เมื่อไหร่ใช้:** `story-full` = feature ใหม่ครบ, `story-cascade` = cascade Jira only, `sync-alignment` = full sync + Confluence
 
 ### Utility (เครื่องมือช่วย)
 
@@ -70,20 +62,11 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | `/verify-issue BEP-XXX` | ตรวจสอบ + ปรับปรุงคุณภาพ issue (ADF, INVEST, language) | Verification report / Improved issue(s) |
 | `/optimize-context` | Audit shared-refs → compress ลง passive context | Updated CLAUDE.md / Report (`--dry-run`) |
 
-> **เมื่อไหร่ควรใช้ Verify:**
->
-> - หลังสร้าง issue ใหม่ → ตรวจสอบคุณภาพก่อน handoff
-> - หลัง update → ยืนยันว่า format ถูกต้อง
-> - `--with-subtasks` → ตรวจสอบ Story + Sub-tasks ทั้งหมด
-> - `--fix` → auto-fix + batch format migration (แทน `/improve-issue` เดิม)
+> **Verify:** หลังสร้าง/update issue | `--with-subtasks` = batch check | `--fix` = auto-fix + format migration
 
 **Skill Location:** `.claude/skills/` (แต่ละ command = 1 skill directory)
 
-**How Skill Commands Work:**
-
-1. Load skill from `.claude/skills/[command-name]/SKILL.md` (e.g., `.claude/skills/create-story/SKILL.md`)
-2. Execute phases in order (ห้ามข้ามขั้นตอน)
-3. Reference `.claude/skills/shared-references/` for templates and tools
+**How Skills Work:** `.claude/skills/[command-name]/SKILL.md` → execute phases in order → reference `shared-references/`
 
 ## Workflow Chain
 
@@ -96,12 +79,7 @@ Stakeholder → PM → PO → TA → QA
          [/verify-issue หลังสร้างเสร็จ]
 ```
 
-Each role uses **Handoff Protocol** to pass context to next:
-
-1. PM creates Epic → hands off to PO
-2. PO creates User Stories → hands off to TA
-3. TA creates Sub-tasks → hands off to QA
-4. QA creates Test Plan + [QA] Sub-tasks (terminal)
+**Handoff:** PM (Epic) → PO (Story) → TA (Sub-tasks) → QA (Test Plan) — structured context ส่งต่อแต่ละ role
 
 ## Service Tags
 
@@ -226,61 +204,25 @@ jira_get_issue(issue_key="BEP-XXX", fields="summary,status,description,issuetype
 ## File Structure
 
 ```text
-.claude/skills/            # Skill commands (each dir = 1 slash command)
-├── create-epic/           → /create-epic (5-phase PM workflow)
-│   └── SKILL.md
-├── create-story/          → /create-story (5-phase PO workflow)
-│   └── SKILL.md
-├── analyze-story/         → /analyze-story (7-phase TA workflow)
-│   └── SKILL.md
-├── create-testplan/       → /create-testplan (6-phase QA workflow)
-│   └── SKILL.md
-├── create-task/           → /create-task (5-phase task workflow)
-│   └── SKILL.md
-├── create-doc/            → /create-doc (4-phase Confluence workflow)
-│   └── SKILL.md
-├── update-doc/            → /update-doc (5-phase Confluence update)
-│   └── SKILL.md
-├── update-epic/           → /update-epic (5-phase update)
-│   └── SKILL.md
-├── update-story/          → /update-story (5-phase update)
-│   └── SKILL.md
-├── update-task/           → /update-task (5-phase update)
-│   └── SKILL.md
-├── update-subtask/        → /update-subtask (5-phase update)
-│   └── SKILL.md
-├── story-full/            → /story-full (10-phase composite) ⭐
-│   └── SKILL.md
-├── story-cascade/         → /story-cascade (8-phase cascade) ⭐
-│   └── SKILL.md
-├── sync-alignment/        → /sync-alignment (8-phase bidirectional sync) ⭐
-│   └── SKILL.md
-├── search-issues/         → /search-issues (3-phase search)
-│   └── SKILL.md
-├── verify-issue/          → /verify-issue (5-phase verify + fix)
-│   └── SKILL.md
-├── atlassian-scripts/    # Python scripts for Confluence + Jira via REST API
-│   ├── SKILL.md
-│   ├── lib/                             → Shared library (auth, API clients, exceptions)
-│   └── scripts/
-│       ├── create_confluence_page.py    → Create/update with code blocks
-│       ├── update_confluence_page.py    → Find/replace text in Confluence
-│       ├── move_confluence_page.py      → Move page(s) to new parent
-│       ├── update_page_storage.py       → Add macros (ToC, Children)
-│       ├── fix_confluence_code_blocks.py → Fix broken code blocks
-│       ├── audit_confluence_pages.py    → Verify content alignment
-│       └── update_jira_description.py   → Fix Jira descriptions (ADF)
-└── shared-references/     # Shared resources for all skills
-    ├── templates.md       → ADF core rules (CREATE/EDIT, panels, styling)
-    ├── templates-epic.md  → Epic ADF template
-    ├── templates-story.md → Story ADF template
-    ├── templates-subtask.md → Sub-task + QA ADF template
-    ├── templates-task.md  → Task ADF template (4 types)
-    ├── writing-style.md   → Language guidelines
-    ├── tools.md           → Tool selection guide
-    ├── jql-quick-ref.md   → JQL patterns
-    ├── troubleshooting.md → Error recovery
-    └── verification-checklist.md → Quality checks
+.claude/skills/            # Each dir = 1 skill (see Skill Commands above)
+├── create-epic/           → 5-phase PM
+├── create-story/          → 5-phase PO
+├── analyze-story/         → 7-phase TA
+├── create-testplan/       → 6-phase QA
+├── create-task/           → 5-phase task
+├── create-doc/            → 4-phase Confluence
+├── update-doc/            → 5-phase Confluence update
+├── update-{epic,story,task,subtask}/ → 5-phase update
+├── story-full/            → 10-phase composite ⭐
+├── story-cascade/         → 8-phase cascade ⭐
+├── sync-alignment/        → 8-phase bidirectional ⭐
+├── search-issues/         → 3-phase search
+├── verify-issue/          → 5-phase verify + fix
+├── atlassian-scripts/     → Python REST API scripts
+│   ├── lib/               → auth, api, jira_api, converters, exceptions
+│   └── scripts/           → 7 scripts (see Tool Selection)
+└── shared-references/     → Templates, tools, style, checklists
+    └── critical-items.md  → Passive context validation checklist
 
 tasks/                     # Generated outputs (gitignored)
 ```
@@ -295,6 +237,7 @@ tasks/                     # Generated outputs (gitignored)
 | Writing style guide | `.claude/skills/shared-references/writing-style.md` |
 | JQL patterns | `.claude/skills/shared-references/jql-quick-ref.md` |
 | Troubleshooting | `.claude/skills/shared-references/troubleshooting.md` |
+| Critical items checklist | `.claude/skills/shared-references/critical-items.md` |
 | Atlassian scripts | `.claude/skills/atlassian-scripts/SKILL.md` |
 
 ## Core Principles
@@ -315,42 +258,13 @@ tasks/                     # Generated outputs (gitignored)
 >
 > ก่อนสร้าง Sub-tasks ต้อง explore codebase เสมอ ไม่งั้นจะออกแบบผิด
 
-### Why Explore is Mandatory
+**ถ้าไม่ Explore:** generic paths (ไม่มีประโยชน์), สร้างงานซ้ำ, ผิด convention, ประเมิน scope ผิด
 
-| ถ้าไม่ Explore | ผลที่ตามมา |
-| --- | --- |
-| ไม่รู้ file paths จริง | Subtask มี path generic ไม่มีประโยชน์ |
-| ไม่รู้ว่ามีอะไรอยู่แล้ว | สร้างงานซ้ำ, reinvent the wheel |
-| ไม่รู้ patterns ที่ใช้ | Dev ต้องหาเอง หรือทำผิด convention |
-| ไม่รู้ dependencies | ประเมิน scope ผิด, พัง existing features |
+**TA Workflow:** Story → Impact Analysis → 🔍 **EXPLORE** (paths, patterns, existing code, architecture) → Design → Create Sub-tasks
 
-### TA Workflow (Correct Order)
+**How to Explore:** ใช้ `Task (Explore agent)` กับ paths จาก **Service Tags** ด้านบน
 
-```text
-1. รับ User Story
-2. Impact Analysis (คิดว่ากระทบ services ไหน)
-3. 🔍 EXPLORE CODEBASE ← ห้ามข้าม!
-   • หา actual file paths
-   • ดู existing patterns
-   • เช็คว่ามีอะไรอยู่แล้ว
-   • เข้าใจ architecture
-4. Design Sub-tasks (ด้วยข้อมูลจริง)
-5. Create Sub-tasks
-```
-
-### How to Explore
-
-| Service | Path | Tool |
-| --- | --- | --- |
-| Backend | `~/Codes/Works/tathep/tathep-platform-api` | Task (Explore agent) |
-| Admin | `~/Codes/Works/tathep/tathep-admin` | Task (Explore agent) |
-| Website | `~/Codes/Works/tathep/tathep-website` | Task (Explore agent) |
-
-**Example prompts for Explore agent:**
-
-- "Find credit top-up page and related components"
-- "Find API endpoint for creating orders"
-- "Find existing billing form patterns"
+**Explore prompts:** "Find credit top-up page", "Find API endpoint for orders", "Find existing billing patterns"
 
 ## Troubleshooting
 
