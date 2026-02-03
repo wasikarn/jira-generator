@@ -234,6 +234,7 @@ tasks/                     # Generated outputs (gitignored)
 
 | Need | File |
 | --- | --- |
+| **Skills Index (full catalog)** | **`.claude/SKILLS-INDEX.md`** |
 | All templates (ADF) | `.claude/skills/shared-references/templates.md` |
 | Tool selection + effort sizing | `.claude/skills/shared-references/tools.md` |
 | Quality checklists | `.claude/skills/shared-references/verification-checklist.md` |
