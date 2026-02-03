@@ -1,43 +1,43 @@
 # Jira Generator
 
-Agile Documentation System สำหรับ **Tathep Platform** — สร้าง Epic, User Story, Sub-task และวางแผน Sprint ผ่าน Claude Code
+Agile Documentation System for **Tathep Platform** — Create Epics, User Stories, Sub-tasks, and plan Sprints via Claude Code
 
 ## Setup Guide
 
-### Step 1: ติดตั้ง Claude Code
+### Step 1: Install Claude Code
 
-ติดตั้ง [Claude Code](https://claude.com/claude-code) — เลือกวิธีใดวิธีหนึ่ง:
+Install [Claude Code](https://claude.com/claude-code) — choose one method:
 
 ```bash
 # CLI
 npm install -g @anthropic-ai/claude-code
 
-# หรือใช้ VSCode extension
-# ค้นหา "Claude Code" ใน Extensions marketplace
+# Or use VSCode extension
+# Search "Claude Code" in Extensions marketplace
 ```
 
-### Step 2: ติดตั้ง Atlassian CLI (acli)
+### Step 2: Install Atlassian CLI (acli)
 
-ใช้สำหรับสร้าง/แก้ไข Jira descriptions ในรูปแบบ ADF (Atlassian Document Format)
+Used for creating/editing Jira descriptions in ADF (Atlassian Document Format)
 
 ```bash
 # macOS (Homebrew)
 brew install atlassian-cli
 
-# หรือดาวน์โหลดจาก https://bobswift.atlassian.net/wiki/spaces/ACLI/overview
+# Or download from https://bobswift.atlassian.net/wiki/spaces/ACLI/overview
 ```
 
-ตั้งค่า credentials:
+Configure credentials:
 
 ```bash
 acli jira login --server https://100-stars.atlassian.net --user <email> --token <api-token>
 ```
 
-### Step 3: ตั้งค่า MCP Servers
+### Step 3: Configure MCP Servers
 
-เพิ่ม MCP servers ใน Claude Code settings (`~/.claude/settings.json` หรือ VSCode settings):
+Add MCP servers to Claude Code settings (`~/.claude/settings.json` or VSCode settings):
 
-**mcp-atlassian** — สำหรับ Jira + Confluence:
+**mcp-atlassian** — for Jira + Confluence:
 
 ```json
 {
@@ -58,11 +58,11 @@ acli jira login --server https://100-stars.atlassian.net --user <email> --token 
 }
 ```
 
-> ดู setup เพิ่มเติม: [mcp-atlassian GitHub](https://github.com/sooperset/mcp-atlassian)
+> See full setup: [mcp-atlassian GitHub](https://github.com/sooperset/mcp-atlassian)
 
-### Step 4: ตั้งค่า Atlassian Credentials (สำหรับ Python scripts)
+### Step 4: Configure Atlassian Credentials (for Python scripts)
 
-Python scripts ใช้ credentials จากไฟล์ `~/.config/atlassian/.env`:
+Python scripts load credentials from `~/.config/atlassian/.env`:
 
 ```bash
 mkdir -p ~/.config/atlassian
@@ -73,61 +73,61 @@ CONFLUENCE_API_TOKEN=<api-token>
 EOF
 ```
 
-### Step 5: ติดตั้ง Python dependencies
+### Step 5: Install Python Dependencies
 
 ```bash
 pip install requests
 ```
 
-### Step 6: รัน Setup Script
+### Step 6: Run Setup Script
 
 ```bash
-# Clone repo (ถ้ายังไม่มี)
+# Clone repo (if not already cloned)
 git clone <repo-url> ~/Codes/Works/tathep/jira-generator
 cd ~/Codes/Works/tathep/jira-generator
 
-# รัน setup (idempotent — รันซ้ำได้ปลอดภัย)
+# Run setup (idempotent — safe to run multiple times)
 ./scripts/setup.sh
 ```
 
-Setup script จะ:
+The setup script will:
 
-1. ติดตั้ง `sync-tathep-skills` CLI ไปที่ `~/.local/bin/`
-2. Sync skills ไป `~/.claude/skills/` (symlinks)
-3. เพิ่ม Tathep config ใน `~/.claude/CLAUDE.md`
+1. Install `sync-tathep-skills` CLI to `~/.local/bin/`
+2. Sync skills to `~/.claude/skills/` (via symlinks)
+3. Add Tathep config to `~/.claude/CLAUDE.md`
 
-> ถ้า `~/.local/bin` ไม่อยู่ใน PATH ให้เพิ่มใน shell profile:
+> If `~/.local/bin` is not in your PATH, add it to your shell profile:
 >
 > ```bash
 > export PATH="$HOME/.local/bin:$PATH"
 > ```
 
-### Step 7 (Optional): ติดตั้ง Tresor Agents
+### Step 7 (Optional): Install Tresor Agents
 
-สำหรับ `/plan-sprint` ที่ใช้ Tresor strategy — ติดตั้ง Product team agents:
+Required for `/plan-sprint` which uses Tresor strategy — install Product team agents:
 
 ```bash
-# ดูรายละเอียด: https://github.com/alirezarezvani/claude-code-tresor
-# Sprint-prioritizer agent จะถูกติดตั้งที่:
+# See details: https://github.com/alirezarezvani/claude-code-tresor
+# Sprint-prioritizer agent will be installed at:
 # ~/.claude/subagents/product/management/sprint-prioritizer/agent.md
 ```
 
-### ตรวจสอบว่า setup สำเร็จ
+### Verify Setup
 
 ```bash
-# ตรวจ skills ถูก sync
+# Check skills are synced
 ls ~/.claude/skills/ | grep -E "create-story|plan-sprint|verify-issue"
 
-# ตรวจ acli ใช้ได้
+# Check acli works
 acli jira project list --server https://100-stars.atlassian.net
 
-# ตรวจ MCP ใช้ได้ — เปิด Claude Code แล้วพิมพ์:
-# "ดึง issue BEP-1 ให้หน่อย"
+# Check MCP works — open Claude Code and type:
+# "Fetch issue BEP-1"
 ```
 
-### Sync Skills หลังจาก update
+### Sync Skills After Updates
 
-เมื่อมีการเพิ่ม/ลบ skills ใน project ให้รัน sync ใหม่:
+When skills are added or removed from the project, re-run sync:
 
 ```bash
 sync-tathep-skills
@@ -135,107 +135,107 @@ sync-tathep-skills
 
 ---
 
-## วิธีใช้งาน
+## Usage
 
-เปิด Claude Code ใน project นี้ แล้วพิมพ์ `/command` ตามต้องการ
+Open Claude Code in this project and type `/command` as needed.
 
 ---
 
-### สร้าง Feature ใหม่ครบ workflow
+### Create Full Feature Workflow
 
 ```
 /story-full
 ```
 
-Claude จะสร้าง User Story + Sub-tasks ครบในครั้งเดียว — ผ่าน 10 phases ตั้งแต่ Discovery จนถึง Verify
+Claude creates a complete User Story + Sub-tasks in one go — through 10 phases from Discovery to Verify.
 
-**ตัวอย่างที่ 1:** พิมพ์ `/story-full` แล้วบอก "สร้างระบบ coupon สำหรับ admin — สร้าง, แก้ไข, ลบ coupon ได้" → Claude จะถามรายละเอียดเพิ่ม แล้วสร้าง Story + Sub-tasks `[BE]`, `[FE-Admin]` ให้อัตโนมัติ
+**Example 1:** Type `/story-full` and say "Build a coupon system for admin — create, edit, delete coupons" → Claude asks for details, then auto-generates Story + Sub-tasks `[BE]`, `[FE-Admin]`
 
-**ตัวอย่างที่ 2:** พิมพ์ `/story-full` แล้วบอก "user สามารถดู transaction history ของตัวเองบนหน้า website" → ได้ Story + Sub-tasks `[BE]`, `[FE-Web]` พร้อม AC ครบ
+**Example 2:** Type `/story-full` and say "Users can view their transaction history on the website" → Generates Story + Sub-tasks `[BE]`, `[FE-Web]` with complete ACs
 
 ---
 
-### สร้าง Epic
+### Create Epic
 
 ```
 /create-epic
 ```
 
-สร้าง Epic + Epic Doc บน Confluence — ใช้ RICE scoring จัดลำดับ
+Creates an Epic + Epic Doc on Confluence — uses RICE scoring for prioritization.
 
-**ตัวอย่างที่ 1:** "ต้องการระบบ Coupon Management — ให้ admin จัดการ coupon ทุกประเภท" → ได้ Epic พร้อม RICE score + Confluence doc
+**Example 1:** "Build a Coupon Management system — admin manages all coupon types" → Creates Epic with RICE score + Confluence doc
 
-**ตัวอย่างที่ 2:** "สร้าง epic สำหรับ Payment Gateway Integration — รองรับ PromptPay, credit card" → ได้ Epic พร้อม scope, success metrics, RICE
+**Example 2:** "Create epic for Payment Gateway Integration — support PromptPay, credit card" → Creates Epic with scope, success metrics, RICE
 
 ---
 
-### สร้าง User Story
+### Create User Story
 
 ```
 /create-story
 ```
 
-สร้าง User Story จาก requirements — ผ่าน 5-phase PO workflow
+Creates a User Story from requirements — through 5-phase PO workflow.
 
-**ตัวอย่างที่ 1:** "สร้าง story สำหรับ admin สามารถสร้าง coupon ได้ ภายใต้ Epic BEP-2800" → ได้ Story พร้อม AC (Given/When/Then) link กับ Epic
+**Example 1:** "Create a story for admin to create coupons, under Epic BEP-2800" → Story with ACs (Given/When/Then) linked to Epic
 
-**ตัวอย่างที่ 2:** "story สำหรับ user ดูรายการ order ทั้งหมดบน website — filter ตาม status ได้" → ได้ Story พร้อม AC + scope + service tags
+**Example 2:** "Story for users to view all orders on website — filter by status" → Story with ACs + scope + service tags
 
 ---
 
-### วิเคราะห์ Story → Sub-tasks
+### Analyze Story → Sub-tasks
 
 ```
 /analyze-story BEP-XXX
 ```
 
-อ่าน Story แล้ว explore codebase → สร้าง Sub-tasks พร้อม file paths จริง
+Reads a Story then explores the codebase → creates Sub-tasks with real file paths.
 
-**ตัวอย่างที่ 1:** `/analyze-story BEP-2900` → Claude อ่าน story, explore code จาก Backend + Admin, สร้าง Sub-tasks `[BE] - สร้าง Coupon API`, `[FE-Admin] - สร้างหน้า Coupon Management`
+**Example 1:** `/analyze-story BEP-2900` → Claude reads the story, explores Backend + Admin code, creates Sub-tasks `[BE] - Create Coupon API`, `[FE-Admin] - Build Coupon Management page`
 
-**ตัวอย่างที่ 2:** `/analyze-story BEP-3050` → Claude อ่าน story เรื่อง payment, explore existing payment module, สร้าง Sub-tasks ที่ reference ไฟล์จริงในโปรเจค
+**Example 2:** `/analyze-story BEP-3050` → Claude reads payment story, explores existing payment module, creates Sub-tasks referencing actual project files
 
 ---
 
-### สร้าง Test Plan
+### Create Test Plan
 
 ```
 /create-testplan BEP-XXX
 ```
 
-สร้าง Test Plan + [QA] Sub-tasks จาก User Story
+Creates a Test Plan + [QA] Sub-tasks from a User Story.
 
-**ตัวอย่างที่ 1:** `/create-testplan BEP-2900` → ได้ test cases: happy path (สร้าง coupon สำเร็จ), edge cases (ชื่อซ้ำ, วันหมดอายุผ่านแล้ว), error handling (server error)
+**Example 1:** `/create-testplan BEP-2900` → Test cases: happy path (create coupon successfully), edge cases (duplicate name, expired date), error handling (server error)
 
-**ตัวอย่างที่ 2:** `/create-testplan BEP-3050` → ได้ test cases สำหรับ payment flow: successful payment, insufficient balance, timeout, concurrent transactions
+**Example 2:** `/create-testplan BEP-3050` → Test cases for payment flow: successful payment, insufficient balance, timeout, concurrent transactions
 
 ---
 
-### สร้าง Task
+### Create Task
 
 ```
 /create-task
 ```
 
-สร้าง Jira Task — รองรับ 4 types: `tech-debt`, `bug`, `chore`, `spike`
+Creates a Jira Task — supports 4 types: `tech-debt`, `bug`, `chore`, `spike`
 
-**ตัวอย่างที่ 1:** "สร้าง tech-debt task สำหรับ refactor payment module — แยก service layer ออกจาก controller" → ได้ Task type tech-debt พร้อม scope + AC
+**Example 1:** "Create a tech-debt task for refactoring payment module — separate service layer from controller" → Task type tech-debt with scope + ACs
 
-**ตัวอย่างที่ 2:** "สร้าง bug task — หน้า admin coupon list โหลดช้ามาก เกิน 5 วินาที" → ได้ Task type bug พร้อม steps to reproduce + expected behavior
+**Example 2:** "Create a bug task — admin coupon list page loads too slowly, over 5 seconds" → Task type bug with steps to reproduce + expected behavior
 
 ---
 
-### สร้าง Confluence Doc
+### Create Confluence Doc
 
 ```
 /create-doc
 ```
 
-สร้าง Confluence page — รองรับ: `tech-spec`, `adr`, `parent` (category page)
+Creates a Confluence page — supports: `tech-spec`, `adr`, `parent` (category page)
 
-**ตัวอย่างที่ 1:** "สร้าง tech-spec สำหรับ coupon architecture — ต้องมี ERD, API endpoints, sequence diagram" → ได้ Confluence page แบบ tech-spec พร้อม template
+**Example 1:** "Create a tech-spec for coupon architecture — include ERD, API endpoints, sequence diagram" → Confluence page with tech-spec template
 
-**ตัวอย่างที่ 2:** "สร้าง ADR สำหรับเลือก payment gateway — เปรียบเทียบ Omise vs Stripe" → ได้ Confluence page แบบ ADR (Architecture Decision Record)
+**Example 2:** "Create an ADR for choosing a payment gateway — compare Omise vs Stripe" → Confluence page with ADR (Architecture Decision Record) template
 
 ---
 
@@ -248,43 +248,43 @@ Claude จะสร้าง User Story + Sub-tasks ครบในครั้�
 /update-subtask BEP-XXX
 ```
 
-แก้ไข issue ที่มีอยู่ — ปรับ scope, เพิ่ม AC, migrate format
+Edit an existing issue — adjust scope, add ACs, migrate format.
 
-**ตัวอย่างที่ 1:** `/update-story BEP-2900` แล้วบอกว่า "เพิ่ม AC สำหรับ bulk create coupon — admin สร้าง coupon ทีละหลายใบจาก CSV" → Claude update Story เพิ่ม AC ใหม่
+**Example 1:** `/update-story BEP-2900` then say "Add AC for bulk create coupon — admin creates multiple coupons from CSV" → Claude updates Story with new AC
 
-**ตัวอย่างที่ 2:** `/update-subtask BEP-3100` แล้วบอกว่า "เปลี่ยน scope — ใช้ React Query แทน SWR" → Claude update Sub-task ปรับ technical approach
+**Example 2:** `/update-subtask BEP-3100` then say "Change scope — use React Query instead of SWR" → Claude updates Sub-task with revised technical approach
 
 ---
 
-### Update Story + Cascade ไป Sub-tasks
+### Update Story + Cascade to Sub-tasks
 
 ```
 /story-cascade BEP-XXX
 ```
 
-Update Story แล้ว cascade changes ไปยัง Sub-tasks ที่เกี่ยวข้องอัตโนมัติ
+Updates a Story then automatically cascades changes to related Sub-tasks.
 
-**ตัวอย่างที่ 1:** `/story-cascade BEP-2900` → "เปลี่ยน scope จาก single coupon เป็น bulk create" → Story update + Sub-tasks `[BE]`, `[FE-Admin]` ปรับ scope ตาม
+**Example 1:** `/story-cascade BEP-2900` → "Change scope from single coupon to bulk create" → Story updates + Sub-tasks `[BE]`, `[FE-Admin]` adjust scope accordingly
 
-**ตัวอย่างที่ 2:** `/story-cascade BEP-3050` → "เพิ่ม payment method: PromptPay" → Story + Sub-tasks ที่เกี่ยวข้องกับ payment ถูก update ทั้งหมด
+**Example 2:** `/story-cascade BEP-3050` → "Add payment method: PromptPay" → Story + all payment-related Sub-tasks are updated
 
 ---
 
-### Sync ทุก Artifacts
+### Sync All Artifacts
 
 ```
 /sync-alignment BEP-XXX
 ```
 
-Sync Jira + Confluence bidirectional — Epic, Story, Sub-tasks, QA, Docs ทั้งหมด
+Syncs Jira + Confluence bidirectional — Epic, Story, Sub-tasks, QA, Docs.
 
-**ตัวอย่างที่ 1:** `/sync-alignment BEP-2900` → ตรวจว่า Story, Sub-tasks, Confluence tech-spec ตรงกัน → พบ Confluence ยังไม่ update scope ใหม่ → update ให้
+**Example 1:** `/sync-alignment BEP-2900` → Checks Story, Sub-tasks, Confluence tech-spec are aligned → finds Confluence not updated with new scope → updates it
 
-**ตัวอย่างที่ 2:** `/sync-alignment BEP-2800` → sync Epic กับ Stories ทั้งหมดข้างใต้ → พบ Story ใหม่ที่ยังไม่อยู่ใน Epic doc → update Confluence
+**Example 2:** `/sync-alignment BEP-2800` → Syncs Epic with all child Stories → finds a new Story not in Epic doc → updates Confluence
 
 ---
 
-### วางแผน Sprint
+### Sprint Planning
 
 ```
 /plan-sprint
@@ -292,43 +292,43 @@ Sync Jira + Confluence bidirectional — Epic, Story, Sub-tasks, QA, Docs ทั
 /plan-sprint --carry-over-only
 ```
 
-Sprint Planning ด้วย Tresor Strategy + Jira Execution — ผ่าน 8 phases: Discovery → Capacity → Carry-over → Prioritize → Distribute → Risk → Review → Execute
+Sprint Planning powered by Tresor Strategy + Jira Execution — through 8 phases: Discovery → Capacity → Carry-over → Prioritize → Distribute → Risk → Review → Execute
 
-**ตัวอย่างที่ 1:** พิมพ์ `/plan-sprint` → Claude จะ:
+**Example 1:** Type `/plan-sprint` → Claude will:
 
-1. ดึงข้อมูล sprint ปัจจุบัน + target sprint จาก Jira
-2. คำนวณ capacity ของแต่ละคนในทีม
-3. วิเคราะห์ carry-over items (ตาม status probability)
-4. จัดลำดับ priority ด้วย Impact/Effort matrix
-5. จับคู่ items → team members ตาม skill + capacity
-6. ตรวจ risk (overload, dependencies)
-7. แสดง plan ให้ review + approve
-8. Execute: assign + move items ใน Jira
+1. Fetch current sprint + target sprint data from Jira
+2. Calculate each team member's capacity
+3. Analyze carry-over items (based on status probability)
+4. Prioritize items using Impact/Effort matrix
+5. Match items → team members by skill + capacity
+6. Check risks (overload, dependencies)
+7. Present plan for review + approval
+8. Execute: assign + move items in Jira
 
-**ตัวอย่างที่ 2:** `/plan-sprint --carry-over-only` → วิเคราะห์เฉพาะ carry-over items จาก sprint ปัจจุบัน → แสดง probability ว่าแต่ละ item จะเสร็จทันหรือต้อง carry-over โดยไม่ assign อะไร
+**Example 2:** `/plan-sprint --carry-over-only` → Analyzes only carry-over items from the current sprint → shows probability of each item finishing on time or carrying over, without making any assignments
 
 Options:
 
-- `--sprint 640` — ระบุ target sprint ID
-- `--carry-over-only` — วิเคราะห์ carry-over อย่างเดียว ไม่ assign
+- `--sprint 640` — specify target sprint ID
+- `--carry-over-only` — analyze carry-over only, no assignments
 
 ---
 
-### ค้นหา Issue
+### Search Issues
 
 ```
 /search-issues
 ```
 
-ค้นหา issues ก่อนสร้างใหม่ — ป้องกันสร้างซ้ำ
+Search for existing issues before creating new ones — prevents duplicates.
 
-**ตัวอย่างที่ 1:** "หา issues ที่เกี่ยวกับ coupon" → แสดงรายการ issues ที่ match พร้อม status + assignee
+**Example 1:** "Find issues related to coupon" → Lists matching issues with status + assignee
 
-**ตัวอย่างที่ 2:** "หา bug ที่ assign ให้ joakim ใน sprint ปัจจุบัน" → ใช้ JQL filter แสดง bugs เฉพาะคน + sprint
+**Example 2:** "Find bugs assigned to joakim in the current sprint" → Uses JQL filter to show bugs for a specific person + sprint
 
 ---
 
-### ตรวจสอบคุณภาพ Issue
+### Verify Issue Quality
 
 ```
 /verify-issue BEP-XXX
@@ -336,15 +336,15 @@ Options:
 /verify-issue BEP-XXX --fix
 ```
 
-ตรวจสอบ ADF format, INVEST criteria, ภาษา, hierarchy alignment
+Checks ADF format, INVEST criteria, language, hierarchy alignment.
 
-**ตัวอย่างที่ 1:** `/verify-issue BEP-2900 --fix` → ตรวจ Story พบ AC ไม่มี Given/When/Then, ภาษาอังกฤษทั้งหมด → auto-fix เป็น Thai + ทับศัพท์ + เพิ่ม Given/When/Then
+**Example 1:** `/verify-issue BEP-2900 --fix` → Checks Story, finds ACs missing Given/When/Then, all in English → auto-fixes to Thai + transliteration + adds Given/When/Then
 
-**ตัวอย่างที่ 2:** `/verify-issue BEP-2900 --with-subtasks` → ตรวจ Story + Sub-tasks ทั้งหมด → report ว่า Sub-task #3 ไม่มี scope, Sub-task #5 ไม่มี AC
+**Example 2:** `/verify-issue BEP-2900 --with-subtasks` → Checks Story + all Sub-tasks → reports Sub-task #3 missing scope, Sub-task #5 missing ACs
 
 Options:
 
-- `--with-subtasks` — ตรวจ Sub-tasks ทั้งหมดด้วย
+- `--with-subtasks` — check all Sub-tasks as well
 - `--fix` — auto-fix + format migration
 
 ---
@@ -355,11 +355,11 @@ Options:
 /update-doc
 ```
 
-Update หรือ move Confluence page
+Update or move a Confluence page.
 
-**ตัวอย่างที่ 1:** "update tech-spec page ของ coupon ให้ตรงกับ design ใหม่ — เพิ่ม bulk create API" → update เนื้อหา page
+**Example 1:** "Update the coupon tech-spec page to match the new design — add bulk create API" → Updates page content
 
-**ตัวอย่างที่ 2:** "ย้าย page 'Coupon Tech Spec' ไปอยู่ภายใต้ parent 'Payment Features'" → move page ไป parent ใหม่
+**Example 2:** "Move page 'Coupon Tech Spec' under parent 'Payment Features'" → Moves page to new parent
 
 ---
 
@@ -370,37 +370,37 @@ Update หรือ move Confluence page
 /optimize-context --dry-run
 ```
 
-Audit shared-references → compress ลง passive context ใน CLAUDE.md
+Audits shared-references → compresses into passive context in CLAUDE.md.
 
-**ตัวอย่างที่ 1:** `/optimize-context --dry-run` → ดู report ว่า shared-references ตัวไหน outdated, ตัวไหนยังไม่ compress → ไม่แก้ไขจริง
+**Example 1:** `/optimize-context --dry-run` → Shows report of which shared-references are outdated, which aren't compressed yet → no actual changes
 
-**ตัวอย่างที่ 2:** `/optimize-context` → audit + compress shared-references ลง CLAUDE.md passive context → ลด token usage สำหรับ agent
+**Example 2:** `/optimize-context` → Audits + compresses shared-references into CLAUDE.md passive context → reduces token usage for the agent
 
 ---
 
-## Workflow แนะนำ
+## Recommended Workflows
 
-### สร้าง Feature ใหม่ตั้งแต่ต้น
-
-```
-/create-epic          → สร้าง Epic
-/story-full           → สร้าง Story + Sub-tasks ครบ
-/create-testplan      → สร้าง Test Plan
-/verify-issue BEP-XXX → ตรวจสอบคุณภาพ
-```
-
-### Sprint Planning
+### Create a New Feature End-to-End
 
 ```
-/plan-sprint          → วางแผน sprint (carry-over + assign)
+/create-epic          → Create Epic
+/story-full           → Create Story + Sub-tasks
+/create-testplan      → Create Test Plan
+/verify-issue BEP-XXX → Verify quality
 ```
 
-### แก้ไข + Sync
+### Plan a Sprint
 
 ```
-/update-story BEP-XXX       → แก้ Story
-/story-cascade BEP-XXX      → Cascade ไป Sub-tasks
-/sync-alignment BEP-XXX     → Sync ทั้งหมด
+/plan-sprint          → Plan sprint (carry-over + assign)
+```
+
+### Edit + Sync
+
+```
+/update-story BEP-XXX       → Edit Story
+/story-cascade BEP-XXX      → Cascade to Sub-tasks
+/sync-alignment BEP-XXX     → Sync everything
 ```
 
 ---
@@ -441,8 +441,8 @@ README.md                    <- This file
 
 ## Tips
 
-- **หลังสร้าง/update issue:** ใช้ `/verify-issue` ตรวจสอบคุณภาพเสมอ
-- **ก่อนสร้าง issue ใหม่:** ใช้ `/search-issues` ป้องกันสร้างซ้ำ
-- **ภาษา:** เนื้อหาใน Jira เป็นภาษาไทย + ทับศัพท์ technical terms
-- **Format:** Jira descriptions ใช้ ADF format (Claude จัดการให้อัตโนมัติ)
-- **Sync skills:** หลังเพิ่ม/ลบ skills ให้รัน `sync-tathep-skills`
+- **After creating/updating an issue:** Always run `/verify-issue` to check quality
+- **Before creating a new issue:** Use `/search-issues` to prevent duplicates
+- **Language:** Jira content is written in Thai + English transliteration for technical terms
+- **Format:** Jira descriptions use ADF format (Claude handles this automatically)
+- **Sync skills:** After adding/removing skills, run `sync-tathep-skills`
