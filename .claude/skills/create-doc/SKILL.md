@@ -1,10 +1,10 @@
 ---
 name: create-doc
 description: |
-  สร้าง Confluence page จาก template ด้วย 4-phase workflow
-  รองรับ: tech-spec, adr, parent (category page)
+  Create Confluence page from template with a 4-phase workflow
+  Supports: tech-spec, adr, parent (category page)
 
-  Triggers: "create doc", "สร้าง doc", "technical spec", "ADR"
+  Triggers: "create doc", "technical spec", "ADR"
 argument-hint: "[template] [title] [--parent page-id]"
 ---
 
@@ -27,18 +27,18 @@ argument-hint: "[template] [title] [--parent page-id]"
 
 ### 1. Discovery
 
-ถาม user เพื่อ gather ข้อมูล:
+Ask user to gather information:
 
-**ถ้าไม่ระบุ template:**
+**If template not specified:**
 
 ```text
-ต้องการสร้าง Document ประเภทไหน?
+What type of Document do you want to create?
 1. tech-spec - Technical Specification
 2. adr - Architecture Decision Record
-3. parent - Category/Parent page (จัดกลุ่ม pages)
+3. parent - Category/Parent page (group pages)
 ```
 
-**Gather details ตาม template:**
+**Gather details by template:**
 
 | Template | Required Info |
 | --- | --- |
@@ -46,16 +46,16 @@ argument-hint: "[template] [title] [--parent page-id]"
 | `adr` | Title, Context, Options considered |
 | `parent` | Title, Description, Category type |
 
-**ถ้าต้องการสร้างเป็น child ของ page อื่น:**
+**If creating as child of another page:**
 
 ```text
-ต้องการสร้างภายใต้ parent page ไหน?
-1. Root (ไม่มี parent)
-2. ระบุ Page ID
-3. ค้นหาจาก title
+Which parent page do you want to create under?
+1. Root (no parent)
+2. Specify Page ID
+3. Search by title
 ```
 
-**ค้นหา parent page:**
+**Search for parent page:**
 
 ```python
 confluence_search(query="title ~ \"[search term]\"", limit=5)
@@ -67,7 +67,7 @@ confluence_search(query="title ~ \"[search term]\"", limit=5)
 
 ### 2. Generate Content
 
-สร้าง markdown content ตาม template
+Generate markdown content based on template
 
 **tech-spec Template:**
 
@@ -219,8 +219,8 @@ Proposed | Accepted | Deprecated | Superseded
 *Last updated: [date]*
 ```
 
-> **Note:** `{toc}` และ `{children}` macros จะแสดงผลเฉพาะใน Confluence
-> สำหรับ parent pages ที่ต้องการ macros ให้ใช้ `update_page_storage.py` script
+> **Note:** `{toc}` and `{children}` macros only render in Confluence
+> For parent pages that need macros, use the `update_page_storage.py` script
 
 **Gate:** Content generated
 
@@ -228,7 +228,7 @@ Proposed | Accepted | Deprecated | Superseded
 
 ### 3. Review
 
-แสดง preview ให้ user ตรวจสอบ:
+Show preview for user to review:
 
 ```text
 ## Document Preview
@@ -239,7 +239,7 @@ Proposed | Accepted | Deprecated | Superseded
 
 [Show markdown content]
 
-ต้องการปรับแก้อะไรก่อน create หรือไม่?
+Any changes needed before creating?
 ```
 
 **Gate:** User approves content
@@ -248,7 +248,7 @@ Proposed | Accepted | Deprecated | Superseded
 
 ### 4. Create
 
-สร้าง page ด้วย MCP tool:
+Create page with MCP tool:
 
 ```python
 confluence_create_page(
@@ -261,15 +261,15 @@ confluence_create_page(
 
 **⚠️ IMPORTANT: Fix Code Blocks (mandatory if content has code blocks)**
 
-MCP markdown → Confluence จะ render code blocks เป็น `<pre class="highlight">` ซึ่งไม่ถูกต้อง
-**ต้อง run fix script ทันทีหลัง create/update เสมอ:**
+MCP markdown → Confluence will render code blocks as `<pre class="highlight">` which is incorrect.
+**You must run the fix script immediately after every create/update:**
 
 ```bash
 python3 .claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py \
   --page-id [created_page_id]
 ```
 
-Script จะแปลงจาก `<pre class="highlight">` → `<ac:structured-macro ac:name="code">` ให้อัตโนมัติ
+The script will automatically convert `<pre class="highlight">` → `<ac:structured-macro ac:name="code">`.
 
 **Output:**
 
@@ -281,7 +281,7 @@ Script จะแปลงจาก `<pre class="highlight">` → `<ac:structured
 
 🔗 [View in Confluence](URL)
 
-→ Link to Jira: ใช้ MCP jira_create_remote_issue_link
+→ Link to Jira: use MCP jira_create_remote_issue_link
 ```
 
 ---
@@ -290,10 +290,10 @@ Script จะแปลงจาก `<pre class="highlight">` → `<ac:structured
 
 | Scenario | Command |
 | --- | --- |
-| สร้าง Tech Spec | `/create-doc tech-spec "Payment API"` |
-| สร้าง ADR | `/create-doc adr "Use Redis for caching"` |
-| สร้าง Parent page | `/create-doc parent "Documentation: Ads System"` |
-| สร้างเป็น child | `/create-doc tech-spec "API Spec" --parent 153518083` |
+| Create Tech Spec | `/create-doc tech-spec "Payment API"` |
+| Create ADR | `/create-doc adr "Use Redis for caching"` |
+| Create Parent page | `/create-doc parent "Documentation: Ads System"` |
+| Create as child | `/create-doc tech-spec "API Spec" --parent 153518083` |
 
 ---
 

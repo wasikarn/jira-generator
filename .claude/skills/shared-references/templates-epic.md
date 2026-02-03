@@ -1,14 +1,14 @@
 # Epic Template (ADF)
 
-> Extracted from templates.md — ใช้กับ `/create-epic`, `/update-epic`
+> Extracted from templates.md — used with `/create-epic`, `/update-epic`
 >
-> สำหรับ core rules (CREATE vs EDIT, Panel Types, Styling) → ดู [templates.md](templates.md)
+> For core rules (CREATE vs EDIT, Panel Types, Styling) → see [templates.md](templates.md)
 
 ---
 
 ## Epic Template (ADF) - CREATE
 
-> ใช้กับ `acli jira workitem create --from-json`
+> Used with `acli jira workitem create --from-json`
 
 **Structure:**
 
@@ -36,10 +36,10 @@
         "attrs": {"panelType": "info"},
         "content": [
           {"type": "paragraph", "content": [
-            {"type": "text", "text": "[พัฒนาระบบ X เพื่อ Y]", "marks": [{"type": "strong"}]}
+            {"type": "text", "text": "[Develop system X for Y]", "marks": [{"type": "strong"}]}
           ]},
           {"type": "paragraph", "content": [
-            {"type": "text", "text": "[รองรับ: feature1, feature2, feature3]"}
+            {"type": "text", "text": "[Supports: feature1, feature2, feature3]"}
           ]}
         ]
       },

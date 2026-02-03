@@ -1,10 +1,10 @@
 ---
 name: create-task
 description: |
-  สร้าง Jira Task ใหม่ด้วย 5-phase workflow
-  รองรับ 4 task types: tech-debt, bug, chore, spike
+  Create a new Jira Task with a 5-phase workflow
+  Supports 4 task types: tech-debt, bug, chore, spike
 
-  Triggers: "create task", "สร้าง task", "new task"
+  Triggers: "create task", "new task"
 argument-hint: "[type] [description]"
 ---
 
@@ -17,10 +17,10 @@ argument-hint: "[type] [description]"
 
 | Type | Use Case | Example |
 | --- | --- | --- |
-| `tech-debt` | PR review issues, code improvements, refactoring | แก้ไข issues จาก code review |
-| `bug` | Bug fixes จาก QA หรือ production | แก้ไข bug ที่ QA report |
+| `tech-debt` | PR review issues, code improvements, refactoring | Fix issues from code review |
+| `bug` | Bug fixes from QA or production | Fix bug reported by QA |
 | `chore` | Maintenance, dependency updates, configs | Update dependencies |
-| `spike` | Research, investigation, POC | ศึกษา library ใหม่ |
+| `spike` | Research, investigation, POC | Evaluate a new library |
 
 ---
 
@@ -28,19 +28,19 @@ argument-hint: "[type] [description]"
 
 ### 1. Discovery
 
-ถาม user เพื่อ gather ข้อมูล:
+Ask user to gather information:
 
-**ถ้าไม่ระบุ type:**
+**If type not specified:**
 
 ```text
-ต้องการสร้าง Task ประเภทไหน?
+What type of Task do you want to create?
 1. tech-debt - Code improvements, PR review issues
 2. bug - Bug fixes
 3. chore - Maintenance tasks
 4. spike - Research/Investigation
 ```
 
-**Gather details ตาม type:**
+**Gather details by type:**
 
 | Type | Required Info |
 | --- | --- |
@@ -55,7 +55,7 @@ argument-hint: "[type] [description]"
 
 ### 2. Generate Template
 
-สร้าง ADF JSON ตาม task type → `tasks/bep-xxx-task.json`
+Generate ADF JSON based on task type → `tasks/bep-xxx-task.json`
 
 **tech-debt Template:**
 
@@ -148,7 +148,7 @@ argument-hint: "[type] [description]"
 
 ### 3. Review
 
-แสดง preview ให้ user ตรวจสอบ:
+Show preview for user to review:
 
 ```text
 ## Task Preview
@@ -161,7 +161,7 @@ argument-hint: "[type] [description]"
 
 **Files:** tasks/bep-xxx-task.json
 
-ต้องการปรับแก้อะไรก่อน create หรือไม่?
+Any changes needed before creating?
 ```
 
 **Gate:** User approves content
@@ -174,7 +174,7 @@ argument-hint: "[type] [description]"
 acli jira workitem create --from-json tasks/bep-xxx-task.json
 ```
 
-**จับ issue key จาก output** เพื่อใช้ใน summary
+**Capture issue key from output** for use in summary
 
 ---
 
@@ -188,8 +188,8 @@ acli jira workitem create --from-json tasks/bep-xxx-task.json
 
 🔗 [View in Jira](https://100-stars.atlassian.net/browse/BEP-XXX)
 
-→ ใช้ /verify-issue BEP-XXX ตรวจสอบคุณภาพ
-→ ใช้ /update-task BEP-XXX เพิ่มรายละเอียดภายหลัง
+→ Use /verify-issue BEP-XXX to check quality
+→ Use /update-task BEP-XXX to add details later
 ```
 
 ---
@@ -198,10 +198,10 @@ acli jira workitem create --from-json tasks/bep-xxx-task.json
 
 | Scenario | Command | Notes |
 | --- | --- | --- |
-| สร้าง task จาก PR review | `/create-task tech-debt "PR #1234 issues"` | ระบุ type ตรง |
-| สร้าง bug report | `/create-task bug` | ถามรายละเอียดทีหลัง |
-| สร้าง maintenance task | `/create-task chore "update deps"` | Simple objective |
-| สร้าง research task | `/create-task spike "evaluate X"` | Focus on question |
+| Create task from PR review | `/create-task tech-debt "PR #1234 issues"` | Specify type directly |
+| Create bug report | `/create-task bug` | Ask for details after |
+| Create maintenance task | `/create-task chore "update deps"` | Simple objective |
+| Create research task | `/create-task spike "evaluate X"` | Focus on question |
 
 ---
 
@@ -209,4 +209,4 @@ acli jira workitem create --from-json tasks/bep-xxx-task.json
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
 - [Task Template](../shared-references/templates-task.md) - Task ADF (tech-debt, bug, chore, spike)
-- After: `/verify-issue BEP-XXX` ตรวจสอบคุณภาพ
+- After: `/verify-issue BEP-XXX` to check quality

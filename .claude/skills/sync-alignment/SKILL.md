@@ -1,11 +1,11 @@
 ---
 name: sync-alignment
 description: |
-  Sync artifacts ที่เกี่ยวข้องทั้งหมด (Epic, Story, Sub-tasks, QA, Confluence) ด้วย 8-phase workflow
+  Sync all related artifacts (Epic, Story, Sub-tasks, QA, Confluence) using an 8-phase workflow
 
   Phases: Identify Origin → Build Graph → Detect Changes → Impact Analysis → Explore (if needed) → Generate Updates → Execute Sync → Verify & Report
 
-  ⭐ Composite: bidirectional sync จาก artifact ใดก็ได้ ครอบคลุมทั้ง Jira + Confluence
+  ⭐ Composite: bidirectional sync from any artifact, covering both Jira + Confluence
 
   Triggers: "sync alignment", "sync all", "update related", "cascade all", "align artifacts"
 argument-hint: "[issue-key-or-page-id] [changes]"
@@ -14,7 +14,7 @@ argument-hint: "[issue-key-or-page-id] [changes]"
 # /sync-alignment
 
 **Role:** PO + TA + Tech Lead Combined
-**Output:** Updated Jira issues + Confluence pages (ทุก artifacts ที่เกี่ยวข้อง)
+**Output:** Updated Jira issues + Confluence pages (all related artifacts)
 
 ---
 
@@ -40,11 +40,11 @@ Epic (Jira)
 
 ### 1. Identify Origin
 
-- รับ input: `BEP-XXX` (Jira key) หรือ Confluence page ID
+- Receive input: `BEP-XXX` (Jira key) or Confluence page ID
 - `MCP: jira_get_issue(issue_key, fields="summary,status,issuetype,parent")`
-- ระบุ artifact type: Epic / Story / Sub-task
-- ถ้า Confluence page ID → `MCP: confluence_get_page(page_id)` → extract BEP keys → pivot ไป Jira
-- **Gate:** User ยืนยัน starting artifact + บอกว่าเปลี่ยนอะไร
+- Determine artifact type: Epic / Story / Sub-task
+- If Confluence page ID → `MCP: confluence_get_page(page_id)` → extract BEP keys → pivot to Jira
+- **Gate:** User confirms starting artifact + describes what changed
 
 ### 2. Build Artifact Graph
 
@@ -64,7 +64,7 @@ Discovery algorithm:
    - epic: confluence_search(epic_title) → Epic Doc
 ```
 
-**Token optimization:** fetch เฉพาะ `fields="summary,status,issuetype,parent"` (ไม่ fetch description)
+**Token optimization:** fetch only `fields="summary,status,issuetype,parent"` (do not fetch description)
 
 Output: inventory table
 
@@ -80,18 +80,18 @@ Output: inventory table
 | 7 | Sub-task   | BEP-104    | [QA] - Test plan       | To Do       |
 ```
 
-**Gate:** User เลือก scope:
+**Gate:** User selects scope:
 
 | Scope | Description |
 | --- | --- |
-| Full | Sync ทุก artifacts (Jira + Confluence) |
-| Jira-only | Sync เฉพาะ Jira issues |
-| Confluence-only | Sync เฉพาะ Confluence pages |
-| Selective | User เลือก artifacts ที่ต้อง sync |
+| Full | Sync all artifacts (Jira + Confluence) |
+| Jira-only | Sync only Jira issues |
+| Confluence-only | Sync only Confluence pages |
+| Selective | User selects specific artifacts to sync |
 
 ### 3. Detect Changes
 
-User อธิบาย changes ที่เกิดขึ้น แล้ว classify:
+User describes changes, then classify:
 
 | Change Type | Impact Level |
 | --- | --- |
@@ -104,7 +104,7 @@ User อธิบาย changes ที่เกิดขึ้น แล้ว c
 | Technical detail change | MEDIUM |
 | Business value change | HIGH |
 
-**Gate:** User ยืนยัน changes
+**Gate:** User confirms changes
 
 ### 4. Impact Analysis
 
@@ -127,9 +127,9 @@ Impact types:
 | Impact | Action |
 | --- | --- |
 | ORIGIN | Starting point (already changed) |
-| UPDATE | จะ update ใน Phase 7 |
-| FLAG | แจ้งเตือนให้ review (ไม่ auto-update) |
-| NO CHANGE | ไม่ต้องทำอะไร |
+| UPDATE | Will be updated in Phase 7 |
+| FLAG | Alert for review (no auto-update) |
+| NO CHANGE | No action needed |
 
 Sync directions:
 
@@ -143,13 +143,13 @@ Sync directions:
 
 ### 5. Codebase Exploration (conditional)
 
-- Run เฉพาะเมื่อ: scope changed / need new file paths / new sub-task needed
+- Run only when: scope changed / need new file paths / new sub-task needed
 - `Task(subagent_type: "Explore")`
-- **Skip** ถ้า format-only / wording-only / technical detail change
+- **Skip** if format-only / wording-only / technical detail change
 
 ### 6. Generate Sync Updates
 
-Fetch full description เฉพาะ artifacts ที่มี impact = UPDATE:
+Fetch full description only for artifacts with impact = UPDATE:
 
 **Per Jira issue:**
 
@@ -160,15 +160,15 @@ Fetch full description เฉพาะ artifacts ที่มี impact = UPDATE
 **Per Confluence page:**
 
 - `MCP: confluence_get_page(page_id)`
-- ถ้า surgical (text replace) → prepare find/replace pairs
-- ถ้า section update → generate new markdown section
-- ถ้า full rewrite → generate full content → `tasks/sync-page-xxx.md`
+- If surgical (text replace) → prepare find/replace pairs
+- If section update → generate new markdown section
+- If full rewrite → generate full content → `tasks/sync-page-xxx.md`
 
-**Gate:** User approves ALL updates ก่อน execute
+**Gate:** User approves ALL updates before execution
 
 ### 7. Execute Sync
 
-ลำดับ: Parents first → Children → Confluence
+Order: Parents first → Children → Confluence
 
 ```bash
 # 1. Epic (if changed)
@@ -250,14 +250,14 @@ rm tasks/sync-*.json tasks/sync-*.md
 
 | Case | Handling |
 | --- | --- |
-| Confluence page ไม่มี | Flag + แนะนำ `/create-doc` (ไม่ auto-create) |
-| ไม่มี sub-tasks | Sync เฉพาะ Story ↔ Epic/Confluence |
-| Multiple Confluence pages match | List ทั้งหมด ให้ user เลือก |
-| Artifact graph > 20 items | แนะนำ break เป็น multiple runs |
+| Confluence page does not exist | Flag + recommend `/create-doc` (no auto-create) |
+| No sub-tasks exist | Sync only Story <-> Epic/Confluence |
+| Multiple Confluence pages match | List all and let user choose |
+| Artifact graph > 20 items | Recommend breaking into multiple runs |
 | Partial failure | Continue remaining + report failures |
-| Issue DONE/CLOSED | Warning แต่ allow sync (doc alignment) |
+| Issue DONE/CLOSED | Warning but allow sync (doc alignment) |
 | No changes detected | Report "already aligned" + skip |
-| QA sub-task affected | FLAG สำหรับ QA review (ไม่ auto-rewrite test plan) |
+| QA sub-task affected | FLAG for QA review (no auto-rewrite of test plan) |
 | Epic Doc affected | Update story status table + summary only |
 
 ---
@@ -269,14 +269,14 @@ rm tasks/sync-*.json tasks/sync-*.md
 | Scope | Jira only | Jira + Confluence |
 | Direction | Story → Sub-tasks (down) | Bidirectional (any → all) |
 | Starting point | Story only | Epic / Story / Sub-task / Confluence |
-| Confluence sync | ไม่มี | มี (Tech Notes + Epic Doc) |
+| Confluence sync | No | Yes (Tech Notes + Epic Doc) |
 | Use case | Quick Jira-only cascade | Full artifact alignment |
 | Phases | 8 | 8 |
 
-> **เมื่อไหร่ใช้อะไร:**
+> **When to use which:**
 >
-> - `/story-cascade` — แก้ Story แล้วต้องการ cascade เฉพาะ Jira sub-tasks (เร็ว)
-> - `/sync-alignment` — ต้องการ sync ทุกอย่างรวม Confluence (ครบ)
+> - `/story-cascade` — After editing a Story, cascade only to Jira sub-tasks (fast)
+> - `/sync-alignment` — Need to sync everything including Confluence (comprehensive)
 
 ---
 

@@ -1,14 +1,14 @@
 ---
 name: plan-sprint
 description: |
-  Sprint Planning ด้วย Tresor Strategy + Jira Execution แบบ 8-phase workflow
+  Sprint Planning with Tresor Strategy + Jira Execution using an 8-phase workflow
 
   Phases: Discovery → Capacity → Carry-over → Prioritize → Distribute → Risk → Review → Execute
 
-  ⭐ Hybrid: Tresor sprint-prioritizer ทำ strategy (Phase 3-6) + MCP ทำ execution (Phase 1,2,8)
+  ⭐ Hybrid: Tresor sprint-prioritizer handles strategy (Phase 3-6) + MCP handles execution (Phase 1,2,8)
   🔗 Tresor Agent: ~/.claude/subagents/product/management/sprint-prioritizer/agent.md
 
-  Triggers: "plan sprint", "sprint planning", "วางแผน sprint"
+  Triggers: "plan sprint", "sprint planning"
 argument-hint: "[--sprint <id>] [--carry-over-only]"
 ---
 
@@ -21,10 +21,10 @@ argument-hint: "[--sprint <id>] [--carry-over-only]"
 
 ### 1. Sprint Discovery
 
-ถาม user:
+Ask the user:
 
-- Target sprint ไหน? (ถ้าไม่ระบุ → หา next future sprint)
-- Source sprint สำหรับ carry-over? (ถ้าไม่ระบุ → current active sprint)
+- Which target sprint? (if not specified → find the next future sprint)
+- Which source sprint for carry-over? (if not specified → current active sprint)
 
 ```text
 MCP: jira_get_sprint_issues(sprint_id="<source>", fields="summary,status,assignee,priority,issuetype")
@@ -37,7 +37,7 @@ MCP: jira_get_sprint_issues(sprint_id="<target>", fields="summary,status,assigne
 - Target sprint: existing items (already planned)
 - Sprint dates + goals
 
-**Gate:** Data collected — แสดง summary ให้ user ยืนยัน
+**Gate:** Data collected — show summary for user confirmation
 
 ### 2. Team Capacity
 
@@ -79,9 +79,9 @@ Also reference Tresor sprint-prioritizer methodology from:
 [Insert Phase 1 data: source sprint items, target sprint items, statuses, assignees]
 
 ## Tasks
-1. **Carry-over Analysis:** คำนวณ carry-over probability ตาม status-based model
-2. **Prioritization:** จัดลำดับ items ด้วย Impact/Effort matrix (ไม่ต้องใช้ RICE ถ้าข้อมูลไม่พอ)
-3. **Workload Distribution:** จับคู่ items → team members ตาม skill match + capacity
+1. **Carry-over Analysis:** Calculate carry-over probability using the status-based model
+2. **Prioritization:** Rank items using the Impact/Effort matrix (skip RICE if insufficient data)
+3. **Workload Distribution:** Match items → team members based on skill match + capacity
 4. **Risk Assessment:** Flag overloads, dependencies, blockers
 
 ## Output Format
@@ -126,8 +126,8 @@ Also reference Tresor sprint-prioritizer methodology from:
 
 **Rules:**
 
-- Related items → same person (ลด context switching)
-- Blockers → prioritize (ปลดล็อคคนอื่น)
+- Related items → same person (reduce context switching)
+- Blockers → prioritize (unblock others)
 - Critical path → senior/lead
 - Never exceed capacity ceiling
 
@@ -137,10 +137,10 @@ Also reference Tresor sprint-prioritizer methodology from:
 
 **Check:**
 
-- [ ] ไม่มีใครเกิน capacity ceiling
+- [ ] No one exceeds capacity ceiling
 - [ ] Dependencies identified
-- [ ] Critical path items มี owner
-- [ ] Junior devs มี mentor support
+- [ ] Critical path items have an owner
+- [ ] Junior devs have mentor support
 - [ ] No one has >3 sticky carry-over items
 
 **Output:** Risk flags with severity + mitigation
@@ -151,7 +151,7 @@ Also reference Tresor sprint-prioritizer methodology from:
 
 ### 7. Sprint Plan Review ⚠️ GATE
 
-แสดง sprint plan ครบให้ user:
+Present the complete sprint plan to the user:
 
 ```text
 ## Sprint Plan: [Sprint Name]
@@ -169,15 +169,15 @@ Also reference Tresor sprint-prioritizer methodology from:
 ### Risk Summary
 | Risk | Severity | Mitigation |
 
-### Deferred Items (ไม่รวมใน sprint นี้)
+### Deferred Items (not included in this sprint)
 | Key | Summary | Reason |
 ```
 
-**Gate:** User approves plan (อาจปรับ assignment ก่อน approve)
+**Gate:** User approves the plan (may adjust assignments before approving)
 
 ### 8. Execute Assignments
 
-ทำตาม plan ที่ user approved:
+Execute according to the user-approved plan:
 
 ```text
 # Move items to target sprint
@@ -199,8 +199,8 @@ Team members: XX
 | # | Key | Action | Status |
 | 1 | BEP-XXX | Assigned to Name + moved to sprint | ✅ |
 
-→ ถ้าต้องการตรวจสอบ: /verify-issue BEP-XXX
-→ ถ้าต้องการ update story: /update-story BEP-XXX
+→ To verify: /verify-issue BEP-XXX
+→ To update a story: /update-story BEP-XXX
 ```
 
 ---
@@ -209,8 +209,8 @@ Team members: XX
 
 | Flag | Description |
 |------|-------------|
-| `--sprint <id>` | ระบุ target sprint ID (ถ้าไม่ระบุ → หา next future sprint) |
-| `--carry-over-only` | เฉพาะ carry-over analysis (ไม่ assign/move) — Phase 1-3 only |
+| `--sprint <id>` | Specify target sprint ID (if not specified → find the next future sprint) |
+| `--carry-over-only` | Carry-over analysis only (no assign/move) — Phase 1-3 only |
 
 ---
 

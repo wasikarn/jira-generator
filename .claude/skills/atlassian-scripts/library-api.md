@@ -1,8 +1,8 @@
 # Library API Reference
 
-> Python library API สำหรับ developers ที่ต้องการสร้าง custom scripts
+> Python library API for developers who need to create custom scripts.
 >
-> สำหรับ overview → ดู [SKILL.md](SKILL.md)
+> For overview, see [SKILL.md](SKILL.md)
 
 ---
 

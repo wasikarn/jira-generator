@@ -1,14 +1,14 @@
 # Task Templates (ADF)
 
-> Extracted from templates.md — ใช้กับ `/create-task`, `/update-task`
+> Extracted from templates.md — used with `/create-task`, `/update-task`
 >
-> สำหรับ core rules (CREATE vs EDIT, Panel Types, Styling) → ดู [templates.md](templates.md)
+> For core rules (CREATE vs EDIT, Panel Types, Styling) → see [templates.md](templates.md)
 
 ---
 
 ## Task Templates (ADF) - CREATE
 
-> ใช้กับ `acli jira workitem create --from-json`
+> Used with `acli jira workitem create --from-json`
 
 ### tech-debt Template
 
@@ -29,7 +29,7 @@
         "attrs": {"panelType": "info"},
         "content": [
           {"type": "paragraph", "content": [
-            {"type": "text", "text": "[ที่มาของ task - เช่น พบจาก PR review, code smell, etc.]"}
+            {"type": "text", "text": "[Origin of this task - e.g., found during PR review, code smell, etc.]"}
           ]}
         ]
       },
@@ -46,7 +46,7 @@
           ]},
           {"type": "paragraph", "content": [{"type": "text", "text": "[Description of issue]"}]},
           {"type": "paragraph", "content": [
-            {"type": "text", "text": "แก้ไข: ", "marks": [{"type": "strong"}]},
+            {"type": "text", "text": "Fix: ", "marks": [{"type": "strong"}]},
             {"type": "text", "text": "[How to fix]"}
           ]}
         ]
@@ -118,7 +118,7 @@
 
 ### bug Template
 
-**Use case:** Bug fixes จาก QA หรือ production
+**Use case:** Bug fixes from QA or production
 
 ```json
 {
@@ -134,7 +134,7 @@
         "type": "panel",
         "attrs": {"panelType": "error"},
         "content": [
-          {"type": "paragraph", "content": [{"type": "text", "text": "[อธิบาย bug ที่พบ - อาการ, ผลกระทบ]"}]}
+          {"type": "paragraph", "content": [{"type": "text", "text": "[Describe the bug - symptoms, impact]"}]}
         ]
       },
       {"type": "rule"},
@@ -155,8 +155,8 @@
             {"type": "tableHeader", "attrs": {"background": "#ffebe6"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Actual"}]}]}
           ]},
           {"type": "tableRow", "content": [
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[สิ่งที่ควรเกิดขึ้น]"}]}]},
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[สิ่งที่เกิดขึ้นจริง]"}]}]}
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[What should happen]"}]}]},
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[What actually happens]"}]}]}
           ]}
         ]
       },
@@ -166,7 +166,7 @@
         "type": "panel",
         "attrs": {"panelType": "note"},
         "content": [
-          {"type": "paragraph", "content": [{"type": "text", "text": "[สาเหตุของ bug - ถ้าทราบ หรือ 'TBD' ถ้ายังไม่ทราบ]"}]}
+          {"type": "paragraph", "content": [{"type": "text", "text": "[Root cause of the bug - if known, or 'TBD' if not yet determined]"}]}
         ]
       },
       {"type": "rule"},
@@ -176,8 +176,8 @@
         "attrs": {"panelType": "success"},
         "content": [
           {"type": "bulletList", "content": [
-            {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Criteria 1 - bug ไม่เกิดอีก]"}]}]},
-            {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Criteria 2 - regression test ผ่าน]"}]}]}
+            {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Criteria 1 - bug no longer occurs]"}]}]},
+            {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Criteria 2 - regression tests pass]"}]}]}
           ]}
         ]
       },
@@ -222,7 +222,7 @@
         "type": "panel",
         "attrs": {"panelType": "info"},
         "content": [
-          {"type": "paragraph", "content": [{"type": "text", "text": "[วัตถุประสงค์ของ task นี้]"}]}
+          {"type": "paragraph", "content": [{"type": "text", "text": "[Objective of this task]"}]}
         ]
       },
       {"type": "rule"},
@@ -279,18 +279,18 @@
         "type": "panel",
         "attrs": {"panelType": "info"},
         "content": [
-          {"type": "paragraph", "content": [{"type": "text", "text": "[คำถามหลักที่ต้องการหาคำตอบ]"}]}
+          {"type": "paragraph", "content": [{"type": "text", "text": "[Main question to be answered]"}]}
         ]
       },
       {"type": "rule"},
       {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "📋 Context"}]},
-      {"type": "paragraph", "content": [{"type": "text", "text": "[ที่มาและความเป็นมา ทำไมต้อง research เรื่องนี้]"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "[Background and rationale - why this research is needed]"}]},
       {"type": "rule"},
       {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔍 Investigation Areas"}]},
       {"type": "bulletList", "content": [
-        {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Area 1 - สิ่งที่ต้องศึกษา]"}]}]},
-        {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Area 2 - สิ่งที่ต้องทดสอบ]"}]}]},
-        {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Area 3 - สิ่งที่ต้องเปรียบเทียบ]"}]}]}
+        {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Area 1 - topics to study]"}]}]},
+        {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Area 2 - things to test]"}]}]},
+        {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Area 3 - items to compare]"}]}]}
       ]},
       {"type": "rule"},
       {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "📝 Findings"}]},
@@ -298,7 +298,7 @@
         "type": "panel",
         "attrs": {"panelType": "note"},
         "content": [
-          {"type": "paragraph", "content": [{"type": "text", "text": "[จะเติมหลังจาก research เสร็จ]", "marks": [{"type": "em"}]}]}
+          {"type": "paragraph", "content": [{"type": "text", "text": "[To be filled after research is complete]", "marks": [{"type": "em"}]}]}
         ]
       },
       {"type": "rule"},
@@ -307,7 +307,7 @@
         "type": "panel",
         "attrs": {"panelType": "success"},
         "content": [
-          {"type": "paragraph", "content": [{"type": "text", "text": "[จะเติมหลังจาก research เสร็จ]", "marks": [{"type": "em"}]}]}
+          {"type": "paragraph", "content": [{"type": "text", "text": "[To be filled after research is complete]", "marks": [{"type": "em"}]}]}
         ]
       },
       {"type": "rule"},

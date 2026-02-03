@@ -1,11 +1,11 @@
 ---
 name: story-cascade
 description: |
-  Update Story + cascade changes ไปยัง Sub-tasks ที่เกี่ยวข้อง ด้วย 8-phase workflow
+  Update Story + cascade changes to related Sub-tasks with an 8-phase workflow
 
   Phases: Fetch → Understand Changes → Impact Analysis → Explore (if needed) → Generate Story Update → Generate Sub-task Updates → Apply All → Summary
 
-  ⭐ Composite: วิเคราะห์ impact อัตโนมัติ, update ทุกอย่างใน transaction เดียว
+  Composite: Automatic impact analysis, update everything in a single transaction
 
   Triggers: "story cascade", "update all", "cascade changes"
 argument-hint: "[issue-key] [changes]"

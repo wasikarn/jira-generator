@@ -1,6 +1,6 @@
 # Verification Checklist
 
-> Standard checklists สำหรับ verify Jira issues
+> Standard checklists for verifying Jira issues
 
 ---
 
@@ -58,12 +58,12 @@
 ### S1: INVEST Criteria
 
 ```text
-□ Independent - ไม่พึ่งพา story อื่นในการ deliver value
-□ Negotiable - มี room สำหรับ discussion
-□ Valuable - มี business value ชัดเจน
-□ Estimable - ประเมิน effort ได้
-□ Small - ทำเสร็จใน 1 sprint
-□ Testable - ทุก AC verify ได้
+□ Independent - Does not depend on other stories to deliver value
+□ Negotiable - Has room for discussion
+□ Valuable - Has clear business value
+□ Estimable - Effort can be estimated
+□ Small - Can be completed in 1 sprint
+□ Testable - All ACs can be verified
 ```
 
 ### S2: Narrative Format
@@ -102,7 +102,7 @@
 
 ```text
 □ Thai language for content
-□ English for technical terms (ทับศัพท์)
+□ English for technical terms (transliteration)
 □ Consistent throughout
 □ No machine translation artifacts
 ```
@@ -148,7 +148,7 @@
 ### ST5: Language
 
 ```text
-□ Thai + ทับศัพท์ consistent
+□ Thai + transliteration consistent
 □ Technical terms in English
 □ Code/paths in English
 ```
@@ -198,7 +198,7 @@
 ### QA5: Language
 
 ```text
-□ Thai + ทับศัพท์ consistent
+□ Thai + transliteration consistent
 □ Technical terms in English
 □ Clear, actionable language
 ```
@@ -247,55 +247,55 @@
 
 ## Hierarchy Alignment Checks (`--with-subtasks` only)
 
-> **หลักการ:** ใช้เฉพาะข้อมูลจริงที่ fetch มาเท่านั้น — ห้ามเดาอย่างเด็ดขาด
-> ถ้าไม่แน่ใจว่า AC ไหน map กับ subtask ไหน → flag เป็น "unclear mapping"
+> **Principle:** Use only actual fetched data — never guess under any circumstances.
+> If unsure which AC maps to which subtask → flag as "unclear mapping"
 
 ### A1: AC ↔ Subtask Coverage
 
 ```text
-□ แต่ละ Story AC มี ≥1 subtask รองรับ
-□ ไม่มี AC ที่ไม่มี subtask implement
-□ Mapping ชัดเจน (ถ้าไม่ชัด → flag)
+□ Each Story AC has ≥1 subtask backing it
+□ No AC without a subtask to implement it
+□ Mapping is clear (if unclear → flag)
 ```
 
 ### A2: Service Tag Match
 
 ```text
-□ Story "Services Impacted" → มี subtask tag ครบ
-□ ไม่มี subtask tag ที่ไม่อยู่ใน Story scope
-□ Tags: [BE], [FE-Admin], [FE-Web] match กับ services ที่ระบุ
+□ Story "Services Impacted" → all subtask tags covered
+□ No subtask tag outside Story scope
+□ Tags: [BE], [FE-Admin], [FE-Web] match the listed services
 ```
 
 ### A3: Scope Consistency
 
 ```text
-□ Story in-scope items → subtask objectives cover ครบ
-□ ไม่มี scope gap (สิ่งที่อยู่ใน Story แต่ไม่มี subtask ทำ)
-□ ไม่มี scope creep (subtask ทำเกินกว่าที่ Story ระบุ)
+□ Story in-scope items → subtask objectives fully covered
+□ No scope gap (items in Story but no subtask implements them)
+□ No scope creep (subtask doing more than Story specifies)
 ```
 
 ### A4: Epic ↔ Story Fit
 
 ```text
-□ Story scope อยู่ใน Epic must-have/should-have
-□ Story ไม่หลุด Epic scope
-□ Skip ถ้า Story เป็น standalone (ไม่มี parent Epic)
+□ Story scope falls within Epic must-have/should-have
+□ Story does not exceed Epic scope
+□ Skip if Story is standalone (no parent Epic)
 ```
 
 ### A5: Parent-Child Links
 
 ```text
-□ ทุก subtask.parent = Story key
-□ Story.parent = Epic key (ถ้ามี)
-□ ไม่มี orphan subtask
+□ Every subtask.parent = Story key
+□ Story.parent = Epic key (if applicable)
+□ No orphan subtask
 ```
 
 ### A6: Confluence Alignment
 
 ```text
-□ Tech Note content สอดคล้องกับ Story ACs (ถ้ามี)
-□ Tech Note ไม่ขัดแย้งกับ subtask details
-□ Skip ถ้าไม่มี Confluence page, flag เป็น info
+□ Tech Note content is consistent with Story ACs (if available)
+□ Tech Note does not conflict with subtask details
+□ Skip if no Confluence page exists, flag as info
 ```
 
 ---

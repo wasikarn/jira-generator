@@ -44,13 +44,13 @@ What do you need?
 | **Search issues** | MCP | `jira_search(jql: "project = BEP AND ...")` |
 | **Get issue details** | MCP | `jira_get_issue(issue_key: "BEP-XXX", fields: "summary,status,description")` |
 
-> ⚠️ **IMPORTANT:** ใช้ `fields` parameter เสมอเพื่อป้องกัน token limit error!
+> ⚠️ **IMPORTANT:** Always use the `fields` parameter to prevent token limit errors!
 >
 > ```python
-> # ❌ Bad - อาจเกิน token limit ถ้า issue มีข้อมูลเยอะ
+> # ❌ Bad - may exceed token limit if the issue has too much data
 > jira_get_issue(issue_key="BEP-XXX")
 >
-> # ✅ Good - ระบุ fields ที่ต้องการ
+> # ✅ Good - specify only the fields you need
 > jira_get_issue(
 >     issue_key="BEP-XXX",
 >     fields="summary,status,description,issuetype,parent",
@@ -77,24 +77,24 @@ What do you need?
 | **Move page** | Script | `python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py` |
 | **Add macros (ToC, Children)** | Script | `python3 .claude/skills/atlassian-scripts/scripts/update_page_storage.py` |
 
-> ⚠️ **IMPORTANT:** MCP `confluence_create_page` และ `confluence_update_page` มีข้อจำกัด:
+> ⚠️ **IMPORTANT:** MCP `confluence_create_page` and `confluence_update_page` have limitations:
 >
-> - Code blocks จะ render ผิด (ไม่เป็น syntax highlight)
-> - Macros (ToC, Children, Status) จะ render เป็น text แทน
-> - ใช้ Python scripts ใน `.claude/skills/atlassian-scripts/scripts/` แทน
+> - Code blocks will render incorrectly (no syntax highlighting)
+> - Macros (ToC, Children, Status) will render as plain text instead
+> - Use the Python scripts in `.claude/skills/atlassian-scripts/scripts/` instead
 
 ### Confluence Scripts Decision Flow
 
 ```text
-ต้องการทำอะไร?
+What do you need to do?
     │
-    ├─ สร้าง page ใหม่ (ไม่มี code)
+    ├─ Create new page (no code)
     │     └─ MCP confluence_create_page
     │
-    ├─ สร้าง page ใหม่ (มี code blocks)
+    ├─ Create new page (with code blocks)
     │     └─ create_confluence_page.py --space --title
     │
-    ├─ Update content ทั้งหมด
+    ├─ Update all content
     │     └─ create_confluence_page.py --page-id --content-file
     │
     ├─ Find/Replace text
@@ -153,7 +153,7 @@ acli jira workitem get BEP-XXX
 
 ## See Also
 
-> Detailed references แยกไว้ใน files เฉพาะ — load เมื่อต้องการ
+> Detailed references are in separate files — load when needed
 
 - **ADF format** (CREATE vs EDIT, panels, tables, inline code) → [templates.md](templates.md)
 - **JQL patterns** (search, filter, operators) → [jql-quick-ref.md](jql-quick-ref.md)

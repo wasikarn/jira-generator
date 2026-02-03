@@ -1,8 +1,8 @@
 # ADF Templates Reference
 
-## ⚠️ CREATE vs EDIT - JSON Format ที่ต่างกัน
+## ⚠️ CREATE vs EDIT - Different JSON Formats
 
-> **CRITICAL:** JSON สำหรับ create และ edit มี format ต่างกัน ห้ามใช้สลับกัน!
+> **CRITICAL:** JSON for create and edit have different formats — never use them interchangeably!
 
 | Operation | Required Fields | Forbidden Fields |
 | --- | --- | --- |
@@ -31,8 +31,8 @@
 
 > **Error Prevention:**
 >
-> - ถ้าเจอ `Error: json: unknown field "projectKey"` → กำลังใช้ CREATE format กับ EDIT command
-> - ถ้าเจอ `Error: json: unknown field "issues"` → กำลังใช้ EDIT format กับ CREATE command
+> - If you see `Error: json: unknown field "projectKey"` → you are using CREATE format with the EDIT command
+> - If you see `Error: json: unknown field "issues"` → you are using EDIT format with the CREATE command
 
 ---
 
@@ -59,8 +59,8 @@
 
 ### AC Format: Hybrid Approach (Recommended)
 
-**Primary:** panels + Given/When/Then (ต้องมีเสมอ)
-**Optional:** AC Summary table (สำหรับ Stories ที่มี AC ≥ 5 ตัว)
+**Primary:** panels + Given/When/Then (always required)
+**Optional:** AC Summary table (for Stories with AC ≥ 5)
 
 **AC Summary Table (ADF):**
 
@@ -78,15 +78,15 @@
     ]},
     {"type": "tableRow", "content": [
       {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "AC-01", "marks": [{"type": "strong"}]}]}]},
-      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "แสดง Fields"}]}]},
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Display Fields"}]}]},
       {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "✅ Happy"}]}]},
-      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "ระบบแสดง field ที่เกี่ยวข้องเมื่อเลือกประเภท"}]}]}
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "System displays relevant fields when type is selected"}]}]}
     ]},
     {"type": "tableRow", "content": [
       {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "AC-02", "marks": [{"type": "strong"}]}]}]},
-      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Validation ช่องทาง"}]}]},
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Channel Validation"}]}]},
       {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "⚠️ Edge"}]}]},
-      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "ต้องเลือกช่องทางอย่างน้อย 1 ช่องทาง"}]}]}
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Must select at least 1 channel"}]}]}
     ]}
   ]
 },
@@ -96,14 +96,14 @@
 
 **Table Design Tips:**
 
-- **ID column:** ใช้ `strong` mark เพื่อเน้น
-- **Type column:** ใช้ emoji (✅/⚠️/❌) บอก AC type
-- **Description column:** สรุปสั้นๆ 1 บรรทัด
-- ตามด้วย `rule` แล้วค่อย panels
+- **ID column:** use `strong` mark for emphasis
+- **Type column:** use emoji (✅/⚠️/❌) to indicate AC type
+- **Description column:** brief 1-line summary
+- Followed by a `rule` then the panels
 
-> **Rule:** AC Details (panels) ต้องมีเสมอ - Summary table เป็น optional
+> **Rule:** AC Details (panels) are always required - Summary table is optional
 >
-> แม้ข้อมูลเดิม (wiki markup) จะเป็น table ก็ต้องแปลงเป็น panels + Given/When/Then format
+> Even if the original data (wiki markup) is a table, it must be converted to panels + Given/When/Then format
 >
 > - Happy path → `panelType: "success"`
 > - Validation/Edge cases → `panelType: "warning"`
@@ -115,7 +115,7 @@
 
 ### Header Background Colors
 
-ใช้ `attrs.background` attribute กับ `tableHeader` เพื่อเพิ่มสีพื้นหลัง:
+Use the `attrs.background` attribute on `tableHeader` to add background colors:
 
 ```json
 {"type": "tableHeader", "attrs": {"background": "#f4f5f7"}, "content": [...]}
@@ -134,7 +134,7 @@
 
 ### Row Highlighting Example
 
-สำหรับ highlight row สำคัญ (เช่น Total row):
+For highlighting important rows (e.g., Total row):
 
 ```json
 {"type": "tableRow", "content": [
@@ -147,15 +147,15 @@
 
 ## Semantic Table Headers (Colored by Category)
 
-> **Concept:** ใช้สี header แยก semantic meaning - มองปุ๊บรู้ประเภททันที
+> **Concept:** Use header colors to separate semantic meaning - instant category recognition at a glance
 
 ### Color Scheme by Category
 
 | Category | Color | Hex Code | Usage |
 | --- | --- | --- | --- |
-| **New / Create** | 🟢 Green | `#e3fcef` | Files ที่ต้องสร้างใหม่ |
-| **Modify / Change** | 🟡 Yellow | `#fffae6` | Files ที่ต้องแก้ไข |
-| **Delete / Remove** | 🔴 Red | `#ffebe6` | Files ที่ต้องลบ |
+| **New / Create** | 🟢 Green | `#e3fcef` | Files to be created |
+| **Modify / Change** | 🟡 Yellow | `#fffae6` | Files to be modified |
+| **Delete / Remove** | 🔴 Red | `#ffebe6` | Files to be deleted |
 | **Reference / Info** | 🟣 Purple | `#eae6ff` | Links, dependencies, notes |
 | **Requirements** | 🔵 Blue | `#deebff` | Specs, requirements |
 | **Default** | ⚪ Grey | `#f4f5f7` | Generic tables |
@@ -176,7 +176,7 @@
     ]},
     {"type": "tableRow", "content": [
       {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "src/pages/feature/index.tsx", "marks": [{"type": "code"}]}]}]},
-      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "หน้าหลักของ feature"}]}]}
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Main page for the feature"}]}]}
     ]}
   ]
 }
@@ -196,7 +196,7 @@
     ]},
     {"type": "tableRow", "content": [
       {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "src/services/auth.service.ts", "marks": [{"type": "code"}]}]}]},
-      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "เพิ่ม API calls สำหรับ feature"}]}]}
+      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Add API calls for the feature"}]}]}
     ]}
   ]
 }
@@ -235,7 +235,7 @@
 | 📊 RICE Score, Metrics | ⚪ `#f4f5f7` (default) |
 | 📊 AC Coverage | ⚪ `#f4f5f7` (default) |
 
-> **Tip:** ใช้สี header เดียวกันทั้ง row - ไม่ mix สีใน header row เดียวกัน
+> **Tip:** Use the same header color for the entire row - do not mix colors in the same header row
 
 ---
 
@@ -243,9 +243,9 @@
 
 ## EDIT Template (All Issue Types)
 
-> ใช้กับ `acli jira workitem edit --from-json ... --yes`
+> Used with `acli jira workitem edit --from-json ... --yes`
 
-**สำหรับ update description ของ issue ที่มีอยู่แล้ว** - ใช้ format เดียวกันทุก issue type
+**For updating descriptions of existing issues** - same format for all issue types
 
 ```json
 {
@@ -267,17 +267,17 @@
 }
 ```
 
-**⚠️ สิ่งที่ห้ามใส่ใน EDIT JSON:**
+**⚠️ Fields forbidden in EDIT JSON:**
 
 - ❌ `projectKey` - Error: unknown field
 - ❌ `type` - Error: unknown field
-- ❌ `summary` - Error: unknown field (ใช้ MCP `jira_update_issue` แทน)
+- ❌ `summary` - Error: unknown field (use MCP `jira_update_issue` instead)
 - ❌ `parent` - Error: unknown field
 
-**Update summary/fields อื่นๆ (ไม่ใช่ description):**
+**Update summary/other fields (not description):**
 
 ```typescript
-// ใช้ MCP แทน acli
+// Use MCP instead of acli
 jira_update_issue({
   issue_key: "BEP-XXX",
   fields: { summary: "New Summary" }
@@ -336,7 +336,7 @@ jira_update_issue({
 
 ## Issue Type Templates (Separate Files)
 
-> Full ADF JSON templates แยกตาม issue type — load เฉพาะที่ต้องการ
+> Full ADF JSON templates separated by issue type — load only what you need
 
 | Template File | Content | Used By |
 | --- | --- | --- |

@@ -1,13 +1,13 @@
 ---
 name: update-task
 description: |
-  แก้ไข Jira Task ที่มีอยู่ด้วย 5-phase update workflow
+  Update an existing Jira Task with a 5-phase update workflow
 
   Phases: Fetch Current → Identify Changes → Preserve Intent → Generate Update → Apply Update
 
-  รองรับ: format migration, add details, change type template
+  Supports: format migration, add details, change type template
 
-  Triggers: "update task", "แก้ไข task", "ปรับ task"
+  Triggers: "update task", "edit task", "adjust task"
 argument-hint: "BEP-XXX [changes]"
 ---
 
@@ -21,9 +21,9 @@ argument-hint: "BEP-XXX [changes]"
 ### 1. Fetch Current State
 
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
-- อ่าน: Summary, Description, Status, Priority, Labels
-- ระบุ current format: Wiki markup หรือ ADF
-- ระบุ current type (ถ้ามี): tech-debt, bug, chore, spike
+- Read: Summary, Description, Status, Priority, Labels
+- Identify current format: Wiki markup or ADF
+- Identify current type (if applicable): tech-debt, bug, chore, spike
 
 **Gate:** User confirms what to update
 
@@ -31,23 +31,23 @@ argument-hint: "BEP-XXX [changes]"
 
 ### 2. Identify Changes
 
-ถาม user ว่าต้องการ update อะไร:
+Ask the user what they want to update:
 
 | Change Type | Description |
 | --- | --- |
-| `migrate` | แปลง Wiki → ADF format |
-| `add-details` | เพิ่มรายละเอียด (issues, ACs, etc.) |
-| `change-type` | เปลี่ยน template type |
-| `update-content` | แก้ไข content ที่มีอยู่ |
+| `migrate` | Convert Wiki → ADF format |
+| `add-details` | Add more details (issues, ACs, etc.) |
+| `change-type` | Change template type |
+| `update-content` | Edit existing content |
 
 **Common scenarios:**
 
 ```text
 1. Migrate format (Wiki → ADF)
-2. เพิ่ม issues/ACs
-3. เปลี่ยน priority
-4. เพิ่ม reference links
-5. อื่นๆ (ระบุ)
+2. Add issues/ACs
+3. Change priority
+4. Add reference links
+5. Other (specify)
 ```
 
 **Gate:** User specifies changes
@@ -65,10 +65,10 @@ argument-hint: "BEP-XXX [changes]"
 
 **Rules:**
 
-- ✅ เพิ่ม content ได้
-- ✅ ปรับ format/wording ได้
-- ⚠️ ระวังเปลี่ยน scope
-- ❌ ห้ามลบ content โดยไม่บอก
+- ✅ Adding content is allowed
+- ✅ Adjusting format/wording is allowed
+- ⚠️ Be careful changing scope
+- ❌ Do not delete content without informing
 
 **Gate:** User acknowledges what will change
 
@@ -76,9 +76,9 @@ argument-hint: "BEP-XXX [changes]"
 
 ### 4. Generate Update
 
-สร้าง ADF JSON → `tasks/bep-xxx-update.json`
+Generate ADF JSON → `tasks/bep-xxx-update.json`
 
-**EDIT format (ห้ามใส่ projectKey, type, summary):**
+**EDIT format (do not include projectKey, type, summary):**
 
 ```json
 {
@@ -103,7 +103,7 @@ argument-hint: "BEP-XXX [changes]"
 | Issues | 3 items | 5 items (➕2) |
 | ACs | ❌ None | ➕ 5 items |
 
-ต้องการ apply changes หรือไม่?
+Would you like to apply these changes?
 ```
 
 **Gate:** User approves changes
@@ -126,7 +126,7 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 
 🔗 [View in Jira](https://100-stars.atlassian.net/browse/BEP-XXX)
 
-→ ใช้ /verify-issue BEP-XXX ตรวจสอบคุณภาพ
+→ Use /verify-issue BEP-XXX to check quality
 ```
 
 ---
@@ -136,15 +136,15 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 | Scenario | Command | Impact |
 | --- | --- | --- |
 | Migrate Wiki → ADF | `/update-task BEP-XXX "migrate"` | 🟢 Low |
-| เพิ่ม issues | `/update-task BEP-XXX "add issues"` | 🟡 Medium |
-| เพิ่ม ACs | `/update-task BEP-XXX "add ACs"` | 🟡 Medium |
-| เปลี่ยน type | `/update-task BEP-XXX "change to bug"` | 🟠 High |
+| Add issues | `/update-task BEP-XXX "add issues"` | 🟡 Medium |
+| Add ACs | `/update-task BEP-XXX "add ACs"` | 🟡 Medium |
+| Change type | `/update-task BEP-XXX "change to bug"` | 🟠 High |
 
 ---
 
 ## Task Type Detection
 
-**Auto-detect จาก content:**
+**Auto-detect from content:**
 
 | Pattern | Detected Type |
 | --- | --- |
@@ -154,7 +154,7 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 | Research question, Investigation | `spike` |
 | No clear pattern | `generic` |
 
-**Type มี impact กับ template structure ที่ใช้**
+**Type impacts which template structure is used**
 
 ---
 
@@ -162,4 +162,4 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
 - [Task Template](../shared-references/templates-task.md) - Task ADF (tech-debt, bug, chore, spike)
-- After: `/verify-issue BEP-XXX` ตรวจสอบคุณภาพ
+- After: `/verify-issue BEP-XXX` to check quality

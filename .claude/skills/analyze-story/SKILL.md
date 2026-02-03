@@ -1,8 +1,8 @@
 ---
 name: analyze-story
 description: |
-  วิเคราะห์ User Story และสร้าง Sub-tasks + Technical Note ด้วย 7-phase TA workflow
-  ⚠️ MANDATORY: ต้อง explore codebase ก่อนสร้าง Sub-tasks เสมอ
+  Analyze User Story and create Sub-tasks + Technical Note with a 7-phase TA workflow
+  MANDATORY: Must explore codebase before creating Sub-tasks
 argument-hint: "[issue-key]"
 ---
 
@@ -16,7 +16,7 @@ argument-hint: "[issue-key]"
 ### 1. Discovery
 
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
-- อ่าน: Narrative, ACs, Links, Epic context
+- Read: Narrative, ACs, Links, Epic context
 - **Gate:** User confirms understanding
 
 ### 2. Impact Analysis
@@ -41,17 +41,17 @@ Task(subagent_type: "Explore", prompt: "Find [feature] in [service path]")
 | Admin | `~/Codes/Works/tathep/tathep-admin` |
 | Website | `~/Codes/Works/tathep/tathep-website` |
 
-รวบรวม: File paths, existing patterns, dependencies
+Collect: File paths, existing patterns, dependencies
 
-**Gate:** มี actual file paths ก่อน design
+**Gate:** Must have actual file paths before design
 
 ### 4. Design Sub-tasks
 
-- 1 sub-task per service (ปกติ)
+- 1 sub-task per service (typical)
 - Summary: `[TAG] - Description`
-- Scope: Files จาก Phase 3
+- Scope: Files from Phase 3
 - ACs: Given/When/Then
-- ใช้ภาษาไทย + ทับศัพท์
+- Use Thai + transliteration
 - **Gate:** User approves design
 
 ### 5. Alignment Check
@@ -62,14 +62,14 @@ Task(subagent_type: "Explore", prompt: "Find [feature] in [service path]")
 
 ### 6. Create Artifacts
 
-> ⚠️ **CRITICAL:** Sub-task ต้องใช้ Two-Step Workflow (acli ไม่รองรับ `parent`)
+> ⚠️ **CRITICAL:** Sub-tasks must use Two-Step Workflow (acli does not support `parent`)
 >
-> **Step 1:** MCP `jira_create_issue` (สร้าง shell + parent link)
+> **Step 1:** MCP `jira_create_issue` (create shell + parent link)
 > **Step 2:** `acli --from-json` (update ADF description)
 >
-> ดู full pattern: [Sub-task Template](../shared-references/templates-subtask.md)
+> See full pattern: [Sub-task Template](../shared-references/templates-subtask.md)
 
-- Technical Note (ถ้าจำเป็น):
+- Technical Note (if needed):
   - Simple text → `MCP: confluence_create_page`
   - With code blocks → Python script (see `.claude/skills/atlassian-scripts/SKILL.md`)
 

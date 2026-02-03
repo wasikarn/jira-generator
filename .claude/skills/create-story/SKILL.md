@@ -1,8 +1,8 @@
 ---
 name: create-story
 description: |
-  สร้าง User Story ใหม่จาก requirements ด้วย 5-phase PO workflow
-  ใช้เมื่อต้องการสร้าง story ใหม่, มี feature request, หรือต้องการแปลง requirements เป็น story
+  Create a new User Story from requirements with a 5-phase PO workflow
+  Use when creating a new story, have a feature request, or need to convert requirements into a story
 argument-hint: "[story-description]"
 ---
 
@@ -15,8 +15,8 @@ argument-hint: "[story-description]"
 
 ### 1. Discovery
 
-- ถ้ามี Epic → `MCP: jira_get_issue` เพื่อดู context
-- ถาม user: Who? What? Why? Constraints?
+- If Epic exists → `MCP: jira_get_issue` to read context
+- Ask user: Who? What? Why? Constraints?
 - **Gate:** User confirms understanding
 
 ### 2. Write Story
@@ -27,21 +27,21 @@ I want to [action],
 So that [benefit].
 ```
 
-- กำหนด ACs: Given/When/Then format
-- ระบุ Scope (affected services) และ DoD
-- ใช้ภาษาไทย + ทับศัพท์
+- Define ACs: Given/When/Then format
+- Specify Scope (affected services) and DoD
+- Use Thai + transliteration
 - **Gate:** User reviews draft
 
 ### 3. INVEST Validation
 
 | ✓ | Criteria | Question |
 | --- | --- | --- |
-| | Independent | ไม่พึ่งพา story อื่น? |
-| | Negotiable | มี room สำหรับ discussion? |
-| | Valuable | มี business value ชัดเจน? |
-| | Estimable | ประเมิน effort ได้? |
-| | Small | ทำเสร็จใน 1 sprint? |
-| | Testable | ทุก AC verify ได้? |
+| | Independent | Not dependent on other stories? |
+| | Negotiable | Room for discussion? |
+| | Valuable | Clear business value? |
+| | Estimable | Can estimate effort? |
+| | Small | Completable in 1 sprint? |
+| | Testable | All ACs verifiable? |
 
 **Gate:** All criteria pass
 

@@ -2,7 +2,7 @@
 
 > SSL, Storage Format, Mermaid, History, Related Skills
 >
-> สำหรับ overview → ดู [SKILL.md](SKILL.md)
+> For overview, see [SKILL.md](SKILL.md)
 
 ---
 
@@ -10,7 +10,7 @@
 
 ### SSL Certificate Issue (macOS)
 
-Scripts ใช้ SSL context ที่ไม่ verify certificate:
+Scripts use an SSL context that does not verify certificates:
 
 ```python
 ssl_context = ssl.create_default_context()
@@ -20,7 +20,7 @@ ssl_context.verify_mode = ssl.CERT_NONE
 
 ### Confluence Storage Format
 
-**Code blocks ต้องใช้ format นี้:**
+**Code blocks must use this format:**
 
 ```xml
 <ac:structured-macro ac:name="code" ac:schema-version="1">
@@ -31,7 +31,7 @@ ssl_context.verify_mode = ssl.CERT_NONE
 </ac:structured-macro>
 ```
 
-**ไม่ใช่:**
+**Not this:**
 
 ```html
 <pre class="highlight"><code class="language-json">...</code></pre>
@@ -39,12 +39,12 @@ ssl_context.verify_mode = ssl.CERT_NONE
 
 ### Mermaid Diagrams
 
-Scripts สร้าง code blocks สำหรับ mermaid แต่ไม่ render เป็น diagram
+Scripts create code blocks for mermaid but do not render them as diagrams.
 
-ถ้าต้องการให้แสดงเป็น flowchart:
+If you want to display as a flowchart:
 
-1. ไปที่ Confluence page
-2. Edit → พิมพ์ `/mermaid`
+1. Go to the Confluence page
+2. Edit → type `/mermaid`
 3. Paste mermaid code
 
 ---

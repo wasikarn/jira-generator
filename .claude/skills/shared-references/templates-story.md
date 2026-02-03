@@ -1,16 +1,16 @@
 # Story Template (ADF)
 
-> Extracted from templates.md — ใช้กับ `/create-story`, `/update-story`, `/story-full`
+> Extracted from templates.md — used with `/create-story`, `/update-story`, `/story-full`
 >
-> สำหรับ core rules (CREATE vs EDIT, Panel Types, Styling) → ดู [templates.md](templates.md)
+> For core rules (CREATE vs EDIT, Panel Types, Styling) → see [templates.md](templates.md)
 
 ---
 
 ## User Story Template (ADF) - CREATE
 
-> ใช้กับ `acli jira workitem create --from-json`
+> Used with `acli jira workitem create --from-json`
 
-**Note:** สำหรับ Stories ที่มี AC ≥ 5 ตัว อาจเพิ่ม AC Summary table ก่อน panels (ดู Important Rules)
+**Note:** For Stories with AC ≥ 5, consider adding an AC Summary table before the panels (see Important Rules)
 
 ```json
 {

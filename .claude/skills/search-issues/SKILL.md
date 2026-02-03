@@ -1,11 +1,11 @@
 ---
 name: search-issues
 description: |
-  ค้นหา issues ก่อนสร้างใหม่ (ป้องกันสร้างซ้ำ) ด้วย 3-phase workflow
+  Search for existing issues before creating new ones (prevent duplicates) with a 3-phase workflow
 
-  รองรับ: keyword search, JQL query, filters (sprint, assignee, status, type)
+  Supports: keyword search, JQL query, filters (sprint, assignee, status, type)
 
-  Triggers: "search", "find", "หา issue", "มีอยู่แล้วไหม"
+  Triggers: "search", "find", "find issue", "does it already exist"
 argument-hint: "[keyword] [--filters]"
 ---
 

@@ -1,8 +1,8 @@
 ---
 name: atlassian-scripts
 description: |
-  Python scripts สำหรับ update Confluence pages และ Jira issues ผ่าน REST API โดยตรง
-  ใช้เมื่อ MCP tool มีข้อจำกัด (เช่น code macro formatting, ADF manipulation)
+  Python scripts for updating Confluence pages and Jira issues via REST API directly.
+  Use when MCP tools have limitations (e.g., code macro formatting, ADF manipulation).
 
   Triggers: "fix confluence", "update confluence page", "confluence script", "fix jira description", "atlassian script"
 argument-hint: "[script-name] [args]"
@@ -52,13 +52,13 @@ atlassian-scripts/
 
 | Script | Description | Use Case |
 | --- | --- | --- |
-| `create_confluence_page.py` | Create/Update page พร้อม proper code blocks | สร้างหรือ update page ที่มี code |
-| `update_confluence_page.py` | Find/Replace text ใน page | Batch text replacement |
+| `create_confluence_page.py` | Create/Update page with proper code blocks | Create or update pages containing code |
+| `update_confluence_page.py` | Find/Replace text in a page | Batch text replacement |
 | `move_confluence_page.py` | Move page(s) to new parent | Reorganize page hierarchy |
-| `update_page_storage.py` | Update page ด้วย raw storage format | Pages ที่ต้องการ macros (ToC, Children) |
-| `fix_confluence_code_blocks.py` | แก้ไข code blocks ที่ render ผิด | Fix broken code formatting |
-| `audit_confluence_pages.py` | ตรวจสอบ content ของหลาย pages | Alignment verification |
-| `update_jira_description.py` | Find/Replace text ใน Jira ADF descriptions | Fix Jira issue descriptions |
+| `update_page_storage.py` | Update page with raw storage format | Pages requiring macros (ToC, Children) |
+| `fix_confluence_code_blocks.py` | Fix code blocks that render incorrectly | Fix broken code formatting |
+| `audit_confluence_pages.py` | Verify content across multiple pages | Alignment verification |
+| `update_jira_description.py` | Find/Replace text in Jira ADF descriptions | Fix Jira issue descriptions |
 
 ---
 
@@ -77,12 +77,12 @@ CONFLUENCE_API_TOKEN=your-api-token
 ## Script Selection Guide
 
 ```text
-ต้องการทำอะไร?
+What do you need to do?
     │
-    ├─ สร้าง page ใหม่
+    ├─ Create a new page
     │     └─ create_confluence_page.py --space --title
     │
-    ├─ Update content ทั้งหมด
+    ├─ Update entire content
     │     └─ create_confluence_page.py --page-id --content-file
     │
     ├─ Find/Replace text
@@ -118,8 +118,8 @@ CONFLUENCE_API_TOKEN=your-api-token
 | Fix broken code blocks | **Script** `fix_confluence_code_blocks.py` | Post-step after MCP create/update |
 
 > **⚠️ Known Issue:** MCP `confluence_create_page` / `confluence_update_page` with `content_format: 'markdown'`
-> จะ render code blocks เป็น `<pre class="highlight">` แทน Confluence `<ac:structured-macro>`
-> **ต้อง run `fix_confluence_code_blocks.py --page-id` หลัง MCP create/update ที่มี code blocks เสมอ**
+> renders code blocks as `<pre class="highlight">` instead of Confluence `<ac:structured-macro>`.
+> **You must always run `fix_confluence_code_blocks.py --page-id` after any MCP create/update that contains code blocks.**
 
 ---
 
@@ -127,12 +127,12 @@ CONFLUENCE_API_TOKEN=your-api-token
 
 ## Supporting Files
 
-> Load เฉพาะที่ต้องการ — ไม่ต้อง load ทั้งหมดเมื่อ invoke
+> Load only when needed -- no need to load everything on invoke.
 
 | File | Content | Load When |
 | --- | --- | --- |
-| [script-reference.md](script-reference.md) | Script 1-7 usage, arguments, examples | เลือก script แล้ว ต้องการ full docs |
-| [library-api.md](library-api.md) | ConfluenceAPI, JiraAPI, Converters, Exceptions | สร้าง custom script |
+| [script-reference.md](script-reference.md) | Script 1-7 usage, arguments, examples | After selecting a script, when you need full docs |
+| [library-api.md](library-api.md) | ConfluenceAPI, JiraAPI, Converters, Exceptions | When creating a custom script |
 | [technical-notes.md](technical-notes.md) | SSL, Storage Format, Mermaid, History | Troubleshooting |
 
 ---

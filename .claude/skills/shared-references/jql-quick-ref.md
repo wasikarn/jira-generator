@@ -1,6 +1,6 @@
 # JQL Quick Reference
 
-> JQL patterns สำหรับ Tathep BEP project
+> JQL patterns for the Tathep BEP project
 
 ---
 
@@ -18,14 +18,14 @@ project = BEP AND type = Story AND sprint IN openSprints()
 parent = BEP-XXX
 ```
 
-> ⚠️ **WARNING:** เมื่อใช้กับ MCP `jira_search` ห้ามใส่ ORDER BY ใน parent query!
+> ⚠️ **WARNING:** When using with MCP `jira_search`, do not include ORDER BY in a parent query!
 >
 > ```text
 > ❌ parent = BEP-XXX ORDER BY created DESC  → Error: Expecting ')' but got 'ORDER'
-> ✅ parent = BEP-XXX                        → ใช้งานได้
+> ✅ parent = BEP-XXX                        → works correctly
 > ```
 >
-> ถ้าต้องการ sort ให้ใช้ `"Parent Link"` แทน:
+> If you need sorting, use `"Parent Link"` instead:
 >
 > ```text
 > ✅ "Parent Link" = BEP-XXX ORDER BY created DESC

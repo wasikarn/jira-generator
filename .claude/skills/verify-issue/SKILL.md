@@ -1,27 +1,27 @@
 ---
 name: verify-issue
 description: |
-  ตรวจสอบและปรับปรุงคุณภาพ issue (ADF format, INVEST, language, hierarchy alignment) ด้วย 6-phase workflow
+  Verify and improve issue quality (ADF format, INVEST, language, hierarchy alignment) with a 6-phase workflow
 
   Checks: ADF render, panel structure, links, inline code, INVEST criteria, Given/When/Then, file paths, language consistency, hierarchy alignment (Epic↔Story↔Subtasks↔Docs)
 
-  รองรับ: --with-subtasks (batch + alignment check), --fix (auto-fix + format migration)
+  Supports: --with-subtasks (batch + alignment check), --fix (auto-fix + format migration)
 
-  Triggers: "verify", "validate", "ตรวจสอบ", "check quality", "improve", "migrate format"
+  Triggers: "verify", "validate", "check quality", "improve", "migrate format"
 argument-hint: "[issue-key] [--with-subtasks] [--fix]"
 ---
 
 # /verify-issue
 
 **Role:** Any
-**Output:** Verification report (default) หรือ Improved issues (with `--fix`)
+**Output:** Verification report (default) or Improved issues (with `--fix`)
 
 ## Phases
 
 ### 1. Fetch & Identify
 
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
-- ถ้า `--with-subtasks` → `MCP: jira_search(jql: "parent = BEP-XXX")`
+- If `--with-subtasks` → `MCP: jira_search(jql: "parent = BEP-XXX")`
 - Identify type → Select checklist
 - Build inventory: Key, Type, Current Format
 - **Gate (--fix only):** User confirms scope
@@ -41,7 +41,7 @@ argument-hint: "[issue-key] [--with-subtasks] [--fix]"
 | Dimension | Check |
 | --- | --- |
 | Format | ADF with panels? Inline code marks? |
-| Language | Thai + ทับศัพท์? |
+| Language | Thai + transliterated loanwords? |
 | Structure | Follows template? |
 | Completeness | All sections present? |
 | Clarity | ACs testable? Given/When/Then? |
@@ -56,35 +56,35 @@ Score: ⭐⭐⭐☆☆ (per dimension, 5-point scale)
 
 ### 4. Hierarchy Alignment (`--with-subtasks` only)
 
-> **หลักการ:** ใช้เฉพาะข้อมูลจริงที่ fetch มาจาก Jira/Confluence เท่านั้น — ห้ามเดาอย่างเด็ดขาด
-> ถ้าไม่แน่ใจว่า AC ไหน map กับ subtask ไหน → flag เป็น "unclear mapping"
+> **Principle:** Use only real data fetched from Jira/Confluence — never guess.
+> If unsure which AC maps to which subtask → flag as "unclear mapping"
 
 **Data fetching:**
 
 ```text
 1. Story → jira_get_issue(story_key) — ACs, scope, services impacted
-2. Epic → jira_get_issue(story.parent) — scope, must-have list (skip ถ้าไม่มี)
-3. Subtasks → fetched แล้วจาก Phase 1
-4. Confluence → confluence_search("BEP-XXX") — Tech Note (skip ถ้าไม่มี)
+2. Epic → jira_get_issue(story.parent) — scope, must-have list (skip if none)
+3. Subtasks → already fetched in Phase 1
+4. Confluence → confluence_search("BEP-XXX") — Tech Note (skip if none)
 ```
 
 **Alignment checks:**
 
-| ID | Check | วิธีตรวจ | Pass Criteria |
+| ID | Check | How to Verify | Pass Criteria |
 | --- | --- | --- | --- |
-| A1 | AC ↔ Subtask Coverage | map แต่ละ Story AC → subtask(s) ที่ implement | ทุก AC มี ≥1 subtask รองรับ |
-| A2 | Service Tag Match | Story "Services Impacted" → Subtask tags `[BE]`/`[FE-*]` | ทุก service มี subtask |
-| A3 | Scope Consistency | Story in-scope items → Subtask objectives cover them | ไม่มี scope gap |
-| A4 | Epic ↔ Story Fit | Story scope อยู่ใน Epic must-have/should-have | Story ไม่หลุด Epic scope |
-| A5 | Parent-Child Links | Subtask.parent = Story, Story.parent = Epic | links ถูกต้อง |
-| A6 | Confluence Alignment | Tech Note content สอดคล้องกับ Story ACs (ถ้ามี) | ไม่ขัดแย้ง |
+| A1 | AC ↔ Subtask Coverage | Map each Story AC → subtask(s) that implement it | Every AC has ≥1 subtask covering it |
+| A2 | Service Tag Match | Story "Services Impacted" → Subtask tags `[BE]`/`[FE-*]` | Every service has a subtask |
+| A3 | Scope Consistency | Story in-scope items → Subtask objectives cover them | No scope gaps |
+| A4 | Epic ↔ Story Fit | Story scope falls within Epic must-have/should-have | Story does not exceed Epic scope |
+| A5 | Parent-Child Links | Subtask.parent = Story, Story.parent = Epic | Links are correct |
+| A6 | Confluence Alignment | Tech Note content aligns with Story ACs (if exists) | No conflicts |
 
 **Rules:**
 
-- ถ้า Epic ไม่มี (standalone Story) → skip A4
-- ถ้า Confluence ไม่มี → skip A6, flag เป็น info
-- ถ้า mapping ไม่ชัด → flag "unclear mapping" (ห้ามเดา)
-- Report เฉพาะสิ่งที่ verify ได้จากข้อมูลจริง
+- If no Epic (standalone Story) → skip A4
+- If no Confluence page → skip A6, flag as info
+- If mapping is unclear → flag "unclear mapping" (never guess)
+- Report only what can be verified from actual data
 
 ### 5. Report
 
@@ -103,17 +103,17 @@ Issues:
 2. ❌ Language mixed
 
 Alignment Issues (--with-subtasks):
-1. ⚠️ AC3 ไม่มี subtask รองรับ
-2. ⚠️ Story ระบุ [FE-Web] แต่ไม่มี subtask tag [FE-Web]
+1. ⚠️ AC3 has no subtask covering it
+2. ⚠️ Story specifies [FE-Web] but no subtask has [FE-Web] tag
 
 → /verify-issue BEP-XXX --fix
 ```
 
 ### 6. Fix (--fix flag only)
 
-ถ้ามี `--fix` → ดำเนินการแก้ไขทั้งหมดที่พบใน Phase 2-4:
+If `--fix` is present → apply all fixes found in Phases 2-4:
 
-1. **Load Templates** — ดึง template ตาม issue type จาก `shared-references/`
+1. **Load Templates** — Fetch template for the issue type from `shared-references/`
 2. **Generate** — Preserve original intent, apply template + ADF + Thai + inline code → `tasks/bep-xxx-fixed.json`
 3. **Gate:** User reviews and approves
 4. **Apply** — `acli jira workitem edit --from-json tasks/bep-xxx-fixed.json --yes`
@@ -161,7 +161,7 @@ Quality: wiki → ADF, EN → Thai
 | `/create-story` | `/verify-issue BEP-XXX` |
 | `/analyze-story` | `/verify-issue BEP-XXX --with-subtasks` |
 | `/story-full` | `/verify-issue BEP-XXX --with-subtasks` |
-| `/improve-issue` (legacy) | → ใช้ `/verify-issue BEP-XXX --with-subtasks --fix` แทน |
+| `/improve-issue` (legacy) | → Use `/verify-issue BEP-XXX --with-subtasks --fix` instead |
 
 ---
 

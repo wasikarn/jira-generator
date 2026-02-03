@@ -9,12 +9,12 @@
 
 | Factor | Scale | Description |
 |--------|-------|-------------|
-| Reach | 1-10 | จำนวน users ที่ได้รับผลกระทบ (10=ทุกคน) |
-| Impact | 0.25-3 | ผลกระทบต่อ user (3=massive, 2=high, 1=medium, 0.5=low, 0.25=minimal) |
-| Confidence | 10-100% | ความมั่นใจในข้อมูล (100%=แน่นอน, 80%=high, 50%=medium, 20%=low) |
-| Effort | person-sprints | จำนวน person-sprint ที่ต้องใช้ (ยิ่งน้อยยิ่งดี) |
+| Reach | 1-10 | Number of users affected (10=everyone) |
+| Impact | 0.25-3 | Impact on user (3=massive, 2=high, 1=medium, 0.5=low, 0.25=minimal) |
+| Confidence | 10-100% | Confidence in data (100%=certain, 80%=high, 50%=medium, 20%=low) |
+| Effort | person-sprints | Number of person-sprints required (lower is better) |
 
-**Interpretation:** สูงกว่า = ควรทำก่อน
+**Interpretation:** Higher = should be done first
 
 ## Impact vs Effort Matrix
 
@@ -34,10 +34,10 @@ High Impact
 
 | Quadrant | Action | Sprint Priority |
 |----------|--------|----------------|
-| DO FIRST | High impact, low effort → ทำทันที | P1 |
-| PLAN CAREFULLY | High impact, high effort → วางแผนดี ๆ | P2 |
-| QUICK WINS | Low impact, low effort → ทำเมื่อมี capacity เหลือ | P3 |
-| AVOID/DEFER | Low impact, high effort → เลื่อนออก | P4 |
+| DO FIRST | High impact, low effort — do immediately | P1 |
+| PLAN CAREFULLY | High impact, high effort — plan thoroughly | P2 |
+| QUICK WINS | Low impact, low effort — do when capacity is available | P3 |
+| AVOID/DEFER | Low impact, high effort — defer | P4 |
 
 ## Carry-over Analysis Model
 
@@ -45,12 +45,12 @@ High Impact
 
 | Status | Carry-over % | Action |
 |--------|-------------|--------|
-| To Do | 100% | ยังไม่เริ่ม → carry-over แน่นอน |
-| In Progress | 85% | อาจเสร็จ แต่ส่วนใหญ่ไม่ทัน |
-| TO FIX | 92% | ต้องแก้ไข → มักต้อง carry-over |
-| WAITING TO TEST | 55% | ขึ้นกับ QA capacity |
-| TESTING | 45% | กำลังทดสอบ มีโอกาสจบ |
-| Done / CANCELED | 0% | ไม่ carry-over |
+| To Do | 100% | Not started yet — guaranteed carry-over |
+| In Progress | 85% | May finish, but most won't make it in time |
+| TO FIX | 92% | Needs fixing — usually must carry over |
+| WAITING TO TEST | 55% | Depends on QA capacity |
+| TESTING | 45% | Currently being tested; has a chance to finish |
+| Done / CANCELED | 0% | No carry-over |
 
 ### Carry-over Calculation
 
@@ -62,26 +62,26 @@ Expected carry-over = Σ (items × probability per status)
 
 ### Assignment Criteria (Priority Order)
 
-1. **Skill match** — assign ตาม primary skill ก่อน
-2. **Existing context** — คนที่ทำ item เดิมอยู่ → ให้ทำต่อ (ลด context switching)
-3. **Capacity available** — ดูว่ามี slot เหลือไหม (carry-over + new items ≤ budget)
-4. **Growth opportunity** — junior ทำงานใหม่ได้เมื่อ mentor available
+1. **Skill match** — assign based on primary skill first
+2. **Existing context** — person already working on the item should continue (reduce context switching)
+3. **Capacity available** — check if slots remain (carry-over + new items ≤ budget)
+4. **Growth opportunity** — juniors can take new work when a mentor is available
 
 ### Grouping Strategy
 
-- **Related items → same person** — ลด context switching
-- **Blocking dependencies → prioritize blocker** — ปลดล็อคคนอื่น
-- **Critical path → senior/lead** — ลดความเสี่ยง
+- **Related items → same person** — reduce context switching
+- **Blocking dependencies → prioritize blocker** — unblock others
+- **Critical path → senior/lead** — reduce risk
 
 ### Risk Flags
 
 | Condition | Flag | Action |
 |-----------|------|--------|
-| Total items > budget ceiling | 🔴 Overloaded | ย้าย items ให้คนอื่น หรือ defer |
-| Total items = budget ceiling | ⚠️ At ceiling | Monitor ไม่เพิ่ม items |
-| Total items < 70% budget | 🟢 Has capacity | สามารถรับงานเพิ่มได้ |
-| Junior ถือ critical path | ⚠️ Risk | เพิ่ม reviewer/mentor support |
-| >3 carry-over items (same person) | ⚠️ Sticky | Review ว่าติดอะไร |
+| Total items > budget ceiling | 🔴 Overloaded | Move items to someone else or defer |
+| Total items = budget ceiling | ⚠️ At ceiling | Monitor; do not add more items |
+| Total items < 70% budget | 🟢 Has capacity | Can take on additional work |
+| Junior holds critical path | ⚠️ Risk | Add reviewer/mentor support |
+| >3 carry-over items (same person) | ⚠️ Sticky | Review what's blocking them |
 
 ## Sprint Planning Checklist
 

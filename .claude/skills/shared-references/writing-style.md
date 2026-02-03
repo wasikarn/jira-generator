@@ -2,19 +2,19 @@
 
 ## Language Rules
 
-### Thai + ทับศัพท์ (Transliteration)
+### Thai + Transliteration
 
-**หลักการ:** เนื้อหาหลักเป็นภาษาไทย, technical terms เป็นภาษาอังกฤษ
+**Principle:** Main content in Thai, technical terms in English
 
 | Content Type | Language | Example |
 | --- | --- | --- |
-| User Story narrative | Thai | "แอดมินต้องการดูรายการคูปอง" |
-| AC descriptions | Thai | "เมื่อคลิกปุ่ม Submit" |
+| User Story narrative | Thai | "Admin wants to view coupon list" |
+| AC descriptions | Thai | "When clicking the Submit button" |
 | Technical terms | English | endpoint, payload, component |
 | File paths | English | `src/pages/coupon/index.tsx` |
 | Code/Routes | English | `/api/coupons`, `getCoupons()` |
 
-### ทับศัพท์ที่ใช้บ่อย
+### Commonly Used Transliterations
 
 | Thai | English (keep as-is) |
 | --- | --- |
@@ -32,20 +32,20 @@
 | - | response |
 | - | request |
 
-### ตัวอย่างที่ถูกต้อง
+### Correct Examples
 
 **Good:**
 
 ```text
-Given: แอดมินเข้าหน้า `/coupon`
-When: คลิก "คูปองเติมเครดิต"
-Then: ไปหน้า `/coupon/topup-credit`
+Given: Admin enters the `/coupon` page
+When: Clicks "Top-up Credit Coupon"
+Then: Navigates to `/coupon/topup-credit`
 ```
 
 **Bad:**
 
 ```text
-Given: Admin enters the coupon page  (❌ ภาษาอังกฤษทั้งหมด)
+Given: Admin enters the coupon page  (❌ all English - no route reference)
 When: Click "Top-up Credit Coupon"
 Then: Navigate to topup credit page
 ```
@@ -54,58 +54,58 @@ Then: Navigate to topup credit page
 
 ## Tone & Style
 
-### กระชับ (Concise)
+### Concise
 
-- ไม่ใช้คำฟุ่มเฟือย
-- ตัดคำที่ไม่จำเป็นออก
-- 1 ประโยค = 1 idea
+- No verbose wording
+- Cut unnecessary words
+- 1 sentence = 1 idea
 
 **Good:**
 
 ```text
-แสดงการ์ด 3 ประเภทตามดีไซน์
+Display 3 card types per design
 ```
 
 **Bad:**
 
 ```text
-ระบบจะต้องทำการแสดงผลการ์ดจำนวน 3 ประเภทให้ตรงตามที่ได้ออกแบบไว้
+The system shall render and display a total of 3 card types in accordance with the approved design specifications
 ```
 
-### เป็นกันเอง (Casual)
+### Casual
 
-- เขียนเหมือนคุยกับเพื่อนร่วมทีม
-- ไม่เป็นทางการเกินไป
-- ใช้ภาษาที่ทีมเข้าใจ
+- Write as if talking to a teammate
+- Not overly formal
+- Use language the team understands
 
 **Good:**
 
 ```text
-AC1: Display - โหลดหน้าแล้วเห็นการ์ด 3 อัน
+AC1: Display - Page loads and shows 3 cards
 ```
 
 **Bad:**
 
 ```text
-AC1: การแสดงผล - เมื่อระบบโหลดหน้าเสร็จสมบูรณ์แล้ว ผู้ใช้งานจะสามารถมองเห็นการ์ดจำนวน 3 รายการ
+AC1: Display - Upon successful completion of page loading, the user shall be able to observe 3 card items rendered on screen
 ```
 
-### ชัดเจน (Clear)
+### Clear
 
-- ไม่คลุมเครือ
-- ระบุ specific value/behavior
+- Not ambiguous
+- Specify exact values/behavior
 - Testable
 
 **Good:**
 
 ```text
-Then: แสดง error "กรุณากรอกจำนวนเงิน"
+Then: Show error "Please enter an amount"
 ```
 
 **Bad:**
 
 ```text
-Then: แสดง error ที่เหมาะสม
+Then: Show an appropriate error
 ```
 
 ---
@@ -114,7 +114,7 @@ Then: แสดง error ที่เหมาะสม
 
 ### Inline Code
 
-ใช้ inline code สำหรับ:
+Use inline code for:
 
 - File paths: `src/pages/coupon/index.tsx`
 - Routes: `/coupon/topup-credit`
@@ -130,10 +130,10 @@ Then: แสดง error ที่เหมาะสม
 
 ### Bold Text
 
-ใช้ bold สำหรับ:
+Use bold for:
 
 - Labels: **Given**, **When**, **Then**
-- Emphasis: **สำคัญ**
+- Emphasis: **important**
 - Section headers in content
 
 **ADF Mark:**
@@ -149,20 +149,20 @@ Then: แสดง error ที่เหมาะสม
 ### User Story
 
 ```text
-[Service Tag] - [Thai description] ([English feature name])
+[Service Tag] - [Description] ([English feature name])
 ```
 
 Examples:
 
-- ✅ `[FE-Admin] - สร้างหน้าเมนูคูปอง (Coupon Menu)`
-- ✅ `[BE] - เพิ่ม API filter coupons`
-- ❌ `Create coupon menu page` (ไม่มี tag, English only)
-- ❌ `[BE] - ทำ API` (ไม่ specific)
+- ✅ `[FE-Admin] - Create coupon menu page (Coupon Menu)`
+- ✅ `[BE] - Add API filter coupons`
+- ❌ `Create coupon menu page` (no tag, English only)
+- ❌ `[BE] - Build API` (not specific enough)
 
 ### Sub-task
 
 ```text
-[TAG] - [Brief description - Thai or Thai+English]
+[TAG] - [Brief description]
 ```
 
 Tags: `[BE]`, `[FE-Admin]`, `[FE-Web]`
@@ -179,8 +179,8 @@ Tags: `[BE]`, `[FE-Admin]`, `[FE-Web]`
 
 | Mistake | Correct |
 | --- | --- |
-| ภาษาอังกฤษทั้งหมด | Thai + ทับศัพท์ |
-| ยาวเกินไป | กระชับ, ตัดคำฟุ่มเฟือย |
-| คลุมเครือ | Specific, testable |
-| ไม่มี tag | ใส่ `[BE]`, `[FE-Admin]`, etc. |
+| All English | Thai + transliteration |
+| Too long | Concise, cut verbose words |
+| Ambiguous | Specific, testable |
+| Missing tag | Add `[BE]`, `[FE-Admin]`, etc. |
 | Generic file paths | Actual paths from codebase |

@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-> Universal error recovery สำหรับ jira-workflow commands
+> Universal error recovery for jira-workflow commands
 
 ---
 
@@ -11,7 +11,7 @@
 | Error | Cause | Solution |
 | --- | --- | --- |
 | `unknown field "project"` | Wrong field name | Use `projectKey` not `project` |
-| `unknown field "parent"` | acli ไม่รองรับ parent field | ใช้ Two-Step Workflow: MCP create + acli edit |
+| `unknown field "parent"` | acli does not support the parent field | Use Two-Step Workflow: MCP create + acli edit |
 | `missing required field` | Incomplete JSON | Check all required fields present |
 | `invalid JSON syntax` | Malformed JSON | Validate JSON structure |
 | `issues field required` | Edit without issue key | Add `"issues": ["BEP-XXX"]` for edits |
@@ -30,9 +30,9 @@ Note: CREATE has no "issues" field, EDIT requires `"issues": ["BEP-XXX"]`.
 
 ### Subtask Creation (Two-Step Workflow)
 
-> ⚠️ **เจอ `unknown field "parent"`?** ใช้ workflow นี้
+> ⚠️ **Getting `unknown field "parent"`?** Use this workflow
 
-**Step 1: Create shell ด้วย MCP**
+**Step 1: Create shell with MCP**
 
 ```typescript
 jira_create_issue({
@@ -44,7 +44,7 @@ jira_create_issue({
 // Returns: BEP-YYY (new subtask key)
 ```
 
-**Step 2: Update description ด้วย acli**
+**Step 2: Update description with acli**
 
 ```json
 {
@@ -73,7 +73,7 @@ acli jira workitem edit --from-json tasks/subtask.json --yes
 | `Unknown node type` | Typo in type name | Verify: heading, paragraph, bulletList, etc. |
 | `Invalid attrs` | Wrong attributes | Check panel: `panelType`, heading: `level` |
 | `Nested table error` | Tables in tables | ❌ Tables cannot contain tables - use bullets |
-| `INVALID_INPUT` (InvalidPayloadException) | Nested bulletList | ❌ listItem > bulletList ไม่ได้ - flatten หรือใช้ comma-separated text |
+| `INVALID_INPUT` (InvalidPayloadException) | Nested bulletList | listItem > bulletList is not allowed - flatten or use comma-separated text |
 
 **ADF Structure Must Have:**
 
@@ -96,7 +96,7 @@ acli jira workitem edit --from-json tasks/subtask.json --yes
 | Error | Cause | Solution |
 | --- | --- | --- |
 | `JQL syntax error` | Invalid query | Check JQL operators and field names |
-| `Expecting ')' but got 'ORDER'` | ORDER BY กับ parent query | ใช้ `"Parent Link" = BEP-XXX ORDER BY...` แทน `parent = BEP-XXX ORDER BY...` |
+| `Expecting ')' but got 'ORDER'` | ORDER BY with parent query | Use `"Parent Link" = BEP-XXX ORDER BY...` instead of `parent = BEP-XXX ORDER BY...` |
 | `Field not found` | Wrong field name | Use `issuetype` not `type` for search |
 | `No issues found` | Empty result | Broaden search criteria |
 
@@ -107,24 +107,24 @@ acli jira workitem edit --from-json tasks/subtask.json --yes
 | `Issue not found` | Wrong key | Verify format: `BEP-XXX` |
 | `Cannot read property` | Issue deleted | Issue may have been removed |
 | `Rate limited` | Too many requests | Wait and retry |
-| `exceeds maximum allowed tokens` | Issue มีข้อมูลเยอะเกินไป | ใช้ `fields` parameter จำกัด fields ที่ดึง |
+| `exceeds maximum allowed tokens` | Issue has too much data | Use `fields` parameter to limit fetched fields |
 
 ### Large Output Error
 
-เมื่อเจอ error นี้:
+When encountering this error:
 
 ```text
 Error: result (73,235 characters) exceeds maximum allowed tokens.
 Output has been saved to /path/to/tool-results/...
 ```
 
-**Solution:** ใช้ `fields` parameter เพื่อจำกัดข้อมูลที่ดึง:
+**Solution:** Use the `fields` parameter to limit fetched data:
 
 ```python
-# ❌ Bad - ดึงทุก field ทำให้ข้อมูลเยอะ
+# ❌ Bad - fetches all fields, causing excessive data
 jira_get_issue(issue_key="BEP-XXX")
 
-# ✅ Good - ระบุเฉพาะ fields ที่ต้องการ
+# ✅ Good - specify only the fields you need
 jira_get_issue(
     issue_key="BEP-XXX",
     fields="summary,status,description,issuetype,parent",
@@ -222,18 +222,18 @@ For MCP: Use `jira_get_issue(issue_key: "BEP-1")`
 
 | Error | Cause | Solution |
 | --- | --- | --- |
-| `SSL: CERTIFICATE_VERIFY_FAILED` | macOS SSL cert issue | Scripts มี SSL bypass อยู่แล้ว - ถ้ายังเจอ check Python version |
+| `SSL: CERTIFICATE_VERIFY_FAILED` | macOS SSL cert issue | Scripts already have SSL bypass built in - if still encountering, check Python version |
 | `401 Unauthorized` | Invalid credentials | Check `~/.config/atlassian/.env` |
 | `404 Not Found` | Wrong page ID | Verify page ID from URL |
-| `ModuleNotFoundError` | Missing module | Scripts ใช้ stdlib เท่านั้น (ไม่ต้อง pip install) |
+| `ModuleNotFoundError` | Missing module | Scripts use stdlib only (no pip install needed) |
 
 ### MCP Confluence Limitations
 
 | Issue | Cause | Solution |
 | --- | --- | --- |
-| Code blocks ไม่ syntax highlight | MCP render เป็น `<pre class="highlight">` | Run `fix_confluence_code_blocks.py --page-id` หลัง MCP create/update |
-| Macros แสดงเป็น text | MCP ไม่เข้าใจ storage format | ใช้ `update_page_storage.py` |
-| ย้าย page ไม่ได้ | MCP ไม่มี move API | ใช้ `move_confluence_page.py` |
+| Code blocks not syntax highlighted | MCP renders as `<pre class="highlight">` | Run `fix_confluence_code_blocks.py --page-id` after MCP create/update |
+| Macros displayed as text | MCP doesn't understand storage format | Use `update_page_storage.py` |
+| Cannot move page | MCP has no move API | Use `move_confluence_page.py` |
 
 ### Script Locations
 

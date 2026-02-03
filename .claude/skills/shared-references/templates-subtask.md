@@ -1,19 +1,19 @@
 # Sub-task & QA Templates (ADF)
 
-> Extracted from templates.md — ใช้กับ `/analyze-story`, `/update-subtask`, `/create-testplan`, `/story-full`
+> Extracted from templates.md — used with `/analyze-story`, `/update-subtask`, `/create-testplan`, `/story-full`
 >
-> สำหรับ core rules (CREATE vs EDIT, Panel Types, Styling) → ดู [templates.md](templates.md)
+> For core rules (CREATE vs EDIT, Panel Types, Styling) → see [templates.md](templates.md)
 
 ---
 
 ## Sub-task Template (ADF) - TWO-STEP WORKFLOW
 
-> ⚠️ **CRITICAL:** `acli jira workitem create` ไม่รองรับ `parent` field!
+> ⚠️ **CRITICAL:** `acli jira workitem create` does not support the `parent` field!
 >
-> **ต้องใช้ Two-Step Workflow:**
+> **Must use Two-Step Workflow:**
 >
-> 1. **Step 1:** สร้าง Sub-task shell ด้วย MCP (รองรับ parent)
-> 2. **Step 2:** Update description ด้วย acli + ADF
+> 1. **Step 1:** Create Sub-task shell with MCP (supports parent)
+> 2. **Step 2:** Update description with acli + ADF
 
 ### Step 1: Create Sub-task Shell (MCP)
 
@@ -28,7 +28,7 @@ jira_create_issue({
 
 ### Step 2: Update Description (acli + ADF)
 
-> ใช้กับ `acli jira workitem edit --from-json ... --yes`
+> Used with `acli jira workitem edit --from-json ... --yes`
 
 ```json
 {
@@ -52,7 +52,7 @@ jira_create_issue({
           ]},
           {"type": "tableRow", "content": [
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "src/pages/feature/index.tsx", "marks": [{"type": "code"}]}]}]},
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "หน้าหลักของ feature"}]}]}
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Main page for the feature"}]}]}
           ]}
         ]
       },
@@ -67,7 +67,7 @@ jira_create_issue({
           ]},
           {"type": "tableRow", "content": [
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "src/services/auth.service.ts", "marks": [{"type": "code"}]}]}]},
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "เพิ่ม API calls"}]}]}
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Add API calls"}]}]}
           ]}
         ]
       },
@@ -127,7 +127,7 @@ jira_create_issue({
 
 ## QA Test Case Template (ADF) - TWO-STEP WORKFLOW
 
-> ⚠️ **CRITICAL:** ใช้ Two-Step Workflow เหมือน Sub-task Template
+> ⚠️ **CRITICAL:** Uses the same Two-Step Workflow as the Sub-task Template
 
 ### Step 1: Create QA Sub-task Shell (MCP)
 
@@ -142,9 +142,9 @@ jira_create_issue({
 
 ### Step 2: Update QA Description (acli + ADF)
 
-> ใช้กับ `acli jira workitem edit --from-json ... --yes`
+> Used with `acli jira workitem edit --from-json ... --yes`
 
-**Important:** ใช้ bulletList ใน panel (ไม่ใช้ nested table)
+**Important:** Use bulletList inside panels (not nested tables)
 
 ```json
 {

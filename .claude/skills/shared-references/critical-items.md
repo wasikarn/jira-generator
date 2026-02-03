@@ -1,7 +1,7 @@
 # Critical Items Checklist
 
-> Items ที่ **ต้องอยู่** ใน Passive Context เสมอหลัง optimize
-> ใช้โดย Phase 5 ของ `/optimize-context` เพื่อ verify ว่า compression ไม่ทำให้ข้อมูลสำคัญหาย
+> Items that **must remain** in Passive Context at all times after optimization
+> Used by Phase 5 of `/optimize-context` to verify that compression does not lose important data
 
 ## Format
 
@@ -9,13 +9,13 @@
 pattern | description | source
 ```
 
-- **pattern**: regex สำหรับ grep ใน Passive Context section
-- **description**: อธิบายว่า check อะไร
-- **source**: shared-ref file ที่เป็นต้นทาง
+- **pattern**: regex for grepping the Passive Context section
+- **description**: explains what is being checked
+- **source**: the shared-ref file that is the source of truth
 
 ---
 
-## Critical (skill จะ fail ถ้าหาย)
+## Critical (skill will fail if missing)
 
 ```text
 CREATE.*EDIT | CREATE vs EDIT JSON format distinction | templates.md
@@ -27,7 +27,7 @@ info.*success.*warning.*error.*note | All 5 panel types listed | templates.md
 fields.*parameter|fields.*jira_get_issue | fields parameter required for get_issue | tools.md
 ```
 
-## Important (quality จะลดลงถ้าหาย)
+## Important (quality will degrade if missing)
 
 ```text
 Thai.*ทับศัพท์|ทับศัพท์ | Language rule: Thai + transliteration | writing-style.md
@@ -42,9 +42,9 @@ Confluence.*script|Python.*script | Confluence operations need scripts | tools.m
 
 ## Maintenance
 
-เมื่อเพิ่ม rule ใหม่ใน shared-refs:
+When adding a new rule to shared-refs:
 
-1. ถามตัวเอง: "ถ้า rule นี้หายจาก passive context, skill จะ fail มั้ย?"
-2. ถ้าใช่ → เพิ่มใน Critical
-3. ถ้าไม่ fail แต่ quality ลด → เพิ่มใน Important
-4. ถ้าเป็นแค่ detail → ไม่ต้องเพิ่ม (ไว้ใน shared-ref เดิม)
+1. Ask yourself: "If this rule disappears from passive context, will the skill fail?"
+2. If yes → add to Critical
+3. If it won't fail but quality drops → add to Important
+4. If it's just a detail → don't add (keep in the original shared-ref file)

@@ -1,10 +1,10 @@
 ---
 name: update-doc
 description: |
-  Update existing Confluence page ด้วย 5-phase workflow
-  รองรับ: content update, section update, status change, move
+  Update an existing Confluence page with a 5-phase workflow
+  Supports: content update, section update, status change, move
 
-  Triggers: "update doc", "แก้ไข doc", "update confluence", "move page"
+  Triggers: "update doc", "edit doc", "update confluence", "move page"
 argument-hint: "[page-id or title] [--move parent-id]"
 ---
 
@@ -29,17 +29,17 @@ argument-hint: "[page-id or title] [--move parent-id]"
 
 ### 1. Discovery
 
-ถาม user เพื่อ identify page:
+Ask user to identify the page:
 
-**ถ้าไม่ระบุ page:**
+**If page is not specified:**
 
 ```text
-ต้องการ update page ไหน?
-1. ระบุ Page ID (เช่น 144244902)
-2. ค้นหาจาก title
+Which page do you want to update?
+1. Specify Page ID (e.g. 144244902)
+2. Search by title
 ```
 
-**ถ้าค้นหาจาก title:**
+**If searching by title:**
 
 ```python
 confluence_search(query="title ~ \"[search term]\"", limit=5)
@@ -55,12 +55,12 @@ confluence_search(query="title ~ \"[search term]\"", limit=5)
 | `replace` | Find text, Replace text |
 | `move` | Target parent page ID |
 
-**ถ้าต้องการ move:**
+**If moving:**
 
 ```text
-ต้องการย้ายไปอยู่ภายใต้ parent page ไหน?
-1. ระบุ Page ID
-2. ค้นหาจาก title
+Which parent page do you want to move it under?
+1. Specify Page ID
+2. Search by title
 ```
 
 **Gate:** Page identified + Update type determined
@@ -69,7 +69,7 @@ confluence_search(query="title ~ \"[search term]\"", limit=5)
 
 ### 2. Fetch Current
 
-ดึง content ปัจจุบัน:
+Retrieve current content:
 
 ```python
 confluence_get_page(
@@ -92,23 +92,23 @@ confluence_get_page(
 
 ### 3. Generate Updates
 
-สร้าง updated content ตาม update type:
+Generate updated content based on update type:
 
 **Content Update:**
 
-- แทนที่ content ทั้งหมด
-- รักษา structure และ formatting
+- Replace all content
+- Preserve structure and formatting
 
 **Section Update:**
 
-- หา section ที่ต้องการแก้ไข
-- แทนที่เฉพาะ section นั้น
-- รักษา sections อื่น
+- Find the section to edit
+- Replace only that section
+- Preserve other sections
 
 **Status Update:**
 
-- หา status field
-- เปลี่ยนค่า (Draft/In Review/Published)
+- Find the status field
+- Change value (Draft/In Review/Published)
 
 **Replace:**
 
@@ -118,9 +118,9 @@ confluence_get_page(
 
 **Move:**
 
-- ไม่แก้ไข content
-- เปลี่ยนเฉพาะ parent page
-- รักษา page metadata
+- Do not modify content
+- Change only the parent page
+- Preserve page metadata
 
 **Gate:** Updated content generated (or move target identified)
 
@@ -128,7 +128,7 @@ confluence_get_page(
 
 ### 4. Review
 
-แสดง preview ให้ user ตรวจสอบ:
+Show preview for user to review:
 
 ```text
 ## Update Preview
@@ -141,7 +141,7 @@ confluence_get_page(
 ### Changes:
 [Show diff or summary of changes]
 
-ต้องการดำเนินการหรือไม่?
+Would you like to proceed?
 ```
 
 **Gate:** User approves changes
@@ -162,15 +162,15 @@ confluence_update_page(
 
 **⚠️ IMPORTANT: Fix Code Blocks (mandatory if content has code blocks)**
 
-MCP markdown → Confluence จะ render code blocks เป็น `<pre class="highlight">` ซึ่งไม่ถูกต้อง
-**ต้อง run fix script ทันทีหลัง create/update เสมอ:**
+MCP markdown → Confluence will render code blocks as `<pre class="highlight">` which is incorrect.
+**You must run the fix script immediately after every create/update:**
 
 ```bash
 python3 .claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py \
   --page-id [page_id]
 ```
 
-Script จะแปลงจาก `<pre class="highlight">` → `<ac:structured-macro ac:name="code">` ให้อัตโนมัติ
+The script will automatically convert `<pre class="highlight">` → `<ac:structured-macro ac:name="code">`.
 
 **Option B: Find & replace**
 
@@ -224,7 +224,7 @@ Update type?
           │
           └─ MCP confluence_update_page
                 │
-                └─ มี code blocks?
+                └─ Has code blocks?
                       │
                       ├─ No → Done ✅
                       │
@@ -251,9 +251,9 @@ Update type?
 
 | Error | Cause | Solution |
 | --- | --- | --- |
-| Page not found | Wrong page ID | ค้นหา page ใหม่ |
-| Version conflict | Someone else updated | Fetch latest version แล้ว retry |
-| Permission denied | No edit access | ติดต่อ admin |
+| Page not found | Wrong page ID | Search for the page again |
+| Version conflict | Someone else updated | Fetch latest version and retry |
+| Permission denied | No edit access | Contact admin |
 | Code blocks broken | MCP markdown renders `<pre class="highlight">` | Run `fix_confluence_code_blocks.py --page-id` |
 
 ---

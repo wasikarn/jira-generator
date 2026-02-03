@@ -1,11 +1,11 @@
 ---
 name: create-testplan
 description: |
-  สร้าง Test Plan + [QA] Sub-task จาก User Story ด้วย 5-phase QA workflow
+  Create Test Plan + [QA] Sub-task from User Story with a 5-phase QA workflow
 
   Phases: Discovery → Test Scope Analysis → Design Test Cases → Create [QA] Sub-task → Summary
 
-  Output: [QA] Sub-task in Jira (รวม Test Plan ไว้ใน description)
+  Output: [QA] Sub-task in Jira (Test Plan embedded in description)
 
   Triggers: "create test plan", "QA", "test case", "testing"
 argument-hint: "[issue-key]"
@@ -16,7 +16,7 @@ argument-hint: "[issue-key]"
 **Role:** Senior QA Analyst
 **Output:** [QA] Sub-task (with embedded Test Plan)
 
-> **Note:** Test Plan รวมไว้ใน [QA] Sub-task description แทนการสร้าง Confluence page แยก
+> **Note:** Test Plan is embedded in [QA] Sub-task description instead of creating a separate Confluence page
 
 ## Phases
 
@@ -24,7 +24,7 @@ argument-hint: "[issue-key]"
 
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
 - `MCP: jira_search(jql: "parent = BEP-XXX")` → Sub-tasks
-- อ่าน: Narrative, ACs, Technical Note (ถ้ามี)
+- Read: Narrative, ACs, Technical Note (if available)
 - **Gate:** User confirms scope
 
 ### 2. Test Scope Analysis
@@ -49,16 +49,16 @@ argument-hint: "[issue-key]"
 
 ### 4. Create [QA] Sub-task
 
-> **หลักการ:** 1 Story = 1 [QA] Sub-task (รวม Test Plan ไว้ใน description)
+> **Principle:** 1 Story = 1 [QA] Sub-task (Test Plan embedded in description)
 >
-> ⚠️ ใช้ **Two-Step Workflow** (ดู [Sub-task Template](../shared-references/templates-subtask.md)):
+> ⚠️ Use **Two-Step Workflow** (see [Sub-task Template](../shared-references/templates-subtask.md)):
 >
 > **Step 1:** MCP `jira_create_issue` → summary: `[QA] - Test: [Feature Name]`, parent: `BEP-XXX`
 > **Step 2:** `acli jira workitem edit --from-json tasks/bep-xxx-qa.json --yes`
 >
-> ⚠️ EDIT JSON ใช้ `"issues": ["BEP-QQQ"]` (ไม่ใช่ `"parent"` หรือ `"parentKey"`)
+> ⚠️ EDIT JSON uses `"issues": ["BEP-QQQ"]` (not `"parent"` or `"parentKey"`)
 
-Panel colors: ดู [ADF Core Rules](../shared-references/templates.md) — success=happy, warning=edge, error=error
+Panel colors: see [ADF Core Rules](../shared-references/templates.md) — success=happy, warning=edge, error=error
 
 ### 5. Summary
 
@@ -77,14 +77,14 @@ Coverage: X ACs → Y test scenarios (100%)
 
 | Error | Cause | Fix |
 | --- | --- | --- |
-| `json: unknown field "parent"` | ใช้ field ผิดใน JSON | ใช้ MCP สร้างก่อน แล้ว acli edit |
-| `json: unknown field "parentKey"` | ใช้ field ผิดใน JSON | ใช้ MCP สร้างก่อน แล้ว acli edit |
-| `Could not find issue by id or key` | parentIssueId ไม่ถูกต้อง | ใช้ MCP สร้างก่อน แล้ว acli edit |
+| `json: unknown field "parent"` | Wrong field in JSON | Use MCP to create first, then acli edit |
+| `json: unknown field "parentKey"` | Wrong field in JSON | Use MCP to create first, then acli edit |
+| `Could not find issue by id or key` | Invalid parentIssueId | Use MCP to create first, then acli edit |
 
 **Recommended Workflow:**
 
-1. **Create** ด้วย MCP `jira_create_issue` (รองรับ parent ผ่าน additional_fields)
-2. **Edit** ด้วย `acli --from-json` (ใส่ ADF description)
+1. **Create** with MCP `jira_create_issue` (supports parent via additional_fields)
+2. **Edit** with `acli --from-json` (add ADF description)
 
 ---
 

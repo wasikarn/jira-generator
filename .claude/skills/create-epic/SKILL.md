@@ -1,8 +1,8 @@
 ---
 name: create-epic
 description: |
-  สร้าง Epic + Epic Doc จาก product vision ด้วย 5-phase PM workflow
-  ใช้เมื่อต้องการสร้าง initiative ใหม่, มี product vision, หรือต้องการทำ RICE prioritization
+  Create Epic + Epic Doc from product vision with a 5-phase PM workflow
+  Use when creating a new initiative, have a product vision, or need RICE prioritization
 argument-hint: "[epic-title]"
 ---
 
@@ -15,25 +15,25 @@ argument-hint: "[epic-title]"
 
 ### 1. Discovery
 
-- สัมภาษณ์ stakeholder: Problem? Target users? Business value? Success metrics?
-- ถ้ามี existing docs → อ่าน context
+- Interview stakeholder: Problem? Target users? Business value? Success metrics?
+- If existing docs available → read context
 - **Gate:** Stakeholder confirms understanding
 
 ### 2. RICE Prioritization
 
-- **R**each (1-10): จำนวน users ที่ได้รับผลกระทบ
-- **I**mpact (0.25-3): ระดับ impact ต่อ user
-- **C**onfidence (0-100%): ความมั่นใจใน estimate
-- **E**ffort (person-weeks): effort ที่ต้องใช้
+- **R**each (1-10): Number of users affected
+- **I**mpact (0.25-3): Level of impact on user
+- **C**onfidence (0-100%): Confidence in estimate
+- **E**ffort (person-weeks): Effort required
 - Formula: `(R × I × C) / E`
 - **Gate:** Stakeholder agrees with priority
 
 ### 3. Define Scope
 
-- ระบุ high-level requirements
-- แบ่งเป็น User Stories (draft): Story 1, Story 2, ...
-- กำหนด MVP: Must have / Should have / Nice to have
-- ระบุ Dependencies และ Risks
+- Identify high-level requirements
+- Break into User Stories (draft): Story 1, Story 2, ...
+- Define MVP: Must have / Should have / Nice to have
+- Identify Dependencies and Risks
 - **Gate:** Stakeholder approves scope
 
 ### 4. Create Artifacts
@@ -66,10 +66,10 @@ Epic Doc: [link] | Epic: [link]
 | 📈 Progress | `note` | Done/In Progress/To Do counts |
 | 🔗 Links | table | Epic Doc, Technical Notes |
 
-**ข้อห้าม ADF:**
+**ADF Restrictions:**
 
-- ❌ ห้าม nest table ใน panel (จะ error)
-- ✅ ใช้ paragraphs หรือ bulletList ใน panel แทน
+- ❌ Do not nest tables inside panels (will error)
+- ✅ Use paragraphs or bulletList inside panels instead
 
 ---
 

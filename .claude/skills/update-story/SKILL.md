@@ -1,13 +1,13 @@
 ---
 name: update-story
 description: |
-  แก้ไข User Story ที่มีอยู่ ด้วย 5-phase update workflow
+  Update an existing User Story with a 5-phase update workflow
 
   Phases: Fetch Current → Impact Analysis → Preserve Intent → Generate Update → Apply Update
 
-  รองรับ: เพิ่ม AC, แก้ไข AC, ปรับ scope, format migration
+  Supports: add AC, modify AC, adjust scope, format migration
 
-  Triggers: "update story", "แก้ไข story", "เพิ่ม AC"
+  Triggers: "update story", "edit story", "add AC"
 argument-hint: "[issue-key] [changes]"
 ---
 
@@ -22,26 +22,26 @@ argument-hint: "[issue-key] [changes]"
 
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
 - `MCP: jira_search(jql: "parent = BEP-XXX")` → Sub-tasks
-- อ่าน: Narrative, ACs, Scope, Status
+- Read: Narrative, ACs, Scope, Status
 - **Gate:** User confirms what to update
 
 ### 2. Impact Analysis
 
 | Change Type | Impact on Sub-tasks | Impact on QA |
 | --- | --- | --- |
-| Add AC | ต้องสร้าง sub-task? | ต้องเพิ่ม test? |
-| Remove AC | ต้องลบ sub-task? | ต้องลบ test? |
-| Modify AC | ต้อง update sub-task? | ต้อง update test? |
+| Add AC | Need to create sub-task? | Need to add test? |
+| Remove AC | Need to delete sub-task? | Need to delete test? |
+| Modify AC | Need to update sub-task? | Need to update test? |
 | Format only | ❌ No impact | ❌ No impact |
 
 **Gate:** User acknowledges impact
 
 ### 3. Preserve Intent
 
-- ✅ เพิ่ม AC ได้
-- ✅ ปรับ wording ได้
-- ⚠️ ระวังเปลี่ยน scope (ต้อง re-analyze)
-- ❌ ห้ามเปลี่ยน core value proposition โดยไม่บอก
+- ✅ Adding ACs is allowed
+- ✅ Adjusting wording is allowed
+- ⚠️ Be careful changing scope (requires re-analysis)
+- ❌ Do not change core value proposition without informing
 
 ### 4. Generate Update
 
@@ -72,10 +72,10 @@ Changes: [list]
 
 | Scenario | Command | Impact |
 | --- | --- | --- |
-| Add AC | `/update-story BEP-XXX "เพิ่ม AC mobile"` | 🟡 Medium |
+| Add AC | `/update-story BEP-XXX "add mobile AC"` | 🟡 Medium |
 | Format migrate | `/update-story BEP-XXX "migrate ADF"` | 🟢 Low |
-| Clarify AC | `/update-story BEP-XXX "AC2 ไม่ชัด"` | 🟢 Low |
-| Reduce scope | `/update-story BEP-XXX "ลด scope"` | 🔴 High |
+| Clarify AC | `/update-story BEP-XXX "AC2 is unclear"` | 🟢 Low |
+| Reduce scope | `/update-story BEP-XXX "reduce scope"` | 🔴 High |
 
 ---
 

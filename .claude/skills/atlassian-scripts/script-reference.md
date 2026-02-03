@@ -1,14 +1,14 @@
 # Script Reference
 
-> รายละเอียด scripts ทั้งหมดใน `atlassian-scripts/scripts/`
+> Details for all scripts in `atlassian-scripts/scripts/`
 >
-> สำหรับ overview และ script selection guide → ดู [SKILL.md](SKILL.md)
+> For overview and script selection guide, see [SKILL.md](SKILL.md)
 
 ---
 
 ## Script 1: Create/Update Page
 
-สร้างหรือ update Confluence page พร้อม proper code block formatting
+Create or update a Confluence page with proper code block formatting.
 
 **Location:** `.claude/skills/atlassian-scripts/scripts/create_confluence_page.py`
 
@@ -63,7 +63,7 @@ python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
 | `--dry-run` | Both | ❌ | Preview without saving |
 | `--verbose` | Both | ❌ | Enable debug logging |
 
-*ต้องระบุ `--content` หรือ `--content-file` อย่างใดอย่างหนึ่ง
+*Must specify either `--content` or `--content-file`.
 
 ### Supported Markdown
 
@@ -84,7 +84,7 @@ python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
 
 ## Script 2: Find/Replace
 
-Generic script สำหรับ find/replace content ใน Confluence pages
+Generic script for find/replace content in Confluence pages.
 
 **Location:** `.claude/skills/atlassian-scripts/scripts/update_confluence_page.py`
 
@@ -94,8 +94,8 @@ Generic script สำหรับ find/replace content ใน Confluence pages
 # Simple replacement
 python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
   --page-id 154730498 \
-  --find "5 นาที" \
-  --replace "3 นาที"
+  --find "5 minutes" \
+  --replace "3 minutes"
 
 # Multiple replacements
 python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
@@ -131,7 +131,7 @@ python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
 
 ## Script 3: Move Page
 
-ย้าย page(s) ไปอยู่ภายใต้ parent page อื่น โดยไม่แก้ไข content
+Move page(s) under a different parent page without modifying content.
 
 **Location:** `.claude/skills/atlassian-scripts/scripts/move_confluence_page.py`
 
@@ -165,12 +165,12 @@ python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py \
 | `--dry-run` | ❌ | Preview changes without applying |
 | `--verbose` | ❌ | Enable debug logging |
 
-*ต้องระบุ `--page-id` หรือ `--page-ids` อย่างใดอย่างหนึ่ง
+*Must specify either `--page-id` or `--page-ids`.
 
 ### Why Use This Script
 
-MCP `confluence_update_page` ไม่สามารถย้าย page ได้โดยไม่ overwrite content
-Script นี้ใช้ Confluence REST API โดยตรง:
+MCP `confluence_update_page` cannot move a page without overwriting its content.
+This script uses the Confluence REST API directly:
 
 ```text
 PUT /rest/api/content/{pageId}/move/append/{parentId}
@@ -180,7 +180,7 @@ PUT /rest/api/content/{pageId}/move/append/{parentId}
 
 ## Script 4: Update with Storage Format
 
-Update page ด้วย raw storage format สำหรับ macros (ToC, Children, Status)
+Update a page with raw storage format for macros (ToC, Children, Status).
 
 **Location:** `.claude/skills/atlassian-scripts/scripts/update_page_storage.py`
 
@@ -215,7 +215,7 @@ python3 .claude/skills/atlassian-scripts/scripts/update_page_storage.py \
 | `--dry-run` | ❌ | Preview changes without applying |
 | `--verbose` | ❌ | Enable debug logging |
 
-*ต้องระบุ `--content` หรือ `--content-file` อย่างใดอย่างหนึ่ง
+*Must specify either `--content` or `--content-file`.
 
 ### Common Macros
 
@@ -229,14 +229,14 @@ python3 .claude/skills/atlassian-scripts/scripts/update_page_storage.py \
 
 ### Why Use This Script
 
-MCP tools แปลง storage format ไม่ถูกต้อง - macros จะ render เป็น text แทน
-Script นี้ส่ง raw storage format ไปที่ API โดยตรง
+MCP tools do not convert storage format correctly -- macros will render as plain text instead.
+This script sends raw storage format directly to the API.
 
 ---
 
 ## Script 5: Fix Code Blocks
 
-แก้ไข code blocks จาก `<pre class="highlight"><code>` เป็น `<ac:structured-macro ac:name="code">`
+Fix code blocks from `<pre class="highlight"><code>` to `<ac:structured-macro ac:name="code">`.
 
 **Location:** `.claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py`
 
@@ -266,20 +266,20 @@ python3 .claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py \
 | `--dry-run` | ❌ | Preview changes without applying |
 | `--verbose` | ❌ | Enable debug logging |
 
-*ต้องระบุ `--page-id` หรือ `--page-ids` อย่างใดอย่างหนึ่ง
+*Must specify either `--page-id` or `--page-ids`.
 
 ### What it does
 
-1. ดึง page content ปัจจุบัน
-2. หา `<pre class="highlight"><code class="language-xxx">` patterns
-3. แปลงเป็น `<ac:structured-macro ac:name="code">` format
-4. Update page ผ่าน REST API
+1. Fetch the current page content
+2. Find `<pre class="highlight"><code class="language-xxx">` patterns
+3. Convert to `<ac:structured-macro ac:name="code">` format
+4. Update the page via REST API
 
 ---
 
 ## Script 6: Audit Pages
 
-ตรวจสอบ content ของหลาย Confluence pages ว่ามี/ไม่มีข้อความที่กำหนด
+Verify content across multiple Confluence pages for presence/absence of specified strings.
 
 **Location:** `.claude/skills/atlassian-scripts/scripts/audit_confluence_pages.py`
 
@@ -328,14 +328,14 @@ python3 .claude/skills/atlassian-scripts/scripts/audit_confluence_pages.py \
 | `--should-not-have` | ❌ | Strings that MUST NOT be present |
 | `--verbose` | ❌ | Enable debug logging |
 
-*ต้องระบุ `--config` หรือ `--page-id` อย่างใดอย่างหนึ่ง
+*Must specify either `--config` or `--page-id`.
 
 ---
 
 ## Script 7: Update Jira Description
 
-แก้ไข Jira issue descriptions ผ่าน REST API v3 (ADF format) โดยตรง
-รักษา formatting ทั้งหมด (panels, tables, marks, code blocks)
+Fix Jira issue descriptions via REST API v3 (ADF format) directly.
+Preserves all formatting (panels, tables, marks, code blocks).
 
 **Location:** `.claude/skills/atlassian-scripts/scripts/update_jira_description.py`
 
@@ -387,7 +387,7 @@ python3 .claude/skills/atlassian-scripts/scripts/update_jira_description.py \
 | `--dry-run` | ❌ | Preview changes only |
 | `--verbose` | ❌ | Enable debug logging |
 
-*ต้องระบุ `--config` หรือ `--issue` อย่างใดอย่างหนึ่ง
+*Must specify either `--config` or `--issue`.
 
 ### How It Works
 
@@ -410,12 +410,12 @@ python3 .claude/skills/atlassian-scripts/scripts/update_jira_description.py \
 ## Script Selection Guide
 
 ```text
-ต้องการทำอะไร?
+What do you need to do?
     │
-    ├─ สร้าง page ใหม่
+    ├─ Create a new page
     │     └─ create_confluence_page.py --space --title
     │
-    ├─ Update content ทั้งหมด
+    ├─ Update entire content
     │     └─ create_confluence_page.py --page-id --content-file
     │
     ├─ Find/Replace text

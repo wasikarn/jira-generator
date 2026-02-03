@@ -2,8 +2,8 @@
 
 ## BEP Project Team
 
-> ชื่อจริงจะ fetch จาก Jira ตอน runtime (Phase 1 Sprint Discovery)
-> ไฟล์นี้เก็บเฉพาะ role structure + capacity model
+> Real names are fetched from Jira at runtime (Phase 1 Sprint Discovery)
+> This file only stores the role structure + capacity model
 
 | Slot | Role | Level | Focus | Capacity | Items/Sprint |
 |------|------|-------|-------|----------|-------------|
@@ -43,13 +43,13 @@
 
 | Status | Probability | Rationale |
 |--------|------------|-----------|
-| To Do | 100% | ยังไม่เริ่ม → carry-over แน่นอน |
-| In Progress | 85% | อาจเสร็จก่อน sprint end แต่ส่วนใหญ่ carry-over |
-| TO FIX | 92% | ต้องแก้ไข → มักไม่ทันใน sprint เดียว |
-| WAITING TO TEST | 55% | อยู่ที่ QA capacity ถ้า QA ว่างอาจจบได้ |
-| TESTING | 45% | กำลังทดสอบ มีโอกาสจบใน sprint |
-| Done | 0% | เสร็จแล้ว |
-| CANCELED | 0% | ยกเลิก |
+| To Do | 100% | Not started yet — guaranteed carry-over |
+| In Progress | 85% | May finish before sprint end but most carry over |
+| TO FIX | 92% | Needs fixing — usually won't finish in one sprint |
+| WAITING TO TEST | 55% | Depends on QA capacity; may finish if QA is available |
+| TESTING | 45% | Currently being tested; has a chance to finish in sprint |
+| Done | 0% | Completed |
+| CANCELED | 0% | Canceled |
 
 ## Workload Thresholds
 
