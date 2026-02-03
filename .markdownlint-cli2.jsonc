@@ -1,0 +1,4 @@
+{
+  // Ignore auto-generated CLAUDE.md files (claude-mem rewrites tables on every hook)
+  "ignores": ["**/CLAUDE.md"]
+}

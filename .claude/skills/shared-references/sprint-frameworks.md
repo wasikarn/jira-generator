@@ -8,7 +8,7 @@
 **Reach × Impact × Confidence ÷ Effort = RICE Score**
 
 | Factor | Scale | Description |
-|--------|-------|-------------|
+| -------- | ------- | ------------- |
 | Reach | 1-10 | Number of users affected (10=everyone) |
 | Impact | 0.25-3 | Impact on user (3=massive, 2=high, 1=medium, 0.5=low, 0.25=minimal) |
 | Confidence | 10-100% | Confidence in data (100%=certain, 80%=high, 50%=medium, 20%=low) |
@@ -18,7 +18,7 @@
 
 ## Impact vs Effort Matrix
 
-```
+```text
 High Impact
     │
     │  PLAN CAREFULLY    DO FIRST ⭐
@@ -33,7 +33,7 @@ High Impact
 ```
 
 | Quadrant | Action | Sprint Priority |
-|----------|--------|----------------|
+| ---------- | -------- | ---------------- |
 | DO FIRST | High impact, low effort — do immediately | P1 |
 | PLAN CAREFULLY | High impact, high effort — plan thoroughly | P2 |
 | QUICK WINS | Low impact, low effort — do when capacity is available | P3 |
@@ -44,7 +44,7 @@ High Impact
 ### Status-based Probability
 
 | Status | Carry-over % | Action |
-|--------|-------------|--------|
+| -------- | ------------- | -------- |
 | To Do | 100% | Not started yet — guaranteed carry-over |
 | In Progress | 85% | May finish, but most won't make it in time |
 | TO FIX | 92% | Needs fixing — usually must carry over |
@@ -54,7 +54,7 @@ High Impact
 
 ### Carry-over Calculation
 
-```
+```text
 Expected carry-over = Σ (items × probability per status)
 ```
 
@@ -76,7 +76,7 @@ Expected carry-over = Σ (items × probability per status)
 ### Risk Flags
 
 | Condition | Flag | Action |
-|-----------|------|--------|
+| ----------- | ------ | -------- |
 | Total items > budget ceiling | 🔴 Overloaded | Move items to someone else or defer |
 | Total items = budget ceiling | ⚠️ At ceiling | Monitor; do not add more items |
 | Total items < 70% budget | 🟢 Has capacity | Can take on additional work |

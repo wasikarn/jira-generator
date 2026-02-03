@@ -6,7 +6,7 @@
 > This file only stores the role structure + capacity model
 
 | Slot | Role | Level | Focus | Capacity | Items/Sprint |
-|------|------|-------|-------|----------|-------------|
+| ------ | ------ | ------- | ------- | ---------- | ------------- |
 | 1 | Tech Lead | Lead | Full Stack + code review + mentoring | 40-50% | 4-5 |
 | 2 | Sr. Backend | Senior | Backend, complex systems | 80-90% | 8-9 |
 | 3 | Jr. Full Stack | Junior | Frontend + Backend | 70-80% | 7-8 |
@@ -23,7 +23,7 @@
 **Capacity = Level Budget:**
 
 | Level | Dev Capacity | Reason |
-|-------|-------------|--------|
+| ------- | ------------- | -------- |
 | Tech Lead | 40-50% | Code review, mentoring, architecture decisions |
 | Senior | 80-90% | Complex tasks, some review |
 | Mid | 85-90% | Feature work, some review |
@@ -32,7 +32,7 @@
 ## Skill Mapping (by Role)
 
 | Skill Area | Primary | Secondary |
-|------------|---------|-----------|
+| ------------ | --------- | ----------- |
 | Backend API | Sr. Backend, Tech Lead | Jr. Full Stack |
 | Frontend (Admin) | Jr. Full Stack, Tech Lead | Frontend Dev |
 | Frontend (Web) | Frontend Dev, Tech Lead | Jr. Full Stack |
@@ -42,7 +42,7 @@
 ## Carry-over Probability (by Jira Status)
 
 | Status | Probability | Rationale |
-|--------|------------|-----------|
+| -------- | ------------ | ----------- |
 | To Do | 100% | Not started yet — guaranteed carry-over |
 | In Progress | 85% | May finish before sprint end but most carry over |
 | TO FIX | 92% | Needs fixing — usually won't finish in one sprint |
@@ -54,7 +54,7 @@
 ## Workload Thresholds
 
 | Level | Green (OK) | Yellow (At ceiling) | Red (Over) |
-|-------|-----------|-------------------|------------|
+| ------- | ----------- | ------------------- | ------------ |
 | Tech Lead | ≤4 items | 5 items | >5 items |
 | Senior | ≤8 items | 9 items | >9 items |
 | Mid | ≤8 items | 9 items | >9 items |

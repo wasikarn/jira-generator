@@ -76,7 +76,7 @@ python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
 | Inline code | `` `code` `` | ✅ |
 | Links | `[text](url)` | ✅ |
 | Lists | `- item` | ✅ |
-| Tables | `| col |` | ✅ |
+| Tables | `\| col \|` | ✅ |
 | Blockquotes | `> quote` | ✅ |
 | HR | `---` | ✅ |
 

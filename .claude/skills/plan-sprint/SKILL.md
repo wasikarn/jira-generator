@@ -54,7 +54,7 @@ Read: .claude/skills/shared-references/team-capacity.md
 **Output:** Capacity table
 
 | Member | Role | Budget | Assigned | Available |
-|--------|------|--------|----------|-----------|
+| -------- | ------ | -------- | ---------- | ----------- |
 | ... | ... | ... | ... | ... |
 
 **Gate:** Capacity numbers confirmed
@@ -208,7 +208,7 @@ Team members: XX
 ## Options
 
 | Flag | Description |
-|------|-------------|
+| ------ | ------------- |
 | `--sprint <id>` | Specify target sprint ID (if not specified → find the next future sprint) |
 | `--carry-over-only` | Carry-over analysis only (no assign/move) — Phase 1-3 only |
 

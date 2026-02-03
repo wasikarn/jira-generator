@@ -143,7 +143,7 @@ Open Claude Code in this project and type `/command` as needed.
 
 ### Create Full Feature Workflow
 
-```
+```text
 /story-full
 ```
 
@@ -157,7 +157,7 @@ Claude creates a complete User Story + Sub-tasks in one go — through 10 phases
 
 ### Create Epic
 
-```
+```text
 /create-epic
 ```
 
@@ -171,7 +171,7 @@ Creates an Epic + Epic Doc on Confluence — uses RICE scoring for prioritizatio
 
 ### Create User Story
 
-```
+```text
 /create-story
 ```
 
@@ -185,7 +185,7 @@ Creates a User Story from requirements — through 5-phase PO workflow.
 
 ### Analyze Story → Sub-tasks
 
-```
+```text
 /analyze-story BEP-XXX
 ```
 
@@ -199,7 +199,7 @@ Reads a Story then explores the codebase → creates Sub-tasks with real file pa
 
 ### Create Test Plan
 
-```
+```text
 /create-testplan BEP-XXX
 ```
 
@@ -213,7 +213,7 @@ Creates a Test Plan + [QA] Sub-tasks from a User Story.
 
 ### Create Task
 
-```
+```text
 /create-task
 ```
 
@@ -227,7 +227,7 @@ Creates a Jira Task — supports 4 types: `tech-debt`, `bug`, `chore`, `spike`
 
 ### Create Confluence Doc
 
-```
+```text
 /create-doc
 ```
 
@@ -241,7 +241,7 @@ Creates a Confluence page — supports: `tech-spec`, `adr`, `parent` (category p
 
 ### Update Issue
 
-```
+```text
 /update-story BEP-XXX
 /update-epic BEP-XXX
 /update-task BEP-XXX
@@ -258,7 +258,7 @@ Edit an existing issue — adjust scope, add ACs, migrate format.
 
 ### Update Story + Cascade to Sub-tasks
 
-```
+```text
 /story-cascade BEP-XXX
 ```
 
@@ -272,7 +272,7 @@ Updates a Story then automatically cascades changes to related Sub-tasks.
 
 ### Sync All Artifacts
 
-```
+```text
 /sync-alignment BEP-XXX
 ```
 
@@ -286,7 +286,7 @@ Syncs Jira + Confluence bidirectional — Epic, Story, Sub-tasks, QA, Docs.
 
 ### Sprint Planning
 
-```
+```text
 /plan-sprint
 /plan-sprint --sprint 640
 /plan-sprint --carry-over-only
@@ -316,7 +316,7 @@ Options:
 
 ### Search Issues
 
-```
+```text
 /search-issues
 ```
 
@@ -330,7 +330,7 @@ Search for existing issues before creating new ones — prevents duplicates.
 
 ### Verify Issue Quality
 
-```
+```text
 /verify-issue BEP-XXX
 /verify-issue BEP-XXX --with-subtasks
 /verify-issue BEP-XXX --fix
@@ -351,7 +351,7 @@ Options:
 
 ### Update Confluence Doc
 
-```
+```text
 /update-doc
 ```
 
@@ -365,7 +365,7 @@ Update or move a Confluence page.
 
 ### Optimize Context
 
-```
+```text
 /optimize-context
 /optimize-context --dry-run
 ```
@@ -382,7 +382,7 @@ Audits shared-references → compresses into passive context in CLAUDE.md.
 
 ### Create a New Feature End-to-End
 
-```
+```text
 /create-epic          → Create Epic
 /story-full           → Create Story + Sub-tasks
 /create-testplan      → Create Test Plan
@@ -391,13 +391,13 @@ Audits shared-references → compresses into passive context in CLAUDE.md.
 
 ### Plan a Sprint
 
-```
+```text
 /plan-sprint          → Plan sprint (carry-over + assign)
 ```
 
 ### Edit + Sync
 
-```
+```text
 /update-story BEP-XXX       → Edit Story
 /story-cascade BEP-XXX      → Cascade to Sub-tasks
 /sync-alignment BEP-XXX     → Sync everything
@@ -407,7 +407,7 @@ Audits shared-references → compresses into passive context in CLAUDE.md.
 
 ## Project Structure
 
-```
+```text
 .claude/skills/              <- Skill definitions (1 dir = 1 command)
 ├── create-{epic,story,task,doc,testplan}/
 ├── update-{epic,story,task,subtask,doc}/

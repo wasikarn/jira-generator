@@ -6,7 +6,7 @@
 
 ---
 
-## Technical Notes
+## Implementation Details
 
 ### SSL Certificate Issue (macOS)
 
