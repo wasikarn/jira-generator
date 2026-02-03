@@ -1,17 +1,15 @@
 # Skills Index
 
-> 18 skills + 7 scripts + 14 references | Project: BEP (Tathep Platform)
+> 18 skills | Project: BEP | Operational context → `CLAUDE.md`
 
 ## Overview
 
-| Category | Count | Invoke | Input |
-| --- | --- | --- | --- |
-| Create | 7 | `/skill-name [args]` | description or requirements |
-| Update | 5 | `/skill-name BEP-XXX [changes]` | issue key + changes |
-| Composite | 4 | `/skill-name [args]` | varies (end-to-end) |
-| Utility | 2 | `/skill-name [args]` | issue key or keyword |
-
-**Total:** 18 skills across 4 categories, 7 Python scripts, 14 shared reference files
+| Category | Count | Invoke |
+| --- | --- | --- |
+| Create | 6 | `/skill-name [description]` |
+| Update | 6 | `/skill-name BEP-XXX [changes]` |
+| Composite | 4 ⭐ | `/skill-name [args]` |
+| Utility | 2 | `/skill-name [args]` |
 
 ## Skill Selection Guide
 
@@ -37,6 +35,16 @@ Need to plan or verify?
   └─ Prevent duplicates?         → /search-issues
 ```
 
+### Common Mistakes
+
+| Mistake | Correct |
+| --- | --- |
+| `/create-story` + `/analyze-story` separately | Use `/story-full` ⭐ — does both in one go |
+| `/analyze-story` without Explore | Sub-tasks will have generic paths — always Explore first |
+| Creating without `/search-issues` | May create duplicates — always search first |
+| `/update-story` when Sub-tasks also need changes | Use `/story-cascade` ⭐ to cascade automatically |
+| `/story-cascade` when Confluence also needs sync | Use `/sync-alignment` ⭐ for full bidirectional sync |
+
 ## Workflow Chain
 
 ```text
@@ -52,111 +60,70 @@ Stakeholder → PM → PO → TA → QA
 
 ---
 
-## Create Skills (7)
+## Create Skills (6)
 
-| # | Skill | Phases | Role | Output | Triggers |
+| Skill | Args | Phases | Role | Output | Triggers |
 | --- | --- | --- | --- | --- | --- |
-| 1 | `/create-epic` | 5 | Sr. Product Manager | Epic + Epic Doc (Confluence) | "create epic", "new initiative" |
-| 2 | `/create-story` | 5 | Sr. Product Owner | User Story (Jira) | "create story", "new feature" |
-| 3 | `/create-task` | 5 | Developer / Tech Lead | Task (Jira) | "create task", "new task" |
-| 4 | `/analyze-story` | 7 | Sr. Technical Analyst | Sub-tasks + Technical Note | "analyze", "create subtasks" |
-| 5 | `/create-testplan` | 5 | Sr. QA Analyst | [QA] Sub-task (Jira) | "test plan", "QA", "testing" |
-| 6 | `/create-doc` | 4 | Developer / Tech Lead | Confluence Page | "create doc", "tech spec", "ADR" |
-| 7 | `/search-issues` | 3 | Any | List of matching issues | "search", "find", "duplicate check" |
+| `/create-epic` | `[title]` | 5 | Sr. Product Manager | Epic + Epic Doc | "create epic", "new initiative" |
+| `/create-story` | `[description]` | 5 | Sr. Product Owner | User Story | "create story", "new feature" |
+| `/create-task` | `[type] [desc]` | 5 | Developer / Tech Lead | Task | "create task", "new task" |
+| `/analyze-story` | `BEP-XXX` | 7 | Sr. Technical Analyst | Sub-tasks + Tech Note | "analyze", "create subtasks" |
+| `/create-testplan` | `BEP-XXX` | 5 | Sr. QA Analyst | [QA] Sub-task | "test plan", "QA" |
+| `/create-doc` | `[template] [title]` | 4 | Developer / Tech Lead | Confluence Page | "create doc", "tech spec" |
 
 ### Key Details
 
-- **`/create-epic`** — RICE prioritization, stakeholder interview, creates both Jira Epic + Confluence Epic Doc
-- **`/create-task`** — Supports 4 types: `tech-debt`, `bug`, `chore`, `spike`
-- **`/analyze-story`** — **MUST explore codebase** before designing Sub-tasks (uses `Task(Explore)`)
-- **`/create-testplan`** — Test Plan embedded in [QA] Sub-task description (not separate Confluence page)
+- **`/create-epic`** — RICE prioritization + Confluence Epic Doc
+- **`/create-task`** — Types: `tech-debt`, `bug`, `chore`, `spike`
+- **`/analyze-story`** — **MUST explore codebase first** (`Task(Explore)`)
+- **`/create-testplan`** — Test Plan embedded in [QA] Sub-task description
+
+## Update Skills (6)
+
+| Skill | Args | Phases | Role | Output | Triggers |
+| --- | --- | --- | --- | --- | --- |
+| `/update-epic` | `BEP-XXX [changes]` | 5 | Sr. Product Manager | Updated Epic | "update epic", "edit epic" |
+| `/update-story` | `BEP-XXX [changes]` | 5 | Sr. Product Owner | Updated Story | "update story", "edit story" |
+| `/update-task` | `BEP-XXX [changes]` | 5 | Developer / Tech Lead | Updated Task | "update task", "edit task" |
+| `/update-subtask` | `BEP-XXX [changes]` | 5 | Technical Analyst | Updated Sub-task | "update subtask" |
+| `/update-doc` | `PAGE-ID [changes]` | 5 | Developer / Tech Lead | Updated Page | "update doc", "move page" |
+| `/search-issues` | `[keyword] [--filters]` | 3 | Any | Matching issues | "search", "find" |
+
+### Key Details
+
+- Update skills share 5-phase pattern: Fetch → Impact Analysis → Preserve Intent → Generate → Apply
+- **`/update-doc`** — Also supports `--move parent-id`
 - **`/search-issues`** — Always run before creating to prevent duplicates
-
-## Update Skills (5)
-
-| # | Skill | Phases | Role | Output | Triggers |
-| --- | --- | --- | --- | --- | --- |
-| 8 | `/update-epic` | 5 | Sr. Product Manager | Updated Epic | "update epic", "edit epic" |
-| 9 | `/update-story` | 5 | Sr. Product Owner | Updated Story | "update story", "edit story" |
-| 10 | `/update-task` | 5 | Developer / Tech Lead | Updated Task | "update task", "edit task" |
-| 11 | `/update-subtask` | 5 | Technical Analyst | Updated Sub-task | "update subtask", "edit subtask" |
-| 12 | `/update-doc` | 5 | Developer / Tech Lead | Updated Confluence Page | "update doc", "move page" |
-
-### Key Details
-
-- All update skills share the same 5-phase pattern: Fetch → Impact Analysis → Preserve Intent → Generate → Apply
-- **`/update-doc`** — Also supports moving pages to different parent
 
 ## Composite Skills (4) ⭐
 
-| # | Skill | Phases | Role | Output | Triggers |
+| Skill | Args | Phases | Role | Output | Triggers |
 | --- | --- | --- | --- | --- | --- |
-| 13 | `/story-full` | 10 | PO + TA Combined | Story + Sub-tasks (end-to-end) | "story full", "full workflow" |
-| 14 | `/story-cascade` | 8 | PO + TA Combined | Updated Story + Sub-tasks | "cascade", "update all" |
-| 15 | `/sync-alignment` | 8 | PO + TA + Tech Lead | Updated issues + Confluence pages | "sync", "align artifacts" |
-| 16 | `/plan-sprint` | 8 | Scrum Master (Tresor) | Sprint plan + Jira assignments | "plan sprint" |
+| `/story-full` | `[description]` | 10 | PO + TA Combined | Story + Sub-tasks | "story full", "full workflow" |
+| `/story-cascade` | `BEP-XXX [changes]` | 8 | PO + TA Combined | Updated Story + Subs | "cascade", "update all" |
+| `/sync-alignment` | `BEP-XXX [changes]` | 8 | PO + TA + Tech Lead | All related artifacts | "sync", "align" |
+| `/plan-sprint` | `[--sprint ID]` | 8 | Scrum Master (Tresor) | Sprint plan + assignments | "plan sprint" |
 
 ### Key Details
 
-- **`/story-full`** — Most used skill. Creates Story (Phase 1-4) then Sub-tasks (Phase 5-10) in one workflow
-- **`/story-cascade`** — Updates Story and automatically cascades changes to related Sub-tasks
-- **`/sync-alignment`** — Bidirectional sync: any artifact → detect changes → update all related artifacts (Jira + Confluence)
-- **`/plan-sprint`** — Hybrid: Tresor sprint-prioritizer handles strategy (Phase 3-6) + MCP handles execution (Phase 1,2,8)
-  - External agent: `~/.claude/subagents/product/management/sprint-prioritizer/agent.md`
+- **`/story-full`** — Most used. Creates Story (Phase 1-4) then Sub-tasks (Phase 5-10) in one workflow
+- **`/story-cascade`** — Auto-cascade changes to related Sub-tasks
+- **`/sync-alignment`** — Bidirectional: any artifact → detect changes → update all (Jira + Confluence)
+- **`/plan-sprint`** — Tresor handles strategy (Phase 3-6), MCP handles execution (Phase 1,2,8)
 
 ## Utility Skills (2)
 
-| # | Skill | Phases | Role | Output | Triggers |
+| Skill | Args | Phases | Role | Output | Triggers |
 | --- | --- | --- | --- | --- | --- |
-| 17 | `/verify-issue` | 6 | Any | Verification report or fixed issues | "verify", "check quality" |
-| 18 | `/optimize-context` | - | Meta | Updated CLAUDE.md / Report | "optimize", "audit context" |
+| `/verify-issue` | `BEP-XXX [--fix]` | 6 | Any | Report / Fixed issues | "verify", "check quality" |
+| `/optimize-context` | `[--dry-run]` | - | Meta (global) | Updated CLAUDE.md | "optimize context" |
 
 ### Key Details
 
-- **`/verify-issue`** — Options: `--with-subtasks` (batch), `--fix` (auto-fix + format migration)
-- **`/optimize-context`** — Audits and compresses CLAUDE.md for agent effectiveness
+- **`/verify-issue`** — `--with-subtasks` = batch check, `--fix` = auto-fix + format migration
+- **`/optimize-context`** — Global skill (not in `.claude/skills/`), audits passive context
 
----
-
-## Tool Ecosystem
-
-### Atlassian Scripts (7 scripts)
-
-> Location: `.claude/skills/atlassian-scripts/`
-
-| Script | Purpose | When to Use |
-| --- | --- | --- |
-| `create_confluence_page.py` | Create Confluence page | Code blocks, macros needed |
-| `update_confluence_page.py` | Update Confluence page | Code blocks, macros needed |
-| `move_confluence_page.py` | Move page to new parent | Reorganize Confluence structure |
-| `update_page_storage.py` | Update via storage format | Complex formatting (ToC, macros) |
-| `fix_confluence_code_blocks.py` | Fix code block formatting | After MCP creates broken blocks |
-| `audit_confluence_pages.py` | Audit pages for quality | Validate page structure |
-| `update_jira_description.py` | Update Jira description via REST | Direct ADF manipulation |
-
-**Library modules:** `auth.py`, `api.py`, `jira_api.py`, `converters.py`, `exceptions.py`
-
-### Shared References (14 files)
-
-> Location: `.claude/skills/shared-references/`
-
-| Category | Files | Purpose |
-| --- | --- | --- |
-| Templates | `templates.md`, `templates-{epic,story,subtask,task}.md` | ADF templates per issue type |
-| Quality | `verification-checklist.md`, `critical-items.md` | INVEST compliance, validation rules |
-| Tools | `tools.md` | Tool selection matrix + effort sizing |
-| Style | `writing-style.md` | Thai + loanwords, tone, formatting |
-| Reference | `jql-quick-ref.md`, `troubleshooting.md` | JQL patterns, error recovery |
-| Planning | `sprint-frameworks.md`, `team-capacity.md` | RICE, carry-over, team budgets |
-
-### External Tools
-
-| Tool | Purpose | Invocation |
-| --- | --- | --- |
-| MCP `jira_*` | Read/update Jira fields | MCP tool calls |
-| MCP `confluence_*` | Read Confluence pages | MCP tool calls |
-| `acli` | Create/edit Jira descriptions (ADF) | `acli jira workitem create/edit --from-json` |
-| Tresor sprint-prioritizer | Sprint strategy (RICE, distribution) | Read agent.md → use as Task prompt |
+> **Tool selection, scripts, shared references** → see `CLAUDE.md` Passive Context + References sections
 
 ---
 
@@ -181,21 +148,18 @@ Stakeholder → PM → PO → TA → QA
 ## Dependencies Between Skills
 
 ```text
-/create-epic ─────────────────────────────────────── (standalone)
-  └─→ /create-story ──→ /analyze-story ──→ /create-testplan
-        │                     │
-        └── /story-full ⭐ ───┘  (combines create-story + analyze-story)
-        │
-        └── /story-cascade ⭐     (update story + cascade to subtasks)
-        └── /sync-alignment ⭐    (sync all: Jira + Confluence)
+/search-issues ← always run before creating (prevent duplicates)
+       ↓
+/create-epic ──→ /create-story ──→ /analyze-story ──→ /create-testplan
+                       │                 │
+                       └─ /story-full ⭐ ┘  (combines both in one go)
+                       │
+                       └─ /story-cascade ⭐  (update story → cascade to subs)
+                       └─ /sync-alignment ⭐ (sync all: Jira + Confluence)
 
-/create-task ─────────────────────────────────────── (standalone)
-/create-doc ──────────────────────────────────────── (standalone)
-/update-doc ──────────────────────────────────────── (standalone)
-
-/plan-sprint ⭐ ──────────────────────────────────── (reads from Jira, assigns work)
-/verify-issue ────────────────────────────────────── (post-creation quality check)
-/search-issues ───────────────────────────────────── (pre-creation duplicate check)
+/create-task, /create-doc, /update-doc ──────────── (standalone)
+/plan-sprint ⭐ ─────────────────────────────────── (reads Jira, assigns work)
+/verify-issue ← always run after creating/updating
 ```
 
 ---

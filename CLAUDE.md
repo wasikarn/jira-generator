@@ -32,9 +32,8 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | `/create-story` | Create User Story from requirements | User Story |
 | `/create-task` | Create Task (tech-debt, bug, chore, spike) | Task |
 | `/analyze-story BEP-XXX` | Analyze Story → Sub-tasks | Sub-tasks + Technical Note |
-| `/create-testplan BEP-XXX` | Create Test Plan from Story | Test Plan + [QA] Sub-tasks |
+| `/create-testplan BEP-XXX` | Create Test Plan from Story | [QA] Sub-task |
 | `/create-doc` | Create Confluence page (tech-spec, adr, parent) | Confluence Page |
-| `/update-doc` | Update/Move Confluence page | Updated/Moved Page |
 
 ### Update
 
@@ -44,6 +43,7 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | `/update-story BEP-XXX` | Edit User Story - add/edit AC, scope | Updated Story |
 | `/update-task BEP-XXX` | Edit Task - migrate format, add details | Updated Task |
 | `/update-subtask BEP-XXX` | Edit Sub-task - format, content | Updated Sub-task |
+| `/update-doc PAGE-ID` | Update/Move Confluence page | Updated Page |
 
 ### Composite (End-to-End Workflow) ⭐
 
@@ -60,28 +60,19 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 
 | Command | Description | Output |
 | --- | --- | --- |
-| `/search-issues` | Search issues before creating new ones (prevent duplicates) | List of matching issues |
-| `/verify-issue BEP-XXX` | Verify + improve issue quality (ADF, INVEST, language) | Verification report / Improved issue(s) |
-| `/optimize-context` | Audit shared-refs → compress into passive context | Updated CLAUDE.md / Report (`--dry-run`) |
+| `/search-issues` | Search before creating (prevent duplicates) | Matching issues |
+| `/verify-issue BEP-XXX` | Verify + improve quality (ADF, INVEST, language) | Report / Fixed issues |
+| `/optimize-context` | Audit + compress passive context (global skill) | Updated CLAUDE.md |
 
-> **Verify:** After creating/updating an issue | `--with-subtasks` = batch check | `--fix` = auto-fix + format migration
+> `--with-subtasks` = batch | `--fix` = auto-fix | `--dry-run` = report only
 
-**Skill Location:** `.claude/skills/` (each command = 1 skill directory)
-
-**How Skills Work:** `.claude/skills/[command-name]/SKILL.md` → execute phases in order → reference `shared-references/`
+**Skills:** `.claude/skills/[name]/SKILL.md` → phases in order → refs from `shared-references/`
 
 ## Workflow Chain
 
-```text
-Stakeholder → PM → PO → TA → QA
-              │     │     │     │
-              ↓     ↓     ↓     ↓
-           Epic   Story  Sub-tasks  Test Cases
-              ↓     ↓     ↓     ↓
-         [/verify-issue after creation]
-```
+**Handoff:** PM (Epic) → PO (Story) → TA (Sub-tasks) → QA (Test Plan) → `/verify-issue` after each step
 
-**Handoff:** PM (Epic) → PO (Story) → TA (Sub-tasks) → QA (Test Plan) — structured context passed to each role
+> Full diagram + skill selection guide → `.claude/SKILLS-INDEX.md`
 
 ## Service Tags
 
@@ -93,10 +84,7 @@ Stakeholder → PM → PO → TA → QA
 
 ## Passive Context (Always Loaded)
 
-> **Design principle:** The data below is compressed from shared-references so the agent always has context ready to use.
-> No need to load additional files, reducing latency + reducing chance of errors (inspired by Vercel's AGENTS.md approach)
->
-> **Full references:** Load when full templates are needed → `.claude/skills/shared-references/`
+> Compressed from `shared-references/` — load full templates only when needed
 
 ### Tool Selection
 
@@ -205,30 +193,9 @@ jira_get_issue(issue_key="BEP-XXX", fields="summary,status,description,issuetype
 
 ## File Structure
 
-```text
-.claude/skills/            # Each dir = 1 skill (see Skill Commands above)
-├── create-epic/           → 5-phase PM
-├── create-story/          → 5-phase PO
-├── analyze-story/         → 7-phase TA
-├── create-testplan/       → 6-phase QA
-├── create-task/           → 5-phase task
-├── create-doc/            → 4-phase Confluence
-├── update-doc/            → 5-phase Confluence update
-├── update-{epic,story,task,subtask}/ → 5-phase update
-├── story-full/            → 10-phase composite ⭐
-├── story-cascade/         → 8-phase cascade ⭐
-├── sync-alignment/        → 8-phase bidirectional ⭐
-├── plan-sprint/           → 8-phase Tresor strategy + execution ⭐
-├── search-issues/         → 3-phase search
-├── verify-issue/          → 5-phase verify + fix
-├── atlassian-scripts/     → Python REST API scripts
-│   ├── lib/               → auth, api, jira_api, converters, exceptions
-│   └── scripts/           → 7 scripts (see Tool Selection)
-└── shared-references/     → Templates, tools, style, checklists
-    └── critical-items.md  → Passive context validation checklist
+**Skills:** `.claude/skills/` — 18 skill dirs + `atlassian-scripts/` + `shared-references/`
 
-tasks/                     # Generated outputs (gitignored)
-```
+> Full catalog with phases, roles, triggers, dependencies → `.claude/SKILLS-INDEX.md`
 
 ## References (load when needed)
 
@@ -250,33 +217,25 @@ tasks/                     # Generated outputs (gitignored)
 ## Core Principles
 
 1. **Phase-based workflows** - Follow phases in order, never skip steps
-2. **Explore before design** - Must always explore codebase before creating Sub-tasks
-3. **ADF via acli** - Use `acli --from-json` for Jira descriptions
-4. **Thai + loanwords** - Content in Thai, technical terms in English
-5. **Clear handoffs** - Each role passes structured context to next
-6. **INVEST compliance** - All items pass INVEST criteria
-7. **Traceability** - Everything links back to parent (Story→Epic, Sub-task→Story)
+2. **ADF via acli** - Use `acli --from-json` for Jira descriptions (never MCP for descriptions)
+3. **Thai + loanwords** - Content in Thai, technical terms in English
+4. **Clear handoffs** - Each role passes structured context to next
+5. **INVEST compliance** - All items pass INVEST criteria
+6. **Traceability** - Everything links back to parent (Story→Epic, Sub-task→Story)
 
 ---
 
 ## ⚠️ Critical: Explore Codebase First
 
-> **No Explore = No Design**
->
-> Must always explore codebase before creating Sub-tasks, otherwise the design will be wrong
+> **No Explore = No Design** — Must `Task(Explore)` before creating Sub-tasks
 
-**Without Exploring:** generic paths (useless), duplicate work, wrong conventions, incorrect scope estimates
+**Why:** Without exploring → generic paths (useless), duplicate work, wrong conventions
 
-**TA Workflow:** Story → Impact Analysis → 🔍 **EXPLORE** (paths, patterns, existing code, architecture) → Design → Create Sub-tasks
-
-**How to Explore:** Use `Task (Explore agent)` with paths from **Service Tags** above
-
-**Explore prompts:** "Find credit top-up page", "Find API endpoint for orders", "Find existing billing patterns"
+**How:** `Task(subagent_type="Explore")` with paths from **Service Tags** — e.g., "Find credit top-up page in `[BE]`"
 
 ## Troubleshooting
 
-> Quick fixes are in **Passive Context > Common Mistakes & Quick Fixes** above
-> Full recovery procedures → `.claude/skills/shared-references/troubleshooting.md`
+> ADF/tool errors → **Common Mistakes** above | Full recovery → `shared-references/troubleshooting.md`
 
 | Issue | Solution |
 | --- | --- |
