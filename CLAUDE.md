@@ -18,6 +18,7 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 2. **มี Epic แล้ว ต้องการสร้าง Story?** → `/create-story`
 3. **มี Story แล้ว ต้องการวิเคราะห์?** → `/analyze-story BEP-XXX`
 4. **ต้องการสร้าง Task?** → `/create-task` (tech-debt, bug, chore, spike)
+5. **ต้องการวางแผน Sprint?** → `/plan-sprint` (Tresor strategy + Jira execution)
 
 > ⚡ **หลังสร้างเสร็จ:** ใช้ `/verify-issue BEP-XXX` ตรวจสอบคุณภาพเสมอ
 
@@ -51,8 +52,9 @@ Agile Documentation System for **Tathep Platform** - Create Epics, User Stories,
 | `/story-full` | สร้าง Story + Sub-tasks ครบ workflow ในครั้งเดียว | Story + Sub-tasks |
 | `/story-cascade BEP-XXX` | Update Story + cascade ไป Sub-tasks ที่เกี่ยวข้อง | Updated Story + Sub-tasks |
 | `/sync-alignment BEP-XXX` | Sync artifacts ทั้งหมด (Jira + Confluence) bidirectional | Updated issues + pages |
+| `/plan-sprint` | Sprint planning: carry-over + prioritize + assign (Tresor-powered) | Sprint plan + Jira assignments |
 
-> **เมื่อไหร่ใช้:** `story-full` = feature ใหม่ครบ, `story-cascade` = cascade Jira only, `sync-alignment` = full sync + Confluence
+> **เมื่อไหร่ใช้:** `story-full` = feature ใหม่ครบ, `story-cascade` = cascade Jira only, `sync-alignment` = full sync + Confluence, `plan-sprint` = วางแผน sprint ใหม่
 
 ### Utility (เครื่องมือช่วย)
 
@@ -216,6 +218,7 @@ jira_get_issue(issue_key="BEP-XXX", fields="summary,status,description,issuetype
 ├── story-full/            → 10-phase composite ⭐
 ├── story-cascade/         → 8-phase cascade ⭐
 ├── sync-alignment/        → 8-phase bidirectional ⭐
+├── plan-sprint/           → 8-phase Tresor strategy + execution ⭐
 ├── search-issues/         → 3-phase search
 ├── verify-issue/          → 5-phase verify + fix
 ├── atlassian-scripts/     → Python REST API scripts
@@ -238,6 +241,9 @@ tasks/                     # Generated outputs (gitignored)
 | JQL patterns | `.claude/skills/shared-references/jql-quick-ref.md` |
 | Troubleshooting | `.claude/skills/shared-references/troubleshooting.md` |
 | Critical items checklist | `.claude/skills/shared-references/critical-items.md` |
+| Team capacity + skill mapping | `.claude/skills/shared-references/team-capacity.md` |
+| Sprint frameworks (RICE, carry-over) | `.claude/skills/shared-references/sprint-frameworks.md` |
+| Tresor sprint-prioritizer | `~/.claude/subagents/product/management/sprint-prioritizer/agent.md` |
 | Atlassian scripts | `.claude/skills/atlassian-scripts/SKILL.md` |
 
 ## Core Principles
