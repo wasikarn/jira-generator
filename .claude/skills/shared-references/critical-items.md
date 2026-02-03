@@ -30,7 +30,7 @@ fields.*parameter|fields.*jira_get_issue | fields parameter required for get_iss
 ## Important (quality will degrade if missing)
 
 ```text
-Thai.*ทับศัพท์|ทับศัพท์ | Language rule: Thai + transliteration | writing-style.md
+Thai.*loanword|loanword | Language rule: Thai + loanwords (transliteration) | writing-style.md
 Given.*When.*Then | AC format: Given/When/Then | verification-checklist.md
 INVEST | Story quality criteria | verification-checklist.md
 \[BE\].*\[FE | Service tags reference | writing-style.md
