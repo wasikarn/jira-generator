@@ -4,7 +4,7 @@
 
 Agile Documentation System for **Tathep Platform** — skills-based Jira/Confluence automation
 
-**Structure:** `.claude/skills/` — 17 skills (`SKILL.md` → phases → `shared-references/`) + `atlassian-scripts/` (7 Python scripts) + `shared-references/` (13 docs)
+**Structure:** `.claude/skills/` — 18 skills (`SKILL.md` → phases → `shared-references/`) + `atlassian-scripts/` (7 Python scripts) + `shared-references/` (13 docs)
 
 ## Project Settings
 
@@ -33,6 +33,7 @@ Agile Documentation System for **Tathep Platform** — skills-based Jira/Conflue
 | `/story-cascade BEP-XXX` | Update Story + cascade to Sub-tasks ⭐ | Updated Story + Sub-tasks |
 | `/sync-alignment BEP-XXX` | Sync all artifacts bidirectional ⭐ | Updated issues + pages |
 | `/plan-sprint` | Sprint planning: carry-over + assign ⭐ | Sprint plan + assignments |
+| `/dependency-chain` | Dependency analysis, critical path, swim lanes | Mermaid + plan |
 | `/search-issues` | Search before creating (dedup) | Matching issues |
 | `/verify-issue BEP-XXX` | Verify quality (ADF, INVEST, language) | Report / Fixed issues |
 | `/optimize-context` | Audit + compress CLAUDE.md | Updated CLAUDE.md |
