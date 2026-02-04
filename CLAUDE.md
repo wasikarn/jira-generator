@@ -136,7 +136,7 @@ Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 ## References (load when needed)
 
 > **Shared refs** at `.claude/skills/shared-references/` (all `.md`):
-> templates (index → templates-{epic,story,subtask,task}) · tools · verification-checklist · writing-style · jql-quick-ref · troubleshooting · critical-items · team-capacity · sprint-frameworks · epic-best-practices · story-best-practices
+> templates (index → templates-{epic,story,subtask,task}) · tools · verification-checklist · writing-style · jql-quick-ref · troubleshooting · critical-items · team-capacity · sprint-frameworks · epic-best-practices · story-best-practices · subtask-best-practices
 
 > **Tresor:** `~/.claude/subagents/product/management/sprint-prioritizer/agent.md` | **Scripts:** `.claude/skills/atlassian-scripts/SKILL.md`
 
