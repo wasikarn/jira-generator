@@ -175,6 +175,20 @@ Tags: `[BE]`, `[FE-Admin]`, `[FE-Web]`
 
 ---
 
+## Vertical Slice Labels
+
+> Convention จาก Sprint 32 — ใช้กับ Jira labels สำหรับ board filtering
+
+| Pattern | ใช้เมื่อ | Example |
+| --- | --- | --- |
+| `vs{N}-{name}` | Numbered vertical slice | `vs1-skeleton`, `vs2-credit-e2e` |
+| `vs-enabler` | Shared component ที่หลาย slice ใช้ | Side Panel, Toast |
+| `{feature}-{scope}` | Cross-cutting concern | `coupon-web`, `ad-integration` |
+
+**Rules:** ทุก story ต้องมี feature label (`coupon-web`) + VS label อย่างน้อย 1 ตัว / 1 story อาจมีหลาย VS labels
+
+---
+
 ## Common Mistakes
 
 | Mistake | Correct |

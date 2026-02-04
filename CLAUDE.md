@@ -127,6 +127,10 @@ Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 | Confluence macros rendered as text | Use `update_page_storage.py` instead of MCP |
 | MCP `jira_update_issue` sprint=null → no effect | Agile REST: `api._request('POST', '/rest/agile/1.0/backlog/issue', {'issues': [numeric_ids]})` |
 | Agile backlog API กับ issue key → 204 แต่ไม่ move | ต้องใช้ numeric ID จาก `issue["id"]` ไม่ใช่ key "BEP-XXX" |
+| Sprint field `{"id": 640}` → error | `customfield_10020` รับ plain number: `{"customfield_10020": 640}` |
+| Issue link "Relates to" → error | ชื่อถูกคือ `"Relates"` / valid: `Blocks`, `Duplicate`, `Cloners`, `Test Case` |
+| Epic child parent `{key:"BEP-XXX"}` → error | Epic child ใช้ string: `{parent: "BEP-2883"}` / Subtask ใช้ object: `{parent: {key: "BEP-XXX"}}` |
+| `key in (...) ORDER BY` → parse error | ลบ `ORDER BY` เมื่อใช้ `key in (...)` / ใช้ `"Parent Link" = BEP-XXX ORDER BY...` แทน |
 
 ## References (load when needed)
 

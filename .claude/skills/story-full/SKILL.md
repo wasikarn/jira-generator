@@ -94,9 +94,21 @@ Collect: Actual file paths, patterns, dependencies
 
 ### 9. Create Sub-tasks
 
-```bash
-acli jira workitem create --from-json tasks/subtask-be.json
-acli jira workitem create --from-json tasks/subtask-fe.json
+> ⚠️ **Two-Step Workflow** — acli ไม่รองรับ `parent` field
+>
+> **Step 1:** MCP `jira_create_issue` (create shell + parent link) — parallel calls ได้
+> **Step 2:** `acli --from-json` (update ADF description)
+>
+> เมื่อ sub-tasks ≥3 ตัว: สร้าง shells ทั้งหมดก่อน → batch edit descriptions
+
+```text
+# Step 1: Create shells (parallel)
+MCP: jira_create_issue({project_key:"BEP", summary:"[BE] - ...", issue_type:"Subtask", additional_fields:{parent:{key:"BEP-XXX"}}})
+MCP: jira_create_issue({project_key:"BEP", summary:"[FE-Web] - ...", issue_type:"Subtask", additional_fields:{parent:{key:"BEP-XXX"}}})
+
+# Step 2: Update descriptions
+acli jira workitem edit --from-json tasks/subtask-be.json --yes
+acli jira workitem edit --from-json tasks/subtask-fe.json --yes
 ```
 
 ### 10. Summary

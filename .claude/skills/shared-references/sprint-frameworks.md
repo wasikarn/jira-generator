@@ -83,6 +83,47 @@ Expected carry-over = Σ (items × probability per status)
 | Junior holds critical path | ⚠️ Risk | Add reviewer/mentor support |
 | >3 carry-over items (same person) | ⚠️ Sticky | Review what's blocking them |
 
+## Vertical Slicing
+
+> Source: Scrum Guide, StoriesOnBoard, SAFe — applied in Sprint 32 coupon system
+
+### Principle
+
+Stories ต้องส่งมอบ **end-to-end user value** ครบทุก layer (UI → API → DB) แต่ละ story = independently deployable + testable
+
+### Vertical vs Horizontal
+
+| | Vertical (✅) | Horizontal (❌) |
+| --- | --- | --- |
+| Scope | Full stack for one flow | One layer across many flows |
+| Value | User ใช้งานได้จริง | ต้องรอ layer อื่นจึงจะ work |
+| Testing | QA ทดสอบ flow จริงได้ | ต้องรอ integration |
+| Example | "ผู้ใช้เก็บคูปองเครดิต e2e" | "สร้าง UI shell ทุกหน้า" |
+
+### Patterns
+
+| Pattern | When to Use | Example |
+| --- | --- | --- |
+| **Walking Skeleton** | ต้องการ navigation + empty states ก่อน | `vs1-skeleton`: nav + empty states |
+| **Business Rule Split** | แยกตาม rule/type ที่ต่างกัน | `vs2-credit-e2e`, `vs3-discount-e2e` |
+| **Enabler Story** (SAFe) | Shared component ที่หลาย slice ใช้ร่วม | `vs-enabler`: Side Panel, Toast |
+| **Cross-feature** | ข้ามหลาย feature areas | `ad-integration`: coupon → ad flow |
+
+### Anti-patterns
+
+| Anti-pattern | Problem | Fix |
+| --- | --- | --- |
+| Shell-only story (UI ไม่มี logic) | ไม่มี value → INVEST fail | เพิ่ม minimal happy path หรือ reframe เป็น Walking Skeleton |
+| Layer split (BE แยกจาก FE) | ต้องรอ layer อื่น → blocked | รวม BE+FE ใน story เดียว |
+| Tab-split (Active tab / History tab) | Tab เดียวไม่มี context | Split ตาม business rule แทน |
+
+### Sprint Assignment Strategy
+
+| Sprint | Focus | Stories |
+| --- | --- | --- |
+| Sprint N | Skeleton + Enablers + first E2E slice | `vs1-skeleton` + `vs-enabler` + `vs2-*` |
+| Sprint N+1 | Remaining E2E slices + cross-feature | `vs3-*` + `vs4-*` + `ad-integration` |
+
 ## Sprint Planning Checklist
 
 - [ ] Carry-over items identified + counted per person
@@ -91,5 +132,6 @@ Expected carry-over = Σ (items × probability per status)
 - [ ] No one exceeds capacity ceiling
 - [ ] Dependencies identified + blockers prioritized
 - [ ] Risk flags reviewed + mitigated
+- [ ] Stories are vertical slices (not horizontal layers)
 - [ ] Sprint goal defined (1-2 sentences)
 - [ ] User approved plan before execution

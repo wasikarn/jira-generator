@@ -52,6 +52,8 @@ acli jira workitem create --from-json tasks/story.json
 ```
 
 - ADF: Info panel (narrative) + Success panels (ACs)
+- **Labels:** เพิ่ม VS labels ถ้าเป็นส่วนของ feature ที่ใช้ vertical slicing (เช่น `coupon-web`, `vs2-credit-e2e`)
+  - ดู convention: [Writing Style > VS Labels](../shared-references/writing-style.md#vertical-slice-labels)
 
 ### 5. Handoff
 

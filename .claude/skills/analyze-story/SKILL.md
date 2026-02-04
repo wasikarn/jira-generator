@@ -83,6 +83,16 @@ Sub-tasks: BEP-YYY, BEP-ZZZ
 
 ---
 
+## Batch Sub-task Creation
+
+> เมื่อต้องสร้าง sub-tasks ≥3 ตัว ใช้ batch pattern ประหยัด tokens:
+>
+> 1. สร้าง shells ทั้งหมดด้วย MCP (parallel calls)
+> 2. เขียน ADF JSON ทั้งหมดเป็น files ใน `tasks/`
+> 3. Run `acli edit --from-json` ต่อเนื่อง (หรือ Python script สำหรับ batch >5)
+
+---
+
 ## References
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling

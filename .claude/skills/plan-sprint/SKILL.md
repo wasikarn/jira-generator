@@ -107,7 +107,13 @@ Also reference Tresor sprint-prioritizer methodology from:
 - High-probability items (>80%) → auto-include in target sprint
 - Medium-probability items (45-80%) → flag for user decision
 
-### 4. Prioritization
+### 4. Prioritization + Story Structure Validation
+
+**Validate stories are vertical slices** (see [Sprint Frameworks](../shared-references/sprint-frameworks.md#vertical-slicing)):
+
+- [ ] Each story delivers end-to-end user value (not just one layer)
+- [ ] Shell-only stories reframed as Walking Skeleton
+- [ ] VS labels assigned (`vs{N}-{name}`, `vs-enabler`, `{feature}-{scope}`)
 
 **Input:** Target sprint items + new items to add
 **Method:** Impact vs Effort matrix
@@ -180,12 +186,14 @@ Present the complete sprint plan to the user:
 Execute according to the user-approved plan:
 
 ```text
-# Move items to target sprint
-MCP: jira_update_issue(issue_key="BEP-XXX", additional_fields={"sprint": <target_sprint_id>})
+# Move items to target sprint (⚠️ sprint field = plain number, NOT object)
+MCP: jira_update_issue(issue_key="BEP-XXX", additional_fields={"customfield_10020": 640})
 
 # Assign items
 MCP: jira_update_issue(issue_key="BEP-XXX", fields={"assignee": "Display Name"})
 ```
+
+> ⚠️ Sprint field ใช้ `customfield_10020` กับ plain number (เช่น `640`) — ห้ามใช้ `{"id": 640}`
 
 **Output:**
 
