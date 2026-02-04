@@ -194,12 +194,4 @@
 }
 ```
 
-**Panel Usage in Epic:**
-
-| Section | Panel Type | Purpose |
-| --- | --- | --- |
-| Overview | `info` | Summary of what epic delivers |
-| Business Value | `success` | Benefits/outcomes |
-| Scope | `info` | Features/modules included |
-| Progress | `note` | Status tracking |
-| Canceled | `warning` | Out of scope items |
+**Panels:** Overview/Scope=`info`, Business Value=`success`, Progress=`note`, Canceled=`warning`

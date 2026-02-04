@@ -132,16 +132,7 @@ Use the `attrs.background` attribute on `tableHeader` to add background colors:
 | Red light | `#ffebe6` | Error/Critical |
 | Purple light | `#eae6ff` | Notes/Special |
 
-### Row Highlighting Example
-
-For highlighting important rows (e.g., Total row):
-
-```json
-{"type": "tableRow", "content": [
-  {"type": "tableCell", "attrs": {"background": "#f4f5f7"}, "content": [...]},
-  {"type": "tableCell", "attrs": {"background": "#f4f5f7"}, "content": [...]}
-]}
-```
+Row highlighting: use `"attrs": {"background": "HEX"}` on `tableCell` (same pattern as header).
 
 ---
 
@@ -160,84 +151,26 @@ For highlighting important rows (e.g., Total row):
 | **Requirements** | 🔵 Blue | `#deebff` | Specs, requirements |
 | **Default** | ⚪ Grey | `#f4f5f7` | Generic tables |
 
-### ADF Example: Scope Tables with Semantic Colors
+### ADF Pattern: Semantic Color Header
 
-**Files (New) - Green Header:**
-
-```json
-{"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": "Files (New)"}]},
-{
-  "type": "table",
-  "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
-  "content": [
-    {"type": "tableRow", "content": [
-      {"type": "tableHeader", "attrs": {"background": "#e3fcef"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "File Path"}]}]},
-      {"type": "tableHeader", "attrs": {"background": "#e3fcef"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Description"}]}]}
-    ]},
-    {"type": "tableRow", "content": [
-      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "src/pages/feature/index.tsx", "marks": [{"type": "code"}]}]}]},
-      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Main page for the feature"}]}]}
-    ]}
-  ]
-}
-```
-
-**Files (Modify) - Yellow Header:**
+All semantic tables use the same ADF pattern — only change `background` hex and column names:
 
 ```json
-{"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": "Files (Modify)"}]},
-{
-  "type": "table",
-  "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
-  "content": [
-    {"type": "tableRow", "content": [
-      {"type": "tableHeader", "attrs": {"background": "#fffae6"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "File Path"}]}]},
-      {"type": "tableHeader", "attrs": {"background": "#fffae6"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Changes"}]}]}
-    ]},
-    {"type": "tableRow", "content": [
-      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "src/services/auth.service.ts", "marks": [{"type": "code"}]}]}]},
-      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Add API calls for the feature"}]}]}
-    ]}
-  ]
-}
-```
-
-**Reference - Purple Header:**
-
-```json
-{
-  "type": "table",
-  "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
-  "content": [
-    {"type": "tableRow", "content": [
-      {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
-      {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}]}
-    ]},
-    {"type": "tableRow", "content": [
-      {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "User Story"}]}]},
-      {"type": "tableCell", "content": [{"type": "paragraph", "content": [
-        {"type": "text", "text": "BEP-XXX", "marks": [{"type": "link", "attrs": {"href": "https://100-stars.atlassian.net/browse/BEP-XXX"}}]}
-      ]}]}
-    ]}
-  ]
-}
+{"type": "tableHeader", "attrs": {"background": "HEX_CODE"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Column Name"}]}]}
 ```
 
 ### When to Use Semantic Colors
 
-| Section | Recommended Color |
-| --- | --- |
-| 📁 Scope > Files (New) | 🟢 `#e3fcef` |
-| 📁 Scope > Files (Modify) | 🟡 `#fffae6` |
-| 📁 Scope > Files (Delete) | 🔴 `#ffebe6` |
-| 🔗 Reference | 🟣 `#eae6ff` |
-| 📋 Requirements | 🔵 `#deebff` |
-| 📊 RICE Score, Metrics | ⚪ `#f4f5f7` (default) |
-| 📊 AC Coverage | ⚪ `#f4f5f7` (default) |
+| Section | Color | Hex |
+| --- | --- | --- |
+| 📁 Scope > Files (New) | 🟢 | `#e3fcef` |
+| 📁 Scope > Files (Modify) | 🟡 | `#fffae6` |
+| 📁 Scope > Files (Delete) | 🔴 | `#ffebe6` |
+| 🔗 Reference | 🟣 | `#eae6ff` |
+| 📋 Requirements | 🔵 | `#deebff` |
+| 📊 Default (RICE, AC, Metrics) | ⚪ | `#f4f5f7` |
 
-> **Tip:** Use the same header color for the entire row - do not mix colors in the same header row
-
----
+> Same color for entire header row — do not mix colors in same row
 
 ---
 
@@ -286,35 +219,15 @@ jira_update_issue({
 
 ---
 
-## Inline Code Examples
+## Inline Code
 
-**File path:**
+Mark file paths, routes, components, functions with `{"type": "code"}`:
 
 ```json
 {"type": "text", "text": "src/pages/coupon/index.tsx", "marks": [{"type": "code"}]}
 ```
 
-**Route:**
-
-```json
-{"type": "text", "text": "/coupon/topup-credit", "marks": [{"type": "code"}]}
-```
-
-**Component:**
-
-```json
-{"type": "text", "text": "CouponCard", "marks": [{"type": "code"}]}
-```
-
-**Combined text:**
-
-```json
-{"type": "paragraph", "content": [
-  {"type": "text", "text": "Navigate to "},
-  {"type": "text", "text": "/coupon", "marks": [{"type": "code"}]},
-  {"type": "text", "text": " page"}
-]}
-```
+Mixed text: wrap only the code portion in marks, leave surrounding text plain.
 
 ---
 

@@ -207,126 +207,26 @@
 ### chore Template
 
 **Use case:** Maintenance, dependency updates, configs
+**Summary:** `[Chore] [Title]`
 
-```json
-{
-  "projectKey": "BEP",
-  "type": "Task",
-  "summary": "[Chore] [Title]",
-  "description": {
-    "type": "doc",
-    "version": 1,
-    "content": [
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🎯 Objective"}]},
-      {
-        "type": "panel",
-        "attrs": {"panelType": "info"},
-        "content": [
-          {"type": "paragraph", "content": [{"type": "text", "text": "[Objective of this task]"}]}
-        ]
-      },
-      {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "📋 Tasks"}]},
-      {
-        "type": "panel",
-        "attrs": {"panelType": "note"},
-        "content": [
-          {"type": "bulletList", "content": [
-            {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "⬜ [Task 1]"}]}]},
-            {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "⬜ [Task 2]"}]}]},
-            {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "⬜ [Task 3]"}]}]}
-          ]}
-        ]
-      },
-      {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔗 Reference"}]},
-      {
-        "type": "table",
-        "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
-        "content": [
-          {"type": "tableRow", "content": [
-            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
-            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}]}
-          ]},
-          {"type": "tableRow", "content": [
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Docs"}]}]},
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Link to relevant docs]"}]}]}
-          ]}
-        ]
-      }
-    ]
-  }
-}
-```
+**Sections (same ADF patterns as tech-debt):**
+
+1. `🎯 Objective` — panel(info): task objective
+2. `📋 Tasks` — panel(note): bulletList with ⬜ checkboxes
+3. `🔗 Reference` — purple table (same as tech-debt)
 
 ---
 
 ### spike Template
 
 **Use case:** Research, investigation, POC
+**Summary:** `[Spike] [Title]`
 
-```json
-{
-  "projectKey": "BEP",
-  "type": "Task",
-  "summary": "[Spike] [Title]",
-  "description": {
-    "type": "doc",
-    "version": 1,
-    "content": [
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "❓ Research Question"}]},
-      {
-        "type": "panel",
-        "attrs": {"panelType": "info"},
-        "content": [
-          {"type": "paragraph", "content": [{"type": "text", "text": "[Main question to be answered]"}]}
-        ]
-      },
-      {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "📋 Context"}]},
-      {"type": "paragraph", "content": [{"type": "text", "text": "[Background and rationale - why this research is needed]"}]},
-      {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔍 Investigation Areas"}]},
-      {"type": "bulletList", "content": [
-        {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Area 1 - topics to study]"}]}]},
-        {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Area 2 - things to test]"}]}]},
-        {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Area 3 - items to compare]"}]}]}
-      ]},
-      {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "📝 Findings"}]},
-      {
-        "type": "panel",
-        "attrs": {"panelType": "note"},
-        "content": [
-          {"type": "paragraph", "content": [{"type": "text", "text": "[To be filled after research is complete]", "marks": [{"type": "em"}]}]}
-        ]
-      },
-      {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "💡 Recommendations"}]},
-      {
-        "type": "panel",
-        "attrs": {"panelType": "success"},
-        "content": [
-          {"type": "paragraph", "content": [{"type": "text", "text": "[To be filled after research is complete]", "marks": [{"type": "em"}]}]}
-        ]
-      },
-      {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔗 Reference"}]},
-      {
-        "type": "table",
-        "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
-        "content": [
-          {"type": "tableRow", "content": [
-            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
-            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}]}
-          ]},
-          {"type": "tableRow", "content": [
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Docs"}]}]},
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "[Official documentation]"}]}]}
-          ]}
-        ]
-      }
-    ]
-  }
-}
-```
+**Sections:**
+
+1. `❓ Research Question` — panel(info): main question
+2. `📋 Context` — paragraph: background/rationale
+3. `🔍 Investigation Areas` — bulletList: topics to study
+4. `📝 Findings` — panel(note): *[To be filled after research]*
+5. `💡 Recommendations` — panel(success): *[To be filled after research]*
+6. `🔗 Reference` — purple table (same as tech-debt)

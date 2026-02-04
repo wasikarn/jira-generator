@@ -127,24 +127,9 @@ jira_create_issue({
 
 ## QA Test Case Template (ADF) - TWO-STEP WORKFLOW
 
-> ⚠️ **CRITICAL:** Uses the same Two-Step Workflow as the Sub-task Template
-
-### Step 1: Create QA Sub-task Shell (MCP)
-
-```typescript
-jira_create_issue({
-  project_key: "BEP",
-  summary: "[QA] - Test: [Feature Name]",
-  issue_type: "Subtask",
-  additional_fields: { parent: { key: "BEP-XXX" } }  // Parent Story key
-})
-```
-
-### Step 2: Update QA Description (acli + ADF)
-
-> Used with `acli jira workitem edit --from-json ... --yes`
-
-**Important:** Use bulletList inside panels (not nested tables)
+> Same Two-Step as Sub-task above: MCP create (`summary: "[QA] - Test: [Feature Name]"`) → acli edit
+>
+> **Important:** Use bulletList inside panels (not nested tables)
 
 ```json
 {

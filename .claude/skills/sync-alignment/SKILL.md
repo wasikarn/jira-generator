@@ -64,30 +64,11 @@ Discovery algorithm:
    - epic: confluence_search(epic_title) → Epic Doc
 ```
 
-**Token optimization:** fetch only `fields="summary,status,issuetype,parent"` (do not fetch description)
+**Token optimization:** fetch only `fields="summary,status,issuetype,parent"` (no description)
 
-Output: inventory table
+Output: inventory table (Type, Key/ID, Title, Status) for all discovered artifacts.
 
-```text
-| # | Type       | Key/ID     | Title                  | Status      |
-|---|------------|------------|------------------------|-------------|
-| 1 | Epic       | BEP-100    | Feature X              | In Progress |
-| 2 | Epic Doc   | pg:123456  | Epic: Feature X        | -           |
-| 3 | Story      | BEP-101    | Story A                | To Do       |
-| 4 | Tech Note  | pg:789012  | Tech Note: Story A     | -           |
-| 5 | Sub-task   | BEP-102    | [BE] - API endpoint    | To Do       |
-| 6 | Sub-task   | BEP-103    | [FE-Admin] - Form      | To Do       |
-| 7 | Sub-task   | BEP-104    | [QA] - Test plan       | To Do       |
-```
-
-**Gate:** User selects scope:
-
-| Scope | Description |
-| --- | --- |
-| Full | Sync all artifacts (Jira + Confluence) |
-| Jira-only | Sync only Jira issues |
-| Confluence-only | Sync only Confluence pages |
-| Selective | User selects specific artifacts to sync |
+**Gate:** User selects scope: Full (Jira+Confluence) / Jira-only / Confluence-only / Selective
 
 ### 3. Detect Changes
 
@@ -108,36 +89,10 @@ User describes changes, then classify:
 
 ### 4. Impact Analysis
 
-Map changes → affected artifacts:
+Map changes → affected artifacts table (Artifact, Impact, Reason).
 
-```text
-| Artifact            | Impact    | Reason                          |
-|---------------------|-----------|--------------------------------|
-| BEP-101 Story       | ORIGIN    | AC2 modified                    |
-| BEP-102 [BE]        | UPDATE    | AC2 maps to API endpoint        |
-| BEP-103 [FE-Admin]  | UPDATE    | AC2 maps to admin form          |
-| BEP-104 [QA]        | FLAG      | Test cases for AC2 (QA review)  |
-| pg:789012 Tech Note | UPDATE    | API spec section needs update   |
-| BEP-100 Epic        | NO CHANGE | Scope unchanged                 |
-| pg:123456 Epic Doc  | NO CHANGE | Summary unchanged               |
-```
-
-Impact types:
-
-| Impact | Action |
-| --- | --- |
-| ORIGIN | Starting point (already changed) |
-| UPDATE | Will be updated in Phase 7 |
-| FLAG | Alert for review (no auto-update) |
-| NO CHANGE | No action needed |
-
-Sync directions:
-
-| Direction | Example |
-| --- | --- |
-| DOWN | Story → Sub-tasks, Epic → Stories |
-| UP | Sub-task → Story, Story → Epic |
-| SIDEWAYS | Jira → Confluence, Confluence → Jira |
+Impact types: `ORIGIN` (starting point) / `UPDATE` (will sync) / `FLAG` (review only) / `NO CHANGE`
+Directions: DOWN (parent→child) / UP (child→parent) / SIDEWAYS (Jira↔Confluence)
 
 **Gate:** User approves sync plan
 
@@ -170,79 +125,24 @@ Fetch full description only for artifacts with impact = UPDATE:
 
 Order: Parents first → Children → Confluence
 
-```bash
-# 1. Epic (if changed)
-acli jira workitem edit --from-json tasks/sync-bep-epic.json --yes
-
-# 2. Story (if changed)
-acli jira workitem edit --from-json tasks/sync-bep-story.json --yes
-
-# 3. Sub-tasks (if changed)
-acli jira workitem edit --from-json tasks/sync-bep-subtask1.json --yes
-acli jira workitem edit --from-json tasks/sync-bep-subtask2.json --yes
-
-# 4. Confluence - surgical:
-python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
-  --page-id XXX --find "old text" --replace "new text"
-
-# 4. Confluence - full rewrite:
-python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
-  --page-id XXX --content-file tasks/sync-page-xxx.md
-
-# OR surgical Jira (text-only changes):
-python3 .claude/skills/atlassian-scripts/scripts/update_jira_description.py \
-  --config tasks/sync-jira-fixes.json
-```
-
 **Tool selection:**
 
-| Jira Change Type | Tool |
-| --- | --- |
-| Rewrite description | `acli --from-json` (ADF) |
-| Text replacement only | `update_jira_description.py` (surgical) |
-| Fields only (no description) | MCP `jira_update_issue` |
+| Change Type | Jira Tool | Confluence Tool |
+| --- | --- | --- |
+| Rewrite description | `acli --from-json` (ADF) | `create_confluence_page.py --page-id` |
+| Text replacement | `update_jira_description.py` (surgical) | `update_confluence_page.py --find --replace` |
+| Fields only | MCP `jira_update_issue` | — |
+| Code blocks/macros | — | `update_page_storage.py` |
 
-| Confluence Change Type | Tool |
-| --- | --- |
-| Text replacement | `update_confluence_page.py --find --replace` |
-| Section/full rewrite | `create_confluence_page.py --page-id --content-file` |
-| Code blocks/macros | `update_page_storage.py --page-id --content-file` |
+File pattern: `tasks/sync-bep-{type}.json` (Jira) / `tasks/sync-page-xxx.md` (Confluence)
 
 ### 8. Verify & Report
 
-```bash
-# Verify Confluence alignment
-python3 .claude/skills/atlassian-scripts/scripts/audit_confluence_pages.py \
-  --config tasks/sync-audit.json
-```
+Verify with `audit_confluence_pages.py --config tasks/sync-audit.json`
 
-Output:
+Output: Summary table (Artifact, Action, Status) + flagged items for review.
 
-```text
-## Sync Complete
-
-### Origin: BEP-101 (Story - AC2 modified)
-
-| Artifact            | Action  | Status |
-|---------------------|---------|--------|
-| BEP-101 Story       | ORIGIN  | -      |
-| BEP-102 [BE]        | UPDATED | OK     |
-| BEP-103 [FE-Admin]  | UPDATED | OK     |
-| BEP-104 [QA]        | FLAGGED | Review |
-| pg:789012 Tech Note | UPDATED | OK     |
-| BEP-100 Epic        | SKIPPED | N/A    |
-
-Flagged for review:
-- BEP-104 [QA]: AC2 changed → test cases may need update
-
-→ /verify-issue BEP-101 --with-subtasks
-```
-
-Cleanup:
-
-```bash
-rm tasks/sync-*.json tasks/sync-*.md
-```
+Post-sync: `rm tasks/sync-*.json tasks/sync-*.md` → `/verify-issue BEP-XXX --with-subtasks`
 
 ---
 
@@ -288,6 +188,5 @@ rm tasks/sync-*.json tasks/sync-*.md
 - [Sub-task Template](../shared-references/templates-subtask.md)
 - [Task Template](../shared-references/templates-task.md)
 - [Tool Selection](../shared-references/tools.md)
-- [Verification Checklist](../shared-references/verification-checklist.md) - Quality checks
-- [Atlassian Scripts](../atlassian-scripts/SKILL.md)
 - [Verification Checklist](../shared-references/verification-checklist.md)
+- [Atlassian Scripts](../atlassian-scripts/SKILL.md)

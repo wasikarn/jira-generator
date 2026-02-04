@@ -12,42 +12,21 @@ Create or update a Confluence page with proper code block formatting.
 
 **Location:** `.claude/skills/atlassian-scripts/scripts/create_confluence_page.py`
 
-### Create New Page
+### Usage
 
 ```bash
-# Basic create
+# Create new page
 python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
-  --space BEP \
-  --title "Technical Spec: Feature X" \
-  --content-file content.md
+  --space BEP --title "Technical Spec: Feature X" --content-file content.md
 
-# Create as child of parent page
+# Create as child page
+# Add: --parent-id 123456789
+
+# Update existing page
 python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
-  --space BEP \
-  --title "Sub Page" \
-  --parent-id 123456789 \
-  --content-file content.md
-```
+  --page-id 144244902 --content-file updated-content.md
 
-### Update Existing Page
-
-```bash
-# Update from file
-python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
-  --page-id 144244902 \
-  --content-file updated-content.md
-
-# Update with inline content
-python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
-  --page-id 144244902 \
-  --content "# Updated Title\n\nNew content here"
-
-# Dry run (preview storage format)
-python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
-  --space BEP \
-  --title "Test" \
-  --content "# Hello World" \
-  --dry-run
+# Options: --content "inline" | --dry-run | --verbose
 ```
 
 ### Arguments
@@ -91,29 +70,10 @@ Generic script for find/replace content in Confluence pages.
 ### Usage
 
 ```bash
-# Simple replacement
 python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
-  --page-id 154730498 \
-  --find "5 minutes" \
-  --replace "3 minutes"
+  --page-id 154730498 --find "old" --replace "new"
 
-# Multiple replacements
-python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
-  --page-id 154730498 \
-  --find "5 minutes" --replace "3 minutes" \
-  --find "300" --replace "180"
-
-# Dry run (preview only)
-python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
-  --page-id 154730498 \
-  --find "old text" --replace "new text" \
-  --dry-run
-
-# Regex replacement
-python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
-  --page-id 154730498 \
-  --find "v\\d+\\.\\d+" --replace "v2.0" \
-  --regex
+# Multiple: repeat --find/--replace pairs | --regex | --dry-run | --verbose
 ```
 
 ### Arguments
@@ -121,11 +81,10 @@ python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
 | Argument | Required | Description |
 | --- | --- | --- |
 | `--page-id` | ✅ | Confluence page ID |
-| `--find` | ✅ | Text to find (can repeat) |
-| `--replace` | ✅ | Replacement text (must match --find count) |
-| `--regex` | ❌ | Treat find as regex pattern |
-| `--dry-run` | ❌ | Preview changes without applying |
-| `--verbose` | ❌ | Enable debug logging |
+| `--find` | ✅ | Text to find (repeatable) |
+| `--replace` | ✅ | Replacement (must match --find count) |
+| `--regex` | ❌ | Regex mode |
+| `--dry-run` | ❌ | Preview only |
 
 ---
 
@@ -138,43 +97,18 @@ Move page(s) under a different parent page without modifying content.
 ### Usage
 
 ```bash
-# Move single page
 python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py \
-  --page-id 144244902 \
-  --parent-id 153518083
+  --page-id 144244902 --parent-id 153518083
 
-# Batch move multiple pages
-python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py \
-  --page-ids 144244902,144015541,144015575 \
-  --parent-id 153518083
-
-# Dry run (preview only)
-python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py \
-  --page-id 144244902 \
-  --parent-id 153518083 \
-  --dry-run
+# Batch: --page-ids 123,456,789 | --dry-run | --verbose
 ```
-
-### Arguments
 
 | Argument | Required | Description |
 | --- | --- | --- |
-| `--page-id` | ✅* | Single page ID to move |
-| `--page-ids` | ✅* | Comma-separated list of page IDs to move |
+| `--page-id` / `--page-ids` | ✅ | Single or comma-separated page IDs |
 | `--parent-id` | ✅ | Target parent page ID |
-| `--dry-run` | ❌ | Preview changes without applying |
-| `--verbose` | ❌ | Enable debug logging |
 
-*Must specify either `--page-id` or `--page-ids`.
-
-### Why Use This Script
-
-MCP `confluence_update_page` cannot move a page without overwriting its content.
-This script uses the Confluence REST API directly:
-
-```text
-PUT /rest/api/content/{pageId}/move/append/{parentId}
-```
+> **Why:** MCP can't move pages without overwriting content. Uses `PUT /rest/api/content/{pageId}/move/append/{parentId}`
 
 ---
 
@@ -187,35 +121,11 @@ Update a page with raw storage format for macros (ToC, Children, Status).
 ### Usage
 
 ```bash
-# Update from HTML file with macros
 python3 .claude/skills/atlassian-scripts/scripts/update_page_storage.py \
-  --page-id 156598299 \
-  --content-file content.html
+  --page-id 156598299 --content-file content.html
 
-# Update with inline storage content
-python3 .claude/skills/atlassian-scripts/scripts/update_page_storage.py \
-  --page-id 156598299 \
-  --content "<h1>Title</h1><ac:structured-macro ac:name=\"toc\"/>"
-
-# Dry run (preview only)
-python3 .claude/skills/atlassian-scripts/scripts/update_page_storage.py \
-  --page-id 156598299 \
-  --content-file content.html \
-  --dry-run
+# Options: --content "inline" | --title "New Title" | --dry-run | --verbose
 ```
-
-### Arguments
-
-| Argument | Required | Description |
-| --- | --- | --- |
-| `--page-id` | ✅ | Confluence page ID |
-| `--content` | ✅* | Raw storage format content (inline) |
-| `--content-file` | ✅* | Path to file with storage content |
-| `--title` | ❌ | New title (optional) |
-| `--dry-run` | ❌ | Preview changes without applying |
-| `--verbose` | ❌ | Enable debug logging |
-
-*Must specify either `--content` or `--content-file`.
 
 ### Common Macros
 
@@ -243,37 +153,12 @@ Fix code blocks from `<pre class="highlight"><code>` to `<ac:structured-macro ac
 ### Usage
 
 ```bash
-# Fix single page
 python3 .claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py \
   --page-id 144244902
-
-# Fix multiple pages
-python3 .claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py \
-  --page-ids 144244902,144015541,144015575,143720672
-
-# Dry run (preview only)
-python3 .claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py \
-  --page-ids 144244902,144015541 \
-  --dry-run
+# Batch: --page-ids 123,456,789 | --dry-run | --verbose
 ```
 
-### Arguments
-
-| Argument | Required | Description |
-| --- | --- | --- |
-| `--page-id` | ✅* | Single page ID to fix |
-| `--page-ids` | ✅* | Comma-separated list of page IDs to fix |
-| `--dry-run` | ❌ | Preview changes without applying |
-| `--verbose` | ❌ | Enable debug logging |
-
-*Must specify either `--page-id` or `--page-ids`.
-
-### What it does
-
-1. Fetch the current page content
-2. Find `<pre class="highlight"><code class="language-xxx">` patterns
-3. Convert to `<ac:structured-macro ac:name="code">` format
-4. Update the page via REST API
+Converts `<pre class="highlight"><code>` → `<ac:structured-macro ac:name="code">` via REST API.
 
 ---
 
@@ -286,49 +171,21 @@ Verify content across multiple Confluence pages for presence/absence of specifie
 ### Usage
 
 ```bash
-# Audit single page
+# Single page
 python3 .claude/skills/atlassian-scripts/scripts/audit_confluence_pages.py \
-  --page-id 153518083 \
-  --label "Epic Parent" \
-  --should-have "BEP-2883" "2026" \
-  --should-not-have "2025-01-21"
+  --page-id 153518083 --should-have "BEP-2883" --should-not-have "2025-01-21"
 
-# Audit multiple pages from JSON config
-python3 .claude/skills/atlassian-scripts/scripts/audit_confluence_pages.py \
-  --config audit.json
+# Batch from JSON config
+python3 .claude/skills/atlassian-scripts/scripts/audit_confluence_pages.py --config audit.json
 ```
 
-### Config JSON Format
+Config: `[{"page_id":"123","label":"Name","should_have":["X"],"should_not_have":["Y"]}]`
 
-```json
-[
-  {
-    "page_id": "153518083",
-    "label": "Epic Parent Page",
-    "should_have": ["BEP-2883", "2026-01-21", "15 stories"],
-    "should_not_have": ["2025-01-21"]
-  },
-  {
-    "page_id": "144244902",
-    "label": "BEP-2755 Credit",
-    "should_have": ["billboard_codes", "IN STAGING"],
-    "should_not_have": ["billboard_ids"]
-  }
-]
-```
-
-### Arguments
-
-| Argument | Required | Description |
-| --- | --- | --- |
-| `--config` | ✅* | Path to JSON config file |
-| `--page-id` | ✅* | Single page ID to audit |
-| `--label` | ❌ | Label for the page (with --page-id) |
-| `--should-have` | ❌ | Strings that MUST be present |
-| `--should-not-have` | ❌ | Strings that MUST NOT be present |
-| `--verbose` | ❌ | Enable debug logging |
-
-*Must specify either `--config` or `--page-id`.
+| Argument | Description |
+| --- | --- |
+| `--config` / `--page-id` | JSON config or single page (one required) |
+| `--should-have` / `--should-not-have` | Presence/absence checks (with --page-id) |
+| `--label`, `--verbose` | Display label, debug logging |
 
 ---
 
@@ -342,68 +199,23 @@ Preserves all formatting (panels, tables, marks, code blocks).
 ### Usage
 
 ```bash
-# Single issue with inline replacements
+# Single issue
 python3 .claude/skills/atlassian-scripts/scripts/update_jira_description.py \
-  --issue BEP-2819 \
-  --find "billboard_ids" --replace "billboard_codes"
+  --issue BEP-2819 --find "old" --replace "new"
 
-# Multiple replacements for single issue
-python3 .claude/skills/atlassian-scripts/scripts/update_jira_description.py \
-  --issue BEP-2819 \
-  --find "old1" --replace "new1" \
-  --find "old2" --replace "new2"
-
-# Batch from JSON config
-python3 .claude/skills/atlassian-scripts/scripts/update_jira_description.py \
-  --config fixes.json
-
-# Dry run (preview only)
-python3 .claude/skills/atlassian-scripts/scripts/update_jira_description.py \
-  --config fixes.json --dry-run
+# Batch: --config fixes.json | --dry-run | --verbose
 ```
 
-### Config JSON Format (Jira)
+Config: `{"BEP-2819": [["old","new"]], "BEP-2755": [["old1","new1"],["old2","new2"]]}`
 
-```json
-{
-  "BEP-2819": [
-    ["billboard_ids", "billboard_codes"]
-  ],
-  "BEP-2755": [
-    ["old text 1", "new text 1"],
-    ["old text 2", "new text 2"]
-  ]
-}
-```
+| Argument | Description |
+| --- | --- |
+| `--config` / `--issue` | JSON config or single issue key (one required) |
+| `--find`, `--replace` | Text pairs (repeatable, with --issue) |
 
-### Arguments
+**How:** GET ADF via REST v3 → walk tree → replace text nodes → PUT back. Preserves all formatting (panels, tables, marks).
 
-| Argument | Required | Description |
-| --- | --- | --- |
-| `--config` | ✅* | Path to JSON config file |
-| `--issue` | ✅* | Single issue key (e.g., BEP-2819) |
-| `--find` | ❌ | Text to find (repeatable, with --issue) |
-| `--replace` | ❌ | Replacement text (repeatable, with --issue) |
-| `--dry-run` | ❌ | Preview changes only |
-| `--verbose` | ❌ | Enable debug logging |
-
-*Must specify either `--config` or `--issue`.
-
-### How It Works
-
-1. GET issue via Jira REST API v3 (returns ADF format)
-2. Deep copy ADF description
-3. Walk ADF tree recursively, replace text in text nodes
-4. PUT modified ADF back via REST API v3
-5. All formatting (panels, tables, marks) preserved
-
-### Key Difference from MCP
-
-| Approach | Format | Preserves Formatting |
-| --- | --- | --- |
-| MCP `jira_update_issue` | Wiki markup | ❌ Converts to wiki |
-| `acli --from-json` | ADF (must build from scratch) | ⚠️ Replaces entire description |
-| **This script** | ADF (surgical edit) | ✅ Modifies only text nodes |
+**vs MCP:** MCP converts to wiki markup (loses formatting). `acli` replaces entire description. This script does **surgical text-only edits**.
 
 ---
 
