@@ -6,6 +6,14 @@ Agile Documentation System for **Tathep Platform** — skills-based Jira/Conflue
 
 **Structure:** `.claude/skills/` — 18 skills (`SKILL.md` → phases → `shared-references/`) + `atlassian-scripts/` (7 Python scripts) + `shared-references/` (17 docs)
 
+```text
+.claude/skills/{name}/SKILL.md   ← skill entry (reads shared-references/)
+.claude/skills/shared-references/ ← 17 docs: templates, tools, best-practices
+.claude/skills/atlassian-scripts/ ← 7 Python scripts + lib/ (REST API)
+```
+
+> Skill `CLAUDE.md` = claude-mem only (auto-generated). All skill logic lives in `SKILL.md`.
+
 ## Project Settings
 
 | Setting | Value |
@@ -13,6 +21,8 @@ Agile Documentation System for **Tathep Platform** — skills-based Jira/Conflue
 | Jira Site | `100-stars.atlassian.net` |
 | Project Key | `BEP` |
 | Confluence Space | `BEP` |
+
+**Prerequisites:** `acli` CLI, MCP (Jira + Confluence + Figma + GitHub), Python 3.x (`atlassian-scripts/`)
 
 ## Skill Commands
 
@@ -107,12 +117,7 @@ Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 1. MCP: `jira_create_issue({project_key:"BEP", summary:"...", issue_type:"Subtask", additional_fields:{parent:{key:"BEP-XXX"}}})`
 2. acli: `acli jira workitem edit --from-json subtask.json --yes`
 
-**Panels:** `info`(Blue/narrative) `success`(Green/happy) `warning`(Yellow/edge) `error`(Red/error) `note`(Purple/notes)
-**Table Colors:** `#f4f5f7`(header) `#e3fcef`(new) `#fffae6`(modify) `#ffebe6`(delete) `#eae6ff`(ref) `#deebff`(req)
-**AC Format:** panels + Given/When/Then → Happy=`success`, Edge=`warning`, Error=`error`
-**Inline code:** `{"type":"text","text":"path/file.ts","marks":[{"type":"code"}]}`
 **Smart Link:** `{"type":"inlineCard","attrs":{"url":"https://...atlassian.net/browse/BEP-XXX"}}` — auto-resolves summary+status
-**Code-only replace:** `replace_exact_code_text(node, old, new)` — targets code-marked nodes only, avoids breaking plain text
 
 ### Common Mistakes (project-specific)
 
@@ -126,12 +131,8 @@ Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 | Missing `version: 1` | ADF root must have `{"type":"doc","version":1,"content":[]}` |
 | Code blocks no syntax highlight (Confluence) | Run `fix_confluence_code_blocks.py --page-id` after MCP |
 | Confluence macros rendered as text | Use `update_page_storage.py` instead of MCP |
-| MCP `jira_update_issue` sprint=null → no effect | Agile REST: `api._request('POST', '/rest/agile/1.0/backlog/issue', {'issues': [numeric_ids]})` |
-| Agile backlog API กับ issue key → 204 แต่ไม่ move | ต้องใช้ numeric ID จาก `issue["id"]` ไม่ใช่ key "BEP-XXX" |
-| Sprint field `{"id": 640}` → error | `customfield_10020` รับ plain number: `{"customfield_10020": 640}` |
-| Issue link "Relates to" → error | ชื่อถูกคือ `"Relates"` / valid: `Blocks`, `Duplicate`, `Cloners`, `Test Case` |
-| Epic child parent `{key:"BEP-XXX"}` → error | Epic child ใช้ string: `{parent: "BEP-2883"}` / Subtask ใช้ object: `{parent: {key: "BEP-XXX"}}` |
-| `key in (...) ORDER BY` → parse error | ลบ `ORDER BY` เมื่อใช้ `key in (...)` / ใช้ `"Parent Link" = BEP-XXX ORDER BY...` แทน |
+| Permission denied | Re-authenticate MCP |
+| Workflow interrupted mid-phase | Note phase → search Jira → resume from last completed |
 
 ## References (load when needed)
 
@@ -143,29 +144,12 @@ Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 ## Core Principles
 
 1. **Phase-based workflows** - Follow phases in order, never skip steps
-2. **ADF via acli** - Use `acli --from-json` for Jira descriptions (never MCP for descriptions)
-3. **Thai + loanwords** - Content in Thai, technical terms in English
-4. **Clear handoffs** - Each role passes structured context to next
-5. **INVEST compliance** - All items pass INVEST criteria
-6. **Traceability** - Everything links back to parent (Story→Epic, Sub-task→Story)
+2. **Clear handoffs** - Each role passes structured context to next
+3. **Traceability** - Everything links back to parent (Story→Epic, Sub-task→Story)
 
 ## Critical: Explore Codebase First
 
-> **No Explore = No Design** — Must `Task(Explore)` before creating Sub-tasks
-
-**Why:** Without exploring → generic paths (useless), duplicate work, wrong conventions
-
-**How:** `Task(subagent_type="Explore")` with paths from **Service Tags** (see global) — e.g., "Find credit top-up page in `[BE]`"
-
-## Troubleshooting
-
-> ADF/tool errors → **Common Mistakes** above | Full recovery → `shared-references/troubleshooting.md`
-
-| Issue | Solution |
-| --- | --- |
-| Wrong project key | Always use `BEP` |
-| "Issue not found" | Check format: `BEP-XXX` |
-| "Permission denied" | Re-authenticate MCP |
-| Workflow interrupted | Note phase → search Jira → resume from last completed |
+> **No Explore = No Design** — `Task(Explore)` before creating Sub-tasks, otherwise → generic paths, wrong conventions
+> Example: "Find credit top-up page in `[BE]`" — uses **Service Tags** paths from global
 
 > Run `/optimize-context` when CLAUDE.md feels outdated or context exceeds 15 KB
