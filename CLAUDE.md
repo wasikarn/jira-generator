@@ -58,6 +58,7 @@ Update flows:
 Standalone: /create-task, /create-doc, /update-doc
 Planning:   /plan-sprint ⭐ (reads Jira, assigns work)
 Verify:     /verify-issue ← always run AFTER creating/updating
+Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 ```
 
 ### Common Skill Mistakes
@@ -109,6 +110,8 @@ Verify:     /verify-issue ← always run AFTER creating/updating
 **Table Colors:** `#f4f5f7`(header) `#e3fcef`(new) `#fffae6`(modify) `#ffebe6`(delete) `#eae6ff`(ref) `#deebff`(req)
 **AC Format:** panels + Given/When/Then → Happy=`success`, Edge=`warning`, Error=`error`
 **Inline code:** `{"type":"text","text":"path/file.ts","marks":[{"type":"code"}]}`
+**Smart Link:** `{"type":"inlineCard","attrs":{"url":"https://...atlassian.net/browse/BEP-XXX"}}` — auto-resolves summary+status
+**Code-only replace:** `replace_exact_code_text(node, old, new)` — targets code-marked nodes only, avoids breaking plain text
 
 ### Common Mistakes (project-specific)
 
@@ -122,6 +125,8 @@ Verify:     /verify-issue ← always run AFTER creating/updating
 | Missing `version: 1` | ADF root must have `{"type":"doc","version":1,"content":[]}` |
 | Code blocks no syntax highlight (Confluence) | Run `fix_confluence_code_blocks.py --page-id` after MCP |
 | Confluence macros rendered as text | Use `update_page_storage.py` instead of MCP |
+| MCP `jira_update_issue` sprint=null → no effect | Agile REST: `api._request('POST', '/rest/agile/1.0/backlog/issue', {'issues': [numeric_ids]})` |
+| Agile backlog API กับ issue key → 204 แต่ไม่ move | ต้องใช้ numeric ID จาก `issue["id"]` ไม่ใช่ key "BEP-XXX" |
 
 ## References (load when needed)
 
