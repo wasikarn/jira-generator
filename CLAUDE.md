@@ -10,6 +10,8 @@ Agile Documentation System for **Tathep Platform** — skills-based Jira/Conflue
 .claude/skills/{name}/SKILL.md   ← skill entry (reads shared-references/)
 .claude/skills/shared-references/ ← 17 docs: templates, tools, best-practices
 .claude/skills/atlassian-scripts/ ← 7 Python scripts + lib/ (REST API)
+tasks/                            ← ADF JSON output (acli --from-json input)
+scripts/                          ← setup + sync utilities
 ```
 
 > Skill `CLAUDE.md` = claude-mem only (auto-generated). All skill logic lives in `SKILL.md`.
@@ -86,7 +88,7 @@ Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 
 > Compressed from `shared-references/` — load full templates only when needed
 
-> Tool Selection, ADF basics, Writing Style, Verification, Service Tags → see global `~/.claude/CLAUDE.md`
+> Tool Selection, ADF basics (panels, colors, AC format, inline code), Writing Style, Verification, Service Tags, Common ADF/tool errors → see global `~/.claude/CLAUDE.md`
 
 ### jira_get_issue — always use `fields` param
 
