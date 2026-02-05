@@ -69,10 +69,9 @@ What do you need?
 | **Move to sprint** | MCP | `jira_update_issue(issue_key: "BEP-XXX", additional_fields: {"customfield_10020": 640})` |
 | **Get sprints** | MCP | `jira_get_sprints_from_board(board_id: "2", state: "future")` |
 
-> **BEP Board/Sprint Info:**
-> Board ID: `2` · Sprint IDs: `640` (S32), `673` (S33), `706` (S34), `707` (S35), `708` (S36)
-> Date fields: `customfield_10015` (Start date), `duedate` (Due date) · Sprint field: `customfield_10020` (plain number)
-
+> **BEP Board/Sprint Info:** Board ID `2` · Sprint IDs: `640` (S32), `673` (S33), `706` (S34), `707` (S35), `708` (S36)
+> Date fields: `customfield_10015` (Start), `duedate` (Due) · Sprint field: `customfield_10020` (plain number)
+>
 > **Issue Link Types (BEP):** `Relates` · `Blocks` · `Duplicate` · `Cloners` · `Test Case`
 > ⚠️ ใช้ `"Relates"` ไม่ใช่ `"Relates to"` — ชื่อต้องตรงกับ Jira config
 >
