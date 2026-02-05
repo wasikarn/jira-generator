@@ -31,6 +31,25 @@ scripts/                          ← setup + sync utilities
 
 **Prerequisites:** `acli` CLI, MCP (Jira + Confluence + Figma + GitHub), Python 3.x (`atlassian-scripts/`)
 
+### Cloning to Another Project
+
+```bash
+# 1. Edit config
+vi .claude/project-config.json
+# → Update: jira.site, jira.project_key, confluence.space_key, team.members, services.tags
+
+# 2. Preview changes (dry-run)
+python scripts/configure-project.py --revert
+
+# 3. Apply placeholder conversion
+python scripts/configure-project.py --revert --apply
+
+# 4. Re-apply with new config values
+python scripts/configure-project.py --apply
+```
+
+**What gets replaced:** `projectKey`, `project_key`, `space_key`, Jira URLs, custom field IDs
+
 ## Skill Commands
 
 | Command | Description | Output |
