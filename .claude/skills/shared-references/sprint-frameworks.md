@@ -124,14 +124,205 @@ Stories ต้องส่งมอบ **end-to-end user value** ครบทุ
 | Sprint N | Skeleton + Enablers + first E2E slice | `vs1-skeleton` + `vs-enabler` + `vs2-*` |
 | Sprint N+1 | Remaining E2E slices + cross-feature | `vs3-*` + `vs4-*` + `ad-integration` |
 
+## Sprint Meeting Best Practices
+
+> Source: [Easy Agile](https://www.easyagile.com/blog/2026-sprint-planning-team-alignment-challenges-best-practices), [Mountain Goat Software](https://www.mountaingoatsoftware.com/agile/scrum/meetings/sprint-planning-meeting)
+
+### Timebox Formula
+
+| Sprint Length | Meeting Timebox |
+| --- | --- |
+| 1 week | 45 min |
+| 2 weeks | 90 min |
+| 3 weeks | 2h 15min |
+| 4 weeks | 3h |
+
+**Formula:** `45 min × weeks in sprint`
+
+### Meeting Preparation Checklist
+
+**Product Owner:**
+
+- [ ] Review past sprint retrospective + stakeholder feedback
+- [ ] Backlog refined + prioritized (top items ready)
+- [ ] Acceptance criteria defined for top items
+- [ ] Dependencies identified
+
+**Development Team:**
+
+- [ ] Capacity conflicts identified (leave, meetings)
+- [ ] Technical concerns surfaced
+- [ ] Carry-over items status updated
+
+**Scrum Master:**
+
+- [ ] Meeting scheduled consistently (same day/time)
+- [ ] Sprint goal draft prepared
+- [ ] Previous sprint metrics available
+
+---
+
+## Sprint Goal Best Practices
+
+> Source: [Atlassian](https://www.atlassian.com/agile/scrum/sprint-planning), [DevDynamics](https://devdynamics.ai/blog/the-ultimate-guide-to-agile-sprint-planning/)
+
+### SMART Sprint Goal
+
+| Criteria | Question | Example |
+| --- | --- | --- |
+| **S**pecific | What outcome? | "ผู้ใช้สามารถเก็บคูปองเครดิตได้" |
+| **M**easurable | How to verify? | "QA ผ่าน 3 test cases หลัก" |
+| **A**chievable | Within capacity? | ≤80% ของ capacity |
+| **R**elevant | Aligns with product? | ตรงกับ Epic objective |
+| **T**ime-bound | End of sprint? | "ภายใน Sprint 33" |
+
+### Sprint Goal Template
+
+```text
+เมื่อจบ Sprint นี้ [ผู้ใช้กลุ่มเป้าหมาย] จะสามารถ [ทำสิ่งที่มี value] ได้
+```
+
+**Example:**
+> เมื่อจบ Sprint 33 ผู้ใช้ระบบคูปองจะสามารถเก็บคูปองเครดิตและดูประวัติคูปองได้
+
+### Anti-patterns
+
+| Anti-pattern | Problem | Fix |
+| --- | --- | --- |
+| "ทำให้เสร็จ" | ไม่มี outcome ชัดเจน | ระบุ user outcome |
+| ไม่มี goal | ทีมไม่มีทิศทาง | กำหนดก่อนเลือก items |
+| Goal ไม่ align กับ items | ทำ items แต่ไม่ถึง goal | Review items vs goal |
+
+---
+
+## "Just Enough" Planning
+
+> Source: [DevDynamics](https://devdynamics.ai/blog/the-ultimate-guide-to-agile-sprint-planning/), [Premier Agile](https://premieragile.com/sprint-planning-best-practices)
+
+### Principle
+
+**Focus on goal, not complete plan** — Plan should be guardrails, not a monkey on the team's back
+
+### Guidelines
+
+| Do | Don't |
+| --- | --- |
+| Define sprint goal first | Start with task assignment |
+| Build backlog to get started | Create complete task breakdown |
+| Allow self-organization | Pre-assign all tasks |
+| Use lightweight estimation | Spend hours on estimation |
+| Leave room for discovery | Plan every hour of the sprint |
+
+### Real-time Sign-up Strategy
+
+```text
+❌ Bad: ก่อน sprint เริ่ม → assign ทุก task ให้ทุกคน
+✅ Good: assign เฉพาะ Day 1-2 → ที่เหลือ sign-up เอง
+```
+
+**Benefits:**
+
+- ลด context switching
+- ใครว่างก่อนหยิบงานก่อน
+- Flexibility เมื่อมี blocker
+
+---
+
+## Task Decomposition
+
+> Source: [monday.com](https://monday.com/blog/rnd/sprint-backlog/)
+
+### Rule: Subtask ≤ 1 day
+
+| Size | Duration | Action |
+| --- | --- | --- |
+| XS | < 4h | พอดี |
+| S | 4-8h (1 day) | พอดี |
+| M | 1-2 days | ควร split |
+| L | > 2 days | ต้อง split |
+
+### Decomposition Checklist
+
+- [ ] Subtask มี clear deliverable
+- [ ] สามารถ demo/verify ได้
+- [ ] ไม่ต้องรอ subtask อื่นจบก่อน (ถ้าเป็นไปได้)
+- [ ] Assignee คนเดียว (ไม่ share)
+
+---
+
+## Sustainable Pace
+
+> Source: [Wrike](https://www.wrike.com/scrum-guide/faq/what-is-a-sprint-backlog/), Agile Manifesto
+
+### Core Principle
+
+> "Agile processes promote sustainable development. The sponsors, developers, and users should be able to maintain a constant pace indefinitely."
+
+### Capacity Buffer
+
+| Scenario | Buffer | Reason |
+| --- | --- | --- |
+| Normal sprint | 10-15% | Unexpected issues |
+| New team member | 20% | Onboarding overhead |
+| Tech debt sprint | 25% | Discovery during refactor |
+| Holiday period | 30% | Reduced availability |
+
+### Overcommitment Signs
+
+- [ ] Team consistently misses sprint goals
+- [ ] High carry-over rate (>30%)
+- [ ] Quality issues / bugs increase
+- [ ] Team morale decreasing
+- [ ] Overtime becoming normal
+
+**Fix:** Reduce scope, not quality
+
+---
+
+## Backlog Grooming Integration
+
+> Source: [Premier Agile](https://premieragile.com/prioritize-work-and-manage-sprint-backlog/), [Scrum Study](https://www.scrumstudy.com/article/agile-scrum-sprint-backlog)
+
+### 10% Rule
+
+> Development teams should spend **no more than 10%** of their capacity on backlog grooming
+
+| Sprint Length | Grooming Budget |
+| --- | --- |
+| 2 weeks | ~1 day |
+| 4 weeks | ~2 days |
+
+### Pre-Sprint Refinement Checklist
+
+- [ ] Top 2 sprints worth of items refined
+- [ ] Acceptance criteria written
+- [ ] Dependencies identified
+- [ ] Estimates assigned (if using points)
+- [ ] Items small enough (≤3 days)
+
+---
+
 ## Sprint Planning Checklist
 
+- [ ] **Meeting:** Timeboxed, all roles present, prepared
+- [ ] **Goal:** SMART sprint goal defined + agreed
 - [ ] Carry-over items identified + counted per person
 - [ ] New items prioritized (RICE or Impact/Effort)
 - [ ] Items matched to team members (skill + capacity)
-- [ ] No one exceeds capacity ceiling
+- [ ] No one exceeds capacity ceiling (sustainable pace)
 - [ ] Dependencies identified + blockers prioritized
 - [ ] Risk flags reviewed + mitigated
 - [ ] Stories are vertical slices (not horizontal layers)
-- [ ] Sprint goal defined (1-2 sentences)
+- [ ] **Buffer:** 10-15% capacity reserved
 - [ ] User approved plan before execution
+
+---
+
+## Sources
+
+- Meeting Timebox: [Mountain Goat Software](https://www.mountaingoatsoftware.com/agile/scrum/meetings/sprint-planning-meeting)
+- Sprint Planning Best Practices: [Easy Agile](https://www.easyagile.com/blog/2026-sprint-planning-team-alignment-challenges-best-practices)
+- Sprint Goal: [Atlassian Sprint Planning](https://www.atlassian.com/agile/scrum/sprint-planning)
+- Just Enough Planning: [DevDynamics](https://devdynamics.ai/blog/the-ultimate-guide-to-agile-sprint-planning/)
+- Sprint Backlog: [monday.com](https://monday.com/blog/rnd/sprint-backlog/), [Wrike](https://www.wrike.com/scrum-guide/faq/what-is-a-sprint-backlog/)
+- Backlog Grooming: [Premier Agile](https://premieragile.com/prioritize-work-and-manage-sprint-backlog/)

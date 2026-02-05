@@ -17,6 +17,17 @@ argument-hint: "[--sprint <id>] [--carry-over-only]"
 **Role:** Scrum Master + Sprint Planner (Tresor-powered)
 **Output:** Sprint plan with assignments executed in Jira
 
+## Pre-Meeting Checklist
+
+> See [Sprint Frameworks](../shared-references/sprint-frameworks.md) for full details
+
+- [ ] **Timebox set:** 45 min × weeks (e.g., 2-week sprint = 90 min)
+- [ ] **PO prepared:** Backlog refined, top items have ACs
+- [ ] **Team prepared:** Capacity conflicts identified, carry-over updated
+- [ ] **Sprint goal draft:** SMART format ready
+
+---
+
 ## Part A: Data Collection (Phases 1-2) — Execution Layer
 
 ### 1. Sprint Discovery
