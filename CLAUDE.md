@@ -4,7 +4,7 @@
 
 Agile Documentation System for **Tathep Platform** — skills-based Jira/Confluence automation
 
-**Structure:** `.claude/skills/` — 18 skills (`SKILL.md` → phases → `shared-references/`) + `atlassian-scripts/` (7 Python scripts) + `shared-references/` (17 docs)
+**Structure:** `.claude/skills/` — 19 skills (`SKILL.md` → phases → `shared-references/`) + `atlassian-scripts/` (7 Python scripts) + `shared-references/` (17 docs)
 
 ```text
 .claude/skills/{name}/SKILL.md   ← skill entry (reads shared-references/)
