@@ -130,13 +130,13 @@ See: [Vertical Slice Guide](vertical-slice-guide.md) for full examples and decom
 
 ## Story Size Guide
 
-| Size | Duration | Guideline |
-| ------ | ---------- | ----------- |
-| XS | < 1 day | May be too small — consider merging with another story |
-| S | 1-2 days | Ideal |
-| M | 2-3 days | Ideal |
-| L | 3-4 days | Upper bound — consider splitting |
-| XL | > 4 days | Must split — use SPIDR |
+| Size | Duration | Hours | Guideline |
+| ------ | ---------- | ----- | ----------- |
+| XS | < 0.5 day | < 4h | Quick fix, config change, hotfix |
+| S | 0.5-1 day | 4-8h | Simple feature, minor change |
+| M | 1-2 days | 8-16h | Standard feature — Ideal |
+| L | 2-4 days | 16-32h | Complex feature — consider splitting |
+| XL | > 4 days | > 32h | Must split — use SPIDR |
 
 ## Sources
 
