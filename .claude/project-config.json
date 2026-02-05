@@ -6,7 +6,7 @@
     "site": "100-stars.atlassian.net",
     "project_key": "BEP",
     "board_id": 2,
-    "_board_id_note": "Get via: jira_get_agile_boards(project_key_or_id='PROJECT_KEY')",
+    "_board_id_note": "Get via: jira_get_agile_boards(project_key='PROJECT_KEY')",
 
     "custom_fields": {
       "start_date": "customfield_10015",
@@ -24,8 +24,30 @@
   },
 
   "team": {
-    "_note": "Team roster is in ~/.claude/CLAUDE.md (global) - update there for team changes",
-    "capacity_reference": ".claude/skills/shared-references/team-capacity.md"
+    "_note": "Team roster for sprint planning and capacity calculation",
+    "members": [
+      { "name": "BIG-TATHEP", "email": "yuranan@tathep.com", "role": "Tech Lead", "focus": "Full Stack, review, mentoring", "avg_sprint": 4.5, "ceiling": 5 },
+      { "name": "K.Thanainun", "email": "thanainun@100stars.com", "role": "Sr. BE", "focus": "Backend, complex systems", "avg_sprint": 8.5, "ceiling": 9 },
+      { "name": "joakim", "email": "joakim@tathep.com", "role": "Jr. FS", "focus": "FE+BE", "avg_sprint": 7.5, "ceiling": 8 },
+      { "name": "wanchalerm", "email": "wanchalerm@tathep.com", "role": "Jr. FS", "focus": "FE+BE", "avg_sprint": 7.5, "ceiling": 8 },
+      { "name": "Natthakarn", "email": "natthakarn@tathep.com", "role": "FE", "focus": "Frontend", "avg_sprint": 8.5, "ceiling": 9 },
+      { "name": "kanya", "email": null, "role": "QA", "focus": "Testing", "avg_sprint": null, "ceiling": null },
+      { "name": "Kanthisorn", "email": null, "role": "QA", "focus": "Testing", "avg_sprint": null, "ceiling": null },
+      { "name": "Nithiya", "email": null, "role": "UX/UI", "focus": "Design", "avg_sprint": null, "ceiling": null }
+    ],
+    "totals": { "avg_sprint": 36.5, "ceiling": 39 }
+  },
+
+  "services": {
+    "_note": "Service tags used in issue summaries and codebase paths",
+    "tags": [
+      { "tag": "[BE]", "name": "Backend", "path": "~/Codes/Works/tathep/tathep-platform-api" },
+      { "tag": "[FE-Admin]", "name": "Admin", "path": "~/Codes/Works/tathep/tathep-admin" },
+      { "tag": "[FE-Web]", "name": "Website", "path": "~/Codes/Works/tathep/tathep-website" },
+      { "tag": "[Video]", "name": "Video", "path": "~/Codes/Works/tathep/tathep-video-processing" },
+      { "tag": "[Player]", "name": "Vision Player", "path": "~/Codes/Works/tathep/bd-vision-player" },
+      { "tag": "[Jira-Gen]", "name": "Jira Generator", "path": "~/Codes/Works/tathep/jira-generator" }
+    ]
   },
 
   "environments": {

@@ -18,14 +18,16 @@ scripts/                          ← setup + sync utilities
 
 ## Project Settings
 
-> Project-specific config: `.claude/project-config.json` — update when cloning to another project/instance
+> **Portable config:** `.claude/project-config.json` — update when cloning to another project/instance
 
-| Setting | Value | Config Key |
+| Setting | Source | Config Key |
 | --- | --- | --- |
-| Jira Site | `100-stars.atlassian.net` | `jira.site` |
-| Project Key | `BEP` | `jira.project_key` |
-| Board ID | `2` | `jira.board_id` |
-| Confluence Space | `BEP` | `confluence.space_key` |
+| Jira/Confluence | `project-config.json` | `jira.*`, `confluence.*` |
+| Team + Capacity | `project-config.json` | `team.members[]` |
+| Service Tags | `project-config.json` | `services.tags[]` |
+| Environments | `project-config.json` | `environments.*` |
+
+**Dynamic lookup:** Board ID → `jira_get_agile_boards(project_key="BEP")` · Sprint IDs → `jira_get_sprints_from_board(board_id, state="future")`
 
 **Prerequisites:** `acli` CLI, MCP (Jira + Confluence + Figma + GitHub), Python 3.x (`atlassian-scripts/`)
 
@@ -131,30 +133,19 @@ Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 **Content Budget:** Epic overview 2 sentences · Story max 5 AC panels · Sub-task max 3 AC · QA ⚡ optional max 8 TC
 **Full rules** → `shared-references/writing-style.md`
 
-### Common Mistakes (project-specific)
+### Common Mistakes (quick ref)
 
-> Shared ADF/tool errors → see global `~/.claude/CLAUDE.md` | Full recovery → `shared-references/troubleshooting.md`
+> **Full troubleshooting:** `shared-references/troubleshooting.md` — MCP errors, Agile API, acli, ADF, Confluence
 
-| Mistake | Fix |
+| Category | Quick Fix |
 | --- | --- |
-| Description via MCP → ugly wiki | Use `acli --from-json`, never MCP for descriptions |
-| `unknown field "issues"` in create | Used EDIT format with CREATE → remove issues, use `projectKey` instead |
-| Nested tables | Not supported → use bullets instead |
-| Missing `version: 1` | ADF root must have `{"type":"doc","version":1,"content":[]}` |
-| Code blocks no syntax highlight (Confluence) | Run `fix_confluence_code_blocks.py --page-id` after MCP |
-| Confluence macros rendered as text | Use `update_page_storage.py` instead of MCP |
-| Permission denied | Re-authenticate MCP |
-| Workflow interrupted mid-phase | Note phase → search Jira → resume from last completed |
-| MCP `jira_update_issue` assignee → silent fail | Use `acli jira workitem assign -k "KEY" -a "email" -y` |
-| `acli workitem assign -a ""` → failed to resolve | Use `--remove-assignee` flag: `acli jira workitem assign -k "KEY" --remove-assignee -y` |
-| `acli jira issue update --assignee` → unknown flag | Use `acli jira workitem assign` not `acli jira issue update` |
-| JQL `key in (...) ORDER BY` → parse error | Remove `ORDER BY` when using `key in (...)` syntax |
-| MCP `jira_update_issue(fields=...)` → unexpected kwarg | Use `additional_fields` not `fields` for custom fields |
-| MCP `jira_search` → exceeds max tokens | Always use `fields` param: `fields="summary,status,assignee"` |
-| Subtask `expected 'key' to be string` / `parent not specified` | Must use `additional_fields={"parent": {"key": "BEP-XXX"}}` — object, not string |
-| MCP `jira_create_issue` parent → silent fail | MCP may silently ignore parent; verify after create, use REST API if needed |
-| MCP `jira_update_issue` parent → silent fail | Use REST API v3: `api._request('PUT', '/rest/api/3/issue/KEY', {'fields': {'parent': {'key': 'PARENT-KEY'}}})` |
-| Subtask + sprint field → `cannot be associated to a sprint` | Remove sprint field from subtask — inherits from parent automatically |
+| Description via MCP → ugly | Use `acli --from-json`, never MCP |
+| MCP assignee → silent fail | Use `acli jira workitem assign` |
+| Subtask parent → error | `additional_fields={"parent": {"key": "BEP-XXX"}}` |
+| Subtask + sprint → error | Remove sprint field — inherits from parent |
+| `fields` param → error | Use `additional_fields` not `fields` |
+| `project_key_or_id` → error | Use `project_key` |
+| `limit > 50` → error | Use pagination with `start_at` |
 
 ## References (load when needed)
 

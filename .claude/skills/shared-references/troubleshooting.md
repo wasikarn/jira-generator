@@ -119,6 +119,50 @@ acli jira workitem edit --from-json tasks/subtask.json --yes
 | `Rate limited` | Too many requests | Wait and retry |
 | `exceeds maximum allowed tokens` | Issue has too much data | Use `fields` parameter to limit fetched fields |
 | `jira_update_issue` parent → silent fail | MCP doesn't set parent on Bug/Story | Use REST API v3: `api._request('PUT', '/rest/api/3/issue/KEY', {'fields': {'parent': {'key': 'EPIC-KEY'}}})` |
+| `jira_create_issue` parent → silent fail | MCP may silently ignore parent | Verify after create, use REST API if needed |
+| `jira_update_issue(fields=...)` → unexpected kwarg | Wrong parameter name | Use `additional_fields` not `fields` for custom fields |
+
+### MCP Parameter Errors
+
+| Error | Cause | Solution |
+| --- | --- | --- |
+| `jira_get_agile_boards(project_key_or_id=...)` → unexpected kwarg | Wrong parameter name | Use `project_key` not `project_key_or_id` |
+| `jira_get_sprint_issues` limit > 50 → validation error | Limit exceeds max | Max `limit=50` — use pagination with `start_at` for more |
+
+### Assignment Errors
+
+| Error | Cause | Solution |
+| --- | --- | --- |
+| `jira_update_issue` assignee → silent fail | MCP doesn't set assignee | Use `acli jira workitem assign -k "KEY" -a "email" -y` |
+| `acli workitem assign -a ""` → failed to resolve | Empty string not valid | Use `--remove-assignee` flag: `acli jira workitem assign -k "KEY" --remove-assignee -y` |
+| `acli jira issue update --assignee` → unknown flag | Wrong command | Use `acli jira workitem assign` not `acli jira issue update` |
+
+### Subtask Errors
+
+| Error | Cause | Solution |
+| --- | --- | --- |
+| `expected 'key' to be string` / `parent not specified` | Parent format wrong | Use `additional_fields={"parent": {"key": "BEP-XXX"}}` — object, not string |
+| Subtask + sprint field → `cannot be associated to a sprint` | Subtasks inherit sprint from parent | Remove sprint field from subtask — inherits automatically |
+
+### Agile API Errors
+
+| Error | Cause | Solution |
+| --- | --- | --- |
+| MCP `sprint: null` doesn't work | MCP can't remove sprint | Use Agile REST API: `POST /rest/agile/1.0/backlog/issue` + numeric IDs |
+| Agile API issue key → 204 but no move | Issue key not accepted | Must use numeric ID from `issue["id"]` |
+| Sprint field `{"id": N}` → error | Wrong format for sprint field | `customfield_10020` accepts plain number: `{"customfield_10020": 640}` |
+
+### Issue Link Errors
+
+| Error | Cause | Solution |
+| --- | --- | --- |
+| Issue link "Relates to" → error | Wrong link type name | Correct name is `"Relates"` / valid: `Blocks`, `Duplicate`, `Cloners` |
+
+### JQL Errors
+
+| Error | Cause | Solution |
+| --- | --- | --- |
+| `key in (...) ORDER BY` → parse error | ORDER BY not allowed with key in | Remove `ORDER BY` when using `key in (...)` syntax |
 
 ### Large Output Error
 
