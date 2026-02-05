@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_comment": "Project-specific Atlassian settings - update when cloning to another project/instance",
+
+  "jira": {
+    "site": "100-stars.atlassian.net",
+    "project_key": "BEP",
+    "board_id": 2,
+    "_board_id_note": "Get via: jira_get_agile_boards(project_key_or_id='PROJECT_KEY')",
+
+    "custom_fields": {
+      "start_date": "customfield_10015",
+      "sprint": "customfield_10020",
+      "_note": "Custom field IDs are instance-level. If using different Jira instance, run: acli jira issue get ISSUE-1 --output json | jq '.fields | keys'"
+    },
+
+    "issue_link_types": ["Relates", "Blocks", "Duplicate", "Cloners", "Test Case"],
+    "_issue_link_note": "Link type names must match exactly. Get via: jira_get_link_types()"
+  },
+
+  "confluence": {
+    "site": "100-stars.atlassian.net",
+    "space_key": "BEP"
+  },
+
+  "team": {
+    "_note": "Team roster is in ~/.claude/CLAUDE.md (global) - update there for team changes",
+    "capacity_reference": ".claude/skills/shared-references/team-capacity.md"
+  },
+
+  "environments": {
+    "staging": {
+      "web": "app.bluedragon.space",
+      "admin": "platform-admin.bluedragon.space",
+      "api": "platform-api.bluedragon.space"
+    },
+    "production": {
+      "web": "app.tathep.com",
+      "admin": "platform-admin.bluedragoneyes.ai",
+      "api": "platform-api.bluedragonvision.com"
+    }
+  }
+}

@@ -18,11 +18,14 @@ scripts/                          ← setup + sync utilities
 
 ## Project Settings
 
-| Setting | Value |
-| --- | --- |
-| Jira Site | `100-stars.atlassian.net` |
-| Project Key | `BEP` |
-| Confluence Space | `BEP` |
+> Project-specific config: `.claude/project-config.json` — update when cloning to another project/instance
+
+| Setting | Value | Config Key |
+| --- | --- | --- |
+| Jira Site | `100-stars.atlassian.net` | `jira.site` |
+| Project Key | `BEP` | `jira.project_key` |
+| Board ID | `2` | `jira.board_id` |
+| Confluence Space | `BEP` | `confluence.space_key` |
 
 **Prerequisites:** `acli` CLI, MCP (Jira + Confluence + Figma + GitHub), Python 3.x (`atlassian-scripts/`)
 
