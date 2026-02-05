@@ -21,8 +21,9 @@ argument-hint: "[story-description]"
 ### 1. Discovery
 
 - Ask: Who? What? Why? Constraints?
-- If Epic exists → `MCP: jira_get_issue(issue_key: "BEP-XXX")`
-- **Gate:** User confirms requirements
+- If Epic exists → `MCP: jira_get_issue(issue_key: "BEP-XXX")` + read VS plan
+- **VS Assignment:** Which vertical slice? (`vs1-skeleton`, `vs2-*`, `vs-enabler`)
+- **Gate:** User confirms requirements + VS assignment
 
 ### 2. Write User Story
 
@@ -33,24 +34,32 @@ So that [benefit].
 ```
 
 - Define ACs, Scope, DoD
-- **Gate:** User reviews story
+- **VS Check:** Story delivers e2e value? All layers touched? (not shell-only)
+- **Gate:** User reviews story + VS integrity
 
-### 3. INVEST Validation
+### 3. INVEST + VS Validation
 
 - [ ] **I**ndependent - Not dependent on other stories
 - [ ] **N**egotiable - Room for discussion
 - [ ] **V**aluable - Clear business value
 - [ ] **E**stimable - Can estimate effort
-- [ ] **S**mall - Completable in 1 sprint
-- [ ] **T**estable - All ACs verifiable
+- [ ] **S**mall + **Vertical** - Completable in 1 sprint? **End-to-end slice?**
+- [ ] **T**estable - All ACs verifiable in isolation
 
-**Gate:** All criteria pass
+**VS Anti-pattern Check:**
+
+- ❌ Shell-only (UI ไม่มี logic) → เพิ่ม minimal happy path
+- ❌ Layer-split (BE แยกจาก FE) → รวมเป็น story เดียว
+
+**Gate:** All criteria pass + VS integrity
 
 ### 4. Create Story in Jira
 
 ```bash
 acli jira workitem create --from-json tasks/story.json
 ```
+
+**Labels (MANDATORY):** Feature label + VS label (e.g., `coupon-web`, `vs2-collect-e2e`)
 
 **Capture story key → BEP-XXX**
 
@@ -66,7 +75,9 @@ acli jira workitem create --from-json tasks/story.json
 | Admin | ✅/❌ | [why] |
 | Website | ✅/❌ | [why] |
 
-**Gate:** User confirms scope
+**VS Verification:** Story touches all layers for e2e slice? (not layer-only)
+
+**Gate:** User confirms scope + VS integrity
 
 ### 6. Codebase Exploration ⚠️ MANDATORY
 
@@ -81,16 +92,18 @@ Collect: Actual file paths, patterns, dependencies
 ### 7. Design Sub-tasks
 
 - 1 sub-task per service
+- **VS Integrity:** Each subtask contributes to VS completion (not horizontal)
 - Summary: `[TAG] - Description`
 - Scope: Files from Phase 6
 - ACs: Given/When/Then
-- **Gate:** User approves design
+- **Gate:** User approves design + VS alignment
 
 ### 8. Alignment Check
 
 - [ ] Sum of sub-tasks = Complete Story?
 - [ ] No gaps? No scope creep?
 - [ ] File paths exist?
+- [ ] **VS integrity maintained?** (subtasks complete the slice, not horizontal)
 
 ### 9. Create Sub-tasks
 
@@ -137,4 +150,5 @@ Sub-tasks: BEP-YYY [BE], BEP-ZZZ [FE-Admin]
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
 - [Story Template](../shared-references/templates-story.md) - Story ADF structure
 - [Sub-task Template](../shared-references/templates-subtask.md) - Sub-task + QA ADF structure
+- [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS patterns, decomposition, labels
 - [Verification Checklist](../shared-references/verification-checklist.md) - INVEST, quality checks

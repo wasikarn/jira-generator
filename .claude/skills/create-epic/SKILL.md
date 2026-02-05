@@ -17,6 +17,7 @@ argument-hint: "[epic-title]"
 
 - Interview stakeholder: Problem? Target users? Business value? Success metrics?
 - If existing docs available → read context
+- **VS Planning:** Identify potential vertical slices (what distinct user flows exist?)
 - **Gate:** Stakeholder confirms understanding
 
 ### 2. RICE Prioritization
@@ -28,18 +29,26 @@ argument-hint: "[epic-title]"
 - Formula: `(R × I × C) / E`
 - **Gate:** Stakeholder agrees with priority
 
-### 3. Define Scope
+### 3. Define Scope + VS Planning
 
 - Identify high-level requirements
-- Break into User Stories (draft): Story 1, Story 2, ...
-- Define MVP: Must have / Should have / Nice to have
+- **VS Pattern Selection:** (see [vertical-slice-guide.md](../shared-references/vertical-slice-guide.md))
+  - Walking Skeleton? → `vs1-skeleton`
+  - Enablers needed? → `vs-enabler`
+  - Business rule splits? → `vs2-*`, `vs3-*`
+- Break into User Stories by VS (draft):
+  - vs1-skeleton: Story A, Story B
+  - vs2-{rule}: Story C, Story D
+- Define MVP: Which VS are must-have vs nice-to-have?
 - Identify Dependencies and Risks
-- **Gate:** Stakeholder approves scope
+- **Gate:** Stakeholder approves scope + VS plan
 
 ### 4. Create Artifacts
 
 1. **Epic Doc** → `MCP: confluence_create_page(space_key: "BEP")`
+   - Include VS Map table in Epic Doc
 2. **Epic** → `acli jira workitem create --from-json tasks/epic.json`
+   - Add labels: feature label + `vs-planned`
 3. **Link** Epic to Doc
 
 ### 5. Handoff
@@ -78,4 +87,5 @@ Epic Doc: [link] | Epic: [link]
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
 - [Epic Template](../shared-references/templates-epic.md) - Epic ADF structure
 - [Tool Selection](../shared-references/tools.md) - Tool selection, effort sizing
+- [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS patterns, decomposition
 - After creation: `/verify-issue BEP-XXX`

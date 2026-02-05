@@ -100,11 +100,33 @@ So that [benefit/value].
 - **Complexity**: manual vs automated, simple vs advanced
 - **I/O Methods**: manual entry vs file upload vs API
 
-### Splitting Rules
+### Vertical Slice Rules
 
-- **Always Vertical Slice** — never Horizontal (FE/BE split doesn't deliver value)
+**Always Vertical Slice** — never Horizontal (FE/BE split doesn't deliver value)
+
+| Pattern | When to Use | Example |
+| --- | --- | --- |
+| **Walking Skeleton** | Navigation + empty states first | `vs1-skeleton` |
+| **Business Rule Split** | Different rules/types | `vs2-credit`, `vs3-discount` |
+| **Enabler Story** | Shared component for multiple VS | `vs-enabler` (Side Panel) |
+| **Cross-feature** | Spans feature areas | `ad-integration` |
+
+**VS Anti-patterns:**
+
+| Anti-pattern | Why Bad | Fix |
+| --- | --- | --- |
+| **Shell-only** | No value (UI without logic) | Add minimal happy path |
+| **Layer-split** | Blocked until other layers done | Combine BE+FE in one story |
+| **Tab-split** | No context (Active tab / History tab) | Split by business rule |
+| **Horizontal** | One layer across many flows | Group by user flow |
+
+See: [Vertical Slice Guide](vertical-slice-guide.md) for full examples and decomposition process
+
+### Splitting Guidelines
+
 - Target: 6-10 stories/sprint, each story 1-3 days
 - Every slice must deliver end-to-end value
+- **VS Label Required:** Every story must have feature label + VS label
 
 ## Story Size Guide
 

@@ -27,7 +27,9 @@ argument-hint: "[issue-key]"
 | Admin | ✅/❌ | [why] |
 | Website | ✅/❌ | [why] |
 
-**Gate:** User confirms scope
+**VS Verification:** Story touches all layers for e2e slice? (not layer-only)
+
+**Gate:** User confirms scope + VS integrity
 
 ### 3. Codebase Exploration ⚠️ MANDATORY
 
@@ -48,17 +50,19 @@ Collect: File paths, existing patterns, dependencies
 ### 4. Design Sub-tasks
 
 - 1 sub-task per service (typical)
+- **VS Integrity:** Each subtask contributes to VS completion (not horizontal)
 - Summary: `[TAG] - Description`
 - Scope: Files from Phase 3
 - ACs: Given/When/Then
 - Use Thai + transliteration
-- **Gate:** User approves design
+- **Gate:** User approves design + VS alignment
 
 ### 5. Alignment Check
 
 - [ ] Sum of sub-tasks = Complete Story?
 - [ ] No gaps? No scope creep?
 - [ ] File paths exist in codebase?
+- [ ] **VS integrity maintained?** (subtasks complete the slice, not horizontal split)
 
 ### 6. Create Artifacts
 
@@ -97,5 +101,6 @@ Sub-tasks: BEP-YYY, BEP-ZZZ
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
 - [Sub-task Template](../shared-references/templates-subtask.md) - Sub-task + QA ADF structure
+- [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS decomposition, patterns
 - [Tool Selection](../shared-references/tools.md) - Tools, service tags, effort sizing
 - After creation: `/verify-issue BEP-XXX --with-subtasks`

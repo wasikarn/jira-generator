@@ -146,6 +146,7 @@ Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 | Permission denied | Re-authenticate MCP |
 | Workflow interrupted mid-phase | Note phase → search Jira → resume from last completed |
 | MCP `jira_update_issue` assignee → silent fail | Use `acli jira workitem assign -k "KEY" -a "email" -y` |
+| `acli workitem assign -a ""` → failed to resolve | Use `--remove-assignee` flag: `acli jira workitem assign -k "KEY" --remove-assignee -y` |
 | `acli jira issue update --assignee` → unknown flag | Use `acli jira workitem assign` not `acli jira issue update` |
 | JQL `key in (...) ORDER BY` → parse error | Remove `ORDER BY` when using `key in (...)` syntax |
 | MCP `jira_update_issue(fields=...)` → unexpected kwarg | Use `additional_fields` not `fields` for custom fields |

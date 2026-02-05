@@ -109,6 +109,48 @@
 
 ---
 
+## Vertical Slice Quality Checks
+
+### VS1: Slice Integrity
+
+```text
+□ Story delivers end-to-end user value
+□ All required layers touched (UI → API → DB or subset)
+□ Story is independently deployable
+□ Story is testable without other slices
+```
+
+### VS2: Labeling (MANDATORY)
+
+```text
+□ Has feature label (e.g., coupon-web, credit-topup)
+□ Has VS label (e.g., vs1-skeleton, vs2-credit-e2e, vs-enabler)
+□ Label matches VS pattern:
+  - vs{N}-{name} for numbered slices
+  - vs-enabler for shared components
+  - {feature}-{scope} for cross-cutting
+```
+
+### VS3: Anti-patterns Check
+
+```text
+□ Not shell-only (UI exists but no logic)
+□ Not layer-split (BE separate from FE)
+□ Not tab-split (single tab without context)
+□ Not horizontal split (one layer across flows)
+```
+
+### VS4: Subtask VS Alignment (`--with-subtasks` only)
+
+```text
+□ All subtasks contribute to VS completion
+□ Subtasks together deliver the vertical slice
+□ No horizontal-only subtasks (unless enabler)
+□ Subtask scope stays within VS boundaries
+```
+
+---
+
 ## Sub-task Quality Checks
 
 ### ST1: Objective
