@@ -1,15 +1,15 @@
 # User Story Best Practices — Quick Reference
 
-## INVEST Criteria (ตัวตรวจสอบคุณภาพ Story)
+## INVEST Criteria (Story Quality Checklist)
 
-| Criteria | ความหมาย | Red Flag |
+| Criteria | Meaning | Red Flag |
 | ---------- | ---------- | ---------- |
-| **I**ndependent | ไม่พึ่งพา story อื่น | "ต้องทำ X ก่อน" |
-| **N**egotiable | เป็น invitation to conversation | AC เขียนละเอียดยิบเกินไป |
-| **V**aluable | ส่งมอบ value ให้ user ได้จริง | "เตรียม DB schema" (ไม่มี value ตรง) |
-| **E**stimable | estimate effort ได้ | ไม่รู้ scope ชัด |
-| **S**mall | เสร็จใน 1 sprint, 6-10 stories/sprint | ใหญ่กว่า 3 วัน |
-| **T**estable | มี AC ที่ test ได้ชัดเจน | "ระบบทำงานได้ดี" (vague) |
+| **I**ndependent | No dependency on other stories | "Must do X first" |
+| **N**egotiable | Invitation to conversation | AC too detailed / prescriptive |
+| **V**aluable | Delivers real value to user | "Prepare DB schema" (no direct value) |
+| **E**stimable | Effort can be estimated | Scope unclear |
+| **S**mall | Fits in 1 sprint, 6-10 stories/sprint | Larger than 3 days |
+| **T**estable | Has clear, testable AC | "System works well" (vague) |
 
 ## Story Format
 
@@ -23,31 +23,31 @@ So that [benefit/value].
 
 ### Persona — Who + Context + Level
 
-| ❌ Bad | ✅ Good | ทำไม |
+| ❌ Bad | ✅ Good | Why |
 | -------- | --------- | ------ |
-| As a user | As a platform admin managing 50+ campaigns | "user" กว้างเกินไป ไม่รู้ context |
-| As an admin | As an admin reviewing coupon usage after campaign ends | ไม่รู้ว่า admin ทำอะไร ตอนไหน |
-| As a customer | As a new customer topping up credits for the first time | ไม่รู้ experience level หรือ goal |
+| As a user | As a platform admin managing 50+ campaigns | "user" too broad, no context |
+| As an admin | As an admin reviewing coupon usage after campaign ends | Unknown what admin does or when |
+| As a customer | As a new customer topping up credits for the first time | Unknown experience level or goal |
 
 ### Goal — Verb + Object + Context
 
-| ❌ Bad | ✅ Good | ทำไม |
+| ❌ Bad | ✅ Good | Why |
 | -------- | --------- | ------ |
-| I want to see coupon list | I want to filter coupons by status and date range | แค่ "see" ไม่บอก interaction |
-| I want to add credit | I want to top up credits via coupon code before publishing an ad | ไม่มี context ว่าทำเพื่ออะไร |
-| I want a dashboard | I want to monitor campaign spending in real-time | "dashboard" = solution, ไม่ใช่ goal |
+| I want to see coupon list | I want to filter coupons by status and date range | "see" doesn't describe interaction |
+| I want to add credit | I want to top up credits via coupon code before publishing an ad | No context on purpose |
+| I want a dashboard | I want to monitor campaign spending in real-time | "dashboard" = solution, not goal |
 
-### Benefit — Business Value (ห้าม restate goal)
+### Benefit — Business Value (never restate goal)
 
-| ❌ Bad | ✅ Good | ทำไม |
+| ❌ Bad | ✅ Good | Why |
 | -------- | --------- | ------ |
-| So that I can use it | So that I can identify expired coupons and reduce support tickets | restate goal ไม่มี value |
-| So that it works | So that customers complete top-up without leaving the ad flow | ไม่ specific |
-| So that we have this feature | So that campaign managers save 30 min/day on manual status checks | "have feature" ไม่ใช่ business value |
+| So that I can use it | So that I can identify expired coupons and reduce support tickets | Restates goal, no value |
+| So that it works | So that customers complete top-up without leaving the ad flow | Not specific |
+| So that we have this feature | So that campaign managers save 30 min/day on manual status checks | "have feature" is not business value |
 
-**Value Levels:** Measurable (ดีสุด) → Behavioral → Qualitative (ยอมรับได้) → None ❌
+**Value Levels:** Measurable (best) → Behavioral → Qualitative (acceptable) → None ❌
 
-### Before/After — ตัวอย่างจาก BEP
+### Before/After — BEP Examples
 
 | ❌ Before | ✅ After |
 | --------- | -------- |
@@ -56,65 +56,65 @@ So that [benefit/value].
 
 ### Narrative Anti-Patterns
 
-| Pattern | ปัญหา | แก้ยังไง |
+| Pattern | Problem | Fix |
 | --------- | -------- | ---------- |
-| **Generic Persona** | "As a user" — ไม่รู้ context | ระบุ role + situation |
-| **Solution Masking** | "I want a modal" — UI solution ไม่ใช่ goal | เขียน goal ก่อน, solution อยู่ใน AC |
-| **Missing Why** | ไม่มี "So that" หรือ restate goal | ถาม "แล้วไง?" จน value ชัด |
-| **Kitchen Sink** | 1 story = 3 goals | split ด้วย SPIDR |
-| **Tech Story** | "As a developer, I want to refactor..." | ใช้ Task แทน Story (ไม่มี user value) |
-| **Copy-Paste** | ทุก story เหมือนกัน | แต่ละ story ต้องมี unique context |
+| **Generic Persona** | "As a user" — no context | Specify role + situation |
+| **Solution Masking** | "I want a modal" — UI solution, not goal | Write goal first, solution goes in AC |
+| **Missing Why** | No "So that" or restates goal | Ask "so what?" until value is clear |
+| **Kitchen Sink** | 1 story = 3 goals | Split with SPIDR |
+| **Tech Story** | "As a developer, I want to refactor..." | Use Task instead of Story (no direct user value) |
+| **Copy-Paste** | All stories look the same | Each story must have unique context |
 
 ## Acceptance Criteria — Given/When/Then
 
-- **Given**: สถานะเริ่มต้นของระบบ (precondition)
-- **When**: action ที่ user ทำ (trigger)
-- **Then**: ผลลัพธ์ที่คาดหวัง (expected outcome)
+- **Given**: Initial system state (precondition)
+- **When**: User action (trigger)
+- **Then**: Expected outcome (expected result)
 
 ### AC Best Practices
 
-- ห้าม vague ("โหลดเร็ว") → ต้อง specific ("โหลดภายใน 2 วินาที")
-- แยก story narrative กับ AC ออกจากกัน (อย่า duplicate)
-- ครอบคลุม: happy path (`success` panel) + edge case (`warning`) + error (`error`)
-- อย่าลืม non-functional requirements (performance, accessibility, security)
-- แต่ละ AC ต้อง **independently testable**
-- ใช้ **Three Amigos**: PO + Dev + QA ร่วมกันเขียน
-- อย่าเขียน AC แคบเกินไป (ไม่เหลือ room ให้ dev) หรือกว้างเกินไป (ไม่ชัดเจน)
-- เขียน AC ก่อน sprint planning — ห้ามเปลี่ยนระหว่าง sprint
+- No vague ACs ("loads fast") → must be specific ("loads within 2 seconds")
+- Separate story narrative from AC (don't duplicate)
+- Cover: happy path (`success` panel) + edge case (`warning`) + error (`error`)
+- Don't forget non-functional requirements (performance, accessibility, security)
+- Each AC must be **independently testable**
+- Use **Three Amigos**: PO + Dev + QA write together
+- Don't write AC too narrow (no room for dev) or too broad (unclear)
+- Write AC before sprint planning — don't change during sprint
 
 ## Story Splitting — SPIDR Method (Mike Cohn)
 
-| Technique | วิธี | ตัวอย่าง |
+| Technique | Method | Example |
 | ----------- | ------ | ---------- |
-| **S**pike | วิจัยก่อน split | "Spike: ทดลอง Redlock 2 วัน" |
-| **P**ath | แยกตาม user path | จ่ายบัตร vs Apple Pay |
-| **I**nterface | แยกตาม device/platform | iOS vs Android vs Web |
-| **D**ata | แยกตาม data type | เครดิต vs ส่วนลด vs cashback |
-| **R**ules | แยกตาม business rules | คูปองหมดอายุ vs ใช้ครบ vs ยกเลิก |
+| **S**pike | Research before split | "Spike: try Redlock for 2 days" |
+| **P**ath | Split by user path | Card payment vs Apple Pay |
+| **I**nterface | Split by device/platform | iOS vs Android vs Web |
+| **D**ata | Split by data type | Credit vs discount vs cashback |
+| **R**ules | Split by business rules | Coupon expired vs fully used vs cancelled |
 
 ### Additional Splitting Techniques
 
-- **Workflow Steps**: แยกตามขั้นตอนการทำงาน
-- **CRUD**: Create / Read / Update / Delete แยกกัน
+- **Workflow Steps**: Split by workflow stages
+- **CRUD**: Create / Read / Update / Delete separately
 - **User Roles**: Admin vs Customer vs Influencer
 - **Complexity**: manual vs automated, simple vs advanced
 - **I/O Methods**: manual entry vs file upload vs API
 
 ### Splitting Rules
 
-- **Vertical Slice เสมอ** — ห้าม Horizontal (แยก FE/BE ไม่ส่ง value)
-- เป้าหมาย: 6-10 stories/sprint, แต่ละ story 1-3 วัน
-- ทุก slice ต้องส่ง end-to-end value ได้
+- **Always Vertical Slice** — never Horizontal (FE/BE split doesn't deliver value)
+- Target: 6-10 stories/sprint, each story 1-3 days
+- Every slice must deliver end-to-end value
 
 ## Story Size Guide
 
 | Size | Duration | Guideline |
 | ------ | ---------- | ----------- |
-| XS | < 1 day | อาจเล็กเกินไป — รวมกับ story อื่นได้ |
-| S | 1-2 days | เหมาะสม |
-| M | 2-3 days | เหมาะสม |
-| L | 3-4 days | ขอบเขตบน — พิจารณา split |
-| XL | > 4 days | ต้อง split — ใช้ SPIDR |
+| XS | < 1 day | May be too small — consider merging with another story |
+| S | 1-2 days | Ideal |
+| M | 2-3 days | Ideal |
+| L | 3-4 days | Upper bound — consider splitting |
+| XL | > 4 days | Must split — use SPIDR |
 
 ## Sources
 

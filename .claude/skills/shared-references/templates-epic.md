@@ -12,14 +12,14 @@
 
 > Used with `acli jira workitem create --from-json`
 
-**Structure:** (⚡ = optional, ใส่เฉพาะเมื่อมีข้อมูลจริง)
+**Structure:** (⚡ = optional, include only when real data exists)
 
-- 🎯 Epic Overview (info) — **2 ประโยค max**
+- 🎯 Epic Overview (info) — **2 sentences max**
 - 💰 Business Value (success) — **3 bullets max**
-- 📦 Scope (info) — **1 บรรทัด/item, ไม่ต้องอธิบาย**
-- 📊 RICE Score (table) — ⚡ skip ถ้า priority ชัดอยู่แล้ว
-- 🎯 Success Metrics (table) — ⚡ skip ถ้า metrics ยังไม่ define
-- 📋 User Stories (panels) — **list + link เท่านั้น**
+- 📦 Scope (info) — **1 line/item, no description needed**
+- 📊 RICE Score (table) — ⚡ skip if priority is already clear
+- 🎯 Success Metrics (table) — ⚡ skip if metrics not yet defined
+- 📋 User Stories (panels) — **list + link only**
 - 📈 Progress (note) — auto counts
 - 🔗 Links (table)
 

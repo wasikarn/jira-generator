@@ -14,10 +14,10 @@
 
 **Density rules:**
 
-- Narrative: **3 บรรทัด** (As a / I want / So that) — ห้ามเขียนย่อหน้าอธิบายเพิ่ม
-- AC: **max 5 panels** — ถ้า >5 ให้ split story (SPIDR)
-- Each AC: **3 bullets** (Given/When/Then) + optional And — ห้าม prose
-- Reference: ⚡ **skip** ถ้าไม่มี Figma/external link
+- Narrative: **3 lines** (As a / I want / So that) — no additional explanatory paragraphs
+- AC: **max 5 panels** — if >5, split story (SPIDR)
+- Each AC: **3 bullets** (Given/When/Then) + optional And — no prose
+- Reference: ⚡ **skip** if no Figma/external link
 
 ```json
 {

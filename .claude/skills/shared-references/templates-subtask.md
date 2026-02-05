@@ -12,10 +12,10 @@
 
 **Density rules:**
 
-- Objective: **1 ประโยค** — what + why เท่านั้น
-- Scope table: เฉพาะ files ที่เปลี่ยน, **max 10 rows** — ถ้า >10 ให้ split sub-task
-- AC: **max 3 panels** — sub-task ควรเล็กกว่า story
-- Reference: ⚡ **skip** ถ้า parent story มี link ครบ
+- Objective: **1 sentence** — what + why only
+- Scope table: only files that change, **max 10 rows** — if >10, split sub-task
+- AC: **max 3 panels** — sub-task should be smaller than story
+- Reference: ⚡ **skip** if parent story has all links
 
 > ⚠️ **CRITICAL:** `acli jira workitem create` does not support the `parent` field!
 >
@@ -136,15 +136,15 @@ jira_create_issue({
 
 ## QA Test Case Template (ADF) - TWO-STEP WORKFLOW ⚡
 
-> ⚡ **Optional** — สร้างเฉพาะเมื่อ request จาก QA team หรือ story มี complex business logic ที่ต้อง test plan ชัดเจน
+> ⚡ **Optional** — create only when requested by QA team or story has complex business logic requiring a clear test plan
 >
 > Same Two-Step as Sub-task above: MCP create (`summary: "[QA] - Test: [Feature Name]"`) → acli edit
 
 **Density rules:**
 
-- Test Objective: **1 ประโยค**
-- Test Cases: **max 8 cases** — ถ้า >8 ให้ split QA ticket
-- Each TC: **3 bullets** (Given/When/Then) + AC ref + Priority — ห้าม prose
+- Test Objective: **1 sentence**
+- Test Cases: **max 8 cases** — if >8, split QA ticket
+- Each TC: **3 bullets** (Given/When/Then) + AC ref + Priority — no prose
 
 > **Important:** Use bulletList inside panels (not nested tables)
 

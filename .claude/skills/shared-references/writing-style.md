@@ -54,7 +54,7 @@ Then: Navigate to topup credit page
 
 ## Tone & Style
 
-> **หลัก 3 ข้อ:** Concise (ตัดคำเกิน) · Casual (คุยกับเพื่อนร่วมทีม) · Clear (specific + testable)
+> **3 Principles:** Concise (cut excess words) · Casual (talk like a teammate) · Clear (specific + testable)
 
 | ❌ Verbose | ✅ Concise |
 | --- | --- |
@@ -66,40 +66,40 @@ Then: Navigate to topup credit page
 
 ## Scan-First Principle
 
-ทีมจะ **scan ก่อนอ่าน** — ออกแบบ content ให้ scan ได้ใน 5 วินาที
+Team will **scan before reading** — design content to be scannable in 5 seconds
 
-1. **Bold keywords first** — `**Given:** precondition` ไม่ใช่ prose ยาว
-2. **Bullets > Paragraphs** — ห้ามเขียนย่อหน้ายาว, ใช้ bullet points
-3. **Tables > Lists** — ถ้ามี 2+ columns ของข้อมูล ใช้ table
-4. **Skip if empty** — ถ้า section ไม่มีข้อมูลจริง ไม่ต้องใส่ placeholder
+1. **Bold keywords first** — `**Given:** precondition` not long prose
+2. **Bullets > Paragraphs** — no long paragraphs, use bullet points
+3. **Tables > Lists** — if 2+ columns of data, use table
+4. **Skip if empty** — if a section has no real data, don't add placeholder
 
 ---
 
-## Content Budget (ต่อ section)
+## Content Budget (per section)
 
-> Agent **ต้อง** เขียนไม่เกิน budget นี้ — ถ้าเกิน ให้ตัดหรือ split
+> Agent **must** write within this budget — if exceeded, cut or split
 
 | Issue Type | Section | Budget |
 | --- | --- | --- |
-| **Epic** | Overview | 2 ประโยค |
+| **Epic** | Overview | 2 sentences |
 | | Business Value | 3 bullets (Revenue/Retention/Ops) |
-| | Scope | 1 บรรทัด/item, ไม่ต้องอธิบาย |
-| | RICE | ⚡ optional — skip ถ้า priority ชัดอยู่แล้ว |
-| | Success Metrics | ⚡ optional — skip ถ้า metrics ยังไม่ define |
-| | User Stories | list + link เท่านั้น, ไม่ต้อง description |
-| | Progress | auto counts, ไม่ต้องเขียนเอง |
-| **Story** | Narrative | 3 บรรทัด (As a / I want / So that) |
-| | AC panels | max 5 panels — ถ้า >5 ให้ split story |
+| | Scope | 1 line/item, no description needed |
+| | RICE | ⚡ optional — skip if priority is already clear |
+| | Success Metrics | ⚡ optional — skip if metrics not yet defined |
+| | User Stories | list + link only, no description |
+| | Progress | auto counts, don't write manually |
+| **Story** | Narrative | 3 lines (As a / I want / So that) |
+| | AC panels | max 5 panels — if >5, split story |
 | | Each AC | 3 bullets (Given/When/Then) + optional And |
-| | Reference | ⚡ skip ถ้าไม่มี Figma/external link |
-| **Sub-task** | Objective | 1 ประโยค |
-| | Scope table | เฉพาะ files ที่เปลี่ยน, max 10 rows |
+| | Reference | ⚡ skip if no Figma/external link |
+| **Sub-task** | Objective | 1 sentence |
+| | Scope table | only files that change, max 10 rows |
 | | AC panels | max 3 panels |
-| | Reference | ⚡ skip ถ้า parent story มี link ครบ |
-| **QA** ⚡ | Test Objective | 1 ประโยค |
-| | Test Cases | max 8 cases — ถ้า >8 ให้ split QA ticket |
+| | Reference | ⚡ skip if parent story has all links |
+| **QA** ⚡ | Test Objective | 1 sentence |
+| | Test Cases | max 8 cases — if >8, split QA ticket |
 
-**⚡ = optional** — section หรือ issue type ที่ใส่เฉพาะเมื่อจำเป็น (QA ticket ไม่ต้องสร้างทุก story)
+**⚡ = optional** — section or issue type included only when needed (QA ticket not required for every story)
 
 ---
 
@@ -170,15 +170,15 @@ Tags: `[BE]`, `[FE-Admin]`, `[FE-Web]`
 
 ## Vertical Slice Labels
 
-> Convention จาก Sprint 32 — ใช้กับ Jira labels สำหรับ board filtering
+> Convention from Sprint 32 — used with Jira labels for board filtering
 
-| Pattern | ใช้เมื่อ | Example |
+| Pattern | When to use | Example |
 | --- | --- | --- |
 | `vs{N}-{name}` | Numbered vertical slice | `vs1-skeleton`, `vs2-credit-e2e` |
-| `vs-enabler` | Shared component ที่หลาย slice ใช้ | Side Panel, Toast |
+| `vs-enabler` | Shared component used by multiple slices | Side Panel, Toast |
 | `{feature}-{scope}` | Cross-cutting concern | `coupon-web`, `ad-integration` |
 
-**Rules:** ทุก story ต้องมี feature label (`coupon-web`) + VS label อย่างน้อย 1 ตัว / 1 story อาจมีหลาย VS labels
+**Rules:** Every story must have a feature label (`coupon-web`) + at least 1 VS label / 1 story may have multiple VS labels
 
 ---
 
