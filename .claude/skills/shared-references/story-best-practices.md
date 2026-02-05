@@ -3,7 +3,7 @@
 ## INVEST Criteria (ตัวตรวจสอบคุณภาพ Story)
 
 | Criteria | ความหมาย | Red Flag |
-|----------|----------|----------|
+| ---------- | ---------- | ---------- |
 | **I**ndependent | ไม่พึ่งพา story อื่น | "ต้องทำ X ก่อน" |
 | **N**egotiable | เป็น invitation to conversation | AC เขียนละเอียดยิบเกินไป |
 | **V**aluable | ส่งมอบ value ให้ user ได้จริง | "เตรียม DB schema" (ไม่มี value ตรง) |
@@ -13,11 +13,100 @@
 
 ## Story Format
 
-```
+```text
 As a [persona],
 I want to [goal],
 So that [benefit/value].
 ```
+
+## Story Narrative Quality
+
+### Persona — ต้องมี Context
+
+Persona ไม่ใช่แค่ role — ต้องบอก **ใคร** ทำ **อะไร** ใน **สถานการณ์ไหน**
+
+| ❌ Bad | ✅ Good | ทำไม |
+| -------- | --------- | ------ |
+| As a user | As a platform admin managing 50+ campaigns | "user" กว้างเกินไป ไม่รู้ context |
+| As an admin | As an admin reviewing coupon usage after campaign ends | ไม่รู้ว่า admin ทำอะไร ตอนไหน |
+| As a customer | As a new customer topping up credits for the first time | ไม่รู้ experience level หรือ goal |
+
+**Rule:** Persona ต้องตอบ 3 คำถาม: **Who** (role) + **What context** (สถานการณ์) + **Experience level** (ถ้าเกี่ยวข้อง)
+
+### Goal — Problem → Action → Value
+
+เขียน "I want to" ให้เป็น **action ที่แก้ปัญหา** ไม่ใช่แค่ feature description
+
+| ❌ Bad | ✅ Good | ทำไม |
+| -------- | --------- | ------ |
+| I want to see coupon list | I want to filter coupons by status and date range | แค่ "see" ไม่บอก interaction |
+| I want to add credit | I want to top up credits via coupon code before publishing an ad | ไม่มี context ว่าทำเพื่ออะไร |
+| I want a dashboard | I want to monitor campaign spending in real-time | "dashboard" = solution, ไม่ใช่ goal |
+
+**Rule:** Goal = **verb + object + context** — บอก action ที่ชัดเจน ไม่ใช่ชื่อ feature
+
+### Benefit — Connect กับ Business Value
+
+"So that" ต้องบอก **ทำไมถึงสำคัญ** — ไม่ใช่ restate goal
+
+| ❌ Bad | ✅ Good | ทำไม |
+| -------- | --------- | ------ |
+| So that I can use it | So that I can identify expired coupons and reduce support tickets | restate goal ไม่มี value |
+| So that it works | So that customers complete top-up without leaving the ad flow | ไม่ specific |
+| So that we have this feature | So that campaign managers save 30 min/day on manual status checks | "have feature" ไม่ใช่ business value |
+
+**Value Levels** (เรียงจากดีที่สุด):
+
+1. **Measurable** — "reduce support tickets by 40%" / "save 30 min/day"
+2. **Behavioral** — "complete top-up without leaving the flow"
+3. **Qualitative** — "confidently manage campaigns" (ยอมรับได้ถ้าวัดยาก)
+4. **None** — "so that we have it" ❌ ห้ามใช้
+
+### Before/After — ตัวอย่างจาก BEP
+
+**Before (❌):**
+
+```text
+As a user,
+I want to see coupon details,
+So that I can use coupons.
+```
+
+**After (✅):**
+
+```text
+As a platform admin reviewing campaign performance,
+I want to view coupon usage history with user email and redemption timestamp,
+So that I can identify which campaigns drive the most conversions
+and respond to customer inquiries without checking the database directly.
+```
+
+**Before (❌):**
+
+```text
+As a customer,
+I want to add credit,
+So that I have enough balance.
+```
+
+**After (✅):**
+
+```text
+As a new customer publishing their first ad,
+I want to apply a top-up credit coupon during the pre-publish checkout,
+So that I can fund my campaign instantly without switching to a separate wallet page.
+```
+
+### Narrative Anti-Patterns
+
+| Pattern | ปัญหา | แก้ยังไง |
+| --------- | -------- | ---------- |
+| **Generic Persona** | "As a user" — ไม่รู้ context | ระบุ role + situation |
+| **Solution Masking** | "I want a modal" — เป็น UI solution ไม่ใช่ goal | เขียน goal ก่อน, solution อยู่ใน AC |
+| **Missing Why** | ไม่มี "So that" หรือ restate goal | ถาม "แล้วไง?" จน value ชัด |
+| **Kitchen Sink** | 1 story = 3 goals | split ด้วย SPIDR |
+| **Tech Story** | "As a developer, I want to refactor..." | ใช้ Task แทน Story (ไม่มี user value ตรง) |
+| **Copy-Paste Narrative** | ทุก story เหมือนกัน | แต่ละ story ต้องมี unique context |
 
 ## Acceptance Criteria — Given/When/Then
 
@@ -39,7 +128,7 @@ So that [benefit/value].
 ## Story Splitting — SPIDR Method (Mike Cohn)
 
 | Technique | วิธี | ตัวอย่าง |
-|-----------|------|----------|
+| ----------- | ------ | ---------- |
 | **S**pike | วิจัยก่อน split | "Spike: ทดลอง Redlock 2 วัน" |
 | **P**ath | แยกตาม user path | จ่ายบัตร vs Apple Pay |
 | **I**nterface | แยกตาม device/platform | iOS vs Android vs Web |
@@ -63,7 +152,7 @@ So that [benefit/value].
 ## Story Size Guide
 
 | Size | Duration | Guideline |
-|------|----------|-----------|
+| ------ | ---------- | ----------- |
 | XS | < 1 day | อาจเล็กเกินไป — รวมกับ story อื่นได้ |
 | S | 1-2 days | เหมาะสม |
 | M | 2-3 days | เหมาะสม |
