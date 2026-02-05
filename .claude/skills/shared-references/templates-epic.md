@@ -3,6 +3,8 @@
 > Extracted from templates.md — used with `/create-epic`, `/update-epic`
 >
 > For core rules (CREATE vs EDIT, Panel Types, Styling) → see [templates.md](templates.md)
+>
+> **Content Budget** → see [writing-style.md](writing-style.md#content-budget-ต่อ-section)
 
 ---
 
@@ -10,15 +12,15 @@
 
 > Used with `acli jira workitem create --from-json`
 
-**Structure:**
+**Structure:** (⚡ = optional, ใส่เฉพาะเมื่อมีข้อมูลจริง)
 
-- 🎯 Epic Overview (panel: info)
-- 💰 Business Value (panel: success)
-- 📦 Scope (panel: info + table)
-- 📊 RICE Score (table)
-- 🎯 Success Metrics (table)
-- 📋 User Stories (panels by group)
-- 📈 Progress (panel: note)
+- 🎯 Epic Overview (info) — **2 ประโยค max**
+- 💰 Business Value (success) — **3 bullets max**
+- 📦 Scope (info) — **1 บรรทัด/item, ไม่ต้องอธิบาย**
+- 📊 RICE Score (table) — ⚡ skip ถ้า priority ชัดอยู่แล้ว
+- 🎯 Success Metrics (table) — ⚡ skip ถ้า metrics ยังไม่ define
+- 📋 User Stories (panels) — **list + link เท่านั้น**
+- 📈 Progress (note) — auto counts
 - 🔗 Links (table)
 
 ```json

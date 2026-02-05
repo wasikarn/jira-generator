@@ -54,59 +54,52 @@ Then: Navigate to topup credit page
 
 ## Tone & Style
 
-### Concise
+> **หลัก 3 ข้อ:** Concise (ตัดคำเกิน) · Casual (คุยกับเพื่อนร่วมทีม) · Clear (specific + testable)
 
-- No verbose wording
-- Cut unnecessary words
-- 1 sentence = 1 idea
+| ❌ Verbose | ✅ Concise |
+| --- | --- |
+| The system shall render and display a total of 3 card types in accordance with the approved design specifications | Display 3 card types per design |
+| Upon successful completion of page loading, the user shall be able to observe 3 card items rendered on screen | AC1: Display - Page loads and shows 3 cards |
+| Then: Show an appropriate error | Then: Show error "Please enter an amount" |
 
-**Good:**
+---
 
-```text
-Display 3 card types per design
-```
+## Scan-First Principle
 
-**Bad:**
+ทีมจะ **scan ก่อนอ่าน** — ออกแบบ content ให้ scan ได้ใน 5 วินาที
 
-```text
-The system shall render and display a total of 3 card types in accordance with the approved design specifications
-```
+1. **Bold keywords first** — `**Given:** precondition` ไม่ใช่ prose ยาว
+2. **Bullets > Paragraphs** — ห้ามเขียนย่อหน้ายาว, ใช้ bullet points
+3. **Tables > Lists** — ถ้ามี 2+ columns ของข้อมูล ใช้ table
+4. **Skip if empty** — ถ้า section ไม่มีข้อมูลจริง ไม่ต้องใส่ placeholder
 
-### Casual
+---
 
-- Write as if talking to a teammate
-- Not overly formal
-- Use language the team understands
+## Content Budget (ต่อ section)
 
-**Good:**
+> Agent **ต้อง** เขียนไม่เกิน budget นี้ — ถ้าเกิน ให้ตัดหรือ split
 
-```text
-AC1: Display - Page loads and shows 3 cards
-```
+| Issue Type | Section | Budget |
+| --- | --- | --- |
+| **Epic** | Overview | 2 ประโยค |
+| | Business Value | 3 bullets (Revenue/Retention/Ops) |
+| | Scope | 1 บรรทัด/item, ไม่ต้องอธิบาย |
+| | RICE | ⚡ optional — skip ถ้า priority ชัดอยู่แล้ว |
+| | Success Metrics | ⚡ optional — skip ถ้า metrics ยังไม่ define |
+| | User Stories | list + link เท่านั้น, ไม่ต้อง description |
+| | Progress | auto counts, ไม่ต้องเขียนเอง |
+| **Story** | Narrative | 3 บรรทัด (As a / I want / So that) |
+| | AC panels | max 5 panels — ถ้า >5 ให้ split story |
+| | Each AC | 3 bullets (Given/When/Then) + optional And |
+| | Reference | ⚡ skip ถ้าไม่มี Figma/external link |
+| **Sub-task** | Objective | 1 ประโยค |
+| | Scope table | เฉพาะ files ที่เปลี่ยน, max 10 rows |
+| | AC panels | max 3 panels |
+| | Reference | ⚡ skip ถ้า parent story มี link ครบ |
+| **QA** | Test Objective | 1 ประโยค |
+| | Test Cases | max 8 cases — ถ้า >8 ให้ split QA ticket |
 
-**Bad:**
-
-```text
-AC1: Display - Upon successful completion of page loading, the user shall be able to observe 3 card items rendered on screen
-```
-
-### Clear
-
-- Not ambiguous
-- Specify exact values/behavior
-- Testable
-
-**Good:**
-
-```text
-Then: Show error "Please enter an amount"
-```
-
-**Bad:**
-
-```text
-Then: Show an appropriate error
-```
+**⚡ = optional section** — ใส่เฉพาะเมื่อมีข้อมูลจริง
 
 ---
 

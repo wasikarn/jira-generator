@@ -3,6 +3,8 @@
 > Extracted from templates.md — used with `/create-story`, `/update-story`, `/story-full`
 >
 > For core rules (CREATE vs EDIT, Panel Types, Styling) → see [templates.md](templates.md)
+>
+> **Content Budget** → see [writing-style.md](writing-style.md#content-budget-ต่อ-section)
 
 ---
 
@@ -10,7 +12,12 @@
 
 > Used with `acli jira workitem create --from-json`
 
-**Note:** For Stories with AC ≥ 5, consider adding an AC Summary table before the panels (see Important Rules)
+**Density rules:**
+
+- Narrative: **3 บรรทัด** (As a / I want / So that) — ห้ามเขียนย่อหน้าอธิบายเพิ่ม
+- AC: **max 5 panels** — ถ้า >5 ให้ split story (SPIDR)
+- Each AC: **3 bullets** (Given/When/Then) + optional And — ห้าม prose
+- Reference: ⚡ **skip** ถ้าไม่มี Figma/external link
 
 ```json
 {

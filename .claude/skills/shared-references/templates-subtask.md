@@ -3,10 +3,19 @@
 > Extracted from templates.md — used with `/analyze-story`, `/update-subtask`, `/create-testplan`, `/story-full`
 >
 > For core rules (CREATE vs EDIT, Panel Types, Styling) → see [templates.md](templates.md)
+>
+> **Content Budget** → see [writing-style.md](writing-style.md#content-budget-ต่อ-section)
 
 ---
 
 ## Sub-task Template (ADF) - TWO-STEP WORKFLOW
+
+**Density rules:**
+
+- Objective: **1 ประโยค** — what + why เท่านั้น
+- Scope table: เฉพาะ files ที่เปลี่ยน, **max 10 rows** — ถ้า >10 ให้ split sub-task
+- AC: **max 3 panels** — sub-task ควรเล็กกว่า story
+- Reference: ⚡ **skip** ถ้า parent story มี link ครบ
 
 > ⚠️ **CRITICAL:** `acli jira workitem create` does not support the `parent` field!
 >
@@ -128,7 +137,13 @@ jira_create_issue({
 ## QA Test Case Template (ADF) - TWO-STEP WORKFLOW
 
 > Same Two-Step as Sub-task above: MCP create (`summary: "[QA] - Test: [Feature Name]"`) → acli edit
->
+
+**Density rules:**
+
+- Test Objective: **1 ประโยค**
+- Test Cases: **max 8 cases** — ถ้า >8 ให้ split QA ticket
+- Each TC: **3 bullets** (Given/When/Then) + AC ref + Priority — ห้าม prose
+
 > **Important:** Use bulletList inside panels (not nested tables)
 
 ```json
