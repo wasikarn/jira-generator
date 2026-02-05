@@ -9,12 +9,12 @@ Uses REST API v3 which returns/accepts ADF (Atlassian Document Format),
 preserving all formatting (panels, tables, marks, etc.)
 
 Usage:
-    from lib.jira_api import JiraAPI
+    from lib.jira_api import JiraAPI, derive_jira_url
     from lib.auth import create_ssl_context, load_credentials, get_auth_header
 
     creds = load_credentials()
     api = JiraAPI(
-        base_url="https://100-stars.atlassian.net",
+        base_url=derive_jira_url(creds["CONFLUENCE_URL"]),
         auth_header=get_auth_header(creds["CONFLUENCE_USERNAME"], creds["CONFLUENCE_API_TOKEN"]),
         ssl_context=create_ssl_context()
     )
