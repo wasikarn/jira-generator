@@ -96,10 +96,10 @@ Then: Navigate to topup credit page
 | | Scope table | เฉพาะ files ที่เปลี่ยน, max 10 rows |
 | | AC panels | max 3 panels |
 | | Reference | ⚡ skip ถ้า parent story มี link ครบ |
-| **QA** | Test Objective | 1 ประโยค |
+| **QA** ⚡ | Test Objective | 1 ประโยค |
 | | Test Cases | max 8 cases — ถ้า >8 ให้ split QA ticket |
 
-**⚡ = optional section** — ใส่เฉพาะเมื่อมีข้อมูลจริง
+**⚡ = optional** — section หรือ issue type ที่ใส่เฉพาะเมื่อจำเป็น (QA ticket ไม่ต้องสร้างทุก story)
 
 ---
 

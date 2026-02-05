@@ -134,8 +134,10 @@ jira_create_issue({
 
 ---
 
-## QA Test Case Template (ADF) - TWO-STEP WORKFLOW
+## QA Test Case Template (ADF) - TWO-STEP WORKFLOW ⚡
 
+> ⚡ **Optional** — สร้างเฉพาะเมื่อ request จาก QA team หรือ story มี complex business logic ที่ต้อง test plan ชัดเจน
+>
 > Same Two-Step as Sub-task above: MCP create (`summary: "[QA] - Test: [Feature Name]"`) → acli edit
 
 **Density rules:**

@@ -59,9 +59,10 @@ scripts/                          ← setup + sync utilities
 ```text
 /search-issues ← always run FIRST (prevent duplicates)
        ↓
-Stakeholder → PM(/create-epic) → PO(/create-story) → TA(/analyze-story) → QA(/create-testplan)
+Stakeholder → PM(/create-epic) → PO(/create-story) → TA(/analyze-story) → ⚡ QA(/create-testplan)
                                        │                     │
                                        └── /story-full ⭐ ───┘  (PO + TA combined)
+⚡ QA = optional — สร้างเมื่อ request หรือ story มี complex logic
 
 Update flows:
   /update-{epic,story,task,subtask} ── single issue
