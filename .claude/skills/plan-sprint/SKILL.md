@@ -26,6 +26,19 @@ argument-hint: "[--sprint <id>] [--carry-over-only]"
 - [ ] **Team prepared:** Capacity conflicts identified, carry-over updated
 - [ ] **Sprint goal draft:** SMART format ready
 
+## ⚠️ Critical: Capacity Before Assignment
+
+> **Always calculate team capacity BEFORE assigning individual tasks.**
+> This prevents over-committing sprints and ensures balanced workload distribution.
+
+**Order of Operations:**
+
+1. Calculate total team capacity (Phase 2)
+2. Prioritize backlog items (Phase 4)
+3. THEN assign to individuals (Phase 5)
+
+**Anti-Pattern:** Assigning work to individuals first → leads to unbalanced sprints, burnout, missed commitments
+
 ---
 
 ## Part A: Data Collection (Phases 1-2) — Execution Layer

@@ -49,6 +49,34 @@
 - Dependencies: ต้องรอ subtask ไหนก่อน
 - Technical Notes: implementation hints, API contracts
 - Test approach: unit test, integration test, manual test
+- **Start/End Dates**: `customfield_10015` — ช่วย dependency-chain analysis
+
+## Subtask Date Fields
+
+**⚠️ Important:** ตั้ง Start Date เมื่อ assign subtask — ช่วย dependency-chain คำนวณ critical path
+
+| Field | Custom Field | Use Case |
+|-------|--------------|----------|
+| Start Date | `customfield_10015` | วันที่เริ่มทำ subtask |
+| Due Date | `duedate` (standard) | deadline ของ subtask |
+
+**MCP Example:**
+
+```python
+jira_update_issue(
+    issue_key="BEP-XXX",
+    additional_fields={
+        "customfield_10015": "2026-02-06",  # Start Date
+        "duedate": "2026-02-08"              # Due Date
+    }
+)
+```
+
+**Why Dates Matter:**
+
+- `/dependency-chain` skill ใช้ dates คำนวณ critical path
+- Sprint planning ใช้ dates เพื่อ detect overflow (dates นอก sprint range)
+- Team capacity planning ใช้ dates เพื่อ balance workload per day
 
 ## Decomposition Techniques
 
