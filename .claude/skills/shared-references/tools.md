@@ -61,12 +61,16 @@ What do you need?
 | **Create issue** | acli | `acli jira workitem create --from-json file.json` |
 | **Update description** | acli | `acli jira workitem edit --from-json file.json --yes` |
 | **Update other fields** | MCP | `jira_update_issue(issue_key: "BEP-XXX", fields: {...})` |
+| **Assign issue** | acli | `acli jira workitem assign -k "BEP-XXX" -a "email@..." -y` |
 | **Create issue link** | MCP | `jira_create_issue_link(link_type: "Relates", inward_issue: "BEP-X", outward_issue: "BEP-Y")` |
 | **Get transitions** | MCP | `jira_get_transitions(issue_key: "BEP-XXX")` |
 | **Transition issue** | MCP | `jira_transition_issue(issue_key: "BEP-XXX", ...)` |
 
 > **Issue Link Types (BEP):** `Relates` · `Blocks` · `Duplicate` · `Cloners` · `Test Case`
 > ⚠️ ใช้ `"Relates"` ไม่ใช่ `"Relates to"` — ชื่อต้องตรงกับ Jira config
+>
+> ⚠️ **MCP assignee bug:** `jira_update_issue` assignee field reports success but doesn't update.
+> Use `acli jira workitem assign -k "KEY" -a "email" -y` instead.
 
 ### Confluence Operations
 

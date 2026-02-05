@@ -189,11 +189,13 @@ Execute according to the user-approved plan:
 # Move items to target sprint (⚠️ sprint field = plain number, NOT object)
 MCP: jira_update_issue(issue_key="BEP-XXX", additional_fields={"customfield_10020": 640})
 
-# Assign items
-MCP: jira_update_issue(issue_key="BEP-XXX", fields={"assignee": "Display Name"})
+# Assign items (⚠️ MCP assignee silent fail — use acli instead)
+Bash: acli jira workitem assign -k "BEP-XXX" -a "email@domain.com" -y
 ```
 
 > ⚠️ Sprint field ใช้ `customfield_10020` กับ plain number (เช่น `640`) — ห้ามใช้ `{"id": 640}`
+> ⚠️ **MCP assignee bug:** `jira_update_issue` assignee field reports success but doesn't update.
+> Use `acli jira workitem assign -k "KEY" -a "email" -y` instead.
 
 **Output:**
 
