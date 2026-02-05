@@ -150,6 +150,9 @@ Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 | JQL `key in (...) ORDER BY` → parse error | Remove `ORDER BY` when using `key in (...)` syntax |
 | MCP `jira_update_issue(fields=...)` → unexpected kwarg | Use `additional_fields` not `fields` for custom fields |
 | MCP `jira_search` → exceeds max tokens | Always use `fields` param: `fields="summary,status,assignee"` |
+| Subtask `expected 'key' to be string` / `parent not specified` | Must use `additional_fields={"parent": {"key": "BEP-XXX"}}` — object, not string |
+| MCP `jira_create_issue` parent → silent fail | MCP may silently ignore parent; verify after create, use REST API if needed |
+| MCP `jira_update_issue` parent → silent fail | Use REST API v3: `api._request('PUT', '/rest/api/3/issue/KEY', {'fields': {'parent': {'key': 'PARENT-KEY'}}})` |
 
 ## References (load when needed)
 
