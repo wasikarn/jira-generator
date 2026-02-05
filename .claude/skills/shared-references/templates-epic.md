@@ -4,7 +4,7 @@
 >
 > For core rules (CREATE vs EDIT, Panel Types, Styling) → see [templates.md](templates.md)
 >
-> **Content Budget** → see [writing-style.md](writing-style.md#content-budget-ต่อ-section)
+> **Content Budget** → see [writing-style.md](writing-style.md#content-budget-per-section)
 
 ---
 

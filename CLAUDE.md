@@ -62,7 +62,7 @@ scripts/                          ← setup + sync utilities
 Stakeholder → PM(/create-epic) → PO(/create-story) → TA(/analyze-story) → ⚡ QA(/create-testplan)
                                        │                     │
                                        └── /story-full ⭐ ───┘  (PO + TA combined)
-⚡ QA = optional — สร้างเมื่อ request หรือ story มี complex logic
+⚡ QA = optional — create when requested or story has complex logic
 
 Update flows:
   /update-{epic,story,task,subtask} ── single issue
@@ -121,6 +121,12 @@ Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 2. acli: `acli jira workitem edit --from-json subtask.json --yes`
 
 **Smart Link:** `{"type":"inlineCard","attrs":{"url":"https://...atlassian.net/browse/BEP-XXX"}}` — auto-resolves summary+status
+
+### Content Density
+
+**Scan-First:** bold keywords first · bullets > paragraphs · tables > lists · skip if empty
+**Content Budget:** Epic overview 2 sentences · Story max 5 AC panels · Sub-task max 3 AC · QA ⚡ optional max 8 TC
+**Full rules** → `shared-references/writing-style.md`
 
 ### Common Mistakes (project-specific)
 
