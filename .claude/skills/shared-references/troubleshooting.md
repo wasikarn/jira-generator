@@ -118,6 +118,7 @@ acli jira workitem edit --from-json tasks/subtask.json --yes
 | `Cannot read property` | Issue deleted | Issue may have been removed |
 | `Rate limited` | Too many requests | Wait and retry |
 | `exceeds maximum allowed tokens` | Issue has too much data | Use `fields` parameter to limit fetched fields |
+| `jira_update_issue` parent → silent fail | MCP doesn't set parent on Bug/Story | Use REST API v3: `api._request('PUT', '/rest/api/3/issue/KEY', {'fields': {'parent': {'key': 'EPIC-KEY'}}})` |
 
 ### Large Output Error
 
