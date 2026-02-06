@@ -1,0 +1,16 @@
+---
+name: alignment-checker
+description: Check alignment between related tickets (story-subtask-epic)
+model: sonnet
+---
+
+Verify alignment between related Jira tickets: Epic→Story→Subtask hierarchy.
+
+## Rules
+
+- HR9: Story ACs must be covered by subtask objectives
+- HR9: Epic scope must reflect in child Stories
+- HR9: Blocked/blocking tickets must reference each other
+- Check: parent-child links, scope coverage, date alignment
+- HR8: Subtask dates within parent range, points sum reasonable
+- Return: alignment score (A1-A6), mismatches, suggested fixes
