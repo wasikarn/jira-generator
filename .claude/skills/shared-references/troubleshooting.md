@@ -162,7 +162,18 @@ acli jira workitem edit --from-json tasks/subtask.json --yes
 
 | Error | Cause | Solution |
 | --- | --- | --- |
+| `Expecting ')' but got 'ORDER'` | ORDER BY with `parent =` query | Use `parent = BEP-XXX` without ORDER BY, or `"Parent Link" = BEP-XXX ORDER BY...` |
 | `key in (...) ORDER BY` → parse error | ORDER BY not allowed with key in | Remove `ORDER BY` when using `key in (...)` syntax |
+
+> 🚨 **NEVER add ORDER BY to `parent =` or `key in (...)` queries — they always cause parse errors**
+
+### Parallel MCP Call Errors
+
+| Error | Cause | Solution |
+| --- | --- | --- |
+| `Sibling tool call errored` | One parallel MCP call failed → all others cancelled | Fix the failing call first; consider making dependent calls sequential instead of parallel |
+
+> **Tip:** When making multiple `jira_search` / `jira_get_issue` calls in parallel, if one has bad JQL syntax, ALL sibling calls get cancelled. Validate JQL syntax before parallel execution.
 
 ### Large Output Error
 

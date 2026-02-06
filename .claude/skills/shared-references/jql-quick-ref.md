@@ -18,18 +18,23 @@ project = BEP AND type = Story AND sprint IN openSprints()
 parent = BEP-XXX
 ```
 
-> ⚠️ **WARNING:** When using with MCP `jira_search`, do not include ORDER BY in a parent query!
+> 🚨 **CRITICAL — JQL queries that ALWAYS cause parse errors:**
 >
 > ```text
-> ❌ parent = BEP-XXX ORDER BY created DESC  → Error: Expecting ')' but got 'ORDER'
-> ✅ parent = BEP-XXX                        → works correctly
+> ❌ parent = BEP-XXX ORDER BY created DESC       → Error: Expecting ')' but got 'ORDER'
+> ❌ parent = BEP-XXX AND issuetype = Story ORDER BY  → same error
+> ❌ key in (BEP-1, BEP-2) ORDER BY created       → Error: parse error
 > ```
 >
-> If you need sorting, use `"Parent Link"` instead:
+> **Safe alternatives:**
 >
 > ```text
-> ✅ "Parent Link" = BEP-XXX ORDER BY created DESC
+> ✅ parent = BEP-XXX                              → no ORDER BY needed
+> ✅ "Parent Link" = BEP-XXX ORDER BY created DESC → use "Parent Link" if sorting needed
+> ✅ key in (BEP-1, BEP-2)                         → remove ORDER BY
 > ```
+>
+> **Rule: NEVER add ORDER BY to `parent =` or `key in (...)` queries**
 
 ### Find My Assigned Issues
 

@@ -59,6 +59,7 @@ Discovery algorithm:
 3. Walk DOWN:
    - jira_search("parent = EPIC_KEY AND issuetype = Story") → stories
    - per story: jira_search("parent = STORY_KEY") → sub-tasks
+   ⚠️ NEVER add ORDER BY to parent queries — causes JQL parse error
 4. Walk SIDEWAYS (Jira → Confluence):
    - per story: confluence_search("BEP-XXX") → Tech Note
    - epic: confluence_search(epic_title) → Epic Doc

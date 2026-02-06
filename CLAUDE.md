@@ -165,6 +165,8 @@ Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 | `fields` param → error | Use `additional_fields` not `fields` |
 | `project_key_or_id` → error | Use `project_key` |
 | `limit > 50` → error | Use pagination with `start_at` |
+| **`parent = X ORDER BY` → JQL error** | **NEVER add ORDER BY to `parent =` or `key in (...)` queries** |
+| **Sibling tool call errored** | **One parallel MCP call failed → all cancelled. Fix JQL first** |
 | **Confluence macros → raw XML** | **Use `update_page_storage.py`, never MCP for macros** |
 
 ## References (load when needed)
