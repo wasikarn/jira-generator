@@ -33,6 +33,14 @@ argument-hint: "[story-description]"
 | 9. QG Subtasks | `qg_score`, `passed_qg` |
 | 10. Create | `subtask_keys[]` |
 
+## Gate Levels
+
+| Level | Symbol | Behavior |
+| --- | --- | --- |
+| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
+| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
+| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+
 ## Part A: Create Story (Phases 1-4)
 
 > **Phase Tracking:** Use TodoWrite to mark each phase `in_progress` → `completed` as you work.
@@ -54,7 +62,7 @@ So that [benefit].
 
 - Define ACs, Scope, DoD
 - **VS Check:** Story delivers e2e value? All layers touched? (not shell-only)
-- **⛔ GATE — DO NOT PROCEED** without user approval of story narrative, ACs, and VS integrity.
+- **🟡 REVIEW** — Present story narrative, ACs, scope to user. Proceed unless user objects.
 
 ### 3. INVEST + VS Validation
 
@@ -70,21 +78,22 @@ So that [benefit].
 - ❌ Shell-only (UI ไม่มี logic) → เพิ่ม minimal happy path
 - ❌ Layer-split (BE แยกจาก FE) → รวมเป็น story เดียว
 
-**⛔ GATE — If any INVEST criterion fails or VS anti-pattern detected → STOP. Fix before proceeding.**
+**🟢 AUTO** — Validate all criteria. If any fail or VS anti-pattern detected → auto-fix and re-validate. Escalate to user only if unfixable.
 
 ### 3b. Quality Gate — Story (HR1)
 
-> **⛔ HR1 — DO NOT send Story to Atlassian without QG ≥ 90%.**
+> **🟢 AUTO** — Score → auto-fix → re-score. Escalate to user only if still < 90% after 2 attempts.
+> HR1: DO NOT send Story to Atlassian without QG ≥ 90%.
 
 1. Generate ADF JSON → `tasks/story.json`
 2. Score against `shared-references/verification-checklist.md` (Technical + Story Quality)
 3. If < 90% → auto-fix → re-score (max 2 attempts)
-4. If ≥ 90% → proceed to Phase 4
-5. If still < 90% after 2 fixes → ask user before proceeding
+4. If ≥ 90% → proceed to Phase 4 automatically
+5. If still < 90% after 2 fixes → escalate to user
 
 ### 4. Create Story in Jira
 
-> **⛔ HR1 — Phase 3b QG must have passed before this step.**
+> **🟢 AUTO** — If Phase 3b QG passed → create automatically. No user interaction needed.
 
 ```bash
 acli jira workitem create --from-json tasks/story.json
@@ -94,7 +103,7 @@ acli jira workitem create --from-json tasks/story.json
 
 **Capture story key → {{PROJECT_KEY}}-XXX**
 
-> **⛔ HR6 — `cache_invalidate(story_key)` after create.**
+> **🟢 AUTO** — HR6: `cache_invalidate(story_key)` after create.
 
 ---
 
@@ -112,7 +121,7 @@ acli jira workitem create --from-json tasks/story.json
 
 **VS Verification:** Story touches all layers for e2e slice? (not layer-only)
 
-**⛔ GATE — DO NOT PROCEED** without user confirmation of scope + VS integrity.
+**🟡 REVIEW** — Present impact table + VS verification to user. Proceed unless user objects.
 
 ### 6. Codebase Exploration ⚠️ MANDATORY
 
@@ -132,7 +141,7 @@ Task(subagent_type: "Explore", prompt: "Find [feature] in shared: config, middle
 Each agent returns: `file_paths[]`, `patterns[]`, `dependencies[]`
 Merge results into context.
 
-**⛔ GATE — If zero real file paths found → DO NOT PROCEED to Phase 7.** Re-explore or ask user. Paths must be real files (verify with Glob). Generic paths like `/src/` are REJECTED.
+**🟢 AUTO** — Validate file paths with Glob. If zero real paths found → re-explore automatically (max 2 attempts). Generic paths like `/src/` are REJECTED. Escalate to user only if still zero after retries.
 
 ### 7. Design Sub-tasks
 
@@ -145,27 +154,33 @@ Merge results into context.
 
 ### 8. Alignment Check
 
+> **🟢 AUTO** — Verify programmatically. Auto-fix misalignment. Escalate only if unfixable.
+
 - [ ] Sum of sub-tasks = Complete Story?
 - [ ] No gaps? No scope creep?
-- [ ] File paths exist?
+- [ ] File paths exist? (validate with Glob)
 - [ ] **VS integrity maintained?** (subtasks complete the slice, not horizontal)
+
+If any check fails → auto-adjust subtask scope/design → re-check. Escalate to user only if gap cannot be resolved automatically.
 
 ### 9. Quality Gate — Subtasks (MANDATORY)
 
-> **⛔ HR1 — DO NOT create subtasks in Jira without QG ≥ 90%. No exceptions.**
+> **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
+> HR1: DO NOT create subtasks in Jira without QG ≥ 90%.
 
 Score each subtask ADF against `shared-references/verification-checklist.md`:
 
 1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
 2. Report: `Technical X/5 | Subtask Quality X/5 | Overall X%`
 3. If < 90% → auto-fix → re-score (max 2 attempts)
-4. If ≥ 90% → proceed to Phase 10
-5. If still < 90% after 2 fixes → STOP and ask user
+4. If ≥ 90% → proceed to Phase 10 automatically
+5. If still < 90% after 2 fixes → escalate to user
 6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
 
 ### 10. Create Sub-tasks
 
-> **⛔ HR5 — Two-Step + Verify Parent.** acli ไม่รองรับ `parent` field. MCP may silently ignore parent.
+> **🟢 AUTO** — Create → verify parent → edit descriptions. All automated. Escalate only if parent verify fails after retry.
+> HR5: Two-Step + Verify Parent. acli ไม่รองรับ `parent` field. MCP may silently ignore parent.
 
 **Step 1:** MCP `jira_create_issue` (create shell + parent link) — parallel calls ได้
 **Step 2:** Verify parent — `jira_get_issue` each subtask → check `parent.key` = story_key
@@ -188,8 +203,8 @@ acli jira workitem edit --from-json tasks/subtask-be.json --yes
 acli jira workitem edit --from-json tasks/subtask-fe.json --yes
 ```
 
-> **⛔ HR6 — `cache_invalidate(subtask_key)` after EVERY Atlassian write.**
-> **⛔ HR3 — If assignee needed: NEVER use MCP. Use `acli jira workitem assign -k "KEY" -a "email" -y`.**
+> **🟢 AUTO** — HR6: `cache_invalidate(subtask_key)` after EVERY Atlassian write.
+> **🟢 AUTO** — HR3: If assignee needed, use `acli jira workitem assign -k "KEY" -a "email" -y` (never MCP).
 
 ### 11. Summary
 
