@@ -132,16 +132,6 @@ Config: `.claude/project-config.json` (single source of truth) — Jira/Confluen
 | Prefer `/story-full` over separate create+analyze | `/search-issues` before creating · `/story-cascade` to cascade · `/sync-alignment` for Confluence |
 | After Jira write → stale cache | `cache_invalidate(issue_key)` before next read |
 
-### JQL `parent` Field — HARD RULE
-
-**NEVER add `ORDER BY` to ANY JQL with `parent =`, `parent in`, or `key in (...)`.**
-
-```text
-❌ parent = {{PROJECT_KEY}}-XXX ORDER BY rank
-✅ parent = {{PROJECT_KEY}}-XXX                         → use results as-is
-✅ "Parent Link" = {{PROJECT_KEY}}-XXX ORDER BY created → if sorting needed
-```
-
 ## References
 
 Shared refs at `.claude/skills/shared-references/` (all `.md`):
@@ -159,9 +149,13 @@ templates (epic·story·subtask·task sections) · tools · verification-checkli
 4. **Traceability** — everything links back to parent (Story→Epic, Sub-task→Story)
 5. **Explore first** — prefer `Task(Explore)` before creating Sub-tasks (no explore = generic paths)
 
-### Quality Gate — HARD RULE
+### HARD RULES
 
-**NEVER** send anything to Atlassian (create or edit) before passing Quality Gate ≥ 90%.
+Rules that if violated cause **silent failures**, **data corruption**, or **irreversible damage**. No exceptions.
+
+#### HR1. Quality Gate ≥ 90% Before Atlassian Writes
+
+**NEVER** create or edit issues on Jira/Confluence before passing QG ≥ 90%.
 
 ```text
 1. Explore codebase (real file paths — no generic paths)
@@ -171,5 +165,37 @@ templates (epic·story·subtask·task sections) · tools · verification-checkli
 5. acli edit --from-json (ADF description)
 ```
 
-This applies to ALL Atlassian writes: create-epic, create-story, story-full, analyze-story, create-task, update-*, story-cascade, sync-alignment. No exceptions.
+Applies to ALL skills: create-epic, create-story, story-full, analyze-story, create-task, update-\*, story-cascade, sync-alignment.
+
+#### HR2. JQL `parent` — No ORDER BY
+
+**NEVER** add `ORDER BY` to JQL with `parent =`, `parent in`, or `key in (...)`. Parser error, no results.
+
+#### HR3. MCP Assignee — Use acli Only
+
+MCP `jira_update_issue` with assignee **silently succeeds but does nothing**. Always use `acli jira workitem assign -k "KEY" -a "email" -y`.
+
+#### HR4. Confluence Macros — Use Script Only
+
+MCP HTML-escapes `<ac:structured-macro>` → page renders raw XML. Use `update_page_storage.py` for ANY page with macros (ToC, Children, Code blocks).
+
+#### HR5. Subtask = Two-Step + Verify Parent
+
+MCP `jira_create_issue` may **silently ignore parent field** → orphan subtask. Always: (1) MCP create with parent, (2) `jira_get_issue` to verify parent link set, (3) acli edit for ADF description.
+
+#### HR6. Cache Invalidate After Every Write
+
+After any MCP write → `cache_invalidate(issue_key)`. Without this, subsequent reads return **stale data silently** — affects verify, cascade, and sprint planning.
+
+#### HR7. Sprint ID — Always Lookup, Never Hardcode
+
+Sprint IDs change every sprint. **Always** use `jira_get_sprints_from_board()` to get current ID. Hardcoding causes tickets to land in **wrong sprint silently** (no error from API).
+
+#### HR8. Subtask Size + Dates Must Align with Parent
+
+Subtask dates must fall within parent date range. Story points sum must be reasonable vs parent estimate. Misalignment → capacity calculation wrong, burndown chart inaccurate.
+
+#### HR9. Related Ticket Descriptions Must Align
+
+Story ACs must be covered by subtask objectives. Epic scope must reflect in child Stories. Blocked/blocking tickets must reference each other. Run `/verify-issue --with-subtasks` to check alignment (A1-A6).
 Run `/optimize-context` when CLAUDE.md feels outdated or context exceeds 15 KB.

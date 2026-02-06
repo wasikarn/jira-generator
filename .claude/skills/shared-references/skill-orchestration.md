@@ -63,9 +63,14 @@ Key paths:
 - `core/security-auditor/agent.md` (also available as Task agent)
 - `design/ui-ux/ui-ux-analyst/agent.md`
 
-## Quality Gate Protocol — HARD RULE
+## HARD RULES
 
-> **NEVER create or edit issues on Jira/Confluence before passing QG ≥ 90%.** This is non-negotiable — no "create first, fix later" allowed.
+> Rules that if violated cause **silent failures**, **data corruption**, or **irreversible damage**.
+> Every skill MUST respect these rules. No exceptions.
+
+### HR1. Quality Gate ≥ 90% Before Atlassian Writes
+
+> **NEVER create or edit issues on Jira/Confluence before passing QG ≥ 90%.** No "create first, fix later".
 
 ```text
 BEFORE sending to Atlassian:
@@ -81,7 +86,39 @@ BEFORE sending to Atlassian:
 10. After Atlassian write → cache_invalidate(issue_key)
 ```
 
-**Why:** MCP `jira_create_issue` writes wiki markup descriptions directly to Jira. This bypasses QG and pushes low-quality content. Always create shell first (summary only), then apply ADF via acli.
+**Why:** MCP `jira_create_issue` writes wiki markup descriptions directly to Jira, bypassing QG.
+
+### HR2. JQL `parent` — No ORDER BY
+
+NEVER add `ORDER BY` to JQL with `parent =`, `parent in`, or `key in (...)` — parser error, zero results.
+
+### HR3. MCP Assignee — Use acli Only
+
+`jira_update_issue` with assignee silently succeeds but does nothing. Use `acli jira workitem assign`.
+
+### HR4. Confluence Macros — Use Script Only
+
+MCP HTML-escapes `<ac:structured-macro>` → broken rendering. Use `update_page_storage.py`.
+
+### HR5. Subtask = Two-Step + Verify Parent
+
+MCP may silently ignore parent field → orphan subtask. Always: (1) MCP create with parent, (2) verify parent set via `jira_get_issue`, (3) acli edit for ADF.
+
+### HR6. Cache Invalidate After Every Write
+
+After any MCP write → `cache_invalidate(issue_key)`. Stale data causes wrong verify/cascade/planning results.
+
+### HR7. Sprint ID — Always Lookup, Never Hardcode
+
+Use `jira_get_sprints_from_board()` — hardcoded IDs cause tickets to land in wrong sprint silently.
+
+### HR8. Subtask Size + Dates Must Align with Parent
+
+Subtask dates within parent date range. Points sum reasonable vs parent estimate. Misalignment breaks capacity/burndown.
+
+### HR9. Related Ticket Descriptions Must Align
+
+Story ACs covered by subtask objectives. Epic scope reflected in child Stories. Linked tickets reference each other. `/verify-issue --with-subtasks` checks alignment (A1-A6).
 
 ### Scoring Reference
 
