@@ -91,8 +91,8 @@ EOF
 ### 4. Run Setup Script
 
 ```bash
-git clone <repo-url> ~/Projects/{{COMPANY_LOWER}}/jira-generator
-cd ~/Projects/{{COMPANY_LOWER}}/jira-generator
+git clone <repo-url> jira-generator
+cd jira-generator
 
 # Idempotent — safe to run multiple times
 ./scripts/setup.sh
@@ -102,7 +102,7 @@ This will:
 
 1. Install `sync-skills` CLI to `~/.local/bin/`
 2. Sync skills to `~/.claude/skills/` (via symlinks)
-3. Add Tathep config to `~/.claude/CLAUDE.md`
+3. Add Atlassian config to `~/.claude/CLAUDE.md`
 
 > If `~/.local/bin` is not in your PATH: `export PATH="$HOME/.local/bin:$PATH"`
 
@@ -308,7 +308,7 @@ Claude will fetch sprint data, calculate capacity, analyze carry-over, prioritiz
 
 scripts/
 ├── setup.sh                        <- Setup script (idempotent)
-├── configure-project.py            <- Portable config (clone to other projects)
+├── configure-project.py            <- Placeholder ↔ real value converter
 ├── fix-table-format.py             <- Markdown table formatter
 ├── update-sprint-goals.py          <- Sprint goals updater
 └── sync-skills                     <- Sync skills to ~/.claude/skills/
@@ -319,23 +319,60 @@ CLAUDE.md                           <- Agent instructions (passive context)
 
 > **Note:** jira-cache-server venv is stored at `~/.cache/jira-generator/jira-cache-server/.venv/` (not in project tree) to keep the repo lightweight (~643MB of ML dependencies).
 
-## Cloning to Another Project
+## Configuration System
 
-This system is portable — update config and re-apply:
+All project-specific values (Jira site, team, services, domains) live in `.claude/project-config.json` — the **single source of truth**. The repo tracks only the `.template` version with safe placeholder values; real config is gitignored.
 
-```bash
-# 1. Edit project config
-vi .claude/project-config.json
-# → Update: jira.site, jira.project_key, team.members, services.tags
+### How It Works
 
-# 2. Revert current placeholders
-python scripts/configure-project.py --revert --apply
-
-# 3. Apply new config values
-python scripts/configure-project.py --apply
+```text
+.claude/project-config.json.template   ← tracked in git (safe placeholders)
+.claude/project-config.json            ← gitignored (your real values)
+scripts/configure-project.py           ← converts between placeholder ↔ real values
+.git/hooks/pre-commit                  ← blocks commits with sensitive data
 ```
 
-See `.claude/project-config.json` for full team, services, and environment settings.
+### Placeholders
+
+| Placeholder | Example Real Value |
+| ----------- | ------------------ |
+| `{{PROJECT_KEY}}` | `BEP` |
+| `{{JIRA_SITE}}` | `acme-corp.atlassian.net` |
+| `{{CONFLUENCE_SITE}}` | `acme-corp.atlassian.net` |
+| `{{SPACE_KEY}}` | `BEP` |
+| `{{START_DATE_FIELD}}` | `customfield_XXXXX` (Start Date) |
+| `{{SPRINT_FIELD}}` | `customfield_YYYYY` (Sprint) |
+| `{{COMPANY}}` | `Acme Corp` |
+| `{{COMPANY_LOWER}}` | `acme` |
+
+### Daily Workflow
+
+```bash
+# After cloning — apply real values for local development
+python scripts/configure-project.py --apply
+
+# Before committing — revert to placeholders
+python scripts/configure-project.py --revert --apply
+
+# Dry run (see what would change without writing)
+python scripts/configure-project.py            # show apply changes
+python scripts/configure-project.py --revert   # show revert changes
+```
+
+> The pre-commit hook will **block commits** if sensitive patterns are detected. Run `--revert --apply` to fix.
+
+### Cloning to Another Project
+
+```bash
+# 1. Copy template to create your config
+cp .claude/project-config.json.template .claude/project-config.json
+
+# 2. Edit with your values: team, Jira site, domains, service paths
+vi .claude/project-config.json
+
+# 3. Apply your values to all skill files
+python scripts/configure-project.py --apply
+```
 
 ## Tips
 

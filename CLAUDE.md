@@ -17,7 +17,7 @@ scripts/                           ← setup + sync utilities
 
 ## Project Settings
 
-Config: `.claude/project-config.json` — Jira/Confluence, team, services, environments
+Config: `.claude/project-config.json` (single source of truth) — Jira/Confluence, team, services, environments
 
 | Setting | Config Key |
 | --- | --- |
@@ -29,7 +29,9 @@ Config: `.claude/project-config.json` — Jira/Confluence, team, services, envir
 **Dynamic lookup:** Board → `jira_get_agile_boards(project_key="{{PROJECT_KEY}}")` · Sprint → `jira_get_sprints_from_board(board_id, state="future")`
 **Prerequisites:** `acli` CLI, MCP (Jira + Confluence + Figma + GitHub), Python 3.x
 
-**Cloning:** Edit `project-config.json` → `python scripts/configure-project.py --revert --apply` → `--apply`
+**Configuration:** Real config gitignored; repo tracks `.template` with safe placeholders. `configure-project.py --apply` injects real values, `--revert --apply` restores placeholders. Pre-commit hook blocks sensitive data leaks.
+
+**Cloning:** `cp .template .json` → edit values → `configure-project.py --apply`
 
 ## Skill Commands
 
