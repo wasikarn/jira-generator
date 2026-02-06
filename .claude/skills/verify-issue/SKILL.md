@@ -21,7 +21,7 @@ argument-hint: "[issue-key] [--with-subtasks] [--fix]"
 ### 1. Fetch & Identify
 
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
-- If `--with-subtasks` → `MCP: jira_search(jql: "parent = BEP-XXX")` (**⚠️ NEVER add ORDER BY to parent queries — causes JQL parse error**)
+- If `--with-subtasks` → `MCP: jira_search(jql: "parent = BEP-XXX", fields: "summary,status,assignee,issuetype")` (**⚠️ NEVER add ORDER BY to parent queries**)
 - Identify type → Select checklist
 - Build inventory: Key, Type, Current Format
 - **Gate (--fix only):** User confirms scope

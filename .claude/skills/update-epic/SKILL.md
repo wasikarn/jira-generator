@@ -21,7 +21,7 @@ argument-hint: "[issue-key] [changes]"
 ### 1. Fetch Current State
 
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
-- `MCP: jira_search(jql: "parent = BEP-XXX OR 'Epic Link' = BEP-XXX")` (**⚠️ NEVER add ORDER BY to parent queries — causes JQL parse error**)
+- `MCP: jira_search(jql: "parent = BEP-XXX OR 'Epic Link' = BEP-XXX", fields: "summary,status,assignee,issuetype,priority")` (**⚠️ NEVER add ORDER BY to parent queries**)
 - `MCP: confluence_search(query: "Epic: [title]")`
 - Read: RICE, objectives, success metrics, child stories
 - **Gate:** User confirms what to update

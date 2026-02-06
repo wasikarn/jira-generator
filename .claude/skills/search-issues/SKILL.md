@@ -31,7 +31,7 @@ argument-hint: "[keyword] [--filters]"
 ### 2. Execute Search
 
 ```text
-MCP: jira_search(jql: "[generated JQL]", limit: 20)
+MCP: jira_search(jql: "[generated JQL]", fields: "summary,status,assignee,issuetype,priority", limit: 20)
 ```
 
 ### 3. Display Results

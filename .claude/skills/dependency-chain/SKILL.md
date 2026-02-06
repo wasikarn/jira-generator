@@ -27,7 +27,7 @@ description: |
 Determine scope — sprint ID, issue list, or JQL query:
 
 ```text
-MCP: jira_search(jql="sprint = <id> ORDER BY rank", fields="summary,status,assignee,issuetype,issuelinks,priority,labels")
+MCP: jira_search(jql="sprint = <id> ORDER BY rank", fields="summary,status,assignee,issuetype,issuelinks,priority,labels", limit=30)
 ```
 
 For each item, extract:

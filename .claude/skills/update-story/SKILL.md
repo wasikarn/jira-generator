@@ -21,7 +21,7 @@ argument-hint: "[issue-key] [changes]"
 ### 1. Fetch Current State
 
 - `MCP: jira_get_issue(issue_key: "BEP-XXX")`
-- `MCP: jira_search(jql: "parent = BEP-XXX")` → Sub-tasks (**⚠️ NEVER add ORDER BY to parent queries — causes JQL parse error**)
+- `MCP: jira_search(jql: "parent = BEP-XXX", fields: "summary,status,assignee,issuetype")` → Sub-tasks (**⚠️ NEVER add ORDER BY to parent queries**)
 - Read: Narrative, ACs, Scope, Status
 - **Gate:** User confirms what to update
 

@@ -123,6 +123,23 @@ Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 | Read description | `summary,status,description` |
 | Full analysis | `summary,status,description,issuetype,parent,labels` |
 
+### jira_search — always use `fields` + `limit` params
+
+**Without `fields`, results regularly exceed 70K+ chars → token limit error.**
+
+```text
+❌ jira_search(jql="sprint = 640")                              → 73K+ chars, exceeds limit
+❌ jira_search(jql="sprint = 640", fields="summary,status")     → still 70K+ if 100 issues
+✅ jira_search(jql="sprint = 640", fields="summary,status,assignee", limit=30)  → safe
+```
+
+| Use Case | Fields | Limit |
+| --- | --- | --- |
+| Sprint overview | `summary,status,assignee,issuetype,priority` | 30 |
+| Sub-task list | `summary,status,assignee` | 20 |
+| Search duplicates | `summary,status,issuetype` | 10 |
+| Full with links | `summary,status,assignee,issuetype,issuelinks,priority,labels` | 20 |
+
 ### ADF Quick Reference
 
 **CREATE vs EDIT — JSON formats differ (do not interchange!):**
