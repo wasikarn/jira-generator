@@ -76,7 +76,21 @@
 □ Benefit is business value (not technical)
 ```
 
-### S3: Acceptance Criteria
+### S3: Narrative Anti-Patterns
+
+```text
+□ No Generic Persona ("As a user" → must specify role + situation)
+□ No Solution Masking ("I want a modal" → write goal, solution goes in AC)
+□ No Missing Why ("So that" states real value, not restatement of goal)
+□ No Kitchen Sink (1 story ≠ 3 goals — split with SPIDR)
+□ No Tech Story ("As a developer, I want to refactor" → use Task)
+□ No Copy-Paste (each story has unique context)
+□ Persona has role + context + level (not just "admin")
+□ Goal has verb + object + context (not just "see list")
+□ Benefit is business value: measurable > behavioral > qualitative
+```
+
+### S4: Acceptance Criteria
 
 ```text
 □ All ACs have Given clause
@@ -89,7 +103,7 @@
 □ ACs are independent
 ```
 
-### S4: Scope Definition
+### S5: Scope Definition
 
 ```text
 □ Services impacted listed
@@ -98,7 +112,7 @@
 □ Dependencies noted
 ```
 
-### S5: Language
+### S6: Language
 
 ```text
 □ Thai language for content

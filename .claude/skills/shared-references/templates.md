@@ -249,6 +249,18 @@ Mixed text: wrap only the code portion in marks, leave surrounding text plain.
 
 ## Epic Template (ADF)
 
+### Epic Best Practices
+
+**Naming:** `[Domain] — [Deliverable]` (never include version/phase e.g. "Phase 1", "v2")
+
+**Size:** 8-15 stories, 2-6 months — if spanning 3+ sprints + multi-layer scope → split
+
+**When to Split:** >15 tickets | multiple domains in one epic | can't track progress | mixed concerns
+
+**How to Split:** By user persona | By delivery layer | By ordered process (VS1→VS2) | min 5 tickets per epic
+
+**Lifecycle:** Close when done → create new Epic | Review scope every sprint planning
+
 ### Epic Template (ADF) - CREATE
 
 > Used with `acli jira workitem create --from-json`
@@ -445,6 +457,43 @@ Mixed text: wrap only the code portion in marks, leave surrounding text plain.
 
 ## Story Template (ADF)
 
+### Story Best Practices
+
+**Size Guide:**
+
+| Size | Duration | Hours | Guideline |
+| --- | --- | --- | --- |
+| XS | < 0.5 day | < 4h | Quick fix, config change, hotfix |
+| S | 0.5-1 day | 4-8h | Simple feature, minor change |
+| M | 1-2 days | 8-16h | Standard feature — Ideal |
+| L | 2-4 days | 16-32h | Complex feature — consider splitting |
+| XL | > 4 days | > 32h | Must split — use SPIDR |
+
+**SPIDR Splitting (Mike Cohn):**
+
+| Technique | Method | Example |
+| --- | --- | --- |
+| **S**pike | Research before split | "Spike: try Redlock for 2 days" |
+| **P**ath | Split by user path | Card payment vs Apple Pay |
+| **I**nterface | Split by device/platform | iOS vs Android vs Web |
+| **D**ata | Split by data type | Credit vs discount vs cashback |
+| **R**ules | Split by business rules | Coupon expired vs fully used vs cancelled |
+
+Additional: Workflow Steps | CRUD | User Roles | Complexity (manual vs automated) | I/O Methods (manual vs file upload vs API)
+
+**Narrative Anti-Patterns:**
+
+| Pattern | Problem | Fix |
+| --- | --- | --- |
+| Generic Persona | "As a user" — no context | Specify role + situation |
+| Solution Masking | "I want a modal" — UI solution, not goal | Write goal first, solution goes in AC |
+| Missing Why | No "So that" or restates goal | Ask "so what?" until value is clear |
+| Kitchen Sink | 1 story = 3 goals | Split with SPIDR |
+| Tech Story | "As a developer, I want to refactor..." | Use Task instead of Story (no direct user value) |
+| Copy-Paste | All stories look the same | Each story must have unique context |
+
+**AC Best Practices:** No vague ACs ("loads fast" → "loads within 2 seconds") | Each AC independently testable | Cover happy + edge + error | Don't duplicate story narrative in AC | Write AC before sprint planning
+
 ### User Story Template (ADF) - CREATE
 
 > Used with `acli jira workitem create --from-json`
@@ -543,6 +592,42 @@ Mixed text: wrap only the code portion in marks, leave surrounding text plain.
 ---
 
 ## Sub-task & QA Templates (ADF)
+
+### Subtask Best Practices
+
+**SMART Criteria:**
+
+| Criteria | Meaning | Red Flag |
+| --- | --- | --- |
+| **S**pecific | Clear what to do | "Do backend part" (vague) |
+| **M**easurable | Can tell when done | No AC or definition of done |
+| **A**chievable | One person can complete | Requires 3 people to coordinate |
+| **R**elevant | Matches parent story | Unrelated to story scope |
+| **T**ime-boxed | ≤ 1 day (4-8 hours) | Takes 3 days |
+
+**Size Guide:**
+
+| Size | Duration | Guideline |
+| --- | --- | --- |
+| XS | < 2 hours | May be too small — consider merging with another subtask |
+| S | 2-4 hours | Appropriate |
+| M | 4-8 hours (1 day) | Appropriate — upper bound |
+| L | > 1 day | Must split — too large for a subtask |
+
+**Ideal Count:** 3-10 subtasks per story (sweet spot: 5-7). < 3 → story may not need decomposition. > 10 → story too large, split with SPIDR first.
+
+**Decomposition Techniques:**
+
+| Technique | Method | Example |
+| --- | --- | --- |
+| By Layer | Split by service tag | [BE] API + [FE-Admin] UI + [QA] Test |
+| By Step | Split by workflow stage | DB migration → API endpoint → UI form → Integration test |
+| By Scenario | Split by parent AC | Happy path → Edge case → Error handling |
+| By Component | Split by module | Form component → List component → Filter component |
+
+**Rules:** Prefer vertical slice when possible | Each subtask independently completable by one person | Every subtask must have clear definition of done | Never create "leftover" or "miscellaneous" subtasks
+
+**Anti-Patterns:** Over-layering (deep hierarchy = admin overhead) | No AC (can't tell when done) | Subtask replacing story split (hiding value in subtask) | Generic paths ("fix backend files") | Copy-paste AC from parent (subtask AC should be more specific)
 
 ### Sub-task Template (ADF) - TWO-STEP WORKFLOW
 
@@ -1012,3 +1097,51 @@ jira_create_issue({
 4. `📝 Findings` — panel(note): *[To be filled after research]*
 5. `💡 Recommendations` — panel(success): *[To be filled after research]*
 6. `🔗 Reference` — purple table (same as tech-debt)
+
+---
+
+## Technical Note Best Practices
+
+### Tech Note vs ADR
+
+| Condition | Use ADR | Use Tech Note |
+| --- | --- | --- |
+| Architecture/technology decision | ✅ | |
+| Implementation guidance | | ✅ |
+| Alternatives to document | ✅ | |
+| Scope = 1 ticket | | ✅ |
+| Scope = multi-ticket / system-wide | ✅ | |
+| Needs future review (e.g. 6 months) | ✅ | |
+
+### When to Write
+
+| Situation | Required? | Reason |
+| --- | --- | --- |
+| Subtask with clear scope, dev knows codebase | No | AC is sufficient |
+| Story with new API contract or complex data flow | Yes | Reduces ambiguity for dev |
+| Cross-service integration (BE↔FE, external API) | Yes | Prevents miscommunication |
+| New pattern/library the team hasn't used | Yes | Reduces learning curve |
+| Bug fix with known root cause | No | Put root cause in ticket |
+
+### JBGE Principle (Just Barely Good Enough)
+
+Write only the sections that are necessary — not every section needs to be filled.
+
+**Required:** Objective (1-2 sentences) | Scope (real file paths) | Approach (step-by-step, high-level)
+
+**Recommended (when applicable):** API Contract (new/changed endpoints) | Data Flow (cross-service) | Dependencies (blocked by other tickets) | Alternatives (>1 approach) | Risks | Open Questions
+
+### Size Guide
+
+| Size | Lines | Best For |
+| --- | --- | --- |
+| Minimal | 5-10 | Single subtask, clear scope |
+| Standard | 10-25 | Story with API/integration |
+| Extended | 25-50 | Cross-service, new pattern |
+| Too Long | > 50 | Should be Tech Spec/ADR instead |
+
+### Writing Rules
+
+**Do:** Use bullet points (not long paragraphs) | Use code marks for file paths, functions, routes | Use real file paths from codebase (always Explore first) | Use arrow notation for data flow: `Client → API → Service → DB` | Link to Jira/Confluence/Figma when referencing
+
+**Don't:** Duplicate AC in tech note (AC = WHAT, tech note = HOW) | Micromanage code line-by-line | Use generic paths ("fix backend files") | Write >1 page (split to Tech Spec/ADR) | Write before story is refined | Never update (review every sprint, archive when done)
