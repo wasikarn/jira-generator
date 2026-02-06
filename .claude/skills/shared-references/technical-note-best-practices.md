@@ -7,7 +7,7 @@ Technical Note (Tech Note) คือเอกสารประกอบ Jira ti
 ### Technical Note vs อื่นๆ
 
 | Document | จุดประสงค์ | ผู้อ่าน | ความละเอียด |
-|----------|-----------|---------|-------------|
+| --- | --- | --- | --- |
 | **Technical Note** | Implementation guidance สำหรับ ticket | Developer | พอดี — เฉพาะสิ่งที่ต้องรู้ |
 | Tech Spec | Full design + architecture decision | Team + stakeholders | สูง — ครบทุก section |
 | ADR | บันทึก architecture decision + เหตุผล | Future team | กลาง — focus ที่ decision |
@@ -16,7 +16,7 @@ Technical Note (Tech Note) คือเอกสารประกอบ Jira ti
 ## When to Write
 
 | Situation | ต้องเขียน? | เหตุผล |
-|-----------|-----------|--------|
+| --- | --- | --- |
 | Subtask มี scope ชัดเจน, dev รู้ codebase | ❌ ไม่จำเป็น | AC เพียงพอแล้ว |
 | Story มี API contract ใหม่หรือ data flow ซับซ้อน | ✅ ควรเขียน | ลด ambiguity ให้ dev |
 | Cross-service integration (BE↔FE, external API) | ✅ ต้องเขียน | ป้องกัน miscommunication |
@@ -30,7 +30,7 @@ Technical Note (Tech Note) คือเอกสารประกอบ Jira ti
 ### Required Sections
 
 | Section | เนื้อหา | Tips |
-|---------|---------|------|
+| --- | --- | --- |
 | **Objective** | 1-2 ประโยค — ทำอะไร ทำไม | ตอบ "ทำเสร็จแล้วได้อะไร?" |
 | **Scope** | file paths จริง, modules ที่แก้ | ต้อง Explore codebase ก่อน |
 | **Approach** | วิธีทำ step-by-step (high-level) | ลำดับ: DB → API → UI → Test |
@@ -38,7 +38,7 @@ Technical Note (Tech Note) คือเอกสารประกอบ Jira ti
 ### Recommended Sections (ใช้เมื่อจำเป็น)
 
 | Section | เมื่อไหร่ | เนื้อหา |
-|---------|----------|---------|
+| --- | --- | --- |
 | **API Contract** | endpoint ใหม่/เปลี่ยน | method, path, request/response schema |
 | **Data Flow** | cross-service | diagram หรือ arrow notation (`A → B → C`) |
 | **Dependencies** | ต้องรอ ticket อื่น | link + ระบุว่ารออะไร |
@@ -68,7 +68,7 @@ Technical Note (Tech Note) คือเอกสารประกอบ Jira ti
 ## Size Guide
 
 | Size | บรรทัด | เหมาะกับ |
-|------|--------|----------|
+| --- | --- | --- |
 | Minimal | 5-10 | Subtask เดียว, scope ชัด |
 | Standard | 10-25 | Story ที่มี API/integration |
 | Extended | 25-50 | Cross-service, new pattern |
@@ -132,7 +132,7 @@ Date: YYYY-MM-DD
 ### When ADR vs Tech Note
 
 | เงื่อนไข | ใช้ ADR | ใช้ Tech Note |
-|----------|---------|---------------|
+| --- | --- | --- |
 | ตัดสินใจ architecture/technology | ✅ | |
 | Implementation guidance | | ✅ |
 | มี alternatives ที่ต้อง document | ✅ | |
@@ -143,7 +143,7 @@ Date: YYYY-MM-DD
 ## Anti-Patterns
 
 | Anti-Pattern | ปัญหา | แก้ไข |
-|-------------|--------|-------|
+| --- | --- | --- |
 | Spec ซ้ำ AC | duplicate info, ยาก maintain | Tech note = HOW, AC = WHAT |
 | Micromanage code | dev ไม่มี room ตัดสินใจ | เขียน approach level, ไม่ใช่ code level |
 | No real paths | dev ต้องหาเอง | Explore codebase ก่อนเขียนเสมอ |

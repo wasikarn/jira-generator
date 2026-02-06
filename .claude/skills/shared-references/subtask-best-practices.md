@@ -3,7 +3,7 @@
 ## When to Use Subtasks vs Split Story
 
 | Situation | Action | เหตุผล |
-|-----------|--------|--------|
+| --- | --- | --- |
 | Story ซับซ้อน แต่ scope ถูกต้อง | ใช้ Subtask | แตก task tracking ภายใน story |
 | Story scope ใหญ่เกินไป (>4 วัน) | Split Story (SPIDR) | แต่ละ story ต้องส่ง value ได้เอง |
 | ต้องการ parallel work | ใช้ Subtask | assign คนละคนได้ |
@@ -12,7 +12,7 @@
 ## SMART Criteria (ตัวตรวจสอบคุณภาพ Subtask)
 
 | Criteria | ความหมาย | Red Flag |
-|----------|----------|----------|
+| --- | --- | --- |
 | **S**pecific | ชัดเจนว่าทำอะไร | "ทำส่วน backend" (vague) |
 | **M**easurable | วัดได้ว่าเสร็จหรือยัง | ไม่มี AC หรือ definition of done |
 | **A**chievable | คนเดียวทำเสร็จได้ | ต้องรอคนอื่น 3 คน |
@@ -22,7 +22,7 @@
 ## Subtask Size Guide
 
 | Size | Duration | Guideline |
-|------|----------|-----------|
+| --- | --- | --- |
 | XS | < 2 hours | อาจเล็กเกินไป — รวมกับ subtask อื่นได้ |
 | S | 2-4 hours | เหมาะสม |
 | M | 4-8 hours (1 day) | เหมาะสม — ขอบเขตบน |
@@ -56,7 +56,7 @@
 **⚠️ Important:** ตั้ง Start Date เมื่อ assign subtask — ช่วย dependency-chain คำนวณ critical path
 
 | Field | Custom Field | Use Case |
-|-------|--------------|----------|
+| --- | --- | --- |
 | Start Date | `customfield_10015` | วันที่เริ่มทำ subtask |
 | Due Date | `duedate` (standard) | deadline ของ subtask |
 
@@ -81,7 +81,7 @@ jira_update_issue(
 ## Decomposition Techniques
 
 | Technique | วิธี | ตัวอย่าง |
-|-----------|------|----------|
+| --- | --- | --- |
 | **By Layer** | แยกตาม service tag | [BE] API + [FE-Admin] UI + [QA] Test |
 | **By Step** | แยกตามขั้นตอน | DB migration → API endpoint → UI form → Integration test |
 | **By Scenario** | แยกตาม AC ของ parent | Happy path → Edge case → Error handling |
@@ -97,7 +97,7 @@ jira_update_issue(
 ## Anti-Patterns
 
 | Anti-Pattern | ปัญหา | แก้ไข |
-|-------------|--------|-------|
+| --- | --- | --- |
 | Over-layering | hierarchy ลึกเกิน = admin overhead | ใช้แค่ Epic → Story → Subtask |
 | Subtask ไม่มี AC | ไม่รู้ว่าเสร็จเมื่อไหร่ | เขียน Given/When/Then เสมอ |
 | Subtask แทน story split | ซ่อน value ไว้ใน subtask | ถ้า subtask ส่ง independent value → ควรเป็น story |

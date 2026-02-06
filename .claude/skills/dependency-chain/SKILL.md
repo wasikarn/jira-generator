@@ -46,7 +46,7 @@ Read: .claude/skills/shared-references/team-capacity.md
 **Size defaults** (if no estimate available):
 
 | Type | Default |
-|------|---------|
+| --- | --- |
 | Bug | S (1.5d) |
 | Sub-task | S (1.5d) |
 | Story | M (2.5d) |
@@ -80,7 +80,7 @@ For inferred dependencies, mark confidence: HIGH (obvious from context) / MEDIUM
 
 **Output:** Edge list with type and confidence:
 
-```
+```text
 BEP-3165 ──[Blocks, HIGH]──> BEP-3157
 BEP-3156 ──[Inferred:FE→BE, MEDIUM]──> BEP-2743
 ```
@@ -121,7 +121,7 @@ Read: ../shared-references/dependency-frameworks.md (section: Swim Lane Rules)
 
 For each team member, schedule items respecting dependencies:
 
-```
+```text
 1. Place critical path items first (must start on time)
 2. Fill parallel slots with independent items
 3. If blocked → assign buffer work (tech-debt, spike, refactor)
@@ -133,7 +133,7 @@ For each team member, schedule items respecting dependencies:
 
 **Present as swim lane table:**
 
-```
+```text
 | Day | K.Thanainun | joakim | wanchalerm | BIG-TATHEP | Natthakarn |
 |-----|-------------|--------|------------|------------|------------|
 | 1-2 | BEP-3165    | BEP-XX | BEP-XX     | BEP-XX     | BEP-XX     |
@@ -169,7 +169,7 @@ Per-member daily plan with start/end dates, blocking dependencies noted.
 **4. Mitigation Recommendations**
 Ranked list of actions to reduce blocking:
 
-```
+```text
 Priority 1: [Action] — eliminates [N] blocking dependencies
 Priority 2: [Action] — reduces delay impact by [N] days
 ...
@@ -180,7 +180,7 @@ Priority 2: [Action] — reduces delay impact by [N] days
 ## Options
 
 | Flag | Description |
-|------|-------------|
+| --- | --- |
 | `--sprint <id>` | Analyze specific sprint (default: current active sprint) |
 | `--keys BEP-XX,BEP-YY` | Analyze specific issues instead of full sprint |
 | `--team-only` | Show only swim lane plan (skip dependency graph) |

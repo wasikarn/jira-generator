@@ -16,7 +16,7 @@
 
 ## Pattern Selection Decision Tree
 
-```
+```text
 Epic received
     │
     ├─ Is this a new feature area? ─────────────────────→ Walking Skeleton (vs1)
@@ -51,7 +51,7 @@ Epic received
 
 **Example — Coupon System:**
 
-```
+```text
 vs1-skeleton
 ├─ [FE-Web] Menu item "คูปองของฉัน"
 ├─ [FE-Web] Empty state "ยังไม่มีคูปอง"
@@ -74,7 +74,7 @@ vs1-skeleton
 
 **Example — Coupon Types:**
 
-```
+```text
 vs2-credit-e2e (Credit Coupon)
 ├─ [BE] Credit coupon logic
 ├─ [FE-Web] Credit coupon UI
@@ -102,7 +102,7 @@ vs3-discount-e2e (Discount Coupon)
 
 **Example — Shared Components:**
 
-```
+```text
 vs-enabler-sidepanel
 ├─ [FE-Web] Side Panel component
 ├─ [FE-Web] Slide animation
@@ -130,7 +130,7 @@ vs-enabler-toast
 
 **Example — Ad Integration:**
 
-```
+```text
 coupon-ad-integration
 ├─ [BE] Coupon collected → trigger ad event
 ├─ [BE] Ad service webhook handler
@@ -145,7 +145,7 @@ coupon-ad-integration
 
 ### Step 1: Epic → VS Planning (PM/PO)
 
-```
+```text
 1. List all distinct user flows in Epic
 2. Identify shared components (→ Enablers)
 3. Group flows by business rule (→ Business Rule VS)
@@ -167,7 +167,7 @@ coupon-ad-integration
 
 For each VS:
 
-```
+```text
 1. Write user narrative (As a / I want / So that)
 2. Define acceptance criteria (Given / When / Then)
 3. Add VS label to story
@@ -185,7 +185,7 @@ For each VS:
 
 For each Story:
 
-```
+```text
 1. Identify affected layers (BE, FE-Web, FE-Admin)
 2. Create subtask per layer
 3. Each subtask contributes to VS completion
@@ -194,7 +194,7 @@ For each Story:
 
 **Good Example:**
 
-```
+```text
 Story: vs2-collect-e2e (Collect Credit Coupon)
 ├─ [BE] - API และ logic สำหรับเก็บคูปองเครดิต
 ├─ [FE-Web] - UI เก็บคูปองเครดิต
@@ -203,7 +203,7 @@ Story: vs2-collect-e2e (Collect Credit Coupon)
 
 **Bad Example (Horizontal):**
 
-```
+```text
 Story: Coupon UI (❌ No VS label, horizontal)
 ├─ [FE-Web] - สร้าง UI ทุกหน้าคูปอง
 ├─ [FE-Web] - สร้าง component ทั้งหมด
@@ -246,7 +246,7 @@ Story: Coupon UI (❌ No VS label, horizontal)
 
 ### Recovery Process
 
-```
+```text
 1. Identify horizontal stories
    └─ [BE] All APIs, [FE] All UIs, [DB] All migrations
 
@@ -266,7 +266,7 @@ Story: Coupon UI (❌ No VS label, horizontal)
 
 **Before (Horizontal):**
 
-```
+```text
 Sprint 32:
 ├─ BEP-100: [BE] สร้าง API คูปองทั้งหมด (5 SP)
 ├─ BEP-101: [FE] สร้าง UI คูปองทั้งหมด (5 SP)
@@ -276,7 +276,7 @@ Sprint 32:
 
 **After (Vertical):**
 
-```
+```text
 Sprint 32:
 ├─ BEP-200: vs1-skeleton (2 SP)
 │   └─ Nav + empty state, deployable Day 1

@@ -15,7 +15,7 @@
 
 Task B cannot start until Task A finishes.
 
-```
+```text
 A ──finish──> B starts
 ```
 
@@ -26,7 +26,7 @@ A ──finish──> B starts
 
 Task B starts when Task A starts (parallel with shared prerequisite).
 
-```
+```text
 A starts ──> B starts (run in parallel)
 ```
 
@@ -36,7 +36,7 @@ A starts ──> B starts (run in parallel)
 
 Task B cannot finish until Task A finishes.
 
-```
+```text
 A ──finish──> B can finish
 ```
 
@@ -46,7 +46,7 @@ A ──finish──> B can finish
 
 Different team members' work depends on each other.
 
-```
+```text
 Member X (Task A) ──> Member Y (Task B)
 ```
 
@@ -68,7 +68,7 @@ Some dependencies are implicit — not captured as issue links:
 Remove the dependency entirely.
 
 | Pattern | How |
-|---------|-----|
+| --- | --- |
 | MSW Mocks | FE develops against mock handlers, no real BE needed |
 | Interface-First | Define TypeScript interface/OpenAPI spec → both sides develop independently |
 | Feature Flags | Deploy incomplete features behind flags, no deploy order dependency |
@@ -79,7 +79,7 @@ Remove the dependency entirely.
 Reduce the dependency's impact.
 
 | Pattern | How |
-|---------|-----|
+| --- | --- |
 | API Contract First | Agree on API shape (types, routes, payloads) in 1-2 hours, then parallelize |
 | Staggered Start | Start dependent task 1 day after prerequisite begins (not after it finishes) |
 | Partial Delivery | Deliver minimum viable interface early, enhance later |
@@ -90,7 +90,7 @@ Reduce the dependency's impact.
 Dependency cannot be removed — schedule carefully.
 
 | Pattern | How |
-|---------|-----|
+| --- | --- |
 | Critical Path Ordering | Place prerequisite early in sprint, dependent task later |
 | Buffer Time | Add 1-day buffer between prerequisite finish and dependent start |
 | Daily Standup Flag | Flag blocked items in daily standup for visibility |
@@ -127,7 +127,7 @@ Dependency cannot be removed — schedule carefully.
 
 The most effective pattern for eliminating FE→BE blocking:
 
-```
+```text
 Day 1: Define API contract (OpenAPI spec or TypeScript types)
         ├── BE: Implement real endpoint
         └── FE: Implement with MSW mock handlers
@@ -154,7 +154,7 @@ http.get('/api/coupons', () => HttpResponse.json({ data: [...], pagination: {...
 
 Deliver thin end-to-end slice first, then flesh out:
 
-```
+```text
 Skeleton: Minimal UI → Minimal API → Minimal DB → Working E2E
 Flesh out: Rich UI + Validation + Error handling + Edge cases
 ```
@@ -165,7 +165,7 @@ Flesh out: Rich UI + Validation + Error handling + Edge cases
 
 Define interfaces/types before implementation:
 
-```
+```text
 1. Define shared types (30 min)
 2. BE implements against types
 3. FE implements against types
@@ -184,7 +184,7 @@ Define interfaces/types before implementation:
 
 ### Scheduling Heuristic
 
-```
+```text
 For each team member:
   1. Assign critical path items first (zero float)
   2. Fill gaps with independent items (positive float)
