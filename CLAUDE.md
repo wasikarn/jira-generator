@@ -165,9 +165,22 @@ Alignment:  Epic ↔ Stories ↔ Confluence ↔ Figma (cross-layer check)
 | `fields` param → error | Use `additional_fields` not `fields` |
 | `project_key_or_id` → error | Use `project_key` |
 | `limit > 50` → error | Use pagination with `start_at` |
-| **`parent = X ORDER BY` → JQL error** | **NEVER add ORDER BY to `parent =` or `key in (...)` queries** |
-| **Sibling tool call errored** | **One parallel MCP call failed → all cancelled. Fix JQL first** |
 | **Confluence macros → raw XML** | **Use `update_page_storage.py`, never MCP for macros** |
+
+### 🚨 JQL `parent` Field — HARD RULE
+
+**NEVER add `ORDER BY` to ANY JQL query that uses `parent =` or `parent in`.**
+This includes compound queries: `project = BEP AND parent = BEP-XXX ORDER BY ...` also fails.
+
+```text
+❌ parent = BEP-XXX ORDER BY rank
+❌ project = BEP AND parent = BEP-XXX AND issuetype = Story ORDER BY created
+❌ parent in (BEP-123, BEP-456) ORDER BY priority
+✅ parent = BEP-XXX                         → use results as-is
+✅ "Parent Link" = BEP-XXX ORDER BY created → if sorting needed
+```
+
+**Also:** `key in (...) ORDER BY` causes same error — remove ORDER BY.
 
 ## References (load when needed)
 
