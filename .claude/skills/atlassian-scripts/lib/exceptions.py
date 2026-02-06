@@ -86,3 +86,34 @@ class IssueNotFoundError(JiraError):
     def __init__(self, issue_key: str, message: str | None = None):
         self.issue_key = issue_key
         super().__init__(message or f"Issue not found: {issue_key}")
+
+
+# --- Validation Exceptions ---
+
+
+class ValidationError(Exception):
+    """Raised when ADF validation fails quality gate.
+
+    Attributes:
+        score: Quality gate score (0-100)
+        issues: List of validation issues found
+    """
+
+    def __init__(self, score: float, issues: list[str], message: str | None = None):
+        self.score = score
+        self.issues = issues
+        super().__init__(message or f"Quality gate failed: {score:.1f}% ({len(issues)} issues)")
+
+
+class WorkflowError(Exception):
+    """Raised when workflow state is invalid (e.g., prerequisite not met).
+
+    Attributes:
+        step: Current workflow step
+        prerequisite: The prerequisite that was not met
+    """
+
+    def __init__(self, step: str, prerequisite: str, message: str | None = None):
+        self.step = step
+        self.prerequisite = prerequisite
+        super().__init__(message or f"Step '{step}' requires '{prerequisite}' first")

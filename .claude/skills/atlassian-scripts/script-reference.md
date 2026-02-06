@@ -219,6 +219,218 @@ Config: `{"BEP-2819": [["old","new"]], "BEP-2755": [["old1","new1"],["old2","new
 
 ---
 
+---
+
+## Script 8: Validate ADF (HR1 Enforcement)
+
+Validate ADF JSON against quality gate before writing to Jira. Enforces HR1 (QG ≥ 90% before writes).
+
+**Location:** `.claude/skills/atlassian-scripts/scripts/validate_adf.py`
+
+### Usage
+
+```bash
+# Validate story ADF
+python3 .claude/skills/atlassian-scripts/scripts/validate_adf.py \
+  tasks/story.json --type story
+
+# Auto-fix + re-validate → writes -fixed.json
+python3 .claude/skills/atlassian-scripts/scripts/validate_adf.py \
+  tasks/story.json --type story --fix
+
+# JSON output (for piping)
+python3 .claude/skills/atlassian-scripts/scripts/validate_adf.py \
+  tasks/story.json --type story --json
+
+# Options: --verbose (show all checks) | --summary-only
+```
+
+### Arguments
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `file` | ✅ | Path to ADF JSON file (CREATE, EDIT, or raw ADF) |
+| `--type` / `-t` | ✅ | Issue type: `story`, `subtask`, `epic`, `qa` |
+| `--fix` | ❌ | Auto-fix and write to `-fixed.json` |
+| `--json` | ❌ | JSON output only |
+| `--verbose` / `-v` | ❌ | Show all checks (not just failures) |
+| `--summary-only` | ❌ | Score only, no details |
+
+### Quality Checks
+
+| Type | Checks | Max Points |
+| --- | --- | --- |
+| All types | T1-T5 (ADF structure, panels, code marks, headings, links) | 5 |
+| Story | S1-S6 (INVEST, narrative, anti-patterns, AC, scope, language) | 6 |
+| Subtask | ST1-ST5 (objective, scope/files, AC, tag, language) | 5 |
+| Epic | E1-E4 (vision, RICE, scope, stories) | 4 |
+| QA | QA1-QA5 (coverage, format, scenarios, data, language) | 5 |
+
+**Scoring:** pass=1, warn=0.5, fail=0. Overall ≥ 90% = pass.
+
+**Exit codes:** 0=pass, 1=fail, 2=error
+
+---
+
+## Script 9: Verify Write (HR3/HR5/HR6 Enforcement)
+
+Post-write verifier — reads back from Jira API to confirm writes took effect.
+
+**Location:** `.claude/skills/atlassian-scripts/scripts/verify_write.py`
+
+### Usage
+
+```bash
+# Verify parent link
+python3 .claude/skills/atlassian-scripts/scripts/verify_write.py \
+  BEP-1234 --check parent --expected-parent BEP-1200
+
+# Verify assignee
+python3 .claude/skills/atlassian-scripts/scripts/verify_write.py \
+  BEP-1234 --check assignee
+
+# Multiple issues + checks
+python3 .claude/skills/atlassian-scripts/scripts/verify_write.py \
+  BEP-1234 BEP-1235 --check parent,assignee,description
+
+# JSON output
+python3 .claude/skills/atlassian-scripts/scripts/verify_write.py \
+  BEP-1234 --check parent --json
+```
+
+### Arguments
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `issues` | ✅ | One or more issue keys |
+| `--check` / `-c` | ✅ | Comma-separated: `parent`, `assignee`, `description` |
+| `--expected-parent` | ❌ | Expected parent key (for parent check) |
+| `--json` | ❌ | JSON output only |
+| `--verbose` / `-v` | ❌ | Show actions needed |
+
+### Checks
+
+| Check | Verifies | HR |
+| --- | --- | --- |
+| `parent` | Parent link set + matches expected | HR5 |
+| `assignee` | Assignee field populated | HR3 |
+| `description` | ADF description exists with content | — |
+
+Always reports `cache_invalidate` actions needed (HR6).
+
+**Exit codes:** 0=all pass, 1=some fail, 2=error
+
+---
+
+## Script 10: Jira Write Wrapper (HR1/HR3/HR5/HR6)
+
+Unified write pipeline with all HARD RULES enforced at every step.
+
+**Location:** `.claude/skills/atlassian-scripts/scripts/jira_write.py`
+
+### Usage
+
+```bash
+# Create subtask (full 5-step pipeline)
+python3 .claude/skills/atlassian-scripts/scripts/jira_write.py create-subtask \
+  --parent BEP-1200 --adf tasks/sub.json --assignee user@email.com
+
+# Update description only
+python3 .claude/skills/atlassian-scripts/scripts/jira_write.py update-description \
+  --issue BEP-1234 --adf tasks/fixed.json --type story
+
+# Dry run (validate only, no writes)
+python3 .claude/skills/atlassian-scripts/scripts/jira_write.py create-subtask \
+  --parent BEP-1200 --adf tasks/sub.json --dry-run
+```
+
+### Subcommands
+
+**`create-subtask`** — 5-step pipeline:
+
+1. Validate ADF (HR1: QG ≥ 90%)
+2. REST create subtask shell (with parent)
+3. Verify parent link (HR5)
+4. Update description via acli (ADF)
+5. Assign via acli (HR3)
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `--parent` | ✅ | Parent story key |
+| `--adf` | ✅ | Path to ADF JSON file |
+| `--assignee` | ❌ | Assignee email (acli) |
+| `--dry-run` | ❌ | Validate only |
+
+**`update-description`** — 3-step pipeline:
+
+1. Validate ADF (HR1)
+2. Update via acli
+3. Report cache_invalidate (HR6)
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `--issue` | ✅ | Issue key |
+| `--adf` | ✅ | Path to ADF JSON file |
+| `--type` / `-t` | ❌ | Issue type for validation (default: subtask) |
+| `--dry-run` | ❌ | Validate only |
+
+**Exit codes:** 0=success, 1=validation/write failed, 2=error
+
+---
+
+## Script 11: Workflow Checkpoint
+
+Track workflow phases and enforce prerequisites across multi-step skill workflows.
+
+**Location:** `.claude/skills/atlassian-scripts/scripts/workflow_checkpoint.py`
+
+### Usage
+
+```bash
+# Start workflow
+python3 .claude/skills/atlassian-scripts/scripts/workflow_checkpoint.py \
+  start story-full BEP-1200
+
+# Record quality gate pass
+python3 .claude/skills/atlassian-scripts/scripts/workflow_checkpoint.py \
+  pass-gate qg-story 94
+
+# Advance to next phase
+python3 .claude/skills/atlassian-scripts/scripts/workflow_checkpoint.py \
+  advance create-story
+
+# Check prerequisite (exit code 0=met, 1=not met)
+python3 .claude/skills/atlassian-scripts/scripts/workflow_checkpoint.py \
+  check qg-story
+
+# Show current status
+python3 .claude/skills/atlassian-scripts/scripts/workflow_checkpoint.py status
+
+# Complete workflow
+python3 .claude/skills/atlassian-scripts/scripts/workflow_checkpoint.py complete
+
+# Cleanup stale state (>24h)
+python3 .claude/skills/atlassian-scripts/scripts/workflow_checkpoint.py cleanup
+```
+
+### Commands
+
+| Command | Description |
+| --- | --- |
+| `start <workflow> <context>` | Start new workflow (e.g., `story-full BEP-1200`) |
+| `pass-gate <gate> <score>` | Record gate pass with score |
+| `advance <phase>` | Mark phase as completed, advance to next |
+| `check <gate>` | Check if prerequisite met (exit code) |
+| `status` | Show current workflow state |
+| `complete` | Mark workflow as completed |
+| `cleanup` | Remove stale state files (>24h TTL) |
+
+State persists in `tasks/.workflow-state.json`. Auto-clears after 24h.
+
+**Exit codes:** 0=success/met, 1=not met/failed, 2=error
+
+---
+
 ## Script Selection Guide
 
 ```text
@@ -245,6 +457,18 @@ What do you need to do?
     ├─ Verify content alignment
     │     └─ audit_confluence_pages.py --config audit.json
     │
-    └─ Fix Jira issue descriptions (ADF)
-          └─ update_jira_description.py --config fixes.json
+    ├─ Fix Jira issue descriptions (ADF)
+    │     └─ update_jira_description.py --config fixes.json
+    │
+    ├─ Validate ADF before Jira write (HR1)
+    │     └─ validate_adf.py tasks/story.json --type story [--fix]
+    │
+    ├─ Verify writes took effect (HR3/HR5/HR6)
+    │     └─ verify_write.py BEP-1234 --check parent,assignee
+    │
+    ├─ Create subtask (full pipeline)
+    │     └─ jira_write.py create-subtask --parent BEP-1200 --adf tasks/sub.json
+    │
+    └─ Track workflow state
+          └─ workflow_checkpoint.py start story-full BEP-1200
 ```

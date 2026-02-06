@@ -12,7 +12,7 @@ argument-hint: "[script-name] [args]"
 
 **Role:** Developer / Tech Lead
 **Output:** Created/Updated Confluence Pages & Jira Issues
-**Version:** 3.0.0 (Renamed from confluence-scripts, + JiraAPI)
+**Version:** 4.0.0 (+ ADF validator, write wrapper, verify, workflow state)
 
 ## Architecture
 
@@ -21,11 +21,13 @@ atlassian-scripts/
 ├── __init__.py              # Package marker
 ├── lib/                     # Shared library modules
 │   ├── __init__.py          # Public exports
-│   ├── exceptions.py        # Custom exceptions (Confluence + Jira)
+│   ├── exceptions.py        # Custom exceptions (Confluence + Jira + Validation)
 │   ├── auth.py              # SSL, credentials, auth
 │   ├── api.py               # ConfluenceAPI class
 │   ├── jira_api.py          # JiraAPI class (REST v3, ADF)
-│   └── converters.py        # Content converters
+│   ├── converters.py        # Content converters
+│   ├── adf_validator.py     # ADF quality gate engine (HR1)
+│   └── workflow_state.py    # Workflow state + prerequisites
 └── scripts/                 # CLI scripts
     ├── create_confluence_page.py
     ├── update_confluence_page.py
@@ -33,18 +35,24 @@ atlassian-scripts/
     ├── update_page_storage.py
     ├── fix_confluence_code_blocks.py
     ├── audit_confluence_pages.py
-    └── update_jira_description.py
+    ├── update_jira_description.py
+    ├── validate_adf.py          # Script 8: ADF validator (HR1)
+    ├── verify_write.py          # Script 9: Post-write verifier (HR3/HR5/HR6)
+    ├── jira_write.py            # Script 10: Write wrapper (HR1/HR3/HR5/HR6)
+    └── workflow_checkpoint.py   # Script 11: Workflow state CLI
 ```
 
 ### Module Responsibilities (SRP)
 
 | Module | Responsibility |
 | --- | --- |
-| `exceptions.py` | Domain-specific exceptions (Confluence + Jira) |
+| `exceptions.py` | Domain-specific exceptions (Confluence + Jira + Validation) |
 | `auth.py` | Authentication (SSL, credentials, auth header) |
 | `api.py` | HTTP/API operations via ConfluenceAPI class |
 | `jira_api.py` | Jira REST API v3 client (ADF manipulation) |
 | `converters.py` | Content transformation (markdown, code blocks) |
+| `adf_validator.py` | ADF quality gate engine — 25+ checks, scoring, auto-fix (HR1) |
+| `workflow_state.py` | Workflow state management — phase tracking, prerequisites |
 
 ---
 
@@ -59,6 +67,10 @@ atlassian-scripts/
 | `fix_confluence_code_blocks.py` | Fix code blocks that render incorrectly | Fix broken code formatting |
 | `audit_confluence_pages.py` | Verify content across multiple pages | Alignment verification |
 | `update_jira_description.py` | Find/Replace text in Jira ADF descriptions | Fix Jira issue descriptions |
+| `validate_adf.py` | Validate ADF JSON against quality gate (HR1) | Before creating/updating issues |
+| `verify_write.py` | Verify Jira writes took effect (HR3/HR5/HR6) | After creating subtasks, assigning |
+| `jira_write.py` | Write wrapper: validate → create → verify → assign | Create subtask, update description |
+| `workflow_checkpoint.py` | Track workflow phases + prerequisite enforcement | Multi-step skill workflows |
 
 ---
 
@@ -100,8 +112,20 @@ What do you need to do?
     ├─ Verify content alignment
     │     └─ audit_confluence_pages.py --config audit.json
     │
-    └─ Fix Jira issue descriptions (ADF)
-          └─ update_jira_description.py --config fixes.json
+    ├─ Fix Jira issue descriptions (ADF)
+    │     └─ update_jira_description.py --config fixes.json
+    │
+    ├─ Validate ADF before Jira write (HR1)
+    │     └─ validate_adf.py tasks/story.json --type story [--fix]
+    │
+    ├─ Verify writes took effect (HR3/HR5/HR6)
+    │     └─ verify_write.py BEP-1234 --check parent,assignee
+    │
+    ├─ Create subtask (full pipeline)
+    │     └─ jira_write.py create-subtask --parent BEP-1200 --adf tasks/sub.json
+    │
+    └─ Track workflow state
+          └─ workflow_checkpoint.py start story-full BEP-1200
 ```
 
 ---
@@ -146,7 +170,7 @@ What do you need to do?
 
 | File | Content | Load When |
 | --- | --- | --- |
-| [script-reference.md](script-reference.md) | Script 1-7 usage, arguments, examples | After selecting a script, when you need full docs |
+| [script-reference.md](script-reference.md) | Script 1-11 usage, arguments, examples | After selecting a script, when you need full docs |
 | [library-api.md](library-api.md) | ConfluenceAPI, JiraAPI, Converters, Exceptions | When creating a custom script |
 | [technical-notes.md](technical-notes.md) | SSL, Storage Format, Mermaid, History | Troubleshooting |
 
