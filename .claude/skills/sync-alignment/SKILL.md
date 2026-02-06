@@ -1,5 +1,6 @@
 ---
 name: sync-alignment
+context: fork
 description: |
   Sync all related artifacts (Epic, Story, Sub-tasks, QA, Confluence) using an 8-phase workflow
 

@@ -1,5 +1,6 @@
 ---
 name: story-full
+context: fork
 description: |
   Create User Story + Sub-tasks in one complete workflow (PO + TA combined) with a 10-phase workflow
 

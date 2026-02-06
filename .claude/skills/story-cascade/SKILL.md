@@ -1,5 +1,6 @@
 ---
 name: story-cascade
+context: fork
 description: |
   Update Story + cascade changes to related Sub-tasks with a 9-phase workflow
 

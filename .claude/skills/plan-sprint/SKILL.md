@@ -1,5 +1,6 @@
 ---
 name: plan-sprint
+context: fork
 description: |
   Sprint Planning with Tresor Strategy + Jira Execution using an 8-phase workflow
 

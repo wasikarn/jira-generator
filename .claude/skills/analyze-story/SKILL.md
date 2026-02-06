@@ -1,5 +1,6 @@
 ---
 name: analyze-story
+context: fork
 description: |
   Analyze User Story and create Sub-tasks + Technical Note with a 7-phase TA workflow
   MANDATORY: Must explore codebase before creating Sub-tasks

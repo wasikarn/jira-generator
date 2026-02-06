@@ -1,5 +1,6 @@
 ---
 name: activity-report
+context: fork
 description: |
   Generate activity report from claude-mem database showing past work sessions, observations, and effort.
   Default: today. Supports date ranges, project filters, observation type filters.

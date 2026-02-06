@@ -1,5 +1,6 @@
 ---
 name: dependency-chain
+context: fork
 description: |
   Sprint dependency analysis: build dependency graphs, identify critical paths, generate parallel
   execution plans (swim lanes) per team member, and suggest decoupling strategies.
