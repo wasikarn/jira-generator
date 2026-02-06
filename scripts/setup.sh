@@ -27,7 +27,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
 fi
 
 # --- 1. Install sync-skills CLI ---
-echo "[1/3] Installing sync-skills CLI..."
+echo "[1/4] Installing sync-skills CLI..."
 mkdir -p "$HOME/.local/bin"
 
 SYNC_SRC="$SCRIPT_DIR/sync-skills"
@@ -53,12 +53,12 @@ fi
 
 # --- 2. Sync skills to ~/.claude/skills/ ---
 echo ""
-echo "[2/3] Syncing skills to ~/.claude/skills/..."
+echo "[2/4] Syncing skills to ~/.claude/skills/..."
 "$SYNC_SRC"
 
 # --- 3. Add Atlassian config to ~/.claude/CLAUDE.md ---
 echo ""
-echo "[3/3] Configuring ~/.claude/CLAUDE.md..."
+echo "[3/4] Configuring ~/.claude/CLAUDE.md..."
 mkdir -p "$HOME/.claude"
 CLAUDE_MD="$HOME/.claude/CLAUDE.md"
 
@@ -109,6 +109,21 @@ else
 | Create/manage issues | Skill commands (`/create-story`, `/verify-issue`, etc.) |
 ATLASSIAN_CONFIG
   echo "  added Atlassian settings and workflow"
+fi
+
+# --- 4. Configure git smudge/clean filter ---
+echo ""
+echo "[4/4] Configuring git filters..."
+CURRENT_SMUDGE=$(cd "$PROJECT_DIR" && git config --get filter.project-config.smudge 2>/dev/null || true)
+EXPECTED_SMUDGE="python3 scripts/git-filter.py --smudge"
+
+if [ "$CURRENT_SMUDGE" = "$EXPECTED_SMUDGE" ]; then
+  echo "  already configured"
+else
+  cd "$PROJECT_DIR"
+  git config filter.project-config.smudge "python3 scripts/git-filter.py --smudge"
+  git config filter.project-config.clean "python3 scripts/git-filter.py --clean"
+  echo "  configured (auto placeholder conversion)"
 fi
 
 # --- Check PATH ---

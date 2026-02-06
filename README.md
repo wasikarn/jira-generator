@@ -308,7 +308,8 @@ Claude will fetch sprint data, calculate capacity, analyze carry-over, prioritiz
 
 scripts/
 ├── setup.sh                        <- Setup script (idempotent)
-├── configure-project.py            <- Placeholder ↔ real value converter
+├── git-filter.py                   <- Git smudge/clean filter (auto placeholder conversion)
+├── configure-project.py            <- Manual placeholder ↔ real value converter
 ├── fix-table-format.py             <- Markdown table formatter
 ├── update-sprint-goals.py          <- Sprint goals updater
 └── sync-skills                     <- Sync skills to ~/.claude/skills/
@@ -326,11 +327,25 @@ All project-specific values (Jira site, team, services, domains) live in `.claud
 ### How It Works
 
 ```text
+Git repo (committed):  {{PROJECT_KEY}}-XXX    ← always placeholders
+                          │
+                    [smudge filter]            ← on checkout/pull
+                          ↓
+Working tree:          {{PROJECT_KEY}}-XXX                ← real values (local dev)
+                          │
+                    [clean filter]             ← on add/commit
+                          ↓
+Git staging:           {{PROJECT_KEY}}-XXX    ← always placeholders
+```
+
+```text
 .claude/project-config.json.template   ← tracked in git (safe placeholders)
 .claude/project-config.json            ← gitignored (your real values)
-scripts/configure-project.py           ← converts between placeholder ↔ real values
+scripts/git-filter.py                  ← git smudge/clean filter (auto conversion)
 .git/hooks/pre-commit                  ← blocks commits with sensitive data
 ```
+
+After `./scripts/setup.sh`, git filters handle placeholder↔value conversion **automatically**. No manual steps needed — working tree shows real values, commits contain only placeholders.
 
 ### Placeholders
 
@@ -345,22 +360,6 @@ scripts/configure-project.py           ← converts between placeholder ↔ real
 | `{{COMPANY}}` | `Acme Corp` |
 | `{{COMPANY_LOWER}}` | `acme` |
 
-### Daily Workflow
-
-```bash
-# After cloning — apply real values for local development
-python scripts/configure-project.py --apply
-
-# Before committing — revert to placeholders
-python scripts/configure-project.py --revert --apply
-
-# Dry run (see what would change without writing)
-python scripts/configure-project.py            # show apply changes
-python scripts/configure-project.py --revert   # show revert changes
-```
-
-> The pre-commit hook will **block commits** if sensitive patterns are detected. Run `--revert --apply` to fix.
-
 ### Cloning to Another Project
 
 ```bash
@@ -370,9 +369,11 @@ cp .claude/project-config.json.template .claude/project-config.json
 # 2. Edit with your values: team, Jira site, domains, service paths
 vi .claude/project-config.json
 
-# 3. Apply your values to all skill files
-python scripts/configure-project.py --apply
+# 3. Run setup (installs CLI, syncs skills, configures git filters)
+./scripts/setup.sh
 ```
+
+> **Manual override:** `python scripts/configure-project.py --apply` / `--revert --apply` for debugging or bulk conversion without git filters.
 
 ## Tips
 
