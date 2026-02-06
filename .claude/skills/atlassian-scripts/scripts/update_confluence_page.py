@@ -4,8 +4,8 @@
 Used for updating page content with find/replace operations.
 
 Example usage:
-    python update_confluence_page.py --page-id 154730498 --find "5 นาที" --replace "3 นาที"
-    python update_confluence_page.py --page-id 154730498 --find "300" --replace "180" --dry-run
+    python update_confluence_page.py --page-id 111222333 --find "5 นาที" --replace "3 นาที"
+    python update_confluence_page.py --page-id 111222333 --find "300" --replace "180" --dry-run
 """
 
 import argparse
@@ -150,18 +150,18 @@ def main() -> int:
         epilog="""
 Examples:
   # Simple text replacement
-  python update_confluence_page.py --page-id 154730498 --find "5 นาที" --replace "3 นาที"
+  python update_confluence_page.py --page-id 111222333 --find "5 นาที" --replace "3 นาที"
 
   # Multiple replacements
-  python update_confluence_page.py --page-id 154730498 \\
+  python update_confluence_page.py --page-id 111222333 \\
     --find "5 minutes" --replace "3 minutes" \\
     --find "300" --replace "180"
 
   # Dry run (preview changes)
-  python update_confluence_page.py --page-id 154730498 --find "old" --replace "new" --dry-run
+  python update_confluence_page.py --page-id 111222333 --find "old" --replace "new" --dry-run
 
   # Regex replacement
-  python update_confluence_page.py --page-id 154730498 --find "v\\d+\\.\\d+" --replace "v2.0" --regex
+  python update_confluence_page.py --page-id 111222333 --find "v\\d+\\.\\d+" --replace "v2.0" --regex
         """,
     )
 

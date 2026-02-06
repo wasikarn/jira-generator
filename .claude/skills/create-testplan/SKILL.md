@@ -22,8 +22,8 @@ argument-hint: "[issue-key]"
 
 ### 1. Discovery
 
-- `MCP: jira_get_issue(issue_key: "BEP-XXX")`
-- `MCP: jira_search(jql: "parent = BEP-XXX", fields: "summary,status,assignee,issuetype")` → Sub-tasks (**⚠️ NEVER add ORDER BY to parent queries**)
+- `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")`
+- `MCP: jira_search(jql: "parent = {{PROJECT_KEY}}-XXX", fields: "summary,status,assignee,issuetype")` → Sub-tasks (**⚠️ NEVER add ORDER BY to parent queries**)
 - Read: Narrative, ACs, Technical Note (if available)
 - **Gate:** User confirms scope
 
@@ -63,7 +63,7 @@ Before sending to Atlassian, score against `shared-references/verification-check
 >
 > ⚠️ Use **Two-Step Workflow** (see [Templates](../shared-references/templates.md) - Sub-task section):
 >
-> **Step 1:** MCP `jira_create_issue` → summary: `[QA] - Test: [Feature Name]`, parent: `BEP-XXX`
+> **Step 1:** MCP `jira_create_issue` → summary: `[QA] - Test: [Feature Name]`, parent: `{{PROJECT_KEY}}-XXX`
 > **Step 2:** `acli jira workitem edit --from-json tasks/bep-xxx-qa.json --yes`
 >
 > ⚠️ EDIT JSON uses `"issues": ["BEP-QQQ"]` (not `"parent"` or `"parentKey"`)
@@ -73,7 +73,7 @@ Panel colors: see [ADF Core Rules](../shared-references/templates.md) — succes
 ### 6. Summary
 
 ```text
-## QA Complete: [Title] (BEP-XXX)
+## QA Complete: [Title] ({{PROJECT_KEY}}-XXX)
 
 [QA] Sub-task: BEP-QQQ (N scenarios)
 Coverage: X ACs → Y test scenarios (100%)

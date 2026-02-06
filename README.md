@@ -1,6 +1,6 @@
 # Jira Generator
 
-Agile Documentation System for **Tathep Platform** — Create Epics, User Stories, Sub-tasks, and plan Sprints via Claude Code skills.
+Agile Documentation System for **{{COMPANY}} Platform** — Create Epics, User Stories, Sub-tasks, and plan Sprints via Claude Code skills.
 
 ## Architecture
 
@@ -36,10 +36,17 @@ Claude Code ──skills──> acli (ADF JSON) ──> Jira Cloud
 
 ## Setup
 
+### 0. Create Project Config (First Time Only)
+
+```bash
+cp .claude/project-config.json.template .claude/project-config.json
+# Edit with your real values: team, Jira site, domains, service paths
+```
+
 ### 1. Configure acli
 
 ```bash
-acli jira login --server https://100-stars.atlassian.net --user <email> --token <api-token>
+acli jira login --server https://your-site.atlassian.net --user <email> --token <api-token>
 ```
 
 ### 2. Configure MCP Servers
@@ -53,10 +60,10 @@ Add to Claude Code settings (`~/.claude/settings.json` or VSCode settings):
       "command": "uvx",
       "args": ["mcp-atlassian"],
       "env": {
-        "JIRA_URL": "https://100-stars.atlassian.net",
+        "JIRA_URL": "https://your-site.atlassian.net",
         "JIRA_USERNAME": "<email>",
         "JIRA_API_TOKEN": "<api-token>",
-        "CONFLUENCE_URL": "https://100-stars.atlassian.net/wiki",
+        "CONFLUENCE_URL": "https://your-site.atlassian.net/wiki",
         "CONFLUENCE_USERNAME": "<email>",
         "CONFLUENCE_API_TOKEN": "<api-token>"
       }
@@ -72,10 +79,10 @@ Python scripts (`atlassian-scripts/`) load credentials from `~/.config/atlassian
 ```bash
 mkdir -p ~/.config/atlassian
 cat > ~/.config/atlassian/.env << 'EOF'
-CONFLUENCE_URL=https://100-stars.atlassian.net/wiki
+CONFLUENCE_URL=https://your-site.atlassian.net/wiki
 CONFLUENCE_USERNAME=<email>
 CONFLUENCE_API_TOKEN=<api-token>
-JIRA_URL=https://100-stars.atlassian.net
+JIRA_URL=https://your-site.atlassian.net
 JIRA_USERNAME=<email>
 JIRA_API_TOKEN=<api-token>
 EOF
@@ -84,8 +91,8 @@ EOF
 ### 4. Run Setup Script
 
 ```bash
-git clone <repo-url> ~/Codes/Works/tathep/jira-generator
-cd ~/Codes/Works/tathep/jira-generator
+git clone <repo-url> ~/Projects/{{COMPANY_LOWER}}/jira-generator
+cd ~/Projects/{{COMPANY_LOWER}}/jira-generator
 
 # Idempotent — safe to run multiple times
 ./scripts/setup.sh
@@ -93,7 +100,7 @@ cd ~/Codes/Works/tathep/jira-generator
 
 This will:
 
-1. Install `sync-tathep-skills` CLI to `~/.local/bin/`
+1. Install `sync-skills` CLI to `~/.local/bin/`
 2. Sync skills to `~/.claude/skills/` (via symlinks)
 3. Add Tathep config to `~/.claude/CLAUDE.md`
 
@@ -159,7 +166,7 @@ Agents are auto-invoked per `shared-references/skill-orchestration.md` orchestra
 ls ~/.claude/skills/ | grep -E "create-story|plan-sprint|verify-issue"
 
 # Check acli
-acli jira project list --server https://100-stars.atlassian.net
+acli jira project list --server https://your-site.atlassian.net
 
 # Check MCP — open Claude Code and type: "Fetch issue BEP-1"
 ```
@@ -167,7 +174,7 @@ acli jira project list --server https://100-stars.atlassian.net
 ### Sync Skills After Updates
 
 ```bash
-sync-tathep-skills
+sync-skills
 ```
 
 ---
@@ -184,25 +191,25 @@ Open Claude Code in this project and type `/command`.
 | `/create-epic` | Create Epic + Confluence Epic Doc with RICE scoring |
 | `/create-story` | Create User Story from requirements (5-phase PO workflow) |
 | `/create-task` | Create Task: `tech-debt`, `bug`, `chore`, or `spike` |
-| `/analyze-story BEP-XXX` | Read Story → explore codebase → create Sub-tasks |
-| `/create-testplan BEP-XXX` | Create Test Plan + [QA] Sub-tasks from Story |
+| `/analyze-story {{PROJECT_KEY}}-XXX` | Read Story → explore codebase → create Sub-tasks |
+| `/create-testplan {{PROJECT_KEY}}-XXX` | Create Test Plan + [QA] Sub-tasks from Story |
 
 ### Issue Updates
 
 | Command | Description |
 | ------- | ----------- |
-| `/update-story BEP-XXX` | Edit Story — add/edit ACs, scope |
-| `/update-epic BEP-XXX` | Edit Epic — adjust scope, RICE, metrics |
-| `/update-task BEP-XXX` | Edit Task — migrate format, add details |
-| `/update-subtask BEP-XXX` | Edit Sub-task — format, content |
-| `/story-cascade BEP-XXX` | Update Story + cascade to all Sub-tasks |
+| `/update-story {{PROJECT_KEY}}-XXX` | Edit Story — add/edit ACs, scope |
+| `/update-epic {{PROJECT_KEY}}-XXX` | Edit Epic — adjust scope, RICE, metrics |
+| `/update-task {{PROJECT_KEY}}-XXX` | Edit Task — migrate format, add details |
+| `/update-subtask {{PROJECT_KEY}}-XXX` | Edit Sub-task — format, content |
+| `/story-cascade {{PROJECT_KEY}}-XXX` | Update Story + cascade to all Sub-tasks |
 
 ### Sync & Quality
 
 | Command | Description |
 | ------- | ----------- |
-| `/sync-alignment BEP-XXX` | Sync all artifacts bidirectional (Jira + Confluence) |
-| `/verify-issue BEP-XXX` | Check ADF format, INVEST criteria, language |
+| `/sync-alignment {{PROJECT_KEY}}-XXX` | Sync all artifacts bidirectional (Jira + Confluence) |
+| `/verify-issue {{PROJECT_KEY}}-XXX` | Check ADF format, INVEST criteria, language |
 | `/search-issues` | Search before creating (prevent duplicates) |
 
 `/verify-issue` flags: `--with-subtasks` (batch check), `--fix` (auto-fix), `--dry-run` (report only)
@@ -215,7 +222,7 @@ Open Claude Code in this project and type `/command`.
 | `/dependency-chain` | Dependency graph, critical path, swim lanes |
 | `/activity-report` | Generate work activity report from claude-mem |
 
-`/plan-sprint` options: `--sprint 640` (target sprint), `--carry-over-only` (analysis only)
+`/plan-sprint` options: `--sprint 123` (target sprint), `--carry-over-only` (analysis only)
 
 ### Documentation
 
@@ -236,7 +243,7 @@ Open Claude Code in this project and type `/command`.
 /create-epic            → Create Epic + Confluence doc
 /story-full             → Create Story + Sub-tasks in one go
 /create-testplan        → Create [QA] Sub-tasks (optional)
-/verify-issue BEP-XXX  → Verify quality
+/verify-issue {{PROJECT_KEY}}-XXX  → Verify quality
 ```
 
 **Example:** `/story-full` → "Build a coupon system for admin — create, edit, delete coupons" → Claude asks for details, then auto-generates Story + Sub-tasks `[BE]`, `[FE-Admin]`
@@ -253,9 +260,9 @@ Claude will fetch sprint data, calculate capacity, analyze carry-over, prioritiz
 ### Update + Cascade Changes
 
 ```text
-/update-story BEP-XXX       → Edit Story only
-/story-cascade BEP-XXX      → + cascade to Sub-tasks
-/sync-alignment BEP-XXX     → + sync Confluence docs
+/update-story {{PROJECT_KEY}}-XXX       → Edit Story only
+/story-cascade {{PROJECT_KEY}}-XXX      → + cascade to Sub-tasks
+/sync-alignment {{PROJECT_KEY}}-XXX     → + sync Confluence docs
 ```
 
 ### Analyze Dependencies
@@ -304,7 +311,7 @@ scripts/
 ├── configure-project.py            <- Portable config (clone to other projects)
 ├── fix-table-format.py             <- Markdown table formatter
 ├── update-sprint-goals.py          <- Sprint goals updater
-└── sync-tathep-skills              <- Sync skills to ~/.claude/skills/
+└── sync-skills                     <- Sync skills to ~/.claude/skills/
 
 tasks/                              <- Generated ADF JSON outputs (gitignored)
 CLAUDE.md                           <- Agent instructions (passive context)
@@ -333,10 +340,10 @@ See `.claude/project-config.json` for full team, services, and environment setti
 ## Tips
 
 - **Always search first:** `/search-issues` before creating to prevent duplicates
-- **Always verify after:** `/verify-issue BEP-XXX` after creating/updating
+- **Always verify after:** `/verify-issue {{PROJECT_KEY}}-XXX` after creating/updating
 - **Language:** Thai + English transliteration for technical terms (endpoint, API, component)
 - **Format:** Jira descriptions use ADF format — Claude handles this via `acli --from-json`
 - **Codebase first:** `/analyze-story` always explores codebase before creating Sub-tasks
-- **Sync skills:** After adding/removing skills, run `sync-tathep-skills`
+- **Sync skills:** After adding/removing skills, run `sync-skills`
 - **Cache server:** Use `cache_sprint_issues` before sprint planning for 80%+ token savings
 - **Tresor teams:** Install subagents for auto-review at each workflow stage (see Setup step 6)

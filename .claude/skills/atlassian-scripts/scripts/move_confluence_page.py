@@ -5,9 +5,9 @@ This script moves a Confluence page to be a child of another page
 without modifying the page content.
 
 Example usage:
-    python move_confluence_page.py --page-id 144244902 --parent-id 153518083
-    python move_confluence_page.py --page-id 144244902 --parent-id 153518083 --dry-run
-    python move_confluence_page.py --page-ids 144244902,144015541 --parent-id 153518083
+    python move_confluence_page.py --page-id 123456789 --parent-id 987654321
+    python move_confluence_page.py --page-id 123456789 --parent-id 987654321 --dry-run
+    python move_confluence_page.py --page-ids 123456789,333444555 --parent-id 987654321
 """
 
 import argparse
@@ -54,13 +54,13 @@ def main() -> int:
         epilog="""
 Examples:
   # Move page to be child of another page
-  python move_confluence_page.py --page-id 144244902 --parent-id 153518083
+  python move_confluence_page.py --page-id 123456789 --parent-id 987654321
 
   # Dry run (preview only)
-  python move_confluence_page.py --page-id 144244902 --parent-id 153518083 --dry-run
+  python move_confluence_page.py --page-id 123456789 --parent-id 987654321 --dry-run
 
   # Batch move multiple pages
-  python move_confluence_page.py --page-ids 144244902,144015541,144015575 --parent-id 153518083
+  python move_confluence_page.py --page-ids 123456789,333444555,444555666 --parent-id 987654321
         """,
     )
 

@@ -14,19 +14,19 @@
 | `unknown field "parent"` | acli does not support the parent field | Use Two-Step Workflow: MCP create + acli edit |
 | `missing required field` | Incomplete JSON | Check all required fields present |
 | `invalid JSON syntax` | Malformed JSON | Validate JSON structure |
-| `issues field required` | Edit without issue key | Add `"issues": ["BEP-XXX"]` for edits |
+| `issues field required` | Edit without issue key | Add `"issues": ["{{PROJECT_KEY}}-XXX"]` for edits |
 
 **Create vs Edit JSON:**
 
 ```json
 {
-  "projectKey": "BEP",
+  "projectKey": "{{PROJECT_KEY}}",
   "type": "Story",
   "summary": "..."
 }
 ```
 
-Note: CREATE has no "issues" field, EDIT requires `"issues": ["BEP-XXX"]`.
+Note: CREATE has no "issues" field, EDIT requires `"issues": ["{{PROJECT_KEY}}-XXX"]`.
 
 ### Subtask Creation (Two-Step Workflow)
 
@@ -37,22 +37,22 @@ Note: CREATE has no "issues" field, EDIT requires `"issues": ["BEP-XXX"]`.
 ```typescript
 // Subtask — parent เป็น object
 jira_create_issue({
-  project_key: "BEP",
+  project_key: "{{PROJECT_KEY}}",
   summary: "[TAG] - Description",
   issue_type: "Subtask",
-  additional_fields: { parent: { key: "BEP-XXX" } }
+  additional_fields: { parent: { key: "{{PROJECT_KEY}}-XXX" } }
 })
 
 // Epic child (Story/Task) — parent เป็น string
 jira_create_issue({
-  project_key: "BEP",
+  project_key: "{{PROJECT_KEY}}",
   summary: "Story title",
   issue_type: "Story",
   additional_fields: { parent: "BEP-2883" }
 })
 ```
 
-> ⚠️ **Parent format:** Subtask = `{parent: {key: "BEP-XXX"}}` (object) / Epic child = `{parent: "BEP-2883"}` (string)
+> ⚠️ **Parent format:** Subtask = `{parent: {key: "{{PROJECT_KEY}}-XXX"}}` (object) / Epic child = `{parent: "BEP-2883"}` (string)
 
 **Step 2: Update description with acli**
 
@@ -106,7 +106,7 @@ acli jira workitem edit --from-json tasks/subtask.json --yes
 | Error | Cause | Solution |
 | --- | --- | --- |
 | `JQL syntax error` | Invalid query | Check JQL operators and field names |
-| `Expecting ')' but got 'ORDER'` | ORDER BY with parent query | Use `"Parent Link" = BEP-XXX ORDER BY...` instead of `parent = BEP-XXX ORDER BY...` |
+| `Expecting ')' but got 'ORDER'` | ORDER BY with parent query | Use `"Parent Link" = {{PROJECT_KEY}}-XXX ORDER BY...` instead of `parent = {{PROJECT_KEY}}-XXX ORDER BY...` |
 | `Field not found` | Wrong field name | Use `issuetype` not `type` for search |
 | `No issues found` | Empty result | Broaden search criteria |
 
@@ -114,7 +114,7 @@ acli jira workitem edit --from-json tasks/subtask.json --yes
 
 | Error | Cause | Solution |
 | --- | --- | --- |
-| `Issue not found` | Wrong key | Verify format: `BEP-XXX` |
+| `Issue not found` | Wrong key | Verify format: `{{PROJECT_KEY}}-XXX` |
 | `Cannot read property` | Issue deleted | Issue may have been removed |
 | `Rate limited` | Too many requests | Wait and retry |
 | `exceeds maximum allowed tokens` | Issue has too much data | Use `fields` parameter to limit fetched fields |
@@ -141,7 +141,7 @@ acli jira workitem edit --from-json tasks/subtask.json --yes
 
 | Error | Cause | Solution |
 | --- | --- | --- |
-| `expected 'key' to be string` / `parent not specified` | Parent format wrong | Use `additional_fields={"parent": {"key": "BEP-XXX"}}` — object, not string |
+| `expected 'key' to be string` / `parent not specified` | Parent format wrong | Use `additional_fields={"parent": {"key": "{{PROJECT_KEY}}-XXX"}}` — object, not string |
 | Subtask + sprint field → `cannot be associated to a sprint` | Subtasks inherit sprint from parent | Remove sprint field from subtask — inherits automatically |
 
 ### Agile API Errors
@@ -150,7 +150,7 @@ acli jira workitem edit --from-json tasks/subtask.json --yes
 | --- | --- | --- |
 | MCP `sprint: null` doesn't work | MCP can't remove sprint | Use Agile REST API: `POST /rest/agile/1.0/backlog/issue` + numeric IDs |
 | Agile API issue key → 204 but no move | Issue key not accepted | Must use numeric ID from `issue["id"]` |
-| Sprint field `{"id": N}` → error | Wrong format for sprint field | `customfield_10020` accepts plain number: `{"customfield_10020": 640}` |
+| Sprint field `{"id": N}` → error | Wrong format for sprint field | `{{SPRINT_FIELD}}` accepts plain number: `{"{{SPRINT_FIELD}}": 123}` |
 
 ### Issue Link Errors
 
@@ -162,7 +162,7 @@ acli jira workitem edit --from-json tasks/subtask.json --yes
 
 | Error | Cause | Solution |
 | --- | --- | --- |
-| `Expecting ')' but got 'ORDER'` | ORDER BY with `parent =` query | Use `parent = BEP-XXX` without ORDER BY, or `"Parent Link" = BEP-XXX ORDER BY...` |
+| `Expecting ')' but got 'ORDER'` | ORDER BY with `parent =` query | Use `parent = {{PROJECT_KEY}}-XXX` without ORDER BY, or `"Parent Link" = {{PROJECT_KEY}}-XXX ORDER BY...` |
 | `key in (...) ORDER BY` → parse error | ORDER BY not allowed with key in | Remove `ORDER BY` when using `key in (...)` syntax |
 
 > 🚨 **NEVER add ORDER BY to `parent =` or `key in (...)` queries — they always cause parse errors**
@@ -188,11 +188,11 @@ Output has been saved to /path/to/tool-results/...
 
 ```python
 # ❌ Bad - fetches all fields, causing excessive data
-jira_get_issue(issue_key="BEP-XXX")
+jira_get_issue(issue_key="{{PROJECT_KEY}}-XXX")
 
 # ✅ Good - specify only the fields you need
 jira_get_issue(
-    issue_key="BEP-XXX",
+    issue_key="{{PROJECT_KEY}}-XXX",
     fields="summary,status,description,issuetype,parent",
     comment_limit=5
 )
@@ -319,7 +319,7 @@ For MCP: Use `jira_get_issue(issue_key: "BEP-1")`
 cat ~/.config/atlassian/.env
 
 # Expected format:
-CONFLUENCE_URL=https://100-stars.atlassian.net/wiki
+CONFLUENCE_URL=https://{{JIRA_SITE}}/wiki
 CONFLUENCE_USERNAME=your-email@example.com
 CONFLUENCE_API_TOKEN=your-api-token
 ```

@@ -58,7 +58,7 @@ Found: 5 issues
 | `--status` | `--status "In Progress"` |
 | `--type` | `--type Story` |
 | `--label` | `--label BE` |
-| `--children` | `BEP-XXX --children` |
+| `--children` | `{{PROJECT_KEY}}-XXX --children` |
 | `--jql` | `--jql "custom query"` |
 
 ---

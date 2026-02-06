@@ -194,7 +194,7 @@ class JiraAPI:
         """Search Jira issues via JQL.
 
         Args:
-            jql: JQL query string (e.g., 'sprint = 640 AND status != Done')
+            jql: JQL query string (e.g., 'sprint = 123 AND status != Done')
             fields: Comma-separated field names to return
             max_results: Maximum results per page (max 50)
             start_at: Pagination offset
@@ -247,7 +247,7 @@ class JiraAPI:
         """Get issues in a sprint via Agile REST API.
 
         Args:
-            sprint_id: Jira sprint ID (e.g., 640)
+            sprint_id: Jira sprint ID (e.g., 123)
             fields: Comma-separated field names
             max_results: Maximum results per page (max 50)
             start_at: Pagination offset

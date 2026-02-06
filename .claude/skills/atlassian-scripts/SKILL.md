@@ -67,7 +67,7 @@ atlassian-scripts/
 **Credentials:** `~/.config/atlassian/.env`
 
 ```env
-CONFLUENCE_URL=https://100-stars.atlassian.net/wiki
+CONFLUENCE_URL=https://{{JIRA_SITE}}/wiki
 CONFLUENCE_USERNAME=your-email@example.com
 CONFLUENCE_API_TOKEN=your-api-token
 ```

@@ -7,8 +7,8 @@ To:
     <ac:structured-macro ac:name="code">...</ac:structured-macro>
 
 Example usage:
-    python fix_confluence_code_blocks.py --page-id 144244902
-    python fix_confluence_code_blocks.py --page-ids 144244902,144015541 --dry-run
+    python fix_confluence_code_blocks.py --page-id 123456789
+    python fix_confluence_code_blocks.py --page-ids 123456789,333444555 --dry-run
 """
 
 import argparse
@@ -113,13 +113,13 @@ def main() -> int:
         epilog="""
 Examples:
   # Fix single page
-  python fix_confluence_code_blocks.py --page-id 144244902
+  python fix_confluence_code_blocks.py --page-id 123456789
 
   # Fix multiple pages
-  python fix_confluence_code_blocks.py --page-ids 144244902,144015541,144015575
+  python fix_confluence_code_blocks.py --page-ids 123456789,333444555,444555666
 
   # Dry run (preview only)
-  python fix_confluence_code_blocks.py --page-ids 144244902,144015541 --dry-run
+  python fix_confluence_code_blocks.py --page-ids 123456789,333444555 --dry-run
         """,
     )
 

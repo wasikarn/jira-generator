@@ -15,7 +15,7 @@ argument-hint: "[issue-key]"
 
 ### 1. Discovery
 
-- `MCP: jira_get_issue(issue_key: "BEP-XXX")`
+- `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")`
 - Read: Narrative, ACs, Links, Epic context
 - **Gate:** User confirms understanding
 
@@ -39,9 +39,9 @@ Task(subagent_type: "Explore", prompt: "Find [feature] in [service path]")
 
 | Service | Path |
 | --- | --- |
-| Backend | `~/Codes/Works/tathep/tathep-platform-api` |
-| Admin | `~/Codes/Works/tathep/tathep-admin` |
-| Website | `~/Codes/Works/tathep/tathep-website` |
+| Backend | Path from `project-config.json` → `services.tags[tag="[BE]"].path` |
+| Admin | Path from `project-config.json` → `services.tags[tag="[FE-Admin]"].path` |
+| Website | Path from `project-config.json` → `services.tags[tag="[FE-Web]"].path` |
 
 Collect: File paths, existing patterns, dependencies
 
@@ -80,9 +80,9 @@ Collect: File paths, existing patterns, dependencies
 ### 7. Handoff
 
 ```text
-## TA Complete: [Title] (BEP-XXX)
+## TA Complete: [Title] ({{PROJECT_KEY}}-XXX)
 Sub-tasks: BEP-YYY, BEP-ZZZ
-→ Use /create-testplan BEP-XXX to continue
+→ Use /create-testplan {{PROJECT_KEY}}-XXX to continue
 ```
 
 ---
@@ -103,4 +103,4 @@ Sub-tasks: BEP-YYY, BEP-ZZZ
 - [Templates](../shared-references/templates.md) - ADF templates (Sub-task section)
 - [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS decomposition, patterns
 - [Tool Selection](../shared-references/tools.md) - Tools, service tags, effort sizing
-- After creation: `/verify-issue BEP-XXX --with-subtasks`
+- After creation: `/verify-issue {{PROJECT_KEY}}-XXX --with-subtasks`

@@ -78,7 +78,7 @@ Generate markdown content based on template
 [Brief description of what this spec covers]
 
 ## Related Issues
-- [BEP-XXX](https://100-stars.atlassian.net/browse/BEP-XXX)
+- [{{PROJECT_KEY}}-XXX](https://{{JIRA_SITE}}/browse/BEP-XXX)
 
 ---
 
@@ -252,7 +252,7 @@ Create page with MCP tool:
 
 ```python
 confluence_create_page(
-  space_key="BEP",
+  space_key="{{PROJECT_KEY}}",
   title="[Title]",
   content="[markdown content]",
   parent_id="[optional parent page ID]"
@@ -293,7 +293,7 @@ The script will automatically convert `<pre class="highlight">` → `<ac:structu
 | Create Tech Spec | `/create-doc tech-spec "Payment API"` |
 | Create ADR | `/create-doc adr "Use Redis for caching"` |
 | Create Parent page | `/create-doc parent "Documentation: Ads System"` |
-| Create as child | `/create-doc tech-spec "API Spec" --parent 153518083` |
+| Create as child | `/create-doc tech-spec "API Spec" --parent 987654321` |
 
 ---
 

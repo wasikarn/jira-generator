@@ -35,7 +35,7 @@ Ask user to identify the page:
 
 ```text
 Which page do you want to update?
-1. Specify Page ID (e.g. 144244902)
+1. Specify Page ID (e.g. 123456789)
 2. Search by title
 ```
 
@@ -238,12 +238,12 @@ Update type?
 
 | Scenario | Command | Tool |
 | --- | --- | --- |
-| Update status | `/update-doc 144244902 --status Published` | MCP |
-| Replace text | `/update-doc 144244902 --find "v1" --replace "v2"` | Script |
-| Update section | `/update-doc 144244902 --section "API Spec"` | MCP or Script |
-| Full rewrite | `/update-doc 144244902` | Script |
-| Move page | `/update-doc 144244902 --move 153518083` | Script |
-| Batch move | `/update-doc --move 153518083 --pages 144244902,144015541` | Script |
+| Update status | `/update-doc 123456789 --status Published` | MCP |
+| Replace text | `/update-doc 123456789 --find "v1" --replace "v2"` | Script |
+| Update section | `/update-doc 123456789 --section "API Spec"` | MCP or Script |
+| Full rewrite | `/update-doc 123456789` | Script |
+| Move page | `/update-doc 123456789 --move 987654321` | Script |
+| Batch move | `/update-doc --move 987654321 --pages 123456789,333444555` | Script |
 
 ---
 

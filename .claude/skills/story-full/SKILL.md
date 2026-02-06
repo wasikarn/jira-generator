@@ -21,7 +21,7 @@ argument-hint: "[story-description]"
 ### 1. Discovery
 
 - Ask: Who? What? Why? Constraints?
-- If Epic exists → `MCP: jira_get_issue(issue_key: "BEP-XXX")` + read VS plan
+- If Epic exists → `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")` + read VS plan
 - **VS Assignment:** Which vertical slice? (`vs1-skeleton`, `vs2-*`, `vs-enabler`)
 - **Gate:** User confirms requirements + VS assignment
 
@@ -61,7 +61,7 @@ acli jira workitem create --from-json tasks/story.json
 
 **Labels (MANDATORY):** Feature label + VS label (e.g., `coupon-web`, `vs2-collect-e2e`)
 
-**Capture story key → BEP-XXX**
+**Capture story key → {{PROJECT_KEY}}-XXX**
 
 ---
 
@@ -126,8 +126,8 @@ Before sending to Atlassian, score against `shared-references/verification-check
 
 ```text
 # Step 1: Create shells (parallel)
-MCP: jira_create_issue({project_key:"BEP", summary:"[BE] - ...", issue_type:"Subtask", additional_fields:{parent:{key:"BEP-XXX"}}})
-MCP: jira_create_issue({project_key:"BEP", summary:"[FE-Web] - ...", issue_type:"Subtask", additional_fields:{parent:{key:"BEP-XXX"}}})
+MCP: jira_create_issue({project_key: "{{PROJECT_KEY}}", summary:"[BE] - ...", issue_type:"Subtask", additional_fields:{parent:{key:"{{PROJECT_KEY}}-XXX"}}})
+MCP: jira_create_issue({project_key: "{{PROJECT_KEY}}", summary:"[FE-Web] - ...", issue_type:"Subtask", additional_fields:{parent:{key:"{{PROJECT_KEY}}-XXX"}}})
 
 # Step 2: Update descriptions
 acli jira workitem edit --from-json tasks/subtask-be.json --yes
@@ -138,10 +138,10 @@ acli jira workitem edit --from-json tasks/subtask-fe.json --yes
 
 ```text
 ## Story Full Complete
-Story: BEP-XXX
+Story: {{PROJECT_KEY}}-XXX
 Sub-tasks: BEP-YYY [BE], BEP-ZZZ [FE-Admin]
-→ /create-testplan BEP-XXX for QA
-→ /verify-issue BEP-XXX --with-subtasks
+→ /create-testplan {{PROJECT_KEY}}-XXX for QA
+→ /verify-issue {{PROJECT_KEY}}-XXX --with-subtasks
 ```
 
 ---

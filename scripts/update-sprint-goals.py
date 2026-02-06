@@ -19,29 +19,19 @@ from lib.jira_api import JiraAPI, derive_jira_url
 # Sprint goals to update
 SPRINT_GOALS = [
     {
-        "id": 640,
-        "name": "Sprint 32",
-        "goal": "VS1 Walking Skeleton + VS-Enabler + VS2 Credit Coupon E2E (BE+FE) + Admin CRUD จบบน Staging",
+        "id": 100,
+        "name": "Sprint 1",
+        "goal": "VS1 Walking Skeleton + VS-Enabler + Core Feature E2E",
     },
     {
-        "id": 673,
-        "name": "Sprint 33",
-        "goal": "VS3 Discount Coupon E2E + Non-coupon cleanup (hotfix, phone auth, usage history bugs)",
+        "id": 101,
+        "name": "Sprint 2",
+        "goal": "VS2 Extended Feature E2E + Bug fixes",
     },
     {
-        "id": 706,
-        "name": "Sprint 34",
-        "goal": "VS4 Cashback E2E + VS5 History Tab + VS6 Popup + Ad Integration + Production Ready",
-    },
-    {
-        "id": 707,
-        "name": "Sprint 35",
-        "goal": "Integration Testing + Performance Optimization + Feature Flag Rollout",
-    },
-    {
-        "id": 708,
-        "name": "Sprint 36",
-        "goal": "Production Launch + Monitoring + Post-launch Stabilization",
+        "id": 102,
+        "name": "Sprint 3",
+        "goal": "VS3 Advanced Feature + Integration + Production Ready",
     },
 ]
 

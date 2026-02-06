@@ -42,17 +42,17 @@ What do you need?
 | Operation | Tool | Command/Syntax |
 | --- | --- | --- |
 | **Search issues** | MCP | `jira_search(jql: "project = BEP AND ...")` |
-| **Get issue details** | MCP | `jira_get_issue(issue_key: "BEP-XXX", fields: "summary,status,description")` |
+| **Get issue details** | MCP | `jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX", fields: "summary,status,description")` |
 
 > ⚠️ **IMPORTANT:** Always use the `fields` parameter to prevent token limit errors!
 >
 > ```python
 > # ❌ Bad - may exceed token limit if the issue has too much data
-> jira_get_issue(issue_key="BEP-XXX")
+> jira_get_issue(issue_key="{{PROJECT_KEY}}-XXX")
 >
 > # ✅ Good - specify only the fields you need
 > jira_get_issue(
->     issue_key="BEP-XXX",
+>     issue_key="{{PROJECT_KEY}}-XXX",
 >     fields="summary,status,description,issuetype,parent",
 >     comment_limit=5
 > )
@@ -60,17 +60,17 @@ What do you need?
 
 | **Create issue** | acli | `acli jira workitem create --from-json file.json` |
 | **Update description** | acli | `acli jira workitem edit --from-json file.json --yes` |
-| **Update other fields** | MCP | `jira_update_issue(issue_key: "BEP-XXX", fields: {...})` |
-| **Assign issue** | acli | `acli jira workitem assign -k "BEP-XXX" -a "email@..." -y` |
+| **Update other fields** | MCP | `jira_update_issue(issue_key: "{{PROJECT_KEY}}-XXX", fields: {...})` |
+| **Assign issue** | acli | `acli jira workitem assign -k "{{PROJECT_KEY}}-XXX" -a "email@..." -y` |
 | **Create issue link** | MCP | `jira_create_issue_link(link_type: "Relates", inward_issue: "BEP-X", outward_issue: "BEP-Y")` |
-| **Get transitions** | MCP | `jira_get_transitions(issue_key: "BEP-XXX")` |
-| **Transition issue** | MCP | `jira_transition_issue(issue_key: "BEP-XXX", ...)` |
-| **Set dates** | MCP | `jira_update_issue(issue_key: "BEP-XXX", additional_fields: {"customfield_10015": "YYYY-MM-DD", "duedate": "YYYY-MM-DD"})` |
-| **Move to sprint** | MCP | `jira_update_issue(issue_key: "BEP-XXX", additional_fields: {"customfield_10020": 640})` |
+| **Get transitions** | MCP | `jira_get_transitions(issue_key: "{{PROJECT_KEY}}-XXX")` |
+| **Transition issue** | MCP | `jira_transition_issue(issue_key: "{{PROJECT_KEY}}-XXX", ...)` |
+| **Set dates** | MCP | `jira_update_issue(issue_key: "{{PROJECT_KEY}}-XXX", additional_fields: {"{{START_DATE_FIELD}}": "YYYY-MM-DD", "duedate": "YYYY-MM-DD"})` |
+| **Move to sprint** | MCP | `jira_update_issue(issue_key: "{{PROJECT_KEY}}-XXX", additional_fields: {"{{SPRINT_FIELD}}": 123})` |
 | **Get sprints** | MCP | `jira_get_sprints_from_board(board_id: "2", state: "future")` |
 
 > **BEP Board/Sprint Info:** Board ID `2` · Use `jira_get_sprints_from_board` to get current Sprint IDs
-> Date fields: `customfield_10015` (Start), `duedate` (Due) · Sprint field: `customfield_10020` (plain number)
+> Date fields: `{{START_DATE_FIELD}}` (Start), `duedate` (Due) · Sprint field: `{{SPRINT_FIELD}}` (plain number)
 >
 > **Issue Link Types (BEP):** `Relates` · `Blocks` · `Duplicate` · `Cloners` · `Test Case`
 > ⚠️ ใช้ `"Relates"` ไม่ใช่ `"Relates to"` — ชื่อต้องตรงกับ Jira config
@@ -84,7 +84,7 @@ What do you need?
 | --- | --- | --- |
 | **Search pages** | MCP | `confluence_search(query: "...")` |
 | **Get page** | MCP | `confluence_get_page(page_id: "...")` |
-| **Create page (simple)** | MCP | `confluence_create_page(space_key: "BEP", ...)` |
+| **Create page (simple)** | MCP | `confluence_create_page(space_key: "{{PROJECT_KEY}}", ...)` |
 | **Create page (code blocks)** | Script | `python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py` |
 | **Update content** | Script | `python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py --page-id` |
 | **Find/Replace text** | Script | `python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py` |
@@ -142,14 +142,14 @@ What do you need to do?
 # Create new issue
 acli jira workitem create --from-json tasks/bep-xxx.json
 
-# Update existing issue (requires "issues": ["BEP-XXX"] in JSON)
+# Update existing issue (requires "issues": ["{{PROJECT_KEY}}-XXX"] in JSON)
 acli jira workitem edit --from-json tasks/bep-xxx.json --yes
 
 # List issues
 acli jira workitem list --project BEP --limit 10
 
 # Get issue details
-acli jira workitem get BEP-XXX
+acli jira workitem get {{PROJECT_KEY}}-XXX
 ```
 
 ---

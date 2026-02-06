@@ -2,13 +2,14 @@
 """
 Configure project files from project-config.json
 
-Replaces hardcoded values (project key, Jira site, custom fields) in skill files
-with values from .claude/project-config.json
+Replaces hardcoded values (project key, Jira site, company, custom fields) in
+skill files, scripts, and docs with values from .claude/project-config.json
 
 Usage:
-    python scripts/configure-project.py           # Dry run (show changes)
-    python scripts/configure-project.py --apply   # Apply changes
-    python scripts/configure-project.py --revert  # Revert to placeholders
+    python scripts/configure-project.py                  # Dry run: show what --apply would do
+    python scripts/configure-project.py --apply          # Apply: placeholders → real values
+    python scripts/configure-project.py --revert         # Dry run: show what revert would do
+    python scripts/configure-project.py --revert --apply # Revert: real values → placeholders
 """
 
 import json
@@ -23,6 +24,7 @@ CONFIG_PATH = PROJECT_DIR / ".claude" / "project-config.json"
 SKILLS_DIR = PROJECT_DIR / ".claude" / "skills"
 
 # Placeholder format: {{KEY}}
+# Default values are used as fallback when config doesn't have the key
 PLACEHOLDERS = {
     "PROJECT_KEY": "BEP",
     "JIRA_SITE": "100-stars.atlassian.net",
@@ -30,6 +32,8 @@ PLACEHOLDERS = {
     "SPACE_KEY": "BEP",
     "START_DATE_FIELD": "customfield_10015",
     "SPRINT_FIELD": "customfield_10020",
+    "COMPANY": "Tathep",
+    "COMPANY_LOWER": "tathep",
 }
 
 
@@ -37,6 +41,7 @@ def load_config() -> dict:
     """Load project-config.json and extract values."""
     if not CONFIG_PATH.exists():
         print(f"Error: {CONFIG_PATH} not found")
+        print(f"  Copy template: cp .claude/project-config.json.template .claude/project-config.json")
         sys.exit(1)
 
     with open(CONFIG_PATH) as f:
@@ -49,6 +54,8 @@ def load_config() -> dict:
         "SPACE_KEY": config["confluence"]["space_key"],
         "START_DATE_FIELD": config["jira"]["custom_fields"]["start_date"],
         "SPRINT_FIELD": config["jira"]["custom_fields"]["sprint"],
+        "COMPANY": config.get("company", PLACEHOLDERS["COMPANY"]),
+        "COMPANY_LOWER": config.get("company_lower", PLACEHOLDERS["COMPANY_LOWER"]),
     }
 
 
@@ -62,7 +69,6 @@ def get_replacement_patterns(values: dict, revert: bool = False) -> list[tuple[s
 
         if revert:
             # Replace actual values with placeholders
-            # Project key in various contexts
             if key == "PROJECT_KEY":
                 patterns.extend([
                     (rf'"projectKey":\s*"{re.escape(actual_value)}"', f'"projectKey": "{placeholder}"'),
@@ -77,10 +83,28 @@ def get_replacement_patterns(values: dict, revert: bool = False) -> list[tuple[s
                 patterns.append(
                     (rf'https://{re.escape(actual_value)}', f'https://{placeholder}')
                 )
+            elif key == "CONFLUENCE_SITE":
+                # Only add if different from JIRA_SITE
+                if actual_value != values.get("JIRA_SITE"):
+                    patterns.append(
+                        (rf'https://{re.escape(actual_value)}', f'https://{placeholder}')
+                    )
             elif key in ("START_DATE_FIELD", "SPRINT_FIELD"):
                 patterns.append(
                     (rf'{re.escape(actual_value)}', placeholder)
                 )
+            elif key == "COMPANY":
+                # Company name in various contexts
+                patterns.extend([
+                    (rf'{re.escape(actual_value)} Platform', f'{placeholder} Platform'),
+                    (rf'for \*\*{re.escape(actual_value)} Platform\*\*', f'for **{placeholder} Platform**'),
+                    (rf'Agile Documentation System for \*\*{re.escape(actual_value)}', f'Agile Documentation System for **{placeholder}'),
+                ])
+            elif key == "COMPANY_LOWER":
+                # Lowercase company in paths, domains, identifiers
+                patterns.extend([
+                    (rf'~/Codes/Works/{re.escape(actual_value)}/', f'~/Projects/{placeholder}/'),
+                ])
         else:
             # Replace placeholders with actual values
             if key == "PROJECT_KEY":
@@ -96,10 +120,24 @@ def get_replacement_patterns(values: dict, revert: bool = False) -> list[tuple[s
                 patterns.append(
                     (rf'https://\{{\{{JIRA_SITE\}}\}}', f'https://{actual_value}')
                 )
+            elif key == "CONFLUENCE_SITE":
+                patterns.append(
+                    (rf'https://\{{\{{CONFLUENCE_SITE\}}\}}', f'https://{actual_value}')
+                )
             elif key in ("START_DATE_FIELD", "SPRINT_FIELD"):
                 patterns.append(
                     (rf'\{{\{{{key}\}}\}}', actual_value)
                 )
+            elif key == "COMPANY":
+                patterns.extend([
+                    (rf'\{{\{{COMPANY\}}\}} Platform', f'{actual_value} Platform'),
+                    (rf'for \*\*\{{\{{COMPANY\}}\}} Platform\*\*', f'for **{actual_value} Platform**'),
+                    (rf'Agile Documentation System for \*\*\{{\{{COMPANY\}}\}}', f'Agile Documentation System for **{actual_value}'),
+                ])
+            elif key == "COMPANY_LOWER":
+                patterns.extend([
+                    (rf'~/Projects/\{{\{{COMPANY_LOWER\}}\}}/', f'~/Codes/Works/{actual_value}/'),
+                ])
 
     return patterns
 
@@ -126,23 +164,55 @@ def process_file(filepath: Path, patterns: list[tuple[str, str]], dry_run: bool 
     return changes
 
 
+def collect_files() -> list[Path]:
+    """Collect all files to process.
+
+    Only documentation and shell files — NOT Python source code
+    (Python uses custom field IDs at runtime, replacing would break code).
+    """
+    files = []
+    self_path = Path(__file__).resolve()
+
+    # Skills .md files
+    files.extend(SKILLS_DIR.rglob("*.md"))
+
+    # Scripts (.sh only — Python scripts use runtime values)
+    scripts_dir = PROJECT_DIR / "scripts"
+    files.extend(scripts_dir.glob("*.sh"))
+    # Executable scripts without extension (like sync-skills)
+    for f in scripts_dir.iterdir():
+        if f.is_file() and not f.suffix and f.name != "__pycache__":
+            files.append(f)
+
+    # Root files
+    for name in ("CLAUDE.md", "README.md"):
+        p = PROJECT_DIR / name
+        if p.exists():
+            files.append(p)
+
+    # Exclude self
+    return sorted(f for f in set(files) if f.resolve() != self_path)
+
+
 def main():
     # Parse args
     apply_changes = "--apply" in sys.argv
     revert_mode = "--revert" in sys.argv
 
-    if revert_mode and apply_changes:
-        print("Error: Cannot use --apply and --revert together")
-        sys.exit(1)
+    # --revert --apply = revert AND write to files
+    # --revert         = revert dry run (show what would change)
+    # --apply          = apply (placeholders → real values) AND write
 
     # Load config
     config_values = load_config()
 
     print("=" * 60)
     if revert_mode:
-        print("REVERT MODE: Converting actual values → placeholders")
+        print("REVERT MODE: Converting actual values -> placeholders")
     else:
-        print("CONFIGURE MODE: Converting placeholders → actual values")
+        print("CONFIGURE MODE: Converting placeholders -> actual values")
+    if not apply_changes:
+        print("(DRY RUN — add --apply to write changes)")
     print("=" * 60)
     print(f"\nConfig: {CONFIG_PATH}")
     print(f"Values:")
@@ -153,27 +223,22 @@ def main():
     # Get patterns
     patterns = get_replacement_patterns(config_values, revert=revert_mode)
 
-    # Find all markdown files in skills directory
-    md_files = list(SKILLS_DIR.rglob("*.md"))
+    # Collect files
+    files = collect_files()
 
-    # Also include root CLAUDE.md
-    root_claude = PROJECT_DIR / "CLAUDE.md"
-    if root_claude.exists():
-        md_files.append(root_claude)
-
-    print(f"Scanning {len(md_files)} files...\n")
+    print(f"Scanning {len(files)} files...\n")
 
     total_changes = 0
     files_changed = 0
 
-    for filepath in sorted(md_files):
+    for filepath in files:
         rel_path = filepath.relative_to(PROJECT_DIR)
         changes = process_file(filepath, patterns, dry_run=not apply_changes)
 
         if changes:
             files_changed += 1
             total_changes += len(changes)
-            print(f"📄 {rel_path}")
+            print(f"  {rel_path}")
             for change in changes:
                 print(change)
             print()
@@ -181,12 +246,14 @@ def main():
     # Summary
     print("=" * 60)
     if apply_changes:
-        print(f"✅ Applied {total_changes} changes in {files_changed} files")
+        print(f"Applied {total_changes} changes in {files_changed} files")
     else:
-        print(f"🔍 Found {total_changes} potential changes in {files_changed} files")
-        print("\nRun with --apply to make changes:")
-        print(f"  python {Path(__file__).name} --apply")
-        if not revert_mode:
+        print(f"Found {total_changes} potential changes in {files_changed} files")
+        print(f"\nRun with --apply to write changes:")
+        if revert_mode:
+            print(f"  python {Path(__file__).name} --revert --apply")
+        else:
+            print(f"  python {Path(__file__).name} --apply")
             print(f"\nOr revert to placeholders:")
             print(f"  python {Path(__file__).name} --revert --apply")
 

@@ -20,8 +20,8 @@ argument-hint: "[issue-key] [--with-subtasks] [--fix]"
 
 ### 1. Fetch & Identify
 
-- `MCP: jira_get_issue(issue_key: "BEP-XXX")`
-- If `--with-subtasks` → `MCP: jira_search(jql: "parent = BEP-XXX", fields: "summary,status,assignee,issuetype")` (**⚠️ NEVER add ORDER BY to parent queries**)
+- `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")`
+- If `--with-subtasks` → `MCP: jira_search(jql: "parent = {{PROJECT_KEY}}-XXX", fields: "summary,status,assignee,issuetype")` (**⚠️ NEVER add ORDER BY to parent queries**)
 - Identify type → Select checklist
 - Build inventory: Key, Type, Current Format
 - **Gate (--fix only):** User confirms scope
@@ -65,7 +65,7 @@ Score: ⭐⭐⭐☆☆ (per dimension, 5-point scale)
 1. Story → jira_get_issue(story_key) — ACs, scope, services impacted
 2. Epic → jira_get_issue(story.parent) — scope, must-have list (skip if none)
 3. Subtasks → already fetched in Phase 1
-4. Confluence → confluence_search("BEP-XXX") — Tech Note (skip if none)
+4. Confluence → confluence_search("{{PROJECT_KEY}}-XXX") — Tech Note (skip if none)
 ```
 
 **Alignment checks:**
@@ -89,7 +89,7 @@ Score: ⭐⭐⭐☆☆ (per dimension, 5-point scale)
 ### 5. Report
 
 ```text
-## Verification: BEP-XXX
+## Verification: {{PROJECT_KEY}}-XXX
 
 | Category | Score | Status |
 |----------|-------|--------|
@@ -106,7 +106,7 @@ Alignment Issues (--with-subtasks):
 1. ⚠️ AC3 has no subtask covering it
 2. ⚠️ Story specifies [FE-Web] but no subtask has [FE-Web] tag
 
-→ /verify-issue BEP-XXX --fix
+→ /verify-issue {{PROJECT_KEY}}-XXX --fix
 ```
 
 ### 6. Fix (--fix flag only)
@@ -121,7 +121,7 @@ If `--fix` is present → apply all fixes found in Phases 2-4:
 
 ```text
 ## Fix Complete
-Updated: BEP-XXX, BEP-YYY, BEP-ZZZ
+Updated: {{PROJECT_KEY}}-XXX, BEP-YYY, BEP-ZZZ
 Quality: wiki → ADF, EN → Thai
 ```
 
@@ -130,13 +130,13 @@ Quality: wiki → ADF, EN → Thai
 ## Batch Mode
 
 ```text
-/verify-issue BEP-XXX --with-subtasks
-/verify-issue BEP-XXX --with-subtasks --fix
+/verify-issue {{PROJECT_KEY}}-XXX --with-subtasks
+/verify-issue {{PROJECT_KEY}}-XXX --with-subtasks --fix
 ```
 
 | Key | Technical | Quality | Alignment | Overall |
 | --- | --- | --- | --- | --- |
-| BEP-XXX (Story) | 5/5 ✅ | 4/6 ⚠️ | 5/6 ⚠️ | ⚠️ |
+| {{PROJECT_KEY}}-XXX (Story) | 5/5 ✅ | 4/6 ⚠️ | 5/6 ⚠️ | ⚠️ |
 | BEP-YYY [BE] | 5/5 ✅ | 6/6 ✅ | — | ✅ |
 | BEP-ZZZ [FE-Web] | 5/5 ✅ | 5/6 ⚠️ | — | ⚠️ |
 
@@ -146,11 +146,11 @@ Quality: wiki → ADF, EN → Thai
 
 | Scenario | Command |
 | --- | --- |
-| Quick check | `/verify-issue BEP-XXX` |
-| Check story + subtasks | `/verify-issue BEP-XXX --with-subtasks` |
-| Auto-fix single issue | `/verify-issue BEP-XXX --fix` |
-| Batch format migration | `/verify-issue BEP-XXX --with-subtasks --fix` |
-| Language standardization | `/verify-issue BEP-XXX --fix "standardize Thai"` |
+| Quick check | `/verify-issue {{PROJECT_KEY}}-XXX` |
+| Check story + subtasks | `/verify-issue {{PROJECT_KEY}}-XXX --with-subtasks` |
+| Auto-fix single issue | `/verify-issue {{PROJECT_KEY}}-XXX --fix` |
+| Batch format migration | `/verify-issue {{PROJECT_KEY}}-XXX --with-subtasks --fix` |
+| Language standardization | `/verify-issue {{PROJECT_KEY}}-XXX --fix "standardize Thai"` |
 
 ---
 
@@ -158,10 +158,10 @@ Quality: wiki → ADF, EN → Thai
 
 | After Command | Verify With |
 | --- | --- |
-| `/create-story` | `/verify-issue BEP-XXX` |
-| `/analyze-story` | `/verify-issue BEP-XXX --with-subtasks` |
-| `/story-full` | `/verify-issue BEP-XXX --with-subtasks` |
-| `/improve-issue` (legacy) | → Use `/verify-issue BEP-XXX --with-subtasks --fix` instead |
+| `/create-story` | `/verify-issue {{PROJECT_KEY}}-XXX` |
+| `/analyze-story` | `/verify-issue {{PROJECT_KEY}}-XXX --with-subtasks` |
+| `/story-full` | `/verify-issue {{PROJECT_KEY}}-XXX --with-subtasks` |
+| `/improve-issue` (legacy) | → Use `/verify-issue {{PROJECT_KEY}}-XXX --with-subtasks --fix` instead |
 
 ---
 

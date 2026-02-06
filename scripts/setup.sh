@@ -11,12 +11,27 @@ echo "=== jira-generator setup ==="
 echo "Project: $PROJECT_DIR"
 echo ""
 
-# --- 1. Install sync-tathep-skills CLI ---
-echo "[1/3] Installing sync-tathep-skills CLI..."
+# --- 0. Check project config ---
+CONFIG_FILE="$PROJECT_DIR/.claude/project-config.json"
+CONFIG_TEMPLATE="$PROJECT_DIR/.claude/project-config.json.template"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+  if [ -f "$CONFIG_TEMPLATE" ]; then
+    cp "$CONFIG_TEMPLATE" "$CONFIG_FILE"
+    echo "Created .claude/project-config.json from template"
+    echo "  → Edit with your real values: team, Jira site, domains, service paths"
+    echo ""
+  else
+    echo "WARNING: No project-config.json or template found"
+  fi
+fi
+
+# --- 1. Install sync-skills CLI ---
+echo "[1/3] Installing sync-skills CLI..."
 mkdir -p "$HOME/.local/bin"
 
-SYNC_SRC="$SCRIPT_DIR/sync-tathep-skills"
-SYNC_DST="$HOME/.local/bin/sync-tathep-skills"
+SYNC_SRC="$SCRIPT_DIR/sync-skills"
+SYNC_DST="$HOME/.local/bin/sync-skills"
 
 if [ -L "$SYNC_DST" ]; then
   existing=$(readlink "$SYNC_DST")
@@ -41,64 +56,44 @@ echo ""
 echo "[2/3] Syncing skills to ~/.claude/skills/..."
 "$SYNC_SRC"
 
-# --- 3. Add Tathep config to ~/.claude/CLAUDE.md ---
+# --- 3. Add Atlassian config to ~/.claude/CLAUDE.md ---
 echo ""
 echo "[3/3] Configuring ~/.claude/CLAUDE.md..."
 mkdir -p "$HOME/.claude"
 CLAUDE_MD="$HOME/.claude/CLAUDE.md"
 
-if [ -f "$CLAUDE_MD" ] && grep -q "Tathep Atlassian Settings" "$CLAUDE_MD"; then
-  echo "  Tathep settings already present"
+if [ -f "$CLAUDE_MD" ] && grep -q "Atlassian Settings" "$CLAUDE_MD"; then
+  echo "  Atlassian settings already present"
 else
-  # Append Tathep config block
-  cat >> "$CLAUDE_MD" << 'TATHEP_CONFIG'
+  # Append config block (update values from .claude/project-config.json)
+  cat >> "$CLAUDE_MD" << 'ATLASSIAN_CONFIG'
 
-## Tathep Atlassian Settings
+## Atlassian Settings
+
+> **Full config:** `jira-generator/.claude/project-config.json` — team, services, environments, custom fields
 
 | Setting | Value |
 | --- | --- |
-| Jira Site | `100-stars.atlassian.net` |
-| Project Key | `BEP` |
-| Confluence Space | `BEP` |
+| Jira | `your-site.atlassian.net` / Project: `BEP` |
+| Date Fields | `{{START_DATE_FIELD}}` (Start), `{{SPRINT_FIELD}}` (Sprint) |
 
-### Service Tags
+**Dynamic lookup:** Board → `jira_get_agile_boards(project_key="{{PROJECT_KEY}}")` · Sprint → `jira_get_sprints_from_board(board_id, state="future")`
 
-| Tag | Service | Path |
-| --- | --- | --- |
-| `[BE]` | Backend | `~/Codes/Works/tathep/tathep-platform-api` |
-| `[FE-Admin]` | Admin | `~/Codes/Works/tathep/tathep-admin` |
-| `[FE-Web]` | Website | `~/Codes/Works/tathep/tathep-website` |
-| `[Video]` | Video Processing | `~/Codes/Works/tathep/tathep-video-processing` |
-| `[Player]` | Vision Player | `~/Codes/Works/tathep/bd-vision-player` |
-| `[Jira-Gen]` | Jira Generator | `~/Codes/Works/tathep/jira-generator` |
+**Assign:** `acli jira workitem assign -k "KEY" -a "email" -y` (MCP assignee broken)
 
-## Tathep Development Workflow
+## Development Workflow
 
-### เมื่อ user อ้างถึง Jira issue (BEP-XXX)
+### When referencing Jira issues ({{PROJECT_KEY}}-XXX)
 
-**ก่อน implement:**
-1. อ่าน issue ด้วย MCP `jira_get_issue` — เข้าใจ AC, scope, technical notes
-2. ถ้ามี sub-tasks ให้อ่านด้วยเพื่อดู implementation details
+**Before implement:**
+1. Read issue via MCP `jira_get_issue` — understand AC, scope, technical notes
+2. Read sub-tasks for implementation details
 
-**หลัง implement เสร็จ:**
-1. Add comment ใน Jira ด้วย MCP `jira_add_comment` สรุป:
-   - สิ่งที่ implement/เปลี่ยนแปลง
-   - Files ที่แก้ไข
-   - สิ่งที่เบี่ยงเบนจาก AC (ถ้ามี)
-
-### Code Review
-
-เมื่อ review code ที่เกี่ยวกับ Jira issue:
-1. อ่าน issue ก่อน — เทียบ implementation กับ AC
-2. ตรวจว่าทุก AC ถูก address ในโค้ด
-3. Flag gaps ระหว่างโค้ดกับ requirements
-
-### Confluence Updates
-
-Update Confluence เมื่อ implementation กระทบ:
-- Architecture decisions
-- API contracts / data models
-- Technical specifications
+**After implement:**
+1. Add Jira comment via MCP `jira_add_comment`:
+   - What was implemented/changed
+   - Files modified
+   - Deviations from AC (if any)
 
 ### Daily Ops Tool Selection
 
@@ -112,8 +107,8 @@ Update Confluence เมื่อ implementation กระทบ:
 | Update Confluence | MCP `confluence_update_page` |
 | Complex formatting | `/atlassian-scripts` |
 | Create/manage issues | Skill commands (`/create-story`, `/verify-issue`, etc.) |
-TATHEP_CONFIG
-  echo "  added Tathep settings and workflow"
+ATLASSIAN_CONFIG
+  echo "  added Atlassian settings and workflow"
 fi
 
 # --- Check PATH ---

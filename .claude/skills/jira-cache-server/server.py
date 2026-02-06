@@ -84,7 +84,7 @@ TOOLS = [
         inputSchema={
             "type": "object",
             "properties": {
-                "sprint_id": {"type": "integer", "description": "Jira sprint ID (e.g., 640)"},
+                "sprint_id": {"type": "integer", "description": "Jira sprint ID (e.g., 123)"},
                 "fields": {"type": "string", "description": "Comma-separated fields (default: summary,status,assignee,issuetype,priority,labels)", "default": "summary,status,assignee,issuetype,priority,labels"},
                 "max_age_hours": {"type": "number", "description": "Max cache age in hours (default: 2)", "default": 2},
             },

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Agile Documentation System for **Tathep Platform** — skills-based Jira/Confluence automation
+Agile Documentation System for **{{COMPANY}} Platform** — skills-based Jira/Confluence automation
 
 **Structure:** `.claude/skills/` — 19 skills (`SKILL.md` → phases → `shared-references/`) + `atlassian-scripts/` (7 Python scripts) + `jira-cache-server/` (MCP) + `shared-references/` (15 docs)
 
@@ -26,7 +26,7 @@ Config: `.claude/project-config.json` — Jira/Confluence, team, services, envir
 | Service Tags | `services.tags[]` |
 | Environments | `environments.*` |
 
-**Dynamic lookup:** Board → `jira_get_agile_boards(project_key="BEP")` · Sprint → `jira_get_sprints_from_board(board_id, state="future")`
+**Dynamic lookup:** Board → `jira_get_agile_boards(project_key="{{PROJECT_KEY}}")` · Sprint → `jira_get_sprints_from_board(board_id, state="future")`
 **Prerequisites:** `acli` CLI, MCP (Jira + Confluence + Figma + GitHub), Python 3.x
 
 **Cloning:** Edit `project-config.json` → `python scripts/configure-project.py --revert --apply` → `--apply`
@@ -38,18 +38,18 @@ Config: `.claude/project-config.json` — Jira/Confluence, team, services, envir
 | `/create-epic` | Create Epic from product vision + Epic Doc |
 | `/create-story` | Create User Story from requirements |
 | `/create-task` | Create Task (tech-debt, bug, chore, spike) |
-| `/analyze-story BEP-XXX` | Analyze Story → Sub-tasks + Technical Note |
-| `/create-testplan BEP-XXX` | Create Test Plan → [QA] Sub-task |
+| `/analyze-story {{PROJECT_KEY}}-XXX` | Analyze Story → Sub-tasks + Technical Note |
+| `/create-testplan {{PROJECT_KEY}}-XXX` | Create Test Plan → [QA] Sub-task |
 | `/create-doc` | Create Confluence page (tech-spec, adr, parent) |
 | `/update-{epic,story,task,subtask}` | Edit single issue — scope, AC, format |
 | `/update-doc PAGE-ID` | Update/Move Confluence page |
 | `/story-full` | Create Story + Sub-tasks in one go (preferred) |
-| `/story-cascade BEP-XXX` | Update Story + cascade to Sub-tasks |
-| `/sync-alignment BEP-XXX` | Sync all artifacts bidirectional |
+| `/story-cascade {{PROJECT_KEY}}-XXX` | Update Story + cascade to Sub-tasks |
+| `/sync-alignment {{PROJECT_KEY}}-XXX` | Sync all artifacts bidirectional |
 | `/plan-sprint` | Sprint planning: carry-over + capacity + assign |
 | `/dependency-chain` | Dependency analysis, critical path, swim lanes |
 | `/search-issues` | Search before creating (dedup) |
-| `/verify-issue BEP-XXX` | Verify quality (ADF, INVEST, language) |
+| `/verify-issue {{PROJECT_KEY}}-XXX` | Verify quality (ADF, INVEST, language) |
 | `/activity-report` | Generate activity report from claude-mem |
 | `/optimize-context` | Audit + compress CLAUDE.md |
 
@@ -110,7 +110,7 @@ Config: `.claude/project-config.json` — Jira/Confluence, team, services, envir
 | **CREATE** `acli jira workitem create` | `projectKey`, `type`, `summary`, `description` | `issues` |
 | **EDIT** `acli jira workitem edit` | `issues`, `description` | `projectKey`, `type`, `summary`, `parent` |
 
-**Subtask Two-Step:** MCP `jira_create_issue` (with `parent:{key:"BEP-XXX"}`) → acli `workitem edit --from-json`
+**Subtask Two-Step:** MCP `jira_create_issue` (with `parent:{key:"{{PROJECT_KEY}}-XXX"}`) → acli `workitem edit --from-json`
 **Smart Link:** `{"type":"inlineCard","attrs":{"url":"https://...atlassian.net/browse/BEP-XXX"}}`
 
 ## Common Mistakes (unified)
@@ -120,7 +120,7 @@ Config: `.claude/project-config.json` — Jira/Confluence, team, services, envir
 | Category | Quick Fix |
 | --- | --- |
 | MCP assignee → silent fail | Use `acli jira workitem assign` |
-| Subtask parent → error | `additional_fields={"parent": {"key": "BEP-XXX"}}` |
+| Subtask parent → error | `additional_fields={"parent": {"key": "{{PROJECT_KEY}}-XXX"}}` |
 | Subtask + sprint → error | Remove sprint field — inherits from parent |
 | `fields` param → error | Use `additional_fields` not `fields` |
 | `project_key_or_id` → error | Use `project_key` |
@@ -135,9 +135,9 @@ Config: `.claude/project-config.json` — Jira/Confluence, team, services, envir
 **NEVER add `ORDER BY` to ANY JQL with `parent =`, `parent in`, or `key in (...)`.**
 
 ```text
-❌ parent = BEP-XXX ORDER BY rank
-✅ parent = BEP-XXX                         → use results as-is
-✅ "Parent Link" = BEP-XXX ORDER BY created → if sorting needed
+❌ parent = {{PROJECT_KEY}}-XXX ORDER BY rank
+✅ parent = {{PROJECT_KEY}}-XXX                         → use results as-is
+✅ "Parent Link" = {{PROJECT_KEY}}-XXX ORDER BY created → if sorting needed
 ```
 
 ## References

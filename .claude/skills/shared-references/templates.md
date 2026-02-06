@@ -13,7 +13,7 @@
 
 ```json
 {
-  "projectKey": "BEP",
+  "projectKey": "{{PROJECT_KEY}}",
   "type": "Story",
   "summary": "Feature title",
   "description": { "type": "doc", "version": 1, "content": [...] }
@@ -24,7 +24,7 @@
 
 ```json
 {
-  "issues": ["BEP-XXX"],
+  "issues": ["{{PROJECT_KEY}}-XXX"],
   "description": { "type": "doc", "version": 1, "content": [...] }
 }
 ```
@@ -182,7 +182,7 @@ All semantic tables use the same ADF pattern — only change `background` hex an
 
 ```json
 {
-  "issues": ["BEP-XXX"],
+  "issues": ["{{PROJECT_KEY}}-XXX"],
   "description": {
     "type": "doc",
     "version": 1,
@@ -212,7 +212,7 @@ All semantic tables use the same ADF pattern — only change `background` hex an
 ```typescript
 // Use MCP instead of acli
 jira_update_issue({
-  issue_key: "BEP-XXX",
+  issue_key: "{{PROJECT_KEY}}-XXX",
   fields: { summary: "New Summary" }
 })
 ```
@@ -268,7 +268,7 @@ Mixed text: wrap only the code portion in marks, leave surrounding text plain.
 
 ```json
 {
-  "projectKey": "BEP",
+  "projectKey": "{{PROJECT_KEY}}",
   "type": "Epic",
   "summary": "[Epic Name] Phase X",
   "description": {
@@ -388,7 +388,7 @@ Mixed text: wrap only the code portion in marks, leave surrounding text plain.
         "attrs": {"panelType": "info"},
         "content": [
           {"type": "paragraph", "content": [
-            {"type": "text", "text": "BEP-XXX", "marks": [{"type": "strong"}]},
+            {"type": "text", "text": "{{PROJECT_KEY}}-XXX", "marks": [{"type": "strong"}]},
             {"type": "text", "text": " - [Story title]"}
           ]}
         ]
@@ -460,7 +460,7 @@ Mixed text: wrap only the code portion in marks, leave surrounding text plain.
 
 ```json
 {
-  "projectKey": "BEP",
+  "projectKey": "{{PROJECT_KEY}}",
   "type": "Story",
   "summary": "[Feature Name] - Thai Description",
   "description": {
@@ -524,7 +524,7 @@ Mixed text: wrap only the code portion in marks, leave surrounding text plain.
           {"type": "tableRow", "content": [
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Epic"}]}]},
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [
-              {"type": "text", "text": "BEP-XXX", "marks": [{"type": "link", "attrs": {"href": "https://100-stars.atlassian.net/browse/BEP-XXX"}}]}
+              {"type": "text", "text": "{{PROJECT_KEY}}-XXX", "marks": [{"type": "link", "attrs": {"href": "https://{{JIRA_SITE}}/browse/BEP-XXX"}}]}
             ]}]}
           ]},
           {"type": "tableRow", "content": [
@@ -566,10 +566,10 @@ Mixed text: wrap only the code portion in marks, leave surrounding text plain.
 
 ```typescript
 jira_create_issue({
-  project_key: "BEP",
+  project_key: "{{PROJECT_KEY}}",
   summary: "[TAG] - Description",
   issue_type: "Subtask",
-  additional_fields: { parent: { key: "BEP-XXX" } }  // Parent Story key
+  additional_fields: { parent: { key: "{{PROJECT_KEY}}-XXX" } }  // Parent Story key
 })
 ```
 
@@ -654,7 +654,7 @@ jira_create_issue({
           {"type": "tableRow", "content": [
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "User Story"}]}]},
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [
-              {"type": "text", "text": "BEP-XXX", "marks": [{"type": "link", "attrs": {"href": "https://100-stars.atlassian.net/browse/BEP-XXX"}}]}
+              {"type": "text", "text": "{{PROJECT_KEY}}-XXX", "marks": [{"type": "link", "attrs": {"href": "https://{{JIRA_SITE}}/browse/BEP-XXX"}}]}
             ]}]}
           ]},
           {"type": "tableRow", "content": [
@@ -780,7 +780,7 @@ jira_create_issue({
           {"type": "tableRow", "content": [
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "User Story"}]}]},
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [
-              {"type": "text", "text": "BEP-XXX", "marks": [{"type": "link", "attrs": {"href": "https://100-stars.atlassian.net/browse/BEP-XXX"}}]}
+              {"type": "text", "text": "{{PROJECT_KEY}}-XXX", "marks": [{"type": "link", "attrs": {"href": "https://{{JIRA_SITE}}/browse/BEP-XXX"}}]}
             ]}]}
           ]}
         ]
@@ -804,7 +804,7 @@ jira_create_issue({
 
 ```json
 {
-  "projectKey": "BEP",
+  "projectKey": "{{PROJECT_KEY}}",
   "type": "Task",
   "summary": "[BE] [Title] - [Context]",
   "description": {
@@ -892,7 +892,7 @@ jira_create_issue({
           {"type": "tableRow", "content": [
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Related Issue"}]}]},
             {"type": "tableCell", "content": [{"type": "paragraph", "content": [
-              {"type": "text", "text": "BEP-XXX", "marks": [{"type": "link", "attrs": {"href": "https://100-stars.atlassian.net/browse/BEP-XXX"}}]}
+              {"type": "text", "text": "{{PROJECT_KEY}}-XXX", "marks": [{"type": "link", "attrs": {"href": "https://{{JIRA_SITE}}/browse/BEP-XXX"}}]}
             ]}]}
           ]}
         ]
@@ -908,7 +908,7 @@ jira_create_issue({
 
 ```json
 {
-  "projectKey": "BEP",
+  "projectKey": "{{PROJECT_KEY}}",
   "type": "Task",
   "summary": "[Bug] [Title]",
   "description": {

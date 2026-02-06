@@ -1,6 +1,6 @@
 # JQL Quick Reference
 
-> JQL patterns for the Tathep BEP project
+> JQL patterns for the BEP project
 
 ---
 
@@ -15,22 +15,22 @@ project = BEP AND type = Story AND sprint IN openSprints()
 ### Find Sub-tasks of Story
 
 ```text
-parent = BEP-XXX
+parent = {{PROJECT_KEY}}-XXX
 ```
 
 > 🚨 **CRITICAL — JQL queries that ALWAYS cause parse errors:**
 >
 > ```text
-> ❌ parent = BEP-XXX ORDER BY created DESC       → Error: Expecting ')' but got 'ORDER'
-> ❌ parent = BEP-XXX AND issuetype = Story ORDER BY  → same error
+> ❌ parent = {{PROJECT_KEY}}-XXX ORDER BY created DESC       → Error: Expecting ')' but got 'ORDER'
+> ❌ parent = {{PROJECT_KEY}}-XXX AND issuetype = Story ORDER BY  → same error
 > ❌ key in (BEP-1, BEP-2) ORDER BY created       → Error: parse error
 > ```
 >
 > **Safe alternatives:**
 >
 > ```text
-> ✅ parent = BEP-XXX                              → no ORDER BY needed
-> ✅ "Parent Link" = BEP-XXX ORDER BY created DESC → use "Parent Link" if sorting needed
+> ✅ parent = {{PROJECT_KEY}}-XXX                              → no ORDER BY needed
+> ✅ "Parent Link" = {{PROJECT_KEY}}-XXX ORDER BY created DESC → use "Parent Link" if sorting needed
 > ✅ key in (BEP-1, BEP-2)                         → remove ORDER BY
 > ```
 >
@@ -76,7 +76,7 @@ project = BEP AND type = Epic AND status != Done
 ### Find Stories in Epic
 
 ```text
-"Epic Link" = BEP-XXX AND type = Story
+"Epic Link" = {{PROJECT_KEY}}-XXX AND type = Story
 ```
 
 ---
@@ -142,7 +142,7 @@ ORDER BY priority DESC, created ASC # Combined
 | --- | --- |
 | Find story before creating | `project = BEP AND type = Story AND summary ~ "keyword"` |
 | Check my sprint work | `project = BEP AND assignee = currentUser() AND sprint IN openSprints()` |
-| Review sub-tasks | `"Parent Link" = BEP-XXX ORDER BY created` |
+| Review sub-tasks | `"Parent Link" = {{PROJECT_KEY}}-XXX ORDER BY created` |
 | Find blockers | `project = BEP AND priority = Highest AND status != Done` |
 | Overdue items | `project = BEP AND duedate < now() AND status != Done` |
 

@@ -380,23 +380,23 @@
 ### Verify Story + Sub-tasks
 
 ```text
-/verify-issue BEP-XXX --with-subtasks
+/verify-issue {{PROJECT_KEY}}-XXX --with-subtasks
 ```
 
 ### Verify and Auto-Fix
 
 ```text
-/verify-issue BEP-XXX --fix
+/verify-issue {{PROJECT_KEY}}-XXX --fix
 ```
 
 ### After Creating Story
 
 ```text
-/create-story → /verify-issue BEP-XXX
+/create-story → /verify-issue {{PROJECT_KEY}}-XXX
 ```
 
 ### After Full Workflow
 
 ```text
-/story-full → /verify-issue BEP-XXX --with-subtasks
+/story-full → /verify-issue {{PROJECT_KEY}}-XXX --with-subtasks
 ```

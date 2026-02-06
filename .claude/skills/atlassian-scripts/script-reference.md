@@ -24,7 +24,7 @@ python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
 
 # Update existing page
 python3 .claude/skills/atlassian-scripts/scripts/create_confluence_page.py \
-  --page-id 144244902 --content-file updated-content.md
+  --page-id 123456789 --content-file updated-content.md
 
 # Options: --content "inline" | --dry-run | --verbose
 ```
@@ -71,7 +71,7 @@ Generic script for find/replace content in Confluence pages.
 
 ```bash
 python3 .claude/skills/atlassian-scripts/scripts/update_confluence_page.py \
-  --page-id 154730498 --find "old" --replace "new"
+  --page-id 111222333 --find "old" --replace "new"
 
 # Multiple: repeat --find/--replace pairs | --regex | --dry-run | --verbose
 ```
@@ -98,7 +98,7 @@ Move page(s) under a different parent page without modifying content.
 
 ```bash
 python3 .claude/skills/atlassian-scripts/scripts/move_confluence_page.py \
-  --page-id 144244902 --parent-id 153518083
+  --page-id 123456789 --parent-id 987654321
 
 # Batch: --page-ids 123,456,789 | --dry-run | --verbose
 ```
@@ -122,7 +122,7 @@ Update a page with raw storage format for macros (ToC, Children, Status).
 
 ```bash
 python3 .claude/skills/atlassian-scripts/scripts/update_page_storage.py \
-  --page-id 156598299 --content-file content.html
+  --page-id 222333444 --content-file content.html
 
 # Options: --content "inline" | --title "New Title" | --dry-run | --verbose
 ```
@@ -154,7 +154,7 @@ Fix code blocks from `<pre class="highlight"><code>` to `<ac:structured-macro ac
 
 ```bash
 python3 .claude/skills/atlassian-scripts/scripts/fix_confluence_code_blocks.py \
-  --page-id 144244902
+  --page-id 123456789
 # Batch: --page-ids 123,456,789 | --dry-run | --verbose
 ```
 
@@ -173,7 +173,7 @@ Verify content across multiple Confluence pages for presence/absence of specifie
 ```bash
 # Single page
 python3 .claude/skills/atlassian-scripts/scripts/audit_confluence_pages.py \
-  --page-id 153518083 --should-have "BEP-2883" --should-not-have "2025-01-21"
+  --page-id 987654321 --should-have "BEP-2883" --should-not-have "2025-01-21"
 
 # Batch from JSON config
 python3 .claude/skills/atlassian-scripts/scripts/audit_confluence_pages.py --config audit.json

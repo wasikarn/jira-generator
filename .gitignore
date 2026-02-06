@@ -9,6 +9,9 @@ __pycache__/
 # Claude Code local settings
 .claude/settings.local.json
 
+# Project config (real values — use .template to create)
+.claude/project-config.json
+
 # Generated output
 output/
 

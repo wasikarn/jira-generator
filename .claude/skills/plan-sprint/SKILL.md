@@ -194,7 +194,7 @@ Present the complete sprint plan to the user:
 
 ### Items to Assign
 | # | Key | Summary | Assignee | Priority | Action |
-| 1 | BEP-XXX | ... | Name | P1 | assign + move |
+| 1 | {{PROJECT_KEY}}-XXX | ... | Name | P1 | assign + move |
 
 ### Risk Summary
 | Risk | Severity | Mitigation |
@@ -211,13 +211,13 @@ Execute according to the user-approved plan:
 
 ```text
 # Move items to target sprint (⚠️ sprint field = plain number, NOT object)
-MCP: jira_update_issue(issue_key="BEP-XXX", additional_fields={"customfield_10020": 640})
+MCP: jira_update_issue(issue_key="{{PROJECT_KEY}}-XXX", additional_fields={"{{SPRINT_FIELD}}": 123})
 
 # Assign items (⚠️ MCP assignee silent fail — use acli instead)
-Bash: acli jira workitem assign -k "BEP-XXX" -a "email@domain.com" -y
+Bash: acli jira workitem assign -k "{{PROJECT_KEY}}-XXX" -a "email@domain.com" -y
 ```
 
-> ⚠️ Sprint field ใช้ `customfield_10020` กับ plain number (เช่น `640`) — ห้ามใช้ `{"id": 640}`
+> ⚠️ Sprint field ใช้ `{{SPRINT_FIELD}}` กับ plain number (เช่น `123`) — ห้ามใช้ `{"id": 123}`
 > ⚠️ **MCP assignee bug:** `jira_update_issue` assignee field reports success but doesn't update.
 > Use `acli jira workitem assign -k "KEY" -a "email" -y` instead.
 
@@ -231,10 +231,10 @@ Team members: XX
 
 ### Execution Log
 | # | Key | Action | Status |
-| 1 | BEP-XXX | Assigned to Name + moved to sprint | ✅ |
+| 1 | {{PROJECT_KEY}}-XXX | Assigned to Name + moved to sprint | ✅ |
 
-→ To verify: /verify-issue BEP-XXX
-→ To update a story: /update-story BEP-XXX
+→ To verify: /verify-issue {{PROJECT_KEY}}-XXX
+→ To update a story: /update-story {{PROJECT_KEY}}-XXX
 ```
 
 ---

@@ -20,8 +20,8 @@ argument-hint: "[issue-key] [changes]"
 
 ### 1. Fetch Current State
 
-- `MCP: jira_get_issue(issue_key: "BEP-XXX")`
-- `MCP: jira_search(jql: "parent = BEP-XXX OR 'Epic Link' = BEP-XXX", fields: "summary,status,assignee,issuetype,priority")` (**⚠️ NEVER add ORDER BY to parent queries**)
+- `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")`
+- `MCP: jira_search(jql: "parent = {{PROJECT_KEY}}-XXX OR 'Epic Link' = {{PROJECT_KEY}}-XXX", fields: "summary,status,assignee,issuetype,priority")` (**⚠️ NEVER add ORDER BY to parent queries**)
 - `MCP: confluence_search(query: "Epic: [title]")`
 - Read: RICE, objectives, success metrics, child stories
 - **Gate:** User confirms what to update
@@ -70,7 +70,7 @@ acli jira workitem edit --from-json tasks/bep-xxx-epic-update.json --yes
 **Output:**
 
 ```text
-## Epic Updated: [Title] (BEP-XXX)
+## Epic Updated: [Title] ({{PROJECT_KEY}}-XXX)
 Changes: [list]
 → Update Epic Doc if needed
 → Review stories: BEP-YYY, BEP-ZZZ
@@ -82,10 +82,10 @@ Changes: [list]
 
 | Scenario | Command | Impact |
 | --- | --- | --- |
-| Adjust scope | `/update-epic BEP-XXX "reduce scope"` | ⚠️ High |
-| Update RICE | `/update-epic BEP-XXX "RICE update"` | 🟢 Low |
-| Add metrics | `/update-epic BEP-XXX "add metric"` | 🟢 Low |
-| Format migrate | `/update-epic BEP-XXX "migrate ADF"` | 🟢 Low |
+| Adjust scope | `/update-epic {{PROJECT_KEY}}-XXX "reduce scope"` | ⚠️ High |
+| Update RICE | `/update-epic {{PROJECT_KEY}}-XXX "RICE update"` | 🟢 Low |
+| Add metrics | `/update-epic {{PROJECT_KEY}}-XXX "add metric"` | 🟢 Low |
+| Format migrate | `/update-epic {{PROJECT_KEY}}-XXX "migrate ADF"` | 🟢 Low |
 
 ---
 

@@ -5,8 +5,8 @@ This script updates a Confluence page using raw storage format,
 allowing for proper macro support (ToC, Children, etc.)
 
 Example usage:
-    python update_page_storage.py --page-id 156598299 --content-file content.html
-    python update_page_storage.py --page-id 156598299 --content "<h1>Title</h1><p>Content</p>"
+    python update_page_storage.py --page-id 222333444 --content-file content.html
+    python update_page_storage.py --page-id 222333444 --content "<h1>Title</h1><p>Content</p>"
 """
 
 import argparse
@@ -53,13 +53,13 @@ def main() -> int:
         epilog="""
 Examples:
   # Update from file
-  python update_page_storage.py --page-id 156598299 --content-file content.html
+  python update_page_storage.py --page-id 222333444 --content-file content.html
 
   # Update with inline content
-  python update_page_storage.py --page-id 156598299 --content "<h1>Title</h1>"
+  python update_page_storage.py --page-id 222333444 --content "<h1>Title</h1>"
 
   # Dry run (preview only)
-  python update_page_storage.py --page-id 156598299 --content-file content.html --dry-run
+  python update_page_storage.py --page-id 222333444 --content-file content.html --dry-run
         """,
     )
 

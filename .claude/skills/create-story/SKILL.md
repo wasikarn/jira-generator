@@ -78,9 +78,9 @@ acli jira workitem create --from-json tasks/story.json
 ### 6. Handoff
 
 ```text
-## Story Created: [Title] (BEP-XXX)
+## Story Created: [Title] ({{PROJECT_KEY}}-XXX)
 ACs: N | Scope: [services]
-→ Use /analyze-story BEP-XXX to continue
+→ Use /analyze-story {{PROJECT_KEY}}-XXX to continue
 ```
 
 ---
@@ -91,4 +91,4 @@ ACs: N | Scope: [services]
 - [Templates](../shared-references/templates.md) - ADF templates (Story section)
 - [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS patterns, labels, DoD
 - [Verification Checklist](../shared-references/verification-checklist.md) - INVEST, AC quality
-- After creation: `/verify-issue BEP-XXX`
+- After creation: `/verify-issue {{PROJECT_KEY}}-XXX`

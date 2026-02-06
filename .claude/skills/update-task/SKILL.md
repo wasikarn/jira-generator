@@ -8,7 +8,7 @@ description: |
   Supports: format migration, add details, change type template
 
   Triggers: "update task", "edit task", "adjust task"
-argument-hint: "BEP-XXX [changes]"
+argument-hint: "{{PROJECT_KEY}}-XXX [changes]"
 ---
 
 # /update-task
@@ -20,7 +20,7 @@ argument-hint: "BEP-XXX [changes]"
 
 ### 1. Fetch Current State
 
-- `MCP: jira_get_issue(issue_key: "BEP-XXX")`
+- `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")`
 - Read: Summary, Description, Status, Priority, Labels
 - Identify current format: Wiki markup or ADF
 - Identify current type (if applicable): tech-debt, bug, chore, spike
@@ -82,7 +82,7 @@ Generate ADF JSON → `tasks/bep-xxx-update.json`
 
 ```json
 {
-  "issues": ["BEP-XXX"],
+  "issues": ["{{PROJECT_KEY}}-XXX"],
   "description": {
     "type": "doc",
     "version": 1,
@@ -129,14 +129,14 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 **Output:**
 
 ```text
-## ✅ Task Updated: [Title] (BEP-XXX)
+## ✅ Task Updated: [Title] ({{PROJECT_KEY}}-XXX)
 
 **Changes:**
 - [list of changes applied]
 
-🔗 [View in Jira](https://100-stars.atlassian.net/browse/BEP-XXX)
+🔗 [View in Jira](https://{{JIRA_SITE}}/browse/BEP-XXX)
 
-→ Use /verify-issue BEP-XXX to check quality
+→ Use /verify-issue {{PROJECT_KEY}}-XXX to check quality
 ```
 
 ---
@@ -145,10 +145,10 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 
 | Scenario | Command | Impact |
 | --- | --- | --- |
-| Migrate Wiki → ADF | `/update-task BEP-XXX "migrate"` | 🟢 Low |
-| Add issues | `/update-task BEP-XXX "add issues"` | 🟡 Medium |
-| Add ACs | `/update-task BEP-XXX "add ACs"` | 🟡 Medium |
-| Change type | `/update-task BEP-XXX "change to bug"` | 🟠 High |
+| Migrate Wiki → ADF | `/update-task {{PROJECT_KEY}}-XXX "migrate"` | 🟢 Low |
+| Add issues | `/update-task {{PROJECT_KEY}}-XXX "add issues"` | 🟡 Medium |
+| Add ACs | `/update-task {{PROJECT_KEY}}-XXX "add ACs"` | 🟡 Medium |
+| Change type | `/update-task {{PROJECT_KEY}}-XXX "change to bug"` | 🟠 High |
 
 ---
 
@@ -172,4 +172,4 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
 - [Templates](../shared-references/templates.md) - ADF templates (Task section)
-- After: `/verify-issue BEP-XXX` to check quality
+- After: `/verify-issue {{PROJECT_KEY}}-XXX` to check quality

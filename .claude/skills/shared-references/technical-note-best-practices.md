@@ -79,7 +79,7 @@ Technical Note (Tech Note) คือเอกสารประกอบ Jira ti
 ### Page Structure
 
 ```text
-Title: [BEP-XXX] Technical Note — [Feature Name]
+Title: [{{PROJECT_KEY}}-XXX] Technical Note — [Feature Name]
 ├── Objective
 ├── Scope (files/modules)
 ├── Approach (step-by-step)
@@ -102,7 +102,7 @@ Title: [BEP-XXX] Technical Note — [Feature Name]
 ### Naming Convention
 
 - Jira subtask: `[TAG] - Technical Note: [Feature]`
-- Confluence page: `[BEP-XXX] Technical Note — [Feature]`
+- Confluence page: `[{{PROJECT_KEY}}-XXX] Technical Note — [Feature]`
 - Label: `tech-note`, `sprint-XX`, service tag
 
 ## Architecture Decision Record (ADR)

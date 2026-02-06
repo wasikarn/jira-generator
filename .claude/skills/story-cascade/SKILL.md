@@ -20,8 +20,8 @@ argument-hint: "[issue-key] [changes]"
 
 ### 1. Fetch Current State
 
-- `MCP: jira_get_issue(issue_key: "BEP-XXX")`
-- `MCP: jira_search(jql: "parent = BEP-XXX", fields: "summary,status,assignee,issuetype")` (**⚠️ NEVER add ORDER BY to parent queries**)
+- `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")`
+- `MCP: jira_search(jql: "parent = {{PROJECT_KEY}}-XXX", fields: "summary,status,assignee,issuetype")` (**⚠️ NEVER add ORDER BY to parent queries**)
 - Build inventory: Story + all Sub-tasks
 - **Gate:** User confirms scope
 
@@ -97,7 +97,7 @@ rm tasks/bep-*-update.json tasks/new-*.json
 
 ```text
 ## Cascade Complete
-Story: BEP-XXX (AC2 modified, AC3 added)
+Story: {{PROJECT_KEY}}-XXX (AC2 modified, AC3 added)
 Updated: BEP-YYY, BEP-ZZZ
 Created: BEP-NEW
 → Review QA sub-task if needed
@@ -110,7 +110,7 @@ Created: BEP-NEW
 | Approach | Commands | Issues |
 | --- | --- | --- |
 | Separate | `/update-story` + N × `/update-subtask` | Lost context |
-| Cascade | `/story-cascade BEP-XXX` | Auto impact |
+| Cascade | `/story-cascade {{PROJECT_KEY}}-XXX` | Auto impact |
 
 ---
 

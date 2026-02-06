@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_comment": "Project-specific Atlassian settings - copy to project-config.json and fill in real values",
+
+  "company": "Acme Corp",
+  "company_lower": "acme",
+
+  "jira": {
+    "site": "acme-corp.atlassian.net",
+    "project_key": "BEP",
+    "board_id": 2,
+    "_board_id_note": "Get via: jira_get_agile_boards(project_key='PROJECT_KEY')",
+
+    "custom_fields": {
+      "start_date": "customfield_10015",
+      "sprint": "customfield_10020",
+      "_note": "Custom field IDs are instance-level. If using different Jira instance, run: acli jira issue get ISSUE-1 --output json | jq '.fields | keys'"
+    },
+
+    "issue_link_types": ["Relates", "Blocks", "Duplicate", "Cloners", "Test Case"],
+    "_issue_link_note": "Link type names must match exactly. Get via: jira_get_link_types()"
+  },
+
+  "confluence": {
+    "site": "acme-corp.atlassian.net",
+    "space_key": "BEP"
+  },
+
+  "team": {
+    "_note": "Team roster for sprint planning and capacity calculation",
+    "members": [
+      { "name": "Alice", "email": "alice@example.com", "role": "Tech Lead", "focus": "Full Stack, review, mentoring", "avg_sprint": 4.5, "ceiling": 5 },
+      { "name": "Bob", "email": "bob@example.com", "role": "Sr. BE", "focus": "Backend, complex systems", "avg_sprint": 8.5, "ceiling": 9 },
+      { "name": "Charlie", "email": "charlie@example.com", "role": "Jr. FS", "focus": "FE+BE", "avg_sprint": 7.5, "ceiling": 8 },
+      { "name": "Dave", "email": "dave@example.com", "role": "Jr. FS", "focus": "FE+BE", "avg_sprint": 7.5, "ceiling": 8 },
+      { "name": "Eve", "email": "eve@example.com", "role": "FE", "focus": "Frontend", "avg_sprint": 8.5, "ceiling": 9 },
+      { "name": "Frank", "email": null, "role": "QA", "focus": "Testing", "avg_sprint": null, "ceiling": null },
+      { "name": "Grace", "email": null, "role": "QA", "focus": "Testing", "avg_sprint": null, "ceiling": null },
+      { "name": "Helen", "email": null, "role": "UX/UI", "focus": "Design", "avg_sprint": null, "ceiling": null }
+    ],
+    "totals": { "avg_sprint": 36.5, "ceiling": 39 }
+  },
+
+  "services": {
+    "_note": "Service tags used in issue summaries and codebase paths",
+    "tags": [
+      { "tag": "[BE]", "name": "Backend", "path": "~/Projects/my-project/api" },
+      { "tag": "[FE-Admin]", "name": "Admin", "path": "~/Projects/my-project/admin" },
+      { "tag": "[FE-Web]", "name": "Website", "path": "~/Projects/my-project/website" },
+      { "tag": "[Video]", "name": "Video", "path": "~/Projects/my-project/video" },
+      { "tag": "[Player]", "name": "Player", "path": "~/Projects/my-project/player" },
+      { "tag": "[Jira-Gen]", "name": "Jira Generator", "path": "~/Projects/my-project/jira-generator" }
+    ]
+  },
+
+  "environments": {
+    "staging": {
+      "web": "app.staging.example.com",
+      "admin": "admin.staging.example.com",
+      "api": "api.staging.example.com"
+    },
+    "production": {
+      "web": "app.example.com",
+      "admin": "admin.example.com",
+      "api": "api.example.com"
+    }
+  }
+}

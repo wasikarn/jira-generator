@@ -20,7 +20,7 @@ argument-hint: "[issue-key] [changes]"
 
 ### 1. Fetch Current State
 
-- `MCP: jira_get_issue(issue_key: "BEP-XXX")`
+- `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")`
 - Fetch parent story for context
 - Read: Description, Summary, Status
 - **Gate:** User confirms what to update
@@ -73,10 +73,10 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 
 | Scenario | Command |
 | --- | --- |
-| Format migrate | `/update-subtask BEP-XXX "migrate ADF"` |
-| Add file paths | `/update-subtask BEP-XXX "add file paths"` |
-| Fix language | `/update-subtask BEP-XXX "fix to Thai"` |
-| Add AC | `/update-subtask BEP-XXX "add AC error handling"` |
+| Format migrate | `/update-subtask {{PROJECT_KEY}}-XXX "migrate ADF"` |
+| Add file paths | `/update-subtask {{PROJECT_KEY}}-XXX "add file paths"` |
+| Fix language | `/update-subtask {{PROJECT_KEY}}-XXX "fix to Thai"` |
+| Add AC | `/update-subtask {{PROJECT_KEY}}-XXX "add AC error handling"` |
 
 ---
 

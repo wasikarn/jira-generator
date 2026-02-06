@@ -134,10 +134,10 @@ For each team member, schedule items respecting dependencies:
 **Present as swim lane table:**
 
 ```text
-| Day | K.Thanainun | joakim | wanchalerm | BIG-TATHEP | Natthakarn |
+| Day | Alice       | Bob    | Charlie    | Dave       | Eve        |
 |-----|-------------|--------|------------|------------|------------|
-| 1-2 | BEP-3165    | BEP-XX | BEP-XX     | BEP-XX     | BEP-XX     |
-| 3-4 | BEP-3157    | ...    | ...        | ...        | ...        |
+| 1-2 | {{PROJECT_KEY}}-XXX     | BEP-XX | BEP-XX     | BEP-XX     | BEP-XX     |
+| 3-4 | {{PROJECT_KEY}}-XXX     | ...    | ...        | ...        | ...        |
 ```
 
 ### Phase 5: Output

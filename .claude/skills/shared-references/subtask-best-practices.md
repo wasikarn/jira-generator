@@ -49,7 +49,7 @@
 - Dependencies: ต้องรอ subtask ไหนก่อน
 - Technical Notes: implementation hints, API contracts
 - Test approach: unit test, integration test, manual test
-- **Start/End Dates**: `customfield_10015` — ช่วย dependency-chain analysis
+- **Start/End Dates**: `{{START_DATE_FIELD}}` — ช่วย dependency-chain analysis
 
 ## Subtask Date Fields
 
@@ -57,16 +57,16 @@
 
 | Field | Custom Field | Use Case |
 | --- | --- | --- |
-| Start Date | `customfield_10015` | วันที่เริ่มทำ subtask |
+| Start Date | `{{START_DATE_FIELD}}` | วันที่เริ่มทำ subtask |
 | Due Date | `duedate` (standard) | deadline ของ subtask |
 
 **MCP Example:**
 
 ```python
 jira_update_issue(
-    issue_key="BEP-XXX",
+    issue_key="{{PROJECT_KEY}}-XXX",
     additional_fields={
-        "customfield_10015": "2026-02-06",  # Start Date
+        "{{START_DATE_FIELD}}": "2026-02-06",  # Start Date
         "duedate": "2026-02-08"              # Due Date
     }
 )

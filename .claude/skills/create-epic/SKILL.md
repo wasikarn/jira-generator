@@ -55,7 +55,7 @@ Before sending to Atlassian, score against `shared-references/verification-check
 
 ### 5. Create Artifacts
 
-1. **Epic Doc** → `MCP: confluence_create_page(space_key: "BEP")`
+1. **Epic Doc** → `MCP: confluence_create_page(space_key: "{{PROJECT_KEY}}")`
    - Include VS Map table in Epic Doc
 2. **Epic** → `acli jira workitem create --from-json tasks/epic.json`
    - Add labels: feature label + `vs-planned`
@@ -64,7 +64,7 @@ Before sending to Atlassian, score against `shared-references/verification-check
 ### 6. Handoff
 
 ```text
-## Epic Created: [Title] (BEP-XXX)
+## Epic Created: [Title] ({{PROJECT_KEY}}-XXX)
 RICE Score: X | Stories: N planned
 Epic Doc: [link] | Epic: [link]
 → Use /create-story to continue
@@ -98,4 +98,4 @@ Epic Doc: [link] | Epic: [link]
 - [Templates](../shared-references/templates.md) - ADF templates (Epic section)
 - [Tool Selection](../shared-references/tools.md) - Tool selection, effort sizing
 - [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS patterns, decomposition
-- After creation: `/verify-issue BEP-XXX`
+- After creation: `/verify-issue {{PROJECT_KEY}}-XXX`

@@ -61,7 +61,7 @@ Generate ADF JSON based on task type → `tasks/bep-xxx-task.json`
 
 ```json
 {
-  "projectKey": "BEP",
+  "projectKey": "{{PROJECT_KEY}}",
   "type": "Task",
   "summary": "[BE/FE] [Title]",
   "description": {
@@ -83,7 +83,7 @@ Generate ADF JSON based on task type → `tasks/bep-xxx-task.json`
 
 ```json
 {
-  "projectKey": "BEP",
+  "projectKey": "{{PROJECT_KEY}}",
   "type": "Task",
   "summary": "[Bug] [Title]",
   "description": {
@@ -105,7 +105,7 @@ Generate ADF JSON based on task type → `tasks/bep-xxx-task.json`
 
 ```json
 {
-  "projectKey": "BEP",
+  "projectKey": "{{PROJECT_KEY}}",
   "type": "Task",
   "summary": "[Chore] [Title]",
   "description": {
@@ -124,7 +124,7 @@ Generate ADF JSON based on task type → `tasks/bep-xxx-task.json`
 
 ```json
 {
-  "projectKey": "BEP",
+  "projectKey": "{{PROJECT_KEY}}",
   "type": "Task",
   "summary": "[Spike] [Title]",
   "description": {
@@ -191,15 +191,15 @@ acli jira workitem create --from-json tasks/bep-xxx-task.json
 ### 6. Summary
 
 ```text
-## ✅ Task Created: [Title] (BEP-XXX)
+## ✅ Task Created: [Title] ({{PROJECT_KEY}}-XXX)
 
 **Type:** [type]
 **Priority:** [High/Medium/Low]
 
-🔗 [View in Jira](https://100-stars.atlassian.net/browse/BEP-XXX)
+🔗 [View in Jira](https://{{JIRA_SITE}}/browse/BEP-XXX)
 
-→ Use /verify-issue BEP-XXX to check quality
-→ Use /update-task BEP-XXX to add details later
+→ Use /verify-issue {{PROJECT_KEY}}-XXX to check quality
+→ Use /update-task {{PROJECT_KEY}}-XXX to add details later
 ```
 
 ---
@@ -219,4 +219,4 @@ acli jira workitem create --from-json tasks/bep-xxx-task.json
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
 - [Templates](../shared-references/templates.md) - ADF templates (Task section)
-- After: `/verify-issue BEP-XXX` to check quality
+- After: `/verify-issue {{PROJECT_KEY}}-XXX` to check quality

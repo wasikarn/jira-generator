@@ -20,8 +20,8 @@ argument-hint: "[issue-key] [changes]"
 
 ### 1. Fetch Current State
 
-- `MCP: jira_get_issue(issue_key: "BEP-XXX")`
-- `MCP: jira_search(jql: "parent = BEP-XXX", fields: "summary,status,assignee,issuetype")` → Sub-tasks (**⚠️ NEVER add ORDER BY to parent queries**)
+- `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")`
+- `MCP: jira_search(jql: "parent = {{PROJECT_KEY}}-XXX", fields: "summary,status,assignee,issuetype")` → Sub-tasks (**⚠️ NEVER add ORDER BY to parent queries**)
 - Read: Narrative, ACs, Scope, Status
 - **Gate:** User confirms what to update
 
@@ -70,10 +70,10 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 **Output:**
 
 ```text
-## Story Updated: [Title] (BEP-XXX)
+## Story Updated: [Title] ({{PROJECT_KEY}}-XXX)
 Changes: [list]
 → May need: /update-subtask BEP-YYY
-→ May need: /story-cascade BEP-XXX (for auto cascade)
+→ May need: /story-cascade {{PROJECT_KEY}}-XXX (for auto cascade)
 ```
 
 ---
@@ -82,10 +82,10 @@ Changes: [list]
 
 | Scenario | Command | Impact |
 | --- | --- | --- |
-| Add AC | `/update-story BEP-XXX "add mobile AC"` | 🟡 Medium |
-| Format migrate | `/update-story BEP-XXX "migrate ADF"` | 🟢 Low |
-| Clarify AC | `/update-story BEP-XXX "AC2 is unclear"` | 🟢 Low |
-| Reduce scope | `/update-story BEP-XXX "reduce scope"` | 🔴 High |
+| Add AC | `/update-story {{PROJECT_KEY}}-XXX "add mobile AC"` | 🟡 Medium |
+| Format migrate | `/update-story {{PROJECT_KEY}}-XXX "migrate ADF"` | 🟢 Low |
+| Clarify AC | `/update-story {{PROJECT_KEY}}-XXX "AC2 is unclear"` | 🟢 Low |
+| Reduce scope | `/update-story {{PROJECT_KEY}}-XXX "reduce scope"` | 🔴 High |
 
 ---
 
