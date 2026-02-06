@@ -169,8 +169,5 @@ Quality: wiki → ADF, EN → Thai
 
 - [Verification Checklist](../shared-references/verification-checklist.md)
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Epic Template](../shared-references/templates-epic.md)
-- [Story Template](../shared-references/templates-story.md)
-- [Sub-task Template](../shared-references/templates-subtask.md)
-- [Task Template](../shared-references/templates-task.md)
+- [Templates](../shared-references/templates.md) - ADF templates (Epic, Story, Sub-task, Task)
 - [Writing Style](../shared-references/writing-style.md)

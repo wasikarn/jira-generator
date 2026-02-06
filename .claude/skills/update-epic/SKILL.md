@@ -102,5 +102,5 @@ Changes: [list]
 ## References
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Epic Template](../shared-references/templates-epic.md) - Epic ADF structure
+- [Templates](../shared-references/templates.md) - ADF templates (Epic section)
 - [Tool Selection](../shared-references/tools.md) - Tool selection

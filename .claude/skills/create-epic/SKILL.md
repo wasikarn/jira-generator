@@ -85,7 +85,7 @@ Epic Doc: [link] | Epic: [link]
 ## References
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Epic Template](../shared-references/templates-epic.md) - Epic ADF structure
+- [Templates](../shared-references/templates.md) - ADF templates (Epic section)
 - [Tool Selection](../shared-references/tools.md) - Tool selection, effort sizing
 - [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS patterns, decomposition
 - After creation: `/verify-issue BEP-XXX`

@@ -73,5 +73,5 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 ## References
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Sub-task Template](../shared-references/templates-subtask.md) - Sub-task + QA ADF structure
+- [Templates](../shared-references/templates.md) - ADF templates (Sub-task section)
 - [Tool Selection](../shared-references/tools.md) - Tool selection

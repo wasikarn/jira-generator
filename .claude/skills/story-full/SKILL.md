@@ -148,7 +148,6 @@ Sub-tasks: BEP-YYY [BE], BEP-ZZZ [FE-Admin]
 ## References
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Story Template](../shared-references/templates-story.md) - Story ADF structure
-- [Sub-task Template](../shared-references/templates-subtask.md) - Sub-task + QA ADF structure
+- [Templates](../shared-references/templates.md) - ADF templates (Story, Sub-task sections)
 - [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS patterns, decomposition, labels
 - [Verification Checklist](../shared-references/verification-checklist.md) - INVEST, quality checks

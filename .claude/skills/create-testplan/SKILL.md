@@ -51,7 +51,7 @@ argument-hint: "[issue-key]"
 
 > **Principle:** 1 Story = 1 [QA] Sub-task (Test Plan embedded in description)
 >
-> ⚠️ Use **Two-Step Workflow** (see [Sub-task Template](../shared-references/templates-subtask.md)):
+> ⚠️ Use **Two-Step Workflow** (see [Templates](../shared-references/templates.md) - Sub-task section):
 >
 > **Step 1:** MCP `jira_create_issue` → summary: `[QA] - Test: [Feature Name]`, parent: `BEP-XXX`
 > **Step 2:** `acli jira workitem edit --from-json tasks/bep-xxx-qa.json --yes`
@@ -91,5 +91,5 @@ Coverage: X ACs → Y test scenarios (100%)
 ## References
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Sub-task Template](../shared-references/templates-subtask.md) - Sub-task + QA ADF structure
+- [Templates](../shared-references/templates.md) - ADF templates (Sub-task section)
 - [Verification](../shared-references/verification-checklist.md) - QA checklist

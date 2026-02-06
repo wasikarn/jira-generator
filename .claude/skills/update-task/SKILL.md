@@ -161,5 +161,5 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 ## References
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Task Template](../shared-references/templates-task.md) - Task ADF (tech-debt, bug, chore, spike)
+- [Templates](../shared-references/templates.md) - ADF templates (Task section)
 - After: `/verify-issue BEP-XXX` to check quality

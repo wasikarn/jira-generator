@@ -90,7 +90,7 @@ BEP-3156 ──[Inferred:FE→BE, MEDIUM]──> BEP-2743
 Read reference for algorithm details:
 
 ```text
-Read: references/dependency-frameworks.md (section: Critical Path Method)
+Read: ../shared-references/dependency-frameworks.md (section: Critical Path Method)
 ```
 
 1. Calculate ES/EF for each item (forward pass)
@@ -116,7 +116,7 @@ Read: references/dependency-frameworks.md (section: Critical Path Method)
 Read reference for scheduling rules:
 
 ```text
-Read: references/dependency-frameworks.md (section: Swim Lane Rules)
+Read: ../shared-references/dependency-frameworks.md (section: Swim Lane Rules)
 ```
 
 For each team member, schedule items respecting dependencies:
@@ -189,6 +189,6 @@ Priority 2: [Action] — reduces delay impact by [N] days
 
 ## References
 
-- [Dependency Frameworks](references/dependency-frameworks.md) — Dependency types, CPM algorithm, decoupling patterns, swim lane rules, risk scoring
+- [Dependency Frameworks](../shared-references/dependency-frameworks.md) — Dependency types, CPM algorithm, decoupling patterns, swim lane rules, risk scoring
 - [Team Capacity](../shared-references/team-capacity.md) — Team roster + capacity model
 - [Sprint Frameworks](../shared-references/sprint-frameworks.md) — Vertical slicing, carry-over model

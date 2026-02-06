@@ -75,7 +75,7 @@ def fix_file(filepath: str) -> int:
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python fix_table_format.py <file1.md> [file2.md ...]")
+        print("Usage: python fix-table-format.py <file1.md> [file2.md ...]")
         sys.exit(1)
 
     total_changes = 0

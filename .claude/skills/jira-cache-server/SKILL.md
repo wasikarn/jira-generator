@@ -4,7 +4,7 @@ MCP server providing local SQLite cache for Jira data. Reduces token consumption
 
 ## Architecture
 
-```
+```text
 Claude Code ──stdio──> jira-cache-server ──REST API──> Jira Cloud
                               │
                         SQLite + FTS5 + sqlite-vec
@@ -16,7 +16,7 @@ Claude Code ──stdio──> jira-cache-server ──REST API──> Jira Clou
 ## Tools (8)
 
 | Tool | Description | Upstream? |
-|------|-------------|-----------|
+| ---- | ----------- | --------- |
 | `cache_get_issue` | Get issue by key (cache-first) | Yes (on miss) |
 | `cache_search` | JQL search with caching | Yes (on miss) |
 | `cache_sprint_issues` | All sprint issues with pagination | Yes (on miss) |
@@ -29,7 +29,7 @@ Claude Code ──stdio──> jira-cache-server ──REST API──> Jira Clou
 ## TTL Strategy
 
 | Data Type | Default TTL | Rationale |
-|-----------|-------------|-----------|
+| --------- | ----------- | --------- |
 | Issues | 24 hours | Rarely change within sprint |
 | Sprints | 4 hours | Sprint metadata is stable |
 | Searches | 2 hours | Results may change with new issues |
@@ -38,21 +38,23 @@ Claude Code ──stdio──> jira-cache-server ──REST API──> Jira Clou
 ## Setup
 
 ```bash
-# 1. Install dependencies
-cd .claude/skills/jira-cache-server
-pip install -r requirements.txt
+# 1. Create venv in cache directory (not in project tree)
+python3 -m venv ~/.cache/jira-generator/jira-cache-server/.venv
+source ~/.cache/jira-generator/jira-cache-server/.venv/bin/activate
+pip install -r .claude/skills/jira-cache-server/requirements.txt
 
 # 2. Verify credentials exist
 cat ~/.config/atlassian/.env
 # Should have: CONFLUENCE_URL, CONFLUENCE_USERNAME, CONFLUENCE_API_TOKEN
 
 # 3. Test server starts
-python server.py  # Should log "Starting jira-cache-server (stdio)"
+~/.cache/jira-generator/jira-cache-server/.venv/bin/python \
+  .claude/skills/jira-cache-server/server.py
 ```
 
 ## Files
 
-```
+```text
 .claude/skills/jira-cache-server/
 ├── server.py           # MCP entry point + 8 tool handlers
 ├── requirements.txt    # Dependencies
@@ -69,7 +71,7 @@ python server.py  # Should log "Starting jira-cache-server (stdio)"
 
 ### Sprint Planning (biggest token saver)
 
-```
+```text
 1. cache_sprint_issues(sprint_id=640)  → fetches + caches all issues
 2. cache_get_issue("BEP-123")         → instant cache hit
 3. cache_text_search("coupon")        → FTS5 search, no API call
@@ -78,7 +80,7 @@ python server.py  # Should log "Starting jira-cache-server (stdio)"
 
 ### After Jira Updates
 
-```
+```text
 cache_refresh(issue_keys=["BEP-123"])     → single issue
 cache_refresh(sprint_id=640)              → entire sprint
 cache_invalidate(sprint_id=640)           → clear stale data
@@ -87,7 +89,7 @@ cache_invalidate(sprint_id=640)           → clear stale data
 ### Token Savings Estimate
 
 | Scenario | Without Cache | With Cache | Savings |
-|----------|--------------|------------|---------|
+| -------- | ------------- | ---------- | ------- |
 | Sprint overview (30 issues) | ~70K chars | ~70K first, 0 after | 80%+ |
 | Issue lookup (repeated) | ~5K chars/call | ~5K first, 0 after | 90%+ |
 | Keyword search | N/A | FTS5 local | 100% |

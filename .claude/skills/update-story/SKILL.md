@@ -82,5 +82,5 @@ Changes: [list]
 ## References
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Story Template](../shared-references/templates-story.md) - Story ADF structure
+- [Templates](../shared-references/templates.md) - ADF templates (Story section)
 - [Verification Checklist](../shared-references/verification-checklist.md) - INVEST, AC quality

@@ -107,6 +107,5 @@ Created: BEP-NEW
 ## References
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Story Template](../shared-references/templates-story.md) - Story ADF structure
-- [Sub-task Template](../shared-references/templates-subtask.md) - Sub-task + QA ADF structure
+- [Templates](../shared-references/templates.md) - ADF templates (Story, Sub-task sections)
 - [Tool Selection](../shared-references/tools.md) - Tool selection

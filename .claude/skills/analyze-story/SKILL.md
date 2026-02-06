@@ -71,7 +71,7 @@ Collect: File paths, existing patterns, dependencies
 > **Step 1:** MCP `jira_create_issue` (create shell + parent link)
 > **Step 2:** `acli --from-json` (update ADF description)
 >
-> See full pattern: [Sub-task Template](../shared-references/templates-subtask.md)
+> See full pattern: [Templates](../shared-references/templates.md) - Sub-task section
 
 - Technical Note (if needed):
   - Simple text → `MCP: confluence_create_page`
@@ -100,7 +100,7 @@ Sub-tasks: BEP-YYY, BEP-ZZZ
 ## References
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Sub-task Template](../shared-references/templates-subtask.md) - Sub-task + QA ADF structure
+- [Templates](../shared-references/templates.md) - ADF templates (Sub-task section)
 - [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS decomposition, patterns
 - [Tool Selection](../shared-references/tools.md) - Tools, service tags, effort sizing
 - After creation: `/verify-issue BEP-XXX --with-subtasks`

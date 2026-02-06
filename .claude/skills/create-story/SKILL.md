@@ -78,7 +78,7 @@ ACs: N | Scope: [services]
 ## References
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Story Template](../shared-references/templates-story.md) - Story ADF structure
+- [Templates](../shared-references/templates.md) - ADF templates (Story section)
 - [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS patterns, labels, DoD
 - [Verification Checklist](../shared-references/verification-checklist.md) - INVEST, AC quality
 - After creation: `/verify-issue BEP-XXX`

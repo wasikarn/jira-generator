@@ -184,10 +184,7 @@ Post-sync: `rm tasks/sync-*.json tasks/sync-*.md` → `/verify-issue BEP-XXX --w
 ## References
 
 - [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Epic Template](../shared-references/templates-epic.md)
-- [Story Template](../shared-references/templates-story.md)
-- [Sub-task Template](../shared-references/templates-subtask.md)
-- [Task Template](../shared-references/templates-task.md)
+- [Templates](../shared-references/templates.md) - ADF templates (Epic, Story, Sub-task, Task)
 - [Tool Selection](../shared-references/tools.md)
 - [Verification Checklist](../shared-references/verification-checklist.md)
 - [Atlassian Scripts](../atlassian-scripts/SKILL.md)
