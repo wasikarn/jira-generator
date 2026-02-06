@@ -1,3 +1,11 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "mcp>=1.0.0",
+#     "sqlite-vec>=0.1.1",
+#     "sentence-transformers>=2.2.0",
+# ]
+# ///
 """MCP server for Jira data caching with FTS5 and vector search.
 
 Provides 8 tools for cached Jira data access:
@@ -13,7 +21,7 @@ Provides 8 tools for cached Jira data access:
 Runs as stdio MCP server for Claude Code integration.
 
 Usage:
-    python server.py
+    uv run server.py
 """
 
 import json
