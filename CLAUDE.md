@@ -153,8 +153,23 @@ templates (epic·story·subtask·task sections) · tools · verification-checkli
 
 ## Core Principles
 
-1. **Phase-based workflows** — follow phases in order, never skip steps
-2. **Clear handoffs** — each role passes structured context to next
-3. **Traceability** — everything links back to parent (Story→Epic, Sub-task→Story)
-4. **Explore first** — prefer `Task(Explore)` before creating Sub-tasks (no explore = generic paths)
+1. **Quality Gate before Atlassian** — NEVER create/edit issues on Jira/Confluence before QG ≥ 90%
+2. **Phase-based workflows** — follow phases in order, never skip steps
+3. **Clear handoffs** — each role passes structured context to next
+4. **Traceability** — everything links back to parent (Story→Epic, Sub-task→Story)
+5. **Explore first** — prefer `Task(Explore)` before creating Sub-tasks (no explore = generic paths)
+
+### Quality Gate — HARD RULE
+
+**NEVER** send anything to Atlassian (create or edit) before passing Quality Gate ≥ 90%.
+
+```text
+1. Explore codebase (real file paths — no generic paths)
+2. Generate ADF (template-compliant, panels, Given/When/Then)
+3. QG verify (≥ 90% → proceed, < 90% → fix first, max 2 retries)
+4. MCP create shell (summary + parent only — NO description)
+5. acli edit --from-json (ADF description)
+```
+
+This applies to ALL Atlassian writes: create-epic, create-story, story-full, analyze-story, create-task, update-*, story-cascade, sync-alignment. No exceptions.
 Run `/optimize-context` when CLAUDE.md feels outdated or context exceeds 15 KB.

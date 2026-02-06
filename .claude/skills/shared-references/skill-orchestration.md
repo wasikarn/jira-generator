@@ -63,18 +63,25 @@ Key paths:
 - `core/security-auditor/agent.md` (also available as Task agent)
 - `design/ui-ux/ui-ux-analyst/agent.md`
 
-## Quality Gate Protocol
+## Quality Gate Protocol — HARD RULE
+
+> **NEVER create or edit issues on Jira/Confluence before passing QG ≥ 90%.** This is non-negotiable — no "create first, fix later" allowed.
 
 ```text
 BEFORE sending to Atlassian:
-1. Generate content (ADF JSON)
-2. Self-check against shared-references/verification-checklist.md
-3. Score: Technical X/5 | Quality X/6 | Overall X%
-4. If < 90% → auto-fix → re-score (max 2 attempts)
-5. If >= 90% → proceed to Atlassian
-6. If still < 90% after 2 fixes → ask user
-7. After Atlassian write → cache_invalidate(issue_key)
+1. Explore codebase (real file paths — no generic paths)
+2. Generate ADF JSON (template-compliant, panels, Given/When/Then)
+3. Self-check against shared-references/verification-checklist.md
+4. Score: Technical X/5 | Quality X/6 | Overall X%
+5. If < 90% → auto-fix → re-score (max 2 attempts)
+6. If >= 90% → proceed to Atlassian
+7. If still < 90% after 2 fixes → ask user
+8. MCP create shell (summary + parent ONLY — no description)
+9. acli edit --from-json (ADF description from step 2)
+10. After Atlassian write → cache_invalidate(issue_key)
 ```
+
+**Why:** MCP `jira_create_issue` writes wiki markup descriptions directly to Jira. This bypasses QG and pushes low-quality content. Always create shell first (summary only), then apply ADF via acli.
 
 ### Scoring Reference
 
