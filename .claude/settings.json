@@ -115,6 +115,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "mcp__mcp-atlassian__jira_search|mcp__mcp-atlassian__jira_get_sprint_issues|mcp__mcp-atlassian__jira_get_project_issues|mcp__mcp-atlassian__jira_get_board_issues|mcp__mcp-atlassian__jira_get_issue|mcp__jira-cache-server__cache_search|mcp__jira-cache-server__cache_sprint_issues",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/auto-parse-large-output.py",
+            "timeout": 15
+          }
+        ]
       }
     ],
     "Stop": [
