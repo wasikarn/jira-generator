@@ -68,6 +68,8 @@ Config: `.claude/project-config.json` — Jira/Confluence, team, services, envir
 | **Planning** | `/plan-sprint` | Reads Jira, assigns work |
 | **Verify** | `/verify-issue` | Always run after creating/updating |
 
+**Full orchestration + Tresor teams:** `shared-references/skill-orchestration.md`
+
 ## Tool Selection
 
 - **Desc:** `acli --from-json` (ADF JSON) | **Fields:** MCP `jira_update_issue`
@@ -126,6 +128,7 @@ Config: `.claude/project-config.json` — Jira/Confluence, team, services, envir
 | Sibling tool call errored | One parallel MCP call failed → all cancelled. Fix failing call first |
 | Confluence macros → raw XML | Use `update_page_storage.py`, never MCP for macros |
 | Prefer `/story-full` over separate create+analyze | `/search-issues` before creating · `/story-cascade` to cascade · `/sync-alignment` for Confluence |
+| After Jira write → stale cache | `cache_invalidate(issue_key)` before next read |
 
 ### JQL `parent` Field — HARD RULE
 
@@ -143,7 +146,8 @@ Shared refs at `.claude/skills/shared-references/` (all `.md`):
 templates (epic·story·subtask·task sections) · tools · verification-checklist · writing-style · jql-quick-ref · troubleshooting · critical-items · team-capacity · sprint-frameworks · dependency-frameworks · vertical-slice-guide · epic-best-practices · story-best-practices · subtask-best-practices · technical-note-best-practices
 
 **Templates:** `shared-references/templates.md` | **Writing style:** `shared-references/writing-style.md`
-**Tresor:** `~/.claude/subagents/product/management/sprint-prioritizer/agent.md` | **Scripts:** `.claude/skills/atlassian-scripts/SKILL.md`
+**Orchestration:** `shared-references/skill-orchestration.md` | **Scripts:** `.claude/skills/atlassian-scripts/SKILL.md`
+**Tresor:** `~/.claude/subagents/` (133 agents: product, engineering, core, design)
 
 ## Core Principles
 

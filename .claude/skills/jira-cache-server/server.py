@@ -200,7 +200,7 @@ async def handle_cache_get_issue(args: dict) -> str:
     """Get issue: cache-first with upstream fallback."""
     issue_key = args["issue_key"]
     fields = args.get("fields", "summary,status,assignee,issuetype,priority,labels,parent,description")
-    max_age = args.get("max_age_hours", 24)
+    max_age = args.get("max_age_hours") or cache.get_adaptive_ttl(issue_key)
 
     # Try cache first
     cached = cache.get_issue(issue_key, max_age_hours=max_age)

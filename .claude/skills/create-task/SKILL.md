@@ -168,7 +168,17 @@ Any changes needed before creating?
 
 ---
 
-### 4. Create
+### 4. Quality Gate (MANDATORY)
+
+Before sending to Atlassian, score against `shared-references/verification-checklist.md`:
+
+1. Report: `Technical X/5 | Quality X/6 | Overall X%`
+2. If < 90% → auto-fix issues → re-score (max 2 attempts)
+3. If >= 90% → proceed to create/edit
+4. If still < 90% after fix → ask user before proceeding
+5. After Atlassian write → `cache_invalidate(issue_key)` if cache server available
+
+### 5. Create
 
 ```bash
 acli jira workitem create --from-json tasks/bep-xxx-task.json
@@ -178,7 +188,7 @@ acli jira workitem create --from-json tasks/bep-xxx-task.json
 
 ---
 
-### 5. Summary
+### 6. Summary
 
 ```text
 ## ✅ Task Created: [Title] (BEP-XXX)

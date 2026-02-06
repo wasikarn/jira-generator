@@ -105,7 +105,17 @@ Collect: Actual file paths, patterns, dependencies
 - [ ] File paths exist?
 - [ ] **VS integrity maintained?** (subtasks complete the slice, not horizontal)
 
-### 9. Create Sub-tasks
+### 9. Quality Gate (MANDATORY)
+
+Before sending to Atlassian, score against `shared-references/verification-checklist.md`:
+
+1. Report: `Technical X/5 | Quality X/6 | Overall X%`
+2. If < 90% → auto-fix issues → re-score (max 2 attempts)
+3. If >= 90% → proceed to create/edit
+4. If still < 90% after fix → ask user before proceeding
+5. After Atlassian write → `cache_invalidate(issue_key)` if cache server available
+
+### 10. Create Sub-tasks
 
 > ⚠️ **Two-Step Workflow** — acli ไม่รองรับ `parent` field
 >
@@ -124,7 +134,7 @@ acli jira workitem edit --from-json tasks/subtask-be.json --yes
 acli jira workitem edit --from-json tasks/subtask-fe.json --yes
 ```
 
-### 10. Summary
+### 11. Summary
 
 ```text
 ## Story Full Complete

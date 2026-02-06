@@ -53,7 +53,17 @@ So that [benefit].
 
 **Gate:** All criteria pass + VS integrity confirmed
 
-### 4. Create in Jira
+### 4. Quality Gate (MANDATORY)
+
+Before sending to Atlassian, score against `shared-references/verification-checklist.md`:
+
+1. Report: `Technical X/5 | Quality X/6 | Overall X%`
+2. If < 90% → auto-fix issues → re-score (max 2 attempts)
+3. If >= 90% → proceed to create/edit
+4. If still < 90% after fix → ask user before proceeding
+5. After Atlassian write → `cache_invalidate(issue_key)` if cache server available
+
+### 5. Create in Jira
 
 ```bash
 acli jira workitem create --from-json tasks/story.json
@@ -65,7 +75,7 @@ acli jira workitem create --from-json tasks/story.json
   - VS label: `vs1-skeleton`, `vs2-credit-e2e`, `vs-enabler`, etc.
   - ดู convention: [Vertical Slice Guide](../shared-references/vertical-slice-guide.md)
 
-### 5. Handoff
+### 6. Handoff
 
 ```text
 ## Story Created: [Title] (BEP-XXX)

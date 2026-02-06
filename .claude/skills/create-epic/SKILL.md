@@ -43,7 +43,17 @@ argument-hint: "[epic-title]"
 - Identify Dependencies and Risks
 - **Gate:** Stakeholder approves scope + VS plan
 
-### 4. Create Artifacts
+### 4. Quality Gate (MANDATORY)
+
+Before sending to Atlassian, score against `shared-references/verification-checklist.md`:
+
+1. Report: `Technical X/5 | Quality X/6 | Overall X%`
+2. If < 90% → auto-fix issues → re-score (max 2 attempts)
+3. If >= 90% → proceed to create/edit
+4. If still < 90% after fix → ask user before proceeding
+5. After Atlassian write → `cache_invalidate(issue_key)` if cache server available
+
+### 5. Create Artifacts
 
 1. **Epic Doc** → `MCP: confluence_create_page(space_key: "BEP")`
    - Include VS Map table in Epic Doc
@@ -51,7 +61,7 @@ argument-hint: "[epic-title]"
    - Add labels: feature label + `vs-planned`
 3. **Link** Epic to Doc
 
-### 5. Handoff
+### 6. Handoff
 
 ```text
 ## Epic Created: [Title] (BEP-XXX)

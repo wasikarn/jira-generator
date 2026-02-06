@@ -1,9 +1,9 @@
 ---
 name: update-task
 description: |
-  Update an existing Jira Task with a 5-phase update workflow
+  Update an existing Jira Task with a 6-phase update workflow
 
-  Phases: Fetch Current → Identify Changes → Preserve Intent → Generate Update → Apply Update
+  Phases: Fetch Current → Identify Changes → Preserve Intent → Generate Update → Quality Gate → Apply Update
 
   Supports: format migration, add details, change type template
 
@@ -110,7 +110,17 @@ Would you like to apply these changes?
 
 ---
 
-### 5. Apply Update
+### 5. Quality Gate (MANDATORY)
+
+Before sending to Atlassian, score against `shared-references/verification-checklist.md`:
+
+1. Report: `Technical X/5 | Quality X/6 | Overall X%`
+2. If < 90% → auto-fix issues → re-score (max 2 attempts)
+3. If >= 90% → proceed to create/edit
+4. If still < 90% after fix → ask user before proceeding
+5. After Atlassian write → `cache_invalidate(issue_key)` if cache server available
+
+### 6. Apply Update
 
 ```bash
 acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes

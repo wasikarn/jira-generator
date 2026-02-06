@@ -13,7 +13,9 @@ Claude Code ──skills──> acli (ADF JSON) ──> Jira Cloud
     │                              └─> Jira REST API v3
     ├──MCP──> Confluence, Figma, GitHub
     │
-    └──Python──> atlassian-scripts/lib/ (REST API)
+    ├──Python──> atlassian-scripts/lib/ (REST API)
+    │
+    └──subagents──> Tresor Teams (133 agents: product, eng, core, design)
 ```
 
 **Key design decisions:**
@@ -121,14 +123,34 @@ Then add to MCP settings:
 }
 ```
 
-### 6. Install Tresor Agents (Optional)
+### 6. Install Tresor Agents (Recommended)
 
-Required for `/plan-sprint` Tresor strategy:
+133 specialized subagents for cross-team review and collaboration at each workflow stage.
+
+| Team | Key Agents | Used In |
+| ---- | ---------- | ------- |
+| Product (9) | `sprint-prioritizer`, `product-manager` | Sprint planning, Epic creation |
+| Engineering (54) | `backend-architect`, `frontend-developer` | Story analysis, Technical review |
+| Core (8) | `test-engineer`, `security-auditor` | Test plans, Security review |
+| Design (7) | `ui-ux-analyst` | UI story review |
+
+**Full install:**
 
 ```bash
-# See: https://github.com/alirezarezvani/claude-code-tresor
-# Installs to: ~/.claude/subagents/product/management/sprint-prioritizer/agent.md
+git clone https://github.com/alirezarezvani/claude-code-tresor ~/.claude/subagents
+cd ~/.claude/subagents && ./scripts/install.sh
 ```
+
+**Minimum for Jira workflow:**
+
+```bash
+cd ~/.claude/subagents
+./scripts/install.sh --category product     # sprint-prioritizer, product-manager
+./scripts/install.sh --core                 # test-engineer, security-auditor
+./scripts/install.sh --category engineering # backend-architect
+```
+
+Agents are auto-invoked per `shared-references/skill-orchestration.md` orchestration rules.
 
 ### Verify Setup
 
@@ -268,7 +290,7 @@ Claude will fetch sprint data, calculate capacity, analyze carry-over, prioritiz
 ├── atlassian-scripts/              <- Python REST API scripts
 │   ├── lib/                        <- auth, jira_api, converters, exceptions
 │   └── scripts/                    <- 7 utility scripts
-└── shared-references/              <- Reusable docs loaded by skills (18 files)
+└── shared-references/              <- Reusable docs loaded by skills (16 files)
     ├── templates.md                <- All ADF templates (Epic, Story, Sub-task, Task)
     ├── dependency-frameworks.md    <- CPM, swim lane rules, risk scoring
     ├── tools.md                    <- Tool selection guide
@@ -317,3 +339,4 @@ See `.claude/project-config.json` for full team, services, and environment setti
 - **Codebase first:** `/analyze-story` always explores codebase before creating Sub-tasks
 - **Sync skills:** After adding/removing skills, run `sync-tathep-skills`
 - **Cache server:** Use `cache_sprint_issues` before sprint planning for 80%+ token savings
+- **Tresor teams:** Install subagents for auto-review at each workflow stage (see Setup step 6)

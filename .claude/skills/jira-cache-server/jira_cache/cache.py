@@ -157,6 +157,14 @@ def _extract_field(data: dict, *path: str, default: Any = None) -> Any:
     return current
 
 
+STATUS_TTL = {
+    "Done": 168.0, "Closed": 168.0, "Won't Do": 168.0,
+    "In Progress": 6.0, "In Review": 6.0, "TO FIX": 6.0,
+    "WAITING TO TEST": 6.0,
+}
+DEFAULT_TTL = 24.0
+
+
 class JiraCache:
     """SQLite cache for Jira issues with FTS5 full-text search.
 
@@ -489,6 +497,15 @@ class JiraCache:
             "SELECT value FROM cache_stats WHERE key = ?", (key,)
         ).fetchone()
         return row[0] if row else 0
+
+    def get_adaptive_ttl(self, issue_key: str) -> float:
+        """Get TTL based on issue status. Done=7d, Active=6h, else=24h."""
+        row = self.conn.execute(
+            "SELECT status FROM issues WHERE issue_key = ?", (issue_key,)
+        ).fetchone()
+        if not row:
+            return DEFAULT_TTL
+        return STATUS_TTL.get(row["status"], DEFAULT_TTL)
 
     def close(self) -> None:
         """Close database connection."""

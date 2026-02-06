@@ -47,7 +47,17 @@ argument-hint: "[issue-key]"
 - Test data requirements
 - **Gate:** User reviews test coverage
 
-### 4. Create [QA] Sub-task
+### 4. Quality Gate (MANDATORY)
+
+Before sending to Atlassian, score against `shared-references/verification-checklist.md`:
+
+1. Report: `Technical X/5 | Quality X/6 | Overall X%`
+2. If < 90% → auto-fix issues → re-score (max 2 attempts)
+3. If >= 90% → proceed to create/edit
+4. If still < 90% after fix → ask user before proceeding
+5. After Atlassian write → `cache_invalidate(issue_key)` if cache server available
+
+### 5. Create [QA] Sub-task
 
 > **Principle:** 1 Story = 1 [QA] Sub-task (Test Plan embedded in description)
 >
@@ -60,7 +70,7 @@ argument-hint: "[issue-key]"
 
 Panel colors: see [ADF Core Rules](../shared-references/templates.md) — success=happy, warning=edge, error=error
 
-### 5. Summary
+### 6. Summary
 
 ```text
 ## QA Complete: [Title] (BEP-XXX)

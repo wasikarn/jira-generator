@@ -1,9 +1,9 @@
 ---
 name: story-cascade
 description: |
-  Update Story + cascade changes to related Sub-tasks with an 8-phase workflow
+  Update Story + cascade changes to related Sub-tasks with a 9-phase workflow
 
-  Phases: Fetch → Understand Changes → Impact Analysis → Explore (if needed) → Generate Story Update → Generate Sub-task Updates → Apply All → Summary
+  Phases: Fetch → Understand Changes → Impact Analysis → Explore (if needed) → Generate Story Update → Generate Sub-task Updates → Quality Gate → Apply All → Summary
 
   Composite: Automatic impact analysis, update everything in a single transaction
 
@@ -68,7 +68,17 @@ argument-hint: "[issue-key] [changes]"
 - Generate JSON files
 - **Gate:** User approves all
 
-### 7. Apply All Updates
+### 7. Quality Gate (MANDATORY)
+
+Before sending to Atlassian, score against `shared-references/verification-checklist.md`:
+
+1. Report: `Technical X/5 | Quality X/6 | Overall X%`
+2. If < 90% → auto-fix issues → re-score (max 2 attempts)
+3. If >= 90% → proceed to create/edit
+4. If still < 90% after fix → ask user before proceeding
+5. After Atlassian write → `cache_invalidate(issue_key)` if cache server available
+
+### 8. Apply All Updates
 
 ```bash
 # Story first
@@ -79,7 +89,7 @@ acli jira workitem edit --from-json tasks/bep-yyy-update.json --yes
 acli jira workitem create --from-json tasks/new-subtask.json
 ```
 
-### 8. Cleanup & Summary
+### 9. Cleanup & Summary
 
 ```bash
 rm tasks/bep-*-update.json tasks/new-*.json
