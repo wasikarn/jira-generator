@@ -135,7 +135,7 @@ Config: `.claude/project-config.json` (single source of truth) — Jira/Confluen
 ## References
 
 Shared refs at `.claude/skills/shared-references/` (all `.md`):
-templates (epic·story·subtask·task sections) · tools · verification-checklist · writing-style · jql-quick-ref · troubleshooting · critical-items · team-capacity · sprint-frameworks · dependency-frameworks · vertical-slice-guide · epic-best-practices · story-best-practices · subtask-best-practices · technical-note-best-practices
+templates (epic·story·subtask·task sections) · tools · verification-checklist · writing-style · jql-quick-ref · troubleshooting · team-capacity · sprint-frameworks · dependency-frameworks · vertical-slice-guide · skill-orchestration
 
 **Templates:** `shared-references/templates.md` | **Writing style:** `shared-references/writing-style.md`
 **Orchestration:** `shared-references/skill-orchestration.md` | **Scripts:** `.claude/skills/atlassian-scripts/SKILL.md`
