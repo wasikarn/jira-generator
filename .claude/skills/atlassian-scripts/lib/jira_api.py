@@ -2,6 +2,8 @@
 
 This module provides a class-based API client for Jira operations:
 - Get issue with ADF description
+- Search issues via JQL
+- Get board sprints (Agile API)
 - Update issue description (preserving ADF formatting)
 - Walk and replace text in ADF tree
 
@@ -29,6 +31,7 @@ import json
 import logging
 import ssl
 import urllib.error
+import urllib.parse
 import urllib.request
 from copy import deepcopy
 from typing import Any
@@ -180,6 +183,89 @@ class JiraAPI:
             return self._request("GET", f"/rest/api/3/issue/{issue_key}?fields={fields}")
         except IssueNotFoundError:
             raise IssueNotFoundError(issue_key)
+
+    def search_issues(
+        self,
+        jql: str,
+        fields: str = "summary,status",
+        max_results: int = 50,
+        start_at: int = 0,
+    ) -> dict[str, Any]:
+        """Search Jira issues via JQL.
+
+        Args:
+            jql: JQL query string (e.g., 'sprint = 640 AND status != Done')
+            fields: Comma-separated field names to return
+            max_results: Maximum results per page (max 50)
+            start_at: Pagination offset
+
+        Returns:
+            Search results with issues list, total count, and pagination info.
+
+        Raises:
+            APIError: If search fails (e.g., invalid JQL)
+        """
+        logger.info("Searching issues: %s", jql[:80])
+
+        params = urllib.parse.urlencode({
+            "jql": jql,
+            "fields": fields,
+            "maxResults": min(max_results, 50),
+            "startAt": start_at,
+        })
+        return self._request("GET", f"/rest/api/3/search/jql?{params}")
+
+    def get_board_sprints(
+        self,
+        board_id: int,
+        state: str = "active,future",
+    ) -> dict[str, Any]:
+        """Get sprints for a board via Agile REST API.
+
+        Args:
+            board_id: Jira board ID
+            state: Sprint state filter (active, future, closed)
+
+        Returns:
+            Sprint list with id, name, state, dates, goal.
+
+        Raises:
+            APIError: If board not found or API fails
+        """
+        logger.info("Getting sprints for board %d (state=%s)", board_id, state)
+
+        params = urllib.parse.urlencode({"state": state})
+        return self._request("GET", f"/rest/agile/1.0/board/{board_id}/sprint?{params}")
+
+    def get_sprint_issues(
+        self,
+        sprint_id: int,
+        fields: str = "summary,status,assignee",
+        max_results: int = 50,
+        start_at: int = 0,
+    ) -> dict[str, Any]:
+        """Get issues in a sprint via Agile REST API.
+
+        Args:
+            sprint_id: Jira sprint ID (e.g., 640)
+            fields: Comma-separated field names
+            max_results: Maximum results per page (max 50)
+            start_at: Pagination offset
+
+        Returns:
+            Sprint issues with pagination info.
+
+        Raises:
+            APIError: If sprint not found or API fails
+        """
+        logger.info("Getting issues for sprint %d", sprint_id)
+
+        params = urllib.parse.urlencode({
+            "fields": fields,
+            "maxResults": min(max_results, 50),
+            "startAt": start_at,
+        })
+        return self._request("GET", f"/rest/agile/1.0/sprint/{sprint_id}/issue?{params}")
 
     def update_description(
         self,

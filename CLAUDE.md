@@ -72,6 +72,7 @@ python scripts/configure-project.py --apply
 | `/dependency-chain` | Dependency analysis, critical path, swim lanes | Mermaid + plan |
 | `/search-issues` | Search before creating (dedup) | Matching issues |
 | `/verify-issue BEP-XXX` | Verify quality (ADF, INVEST, language) | Report / Fixed issues |
+| `/activity-report` | Generate activity report from claude-mem | Markdown report |
 | `/optimize-context` | Audit + compress CLAUDE.md | Updated CLAUDE.md |
 
 > `/verify-issue` flags: `--with-subtasks` = batch | `--fix` = auto-fix | `--dry-run` = report only
