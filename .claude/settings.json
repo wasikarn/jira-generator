@@ -1,0 +1,131 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "WebFetch",
+      "WebSearch",
+      "Skill",
+      "mcp__mcp-atlassian__*",
+      "mcp__github__*",
+      "mcp__context7__*",
+      "mcp__plugin_playwright_playwright__*",
+      "mcp__plugin_claude-mem_mcp-search__*",
+      "mcp__repomix__*",
+      "mcp__sequential-thinking__*",
+      "mcp__postman-api__*",
+      "mcp__tathep-db__*",
+      "mcp__figma__get_figma_*",
+      "mcp__figma__get_figma_data",
+      "mcp__jira-cache-server__*"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(sudo rm -rf *)",
+      "Bash(dd if=/dev/zero of=/dev/*)",
+      "Bash(dd if=/dev/random of=/dev/*)",
+      "Bash(mkfs*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/.ssh/id_*)",
+      "Read(**/.aws/credentials)",
+      "Read(**/.aws/config)",
+      "Read(**/credentials.json)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Bash(cat ~/.ssh/*)",
+      "Bash(cat ~/.aws/*)",
+      "Bash(env | base64*)",
+      "Bash(printenv | base64*)",
+      "Bash(git push --force origin main*)",
+      "Bash(git push --force origin master*)",
+      "Bash(git push -f origin main*)",
+      "Bash(git push -f origin master*)",
+      "Bash(git reset --hard origin/main*)",
+      "Bash(git reset --hard origin/master*)",
+      "Bash(curl * | sh*)",
+      "Bash(curl * | bash*)",
+      "Bash(wget * | sh*)",
+      "Bash(wget * | bash*)",
+      "Bash(curl http://169.254.169.254/*)",
+      "Bash(wget http://169.254.169.254/*)",
+      "Bash(bash -i >& /dev/tcp/*)",
+      "Bash(sh -i >& /dev/tcp/*)",
+      "Bash(nc -l*)",
+      "Bash(netcat -l*)",
+      "Bash(shutdown*)",
+      "Bash(reboot*)",
+      "Bash(halt*)",
+      "Bash(poweroff*)",
+      "Bash(docker run --privileged *)",
+      "Bash(docker run -v /:/host *)",
+      "Bash(docker run -v /var/run/docker.sock:*)",
+      "Bash(sudo chmod 777 /*)",
+      "Bash(chmod -R 777 /*)",
+      "Bash(sudo rm /etc/*)",
+      "Bash(sudo rm /bin/*)",
+      "Bash(sudo rm /usr/*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr1-qg-before-write.py",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__mcp-atlassian__jira_update_issue",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr3-block-mcp-assignee.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__mcp-atlassian__jira_create_issue",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr5-verify-parent-reminder.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__mcp-atlassian__jira_create_issue|mcp__mcp-atlassian__jira_update_issue|mcp__mcp-atlassian__jira_transition_issue",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr6-cache-invalidate.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Review this session for HR6 compliance. Check if any Jira write operations (jira_create_issue, jira_update_issue, jira_transition_issue, or acli workitem create/edit) were performed. For each write, verify that cache_invalidate was called for the affected issue key BEFORE any subsequent read of that key. If any writes lack cache_invalidate, respond {\"ok\": false, \"reason\": \"HR6: cache_invalidate missing for [list keys]. Run cache_invalidate for each.\"}. If all writes have matching invalidations or no writes occurred, respond {\"ok\": true}.",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

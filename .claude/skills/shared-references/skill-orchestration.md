@@ -185,6 +185,52 @@ Separate /create-story + /analyze-story
 | `/plan-sprint` | Sprint exists | — | `sprint-prioritizer` always |
 | `/dependency-chain` | Sprint planned | — | — |
 
+## Repomix Context Packs
+
+> Load shared-references as a single Repomix pack instead of 4-5 individual Read calls.
+> Packs defined in `shared-references/context-packs.json`.
+
+### Usage
+
+```text
+1. Determine workflow type (story, subtask, sprint, verify, etc.)
+2. Look up pack in context-packs.json → get file list
+3. Call mcp__repomix__pack_codebase with includePatterns from pack
+4. Use read_repomix_output or grep_repomix_output for targeted lookups
+```
+
+### Example: story workflow
+
+```text
+mcp__repomix__pack_codebase(
+  directory: ".claude/skills/shared-references",
+  includePatterns: "templates.md,verification-checklist.md,vertical-slice-guide.md,writing-style.md",
+  compress: true
+)
+→ Single packed output replaces 4 Read calls
+→ Tree-sitter compression reduces tokens ~40-60%
+```
+
+### When to Use Repomix vs Direct Read
+
+| Situation | Use |
+| --- | --- |
+| Need 3+ shared-references files | Repomix pack |
+| Need 1-2 specific files | Direct Read |
+| Need to search across files | `grep_repomix_output` |
+| Exploring target project codebase | Task(Explore) — Repomix insufficient |
+
+### Pack Types
+
+| Pack | Files | Use Case |
+| --- | --- | --- |
+| `story` | templates, verification, vertical-slice, writing-style | Create/update stories |
+| `subtask` | templates, verification, tools, vertical-slice | Analyze story → subtasks |
+| `epic` | templates, verification, writing-style | Create/update epics |
+| `sprint` | sprint-frameworks, team-capacity, dependency, tools | Sprint planning |
+| `verify` | jql-quick-ref, verification, templates, writing-style | Verify issue quality |
+| `sync` | templates, verification, tools, orchestration | Cascade/sync alignment |
+
 ## Cache Hygiene
 
 - After any MCP write (`jira_update_issue`, `jira_create_issue`) → `cache_invalidate(issue_key)`

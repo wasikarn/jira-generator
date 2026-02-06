@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+"""HR5: Remind to verify parent link after subtask creation.
+
+PostToolUse hook for mcp__mcp-atlassian__jira_create_issue.
+Only fires when the create had a parent field (subtask creation).
+Injects additionalContext reminder to verify the parent link.
+
+Exit codes: 0 (always — PostToolUse cannot block)
+"""
+import json
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+LOG_DIR = Path.home() / ".claude" / "hooks-logs"
+
+
+def log_event(level: str, data: dict) -> None:
+    """Append JSON log entry."""
+    try:
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        now = datetime.now(timezone.utc)
+        log_file = LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl"
+        entry = {
+            "ts": now.isoformat(),
+            "hook": "hr5-verify-parent",
+            "level": level,
+            **data,
+        }
+        with open(log_file, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+    except Exception:
+        pass
+
+
+def extract_parent(tool_input: dict) -> str | None:
+    """Extract parent key from additional_fields or direct field."""
+    # Check additional_fields (most common path)
+    additional = tool_input.get("additional_fields", {})
+    if isinstance(additional, str):
+        try:
+            additional = json.loads(additional)
+        except (json.JSONDecodeError, TypeError):
+            additional = {}
+
+    parent = additional.get("parent", {})
+    if isinstance(parent, dict):
+        return parent.get("key")
+    if isinstance(parent, str):
+        return parent
+
+    # Check direct parent field
+    parent = tool_input.get("parent", {})
+    if isinstance(parent, dict):
+        return parent.get("key")
+    if isinstance(parent, str):
+        return parent
+
+    return None
+
+
+def extract_issue_key(data: dict) -> str | None:
+    """Extract created issue key from tool_response."""
+    resp = data.get("tool_response", {})
+    if isinstance(resp, str):
+        try:
+            resp = json.loads(resp)
+        except (json.JSONDecodeError, TypeError):
+            resp = {}
+    if isinstance(resp, dict):
+        return resp.get("key")
+    return None
+
+
+def main() -> None:
+    raw = sys.stdin.read()
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        print("{}")
+        return
+
+    tool_input = data.get("tool_input", {})
+    parent_key = extract_parent(tool_input)
+
+    # Only fire for subtask creation (has parent)
+    if not parent_key:
+        print("{}")
+        return
+
+    issue_key = extract_issue_key(data) or "UNKNOWN"
+
+    log_event("REMIND", {
+        "issue_key": issue_key,
+        "parent_key": parent_key,
+        "session_id": data.get("session_id", ""),
+    })
+
+    output = {
+        "hookSpecificOutput": {
+            "hookEventName": "PostToolUse",
+            "additionalContext": (
+                f"HR5 REQUIRED: Verify parent link for {issue_key}. "
+                f"Expected parent: {parent_key}. "
+                f"Run: jira_get_issue(issue_key='{issue_key}', fields='parent,summary') "
+                f"and confirm parent.key == '{parent_key}'. "
+                f"MCP may silently ignore the parent field — if missing, "
+                f"the subtask is orphaned (HR5 violation)."
+            ),
+        }
+    }
+    print(json.dumps(output))
+
+
+if __name__ == "__main__":
+    main()

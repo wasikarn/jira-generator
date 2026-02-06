@@ -1,0 +1,101 @@
+{
+  "_doc": "Repomix context packs — maps workflow type to shared-references files. Use with mcp__repomix__pack_codebase includePatterns.",
+  "packs": {
+    "story": {
+      "description": "Create/update stories (PO workflow)",
+      "files": [
+        "templates.md",
+        "verification-checklist.md",
+        "vertical-slice-guide.md",
+        "writing-style.md"
+      ],
+      "skills": ["create-story", "story-full", "update-story"]
+    },
+    "subtask": {
+      "description": "Create/update subtasks (TA workflow)",
+      "files": [
+        "templates.md",
+        "verification-checklist.md",
+        "tools.md",
+        "vertical-slice-guide.md"
+      ],
+      "skills": ["analyze-story", "update-subtask", "story-cascade"]
+    },
+    "epic": {
+      "description": "Create/update epics (PM workflow)",
+      "files": [
+        "templates.md",
+        "verification-checklist.md",
+        "writing-style.md"
+      ],
+      "skills": ["create-epic", "update-epic"]
+    },
+    "task": {
+      "description": "Create/update tasks (tech-debt, bug, chore, spike)",
+      "files": [
+        "templates.md",
+        "verification-checklist.md",
+        "tools.md",
+        "writing-style.md"
+      ],
+      "skills": ["create-task", "update-task"]
+    },
+    "testplan": {
+      "description": "Create test plan + QA subtask",
+      "files": [
+        "templates.md",
+        "verification-checklist.md",
+        "tools.md"
+      ],
+      "skills": ["create-testplan"]
+    },
+    "sprint": {
+      "description": "Sprint planning + dependency analysis",
+      "files": [
+        "sprint-frameworks.md",
+        "team-capacity.md",
+        "dependency-frameworks.md",
+        "tools.md"
+      ],
+      "skills": ["plan-sprint", "dependency-chain"]
+    },
+    "verify": {
+      "description": "Verify and fix issue quality",
+      "files": [
+        "jql-quick-ref.md",
+        "verification-checklist.md",
+        "templates.md",
+        "writing-style.md"
+      ],
+      "skills": ["verify-issue"]
+    },
+    "update": {
+      "description": "Generic update workflow",
+      "files": [
+        "templates.md",
+        "verification-checklist.md",
+        "tools.md"
+      ],
+      "skills": ["update-story", "update-subtask", "update-epic", "update-task"]
+    },
+    "sync": {
+      "description": "Sync/cascade alignment across artifacts",
+      "files": [
+        "templates.md",
+        "verification-checklist.md",
+        "tools.md",
+        "skill-orchestration.md"
+      ],
+      "skills": ["sync-alignment", "story-cascade"]
+    },
+    "doc": {
+      "description": "Create/update Confluence pages",
+      "files": [
+        "templates.md",
+        "tools.md"
+      ],
+      "skills": ["create-doc", "update-doc"]
+    }
+  },
+  "base_path": ".claude/skills/shared-references/"
+}
