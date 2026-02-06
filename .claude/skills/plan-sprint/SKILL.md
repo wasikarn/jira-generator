@@ -40,9 +40,32 @@ argument-hint: "[--sprint <id>] [--carry-over-only]"
 
 **Anti-Pattern:** Assigning work to individuals first → leads to unbalanced sprints, burnout, missed commitments
 
+## Context Object (accumulated across phases)
+
+| Phase | Adds to Context |
+|-------|----------------|
+| 1. Discovery | `source_sprint`, `target_sprint`, `sprint_items[]` |
+| 2. Capacity | `capacity_table[]`, `available_slots[]` |
+| 3. Carry-over | `carry_over_items[]`, `probability_scores[]` |
+| 4. Prioritize | `prioritized_items[]`, `vs_validated` |
+| 5. Distribute | `assignment_map[]`, `workload_table` |
+| 6. Risk | `risk_flags[]`, `mitigations[]` |
+| 7. Review | `approved_plan` |
+| 8. Execute | `execution_log[]`, `assigned_keys[]` |
+
+## Gate Levels
+
+| Level | Symbol | Behavior |
+| --- | --- | --- |
+| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
+| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
+| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+
 ---
 
 ## Part A: Data Collection (Phases 1-2) — Execution Layer
+
+> **Phase Tracking:** Use TodoWrite to mark each phase `in_progress` → `completed` as you work.
 
 ### 1. Sprint Discovery
 
@@ -62,7 +85,7 @@ MCP: jira_get_sprint_issues(sprint_id="<target>", fields="summary,status,assigne
 - Target sprint: existing items (already planned)
 - Sprint dates + goals
 
-**Gate:** Data collected — show summary for user confirmation
+**🟡 REVIEW** — Present data summary to user. Proceed unless user objects.
 
 ### 2. Team Capacity
 
@@ -82,11 +105,14 @@ Read: .claude/skills/shared-references/team-capacity.md
 | -------- | ------ | -------- | ---------- | ----------- |
 | ... | ... | ... | ... | ... |
 
-**Gate:** Capacity numbers confirmed
+**🟡 REVIEW** — Present capacity table to user. Proceed unless user objects.
 
 ---
 
 ## Part B: Strategy Analysis (Phases 3-6) — Tresor Layer
+
+> **Phase Tracking:** Use TodoWrite to mark each phase `in_progress` → `completed` as you work.
+> **🟢 AUTO** — Phases 3-6 delegate to Tresor sprint-prioritizer. All automated. Escalate only if Tresor agent returns incomplete data.
 
 > Phases 3-6 delegate to Tresor sprint-prioritizer via Task agent
 > Agent reads: team-capacity.md + sprint-frameworks.md + sprint data from Phase 1
@@ -180,6 +206,8 @@ Also reference Tresor sprint-prioritizer methodology from:
 
 ## Part C: Approval & Execution (Phases 7-8) — Execution Layer
 
+> **Phase Tracking:** Use TodoWrite to mark each phase `in_progress` → `completed` as you work.
+
 ### 7. Sprint Plan Review ⚠️ GATE
 
 Present the complete sprint plan to the user:
@@ -204,9 +232,12 @@ Present the complete sprint plan to the user:
 | Key | Summary | Reason |
 ```
 
-**Gate:** User approves the plan (may adjust assignments before approving)
+**⛔ GATE -- DO NOT EXECUTE** any assignments without user approval of the complete sprint plan.
 
 ### 8. Execute Assignments
+
+> **🟢 AUTO** — If Phase 7 approved → execute all assignments automatically. Escalate only on failure.
+> HR7: Sprint ID must be looked up dynamically. NEVER hardcode sprint IDs.
 
 Execute according to the user-approved plan:
 
@@ -219,8 +250,8 @@ Bash: acli jira workitem assign -k "{{PROJECT_KEY}}-XXX" -a "email@domain.com" -
 ```
 
 > ⚠️ Sprint field ใช้ `{{SPRINT_FIELD}}` กับ plain number (เช่น `123`) — ห้ามใช้ `{"id": 123}`
-> ⚠️ **MCP assignee bug:** `jira_update_issue` assignee field reports success but doesn't update.
-> Use `acli jira workitem assign -k "KEY" -a "email" -y` instead.
+> **🟢 AUTO** — HR3: NEVER set assignee via MCP. Use `acli jira workitem assign -k "KEY" -a "email" -y`.
+> **🟢 AUTO** — HR6: `cache_invalidate(issue_key)` after EVERY sprint assignment.
 
 **Output:**
 

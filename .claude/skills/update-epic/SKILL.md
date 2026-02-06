@@ -16,7 +16,28 @@ argument-hint: "[issue-key] [changes]"
 **Role:** Senior Product Manager
 **Output:** Updated Epic
 
+## Context Object (accumulated across phases)
+
+| Phase | Adds to Context |
+|-------|----------------|
+| 1. Fetch | `epic_data`, `child_stories[]`, `epic_doc` |
+| 2. Impact | `change_type`, `impact_level` |
+| 3. Preserve | `preservation_rules` |
+| 4. Generate | `update_adf_json` |
+| 5. QG | `qg_score`, `passed_qg` |
+| 6. Apply | `applied` |
+
+## Gate Levels
+
+| Level | Symbol | Behavior |
+| --- | --- | --- |
+| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
+| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
+| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+
 ## Phases
+
+> **Phase Tracking:** Use TodoWrite to mark each phase `in_progress` → `completed` as you work.
 
 ### 1. Fetch Current State
 
@@ -24,7 +45,7 @@ argument-hint: "[issue-key] [changes]"
 - `MCP: jira_search(jql: "parent = {{PROJECT_KEY}}-XXX OR 'Epic Link' = {{PROJECT_KEY}}-XXX", fields: "summary,status,assignee,issuetype,priority")` (**⚠️ NEVER add ORDER BY to parent queries**)
 - `MCP: confluence_search(query: "Epic: [title]")`
 - Read: RICE, objectives, success metrics, child stories
-- **Gate:** User confirms what to update
+- **🟡 REVIEW** — Present current state to user. Proceed unless user objects.
 
 ### 2. Impact Analysis
 
@@ -35,7 +56,7 @@ argument-hint: "[issue-key] [changes]"
 | RICE update | ❌ No impact | May reprioritize |
 | Format only | ❌ No impact | ❌ No impact |
 
-**Gate:** User acknowledges impact
+**⛔ GATE — DO NOT PROCEED** without user confirmation of changes.
 
 ### 3. Preserve Intent
 
@@ -49,23 +70,31 @@ argument-hint: "[issue-key] [changes]"
 
 - Generate ADF JSON → `tasks/bep-xxx-epic-update.json`
 - Show comparison: Before/After for RICE, objectives, scope
-- **Gate:** User approves changes
+- **⛔ GATE — DO NOT APPLY** without user approval of all generated changes.
 
 ### 5. Quality Gate (MANDATORY)
 
-Before sending to Atlassian, score against `shared-references/verification-checklist.md`:
+> **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
+> HR1: DO NOT send updates to Atlassian without QG ≥ 90%.
 
-1. Report: `Technical X/5 | Quality X/6 | Overall X%`
-2. If < 90% → auto-fix issues → re-score (max 2 attempts)
-3. If >= 90% → proceed to create/edit
-4. If still < 90% after fix → ask user before proceeding
-5. After Atlassian write → `cache_invalidate(issue_key)` if cache server available
+Score against `shared-references/verification-checklist.md`:
+
+1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
+2. Report: `Technical X/5 | Quality X/6 | Overall X%`
+3. If < 90% → auto-fix → re-score (max 2 attempts)
+4. If ≥ 90% → proceed to Phase 6 automatically
+5. If still < 90% after 2 fixes → escalate to user
+6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
 
 ### 6. Apply Update
+
+> **🟢 AUTO** — If QG passed → apply automatically. No user interaction needed.
 
 ```bash
 acli jira workitem edit --from-json tasks/bep-xxx-epic-update.json --yes
 ```
+
+> **🟢 AUTO** — HR6: `cache_invalidate(issue_key)` after apply.
 
 **Output:**
 

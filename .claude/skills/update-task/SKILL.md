@@ -16,7 +16,28 @@ argument-hint: "{{PROJECT_KEY}}-XXX [changes]"
 **Role:** Developer / Tech Lead
 **Output:** Updated Jira Task
 
+## Context Object (accumulated across phases)
+
+| Phase | Adds to Context |
+|-------|----------------|
+| 1. Fetch | `task_data`, `current_format`, `task_type` |
+| 2. Identify | `change_type`, `change_scope` |
+| 3. Preserve | `preservation_rules` |
+| 4. Generate | `update_adf_json` |
+| 5. QG | `qg_score`, `passed_qg` |
+| 6. Apply | `applied` |
+
+## Gate Levels
+
+| Level | Symbol | Behavior |
+| --- | --- | --- |
+| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
+| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
+| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+
 ## Phases
+
+> **Phase Tracking:** Use TodoWrite to mark each phase `in_progress` → `completed` as you work.
 
 ### 1. Fetch Current State
 
@@ -25,7 +46,7 @@ argument-hint: "{{PROJECT_KEY}}-XXX [changes]"
 - Identify current format: Wiki markup or ADF
 - Identify current type (if applicable): tech-debt, bug, chore, spike
 
-**Gate:** User confirms what to update
+**🟡 REVIEW** — Present current state to user. Proceed unless user objects.
 
 ---
 
@@ -50,7 +71,7 @@ Ask the user what they want to update:
 5. Other (specify)
 ```
 
-**Gate:** User specifies changes
+**⛔ GATE — DO NOT PROCEED** without user confirmation of changes.
 
 ---
 
@@ -70,7 +91,7 @@ Ask the user what they want to update:
 - ⚠️ Be careful changing scope
 - ❌ Do not delete content without informing
 
-**Gate:** User acknowledges what will change
+**🟢 AUTO** — Apply preservation rules programmatically. No user interaction needed.
 
 ---
 
@@ -106,25 +127,33 @@ Generate ADF JSON → `tasks/bep-xxx-update.json`
 Would you like to apply these changes?
 ```
 
-**Gate:** User approves changes
+**⛔ GATE — DO NOT APPLY** without user approval of all generated changes.
 
 ---
 
 ### 5. Quality Gate (MANDATORY)
 
-Before sending to Atlassian, score against `shared-references/verification-checklist.md`:
+> **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
+> HR1: DO NOT send updates to Atlassian without QG ≥ 90%.
 
-1. Report: `Technical X/5 | Quality X/6 | Overall X%`
-2. If < 90% → auto-fix issues → re-score (max 2 attempts)
-3. If >= 90% → proceed to create/edit
-4. If still < 90% after fix → ask user before proceeding
-5. After Atlassian write → `cache_invalidate(issue_key)` if cache server available
+Score against `shared-references/verification-checklist.md`:
+
+1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
+2. Report: `Technical X/5 | Quality X/6 | Overall X%`
+3. If < 90% → auto-fix → re-score (max 2 attempts)
+4. If ≥ 90% → proceed to Phase 6 automatically
+5. If still < 90% after 2 fixes → escalate to user
+6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
 
 ### 6. Apply Update
+
+> **🟢 AUTO** — If QG passed → apply automatically. No user interaction needed.
 
 ```bash
 acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 ```
+
+> **🟢 AUTO** — HR6: `cache_invalidate(issue_key)` after apply.
 
 **Output:**
 

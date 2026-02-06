@@ -12,13 +12,35 @@ argument-hint: "[issue-key]"
 **Role:** Senior Technical Analyst
 **Output:** Sub-tasks + Technical Note
 
+## Context Object (accumulated across phases)
+
+| Phase | Adds to Context |
+|-------|----------------|
+| 1. Discovery | `story_data`, `epic_context`, `vs_assignment` |
+| 2. Impact | `services_impacted[]`, `vs_verified` |
+| 3. Explore | `file_paths[]`, `patterns[]`, `dependencies[]` |
+| 4. Design | `subtask_designs[]` |
+| 5. Alignment | `alignment_checklist` |
+| 5b. QG | `qg_score`, `passed_qg` |
+| 6. Create | `subtask_keys[]` |
+
+## Gate Levels
+
+| Level | Symbol | Behavior |
+| --- | --- | --- |
+| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
+| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
+| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+
 ## Phases
+
+> **Phase Tracking:** Use TodoWrite to mark each phase `in_progress` → `completed` as you work.
 
 ### 1. Discovery
 
 - `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")`
 - Read: Narrative, ACs, Links, Epic context
-- **Gate:** User confirms understanding
+- **⛔ GATE — DO NOT PROCEED** without user confirmation of story understanding.
 
 ### 2. Impact Analysis
 
@@ -30,23 +52,27 @@ argument-hint: "[issue-key]"
 
 **VS Verification:** Story touches all layers for e2e slice? (not layer-only)
 
-**Gate:** User confirms scope + VS integrity
+**🟡 REVIEW** — Present impact table + VS verification to user. Proceed unless user objects.
 
 ### 3. Codebase Exploration ⚠️ MANDATORY
 
+Launch 2-3 Explore agents **IN PARALLEL** (single message, multiple Task calls):
+
 ```text
-Task(subagent_type: "Explore", prompt: "Find [feature] in [service path]")
+# Agent 1: Backend (models, controllers, routes, services)
+Task(subagent_type: "Explore", prompt: "Find [feature] in backend: models, controllers, routes, services")
+
+# Agent 2: Frontend (pages, components, hooks, stores)
+Task(subagent_type: "Explore", prompt: "Find [feature] in frontend: pages, components, hooks")
+
+# Agent 3 (if needed): Shared/infra (config, middleware, types, utils)
+Task(subagent_type: "Explore", prompt: "Find [feature] in shared: config, middleware, types")
 ```
 
-| Service | Path |
-| --- | --- |
-| Backend | Path from `project-config.json` → `services.tags[tag="[BE]"].path` |
-| Admin | Path from `project-config.json` → `services.tags[tag="[FE-Admin]"].path` |
-| Website | Path from `project-config.json` → `services.tags[tag="[FE-Web]"].path` |
+Each agent returns: `file_paths[]`, `patterns[]`, `dependencies[]`
+Merge results into context.
 
-Collect: File paths, existing patterns, dependencies
-
-**Gate:** Must have actual file paths before design
+**🟢 AUTO** — Validate file paths with Glob. If zero real paths found → re-explore automatically (max 2 attempts). Generic paths like `/src/` are REJECTED. Escalate to user only if still zero after retries.
 
 ### 4. Design Sub-tasks
 
@@ -56,23 +82,46 @@ Collect: File paths, existing patterns, dependencies
 - Scope: Files from Phase 3
 - ACs: Given/When/Then
 - Use Thai + transliteration
-- **Gate:** User approves design + VS alignment
+- **⛔ GATE — DO NOT CREATE** any subtasks without user approval of design + VS alignment.
 
 ### 5. Alignment Check
 
+> **🟢 AUTO** — Verify programmatically. Auto-fix misalignment. Escalate only if unfixable.
+
 - [ ] Sum of sub-tasks = Complete Story?
 - [ ] No gaps? No scope creep?
-- [ ] File paths exist in codebase?
+- [ ] File paths exist? (validate with Glob)
 - [ ] **VS integrity maintained?** (subtasks complete the slice, not horizontal split)
+
+If any check fails → auto-adjust subtask scope/design → re-check. Escalate to user only if gap cannot be resolved automatically.
+
+### 5b. Quality Gate — Subtasks (MANDATORY)
+
+> **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
+> HR1: DO NOT create subtasks in Jira without QG ≥ 90%.
+
+Score each subtask ADF against `shared-references/verification-checklist.md`:
+
+1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
+2. Report: `Technical X/5 | Subtask Quality X/5 | Overall X%`
+3. If < 90% → auto-fix → re-score (max 2 attempts)
+4. If ≥ 90% → proceed to Phase 6 automatically
+5. If still < 90% after 2 fixes → escalate to user
+6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
 
 ### 6. Create Artifacts
 
-> ⚠️ **CRITICAL:** Sub-tasks must use Two-Step Workflow (acli does not support `parent`)
->
-> **Step 1:** MCP `jira_create_issue` (create shell + parent link)
-> **Step 2:** `acli --from-json` (update ADF description)
->
-> See full pattern: [Templates](../shared-references/templates.md) - Sub-task section
+> **🟢 AUTO** — Create → verify parent → edit descriptions. All automated. Escalate only if parent verify fails after retry.
+> HR5: Two-Step + Verify Parent. acli ไม่รองรับ `parent` field. MCP may silently ignore parent.
+
+**Step 1:** MCP `jira_create_issue` (create shell + parent link) — parallel calls ได้
+**Step 2:** Verify parent — `jira_get_issue` each subtask → check `parent.key` = story_key
+**Step 3:** `acli --from-json` (update ADF description)
+
+เมื่อ sub-tasks ≥3 ตัว: สร้าง shells ทั้งหมดก่อน → verify all → batch edit descriptions
+
+> **🟢 AUTO** — HR6: `cache_invalidate(subtask_key)` after EVERY Atlassian write.
+> **🟢 AUTO** — HR3: If assignee needed, use `acli jira workitem assign -k "KEY" -a "email" -y` (never MCP).
 
 - Technical Note (if needed):
   - Simple text → `MCP: confluence_create_page`

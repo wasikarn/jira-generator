@@ -16,16 +16,36 @@ argument-hint: "[issue-key]"
 **Role:** Senior QA Analyst
 **Output:** [QA] Sub-task (with embedded Test Plan)
 
+## Context Object (accumulated across phases)
+
+| Phase | Adds to Context |
+|-------|----------------|
+| 1. Discovery | `story_data`, `subtask_inventory[]`, `test_scope` |
+| 2. Test Scope | `ac_coverage_map[]`, `test_types[]` |
+| 3. Design | `test_cases[]`, `coverage_matrix` |
+| 4. QG | `qg_score`, `passed_qg` |
+| 5. Create | `qa_subtask_key` |
+
+## Gate Levels
+
+| Level | Symbol | Behavior |
+| --- | --- | --- |
+| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
+| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
+| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+
 > **Note:** Test Plan is embedded in [QA] Sub-task description instead of creating a separate Confluence page
 
 ## Phases
+
+> **Phase Tracking:** Use TodoWrite to mark each phase `in_progress` → `completed` as you work.
 
 ### 1. Discovery
 
 - `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")`
 - `MCP: jira_search(jql: "parent = {{PROJECT_KEY}}-XXX", fields: "summary,status,assignee,issuetype")` → Sub-tasks (**⚠️ NEVER add ORDER BY to parent queries**)
 - Read: Narrative, ACs, Technical Note (if available)
-- **Gate:** User confirms scope
+- **⛔ GATE — DO NOT PROCEED** without user confirmation of test scope.
 
 ### 2. Test Scope Analysis
 
@@ -37,7 +57,7 @@ argument-hint: "[issue-key]"
 | --- | --- | --- |
 | 1 | [AC1 desc] | TC1, TC2 |
 
-**Gate:** Coverage matrix approved
+**🟡 REVIEW** — Present AC coverage matrix to user. Proceed unless user objects.
 
 ### 3. Design Test Cases
 
@@ -45,19 +65,26 @@ argument-hint: "[issue-key]"
 - Type: ✅ Happy / ⚠️ Edge / ❌ Error
 - Given/When/Then format
 - Test data requirements
-- **Gate:** User reviews test coverage
+- **🟡 REVIEW** — Present test cases to user. Proceed unless user objects.
 
 ### 4. Quality Gate (MANDATORY)
 
-Before sending to Atlassian, score against `shared-references/verification-checklist.md`:
+> **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
+> HR1: DO NOT create QA subtask in Jira without QG ≥ 90%.
 
-1. Report: `Technical X/5 | Quality X/6 | Overall X%`
-2. If < 90% → auto-fix issues → re-score (max 2 attempts)
-3. If >= 90% → proceed to create/edit
-4. If still < 90% after fix → ask user before proceeding
-5. After Atlassian write → `cache_invalidate(issue_key)` if cache server available
+Score against `shared-references/verification-checklist.md`:
+
+1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
+2. Report: `Technical X/5 | QA Quality X/5 | Overall X%`
+3. If < 90% → auto-fix → re-score (max 2 attempts)
+4. If ≥ 90% → proceed to Phase 5 automatically
+5. If still < 90% after 2 fixes → escalate to user
+6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
 
 ### 5. Create [QA] Sub-task
+
+> **🟢 AUTO** — Create → verify parent → edit description. All automated. Escalate only if parent verify fails.
+> HR5: Two-Step + Verify Parent.
 
 > **Principle:** 1 Story = 1 [QA] Sub-task (Test Plan embedded in description)
 >
@@ -69,6 +96,9 @@ Before sending to Atlassian, score against `shared-references/verification-check
 > ⚠️ EDIT JSON uses `"issues": ["BEP-QQQ"]` (not `"parent"` or `"parentKey"`)
 
 Panel colors: see [ADF Core Rules](../shared-references/templates.md) — success=happy, warning=edge, error=error
+
+> **🟢 AUTO** — HR6: `cache_invalidate(qa_subtask_key)` after create.
+> **🟢 AUTO** — HR3: If assignee needed, use `acli jira workitem assign -k "KEY" -a "email" -y` (never MCP).
 
 ### 6. Summary
 

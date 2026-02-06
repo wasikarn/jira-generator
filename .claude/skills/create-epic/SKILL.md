@@ -11,14 +11,34 @@ argument-hint: "[epic-title]"
 **Role:** Senior Product Manager
 **Output:** Epic in Jira + Epic Doc in Confluence
 
+## Context Object (accumulated across phases)
+
+| Phase | Adds to Context |
+|-------|----------------|
+| 1. Discovery | `stakeholder_input`, `vs_plan`, `user_requirements` |
+| 2. RICE | `rice_score`, `priority` |
+| 3. Scope | `scope_items[]`, `vs_stories[]`, `mvp_definition` |
+| 4. QG | `qg_score`, `passed_qg` |
+| 5. Create | `epic_key`, `epic_doc_id` |
+
+## Gate Levels
+
+| Level | Symbol | Behavior |
+| --- | --- | --- |
+| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
+| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
+| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+
 ## Phases
+
+> **Phase Tracking:** Use TodoWrite to mark each phase `in_progress` → `completed` as you work.
 
 ### 1. Discovery
 
 - Interview stakeholder: Problem? Target users? Business value? Success metrics?
 - If existing docs available → read context
 - **VS Planning:** Identify potential vertical slices (what distinct user flows exist?)
-- **Gate:** Stakeholder confirms understanding
+- **⛔ GATE — DO NOT PROCEED** without stakeholder confirmation of problem understanding + VS planning.
 
 ### 2. RICE Prioritization
 
@@ -27,7 +47,7 @@ argument-hint: "[epic-title]"
 - **C**onfidence (0-100%): Confidence in estimate
 - **E**ffort (person-weeks): Effort required
 - Formula: `(R × I × C) / E`
-- **Gate:** Stakeholder agrees with priority
+- **🟡 REVIEW** — Present RICE scoring to stakeholder. Proceed unless stakeholder objects.
 
 ### 3. Define Scope + VS Planning
 
@@ -41,25 +61,33 @@ argument-hint: "[epic-title]"
   - vs2-{rule}: Story C, Story D
 - Define MVP: Which VS are must-have vs nice-to-have?
 - Identify Dependencies and Risks
-- **Gate:** Stakeholder approves scope + VS plan
+- **⛔ GATE — DO NOT PROCEED** without stakeholder approval of scope + VS plan + MVP definition.
 
 ### 4. Quality Gate (MANDATORY)
 
-Before sending to Atlassian, score against `shared-references/verification-checklist.md`:
+> **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
+> HR1: DO NOT send Epic to Atlassian without QG ≥ 90%.
 
-1. Report: `Technical X/5 | Quality X/6 | Overall X%`
-2. If < 90% → auto-fix issues → re-score (max 2 attempts)
-3. If >= 90% → proceed to create/edit
-4. If still < 90% after fix → ask user before proceeding
-5. After Atlassian write → `cache_invalidate(issue_key)` if cache server available
+Score against `shared-references/verification-checklist.md`:
+
+1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
+2. Report: `Technical X/5 | Epic Quality X/4 | Overall X%`
+3. If < 90% → auto-fix → re-score (max 2 attempts)
+4. If ≥ 90% → proceed to Phase 5 automatically
+5. If still < 90% after 2 fixes → escalate to user
+6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
 
 ### 5. Create Artifacts
+
+> **🟢 AUTO** — If QG passed → create automatically. No user interaction needed.
 
 1. **Epic Doc** → `MCP: confluence_create_page(space_key: "{{PROJECT_KEY}}")`
    - Include VS Map table in Epic Doc
 2. **Epic** → `acli jira workitem create --from-json tasks/epic.json`
    - Add labels: feature label + `vs-planned`
 3. **Link** Epic to Doc
+
+> **🟢 AUTO** — HR6: `cache_invalidate(epic_key)` after create.
 
 ### 6. Handoff
 

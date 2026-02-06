@@ -11,14 +11,34 @@ argument-hint: "[story-description]"
 **Role:** Senior Product Owner
 **Output:** User Story in Jira with ADF format
 
+## Context Object (accumulated across phases)
+
+| Phase | Adds to Context |
+|-------|----------------|
+| 1. Discovery | `epic_data`, `vs_assignment`, `user_requirements` |
+| 2. Write Story | `story_narrative`, `acs[]`, `scope`, `dod` |
+| 3. INVEST | `invest_score`, `vs_validated` |
+| 4. QG | `qg_score`, `passed_qg` |
+| 5. Create | `story_key` ({{PROJECT_KEY}}-XXX) |
+
+## Gate Levels
+
+| Level | Symbol | Behavior |
+| --- | --- | --- |
+| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
+| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
+| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+
 ## Phases
+
+> **Phase Tracking:** Use TodoWrite to mark each phase `in_progress` → `completed` as you work.
 
 ### 1. Discovery
 
 - If Epic exists → `MCP: jira_get_issue` to read context + VS plan
 - Ask user: Who? What? Why? Constraints?
 - **VS Assignment:** Which vertical slice does this story belong to? (`vs1-skeleton`, `vs2-*`, `vs-enabler`)
-- **Gate:** User confirms understanding + VS assignment
+- **⛔ GATE — DO NOT PROCEED** without user confirmation of requirements + VS assignment.
 
 ### 2. Write Story
 
@@ -32,7 +52,7 @@ So that [benefit].
 - Specify Scope (affected services) and DoD
 - **VS Check:** Story delivers end-to-end value? All layers touched? (not shell-only or layer-split)
 - Use Thai + transliteration
-- **Gate:** User reviews draft + VS integrity
+- **🟡 REVIEW** — Present story narrative, ACs, scope to user. Proceed unless user objects.
 
 ### 3. INVEST + VS Validation
 
@@ -51,19 +71,25 @@ So that [benefit].
 - ❌ Layer-split (BE แยกจาก FE) → รวมเป็น story เดียว
 - ❌ Tab-split → split ตาม business rule แทน
 
-**Gate:** All criteria pass + VS integrity confirmed
+**🟢 AUTO** — Validate all criteria. If any fail or VS anti-pattern detected → auto-fix and re-validate. Escalate to user only if unfixable.
 
 ### 4. Quality Gate (MANDATORY)
 
-Before sending to Atlassian, score against `shared-references/verification-checklist.md`:
+> **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
+> HR1: DO NOT send Story to Atlassian without QG ≥ 90%.
 
-1. Report: `Technical X/5 | Quality X/6 | Overall X%`
-2. If < 90% → auto-fix issues → re-score (max 2 attempts)
-3. If >= 90% → proceed to create/edit
-4. If still < 90% after fix → ask user before proceeding
-5. After Atlassian write → `cache_invalidate(issue_key)` if cache server available
+Score against `shared-references/verification-checklist.md`:
+
+1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
+2. Report: `Technical X/5 | Story Quality X/6 | Overall X%`
+3. If < 90% → auto-fix → re-score (max 2 attempts)
+4. If ≥ 90% → proceed to Phase 5 automatically
+5. If still < 90% after 2 fixes → escalate to user
+6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
 
 ### 5. Create in Jira
+
+> **🟢 AUTO** — If QG passed → create automatically. No user interaction needed.
 
 ```bash
 acli jira workitem create --from-json tasks/story.json
@@ -74,6 +100,8 @@ acli jira workitem create --from-json tasks/story.json
   - Feature label: `coupon-web`, `credit-topup`, etc.
   - VS label: `vs1-skeleton`, `vs2-credit-e2e`, `vs-enabler`, etc.
   - ดู convention: [Vertical Slice Guide](../shared-references/vertical-slice-guide.md)
+
+> **🟢 AUTO** — HR6: `cache_invalidate(story_key)` after create.
 
 ### 6. Handoff
 

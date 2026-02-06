@@ -17,6 +17,27 @@ argument-hint: "[issue-key-or-page-id] [changes]"
 **Role:** PO + TA + Tech Lead Combined
 **Output:** Updated Jira issues + Confluence pages (all related artifacts)
 
+## Context Object (accumulated across phases)
+
+| Phase | Adds to Context |
+|-------|----------------|
+| 1. Origin | `origin_key`, `origin_type`, `change_description` |
+| 2. Graph | `artifact_graph[]`, `sync_scope` |
+| 3. Changes | `change_type`, `impact_level`, `classified_changes[]` |
+| 4. Impact | `impact_map[]`, `sync_plan` |
+| 5. Explore | `file_paths[]`, `patterns[]` (conditional) |
+| 6. Generate | `jira_updates[]`, `confluence_updates[]` |
+| 7. Execute | `applied_keys[]`, `execution_log` |
+| 8. Verify | `verification_report` |
+
+## Gate Levels
+
+| Level | Symbol | Behavior |
+| --- | --- | --- |
+| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
+| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
+| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+
 ---
 
 ## Artifact Graph
@@ -39,13 +60,15 @@ Epic (Jira)
 
 ## Phases
 
+> **Phase Tracking:** Use TodoWrite to mark each phase `in_progress` → `completed` as you work.
+
 ### 1. Identify Origin
 
 - Receive input: `{{PROJECT_KEY}}-XXX` (Jira key) or Confluence page ID
 - `MCP: jira_get_issue(issue_key, fields="summary,status,issuetype,parent")`
 - Determine artifact type: Epic / Story / Sub-task
 - If Confluence page ID → `MCP: confluence_get_page(page_id)` → extract BEP keys → pivot to Jira
-- **Gate:** User confirms starting artifact + describes what changed
+- **⛔ GATE — DO NOT PROCEED** without user confirmation of starting artifact + description of what changed.
 
 ### 2. Build Artifact Graph
 
@@ -70,7 +93,7 @@ Discovery algorithm:
 
 Output: inventory table (Type, Key/ID, Title, Status) for all discovered artifacts.
 
-**Gate:** User selects scope: Full (Jira+Confluence) / Jira-only / Confluence-only / Selective
+**🟡 REVIEW** — Present artifact graph + scope options. User selects: Full / Jira-only / Confluence-only / Selective. Proceed with user's selection.
 
 ### 3. Detect Changes
 
@@ -87,7 +110,7 @@ User describes changes, then classify:
 | Technical detail change | MEDIUM |
 | Business value change | HIGH |
 
-**Gate:** User confirms changes
+**⛔ GATE — DO NOT PROCEED** without user confirmation of change classification.
 
 ### 4. Impact Analysis
 
@@ -96,13 +119,31 @@ Map changes → affected artifacts table (Artifact, Impact, Reason).
 Impact types: `ORIGIN` (starting point) / `UPDATE` (will sync) / `FLAG` (review only) / `NO CHANGE`
 Directions: DOWN (parent→child) / UP (child→parent) / SIDEWAYS (Jira↔Confluence)
 
-**Gate:** User approves sync plan
+**🟡 REVIEW** — Present impact table + sync plan to user. Proceed unless user objects.
 
 ### 5. Codebase Exploration (conditional)
 
+> **🟢 AUTO** — Run only if scope changed or new file paths needed. Skip if format-only. Validate paths with Glob.
+
 - Run only when: scope changed / need new file paths / new sub-task needed
-- `Task(subagent_type: "Explore")`
+- Launch 2-3 Explore agents **IN PARALLEL** (single message, multiple Task calls):
+
+```text
+# Agent 1: Backend (models, controllers, routes, services)
+Task(subagent_type: "Explore", prompt: "Find [feature] in backend: models, controllers, routes, services")
+
+# Agent 2: Frontend (pages, components, hooks, stores)
+Task(subagent_type: "Explore", prompt: "Find [feature] in frontend: pages, components, hooks")
+
+# Agent 3 (if needed): Shared/infra (config, middleware, types, utils)
+Task(subagent_type: "Explore", prompt: "Find [feature] in shared: config, middleware, types")
+```
+
+Each agent returns: `file_paths[]`, `patterns[]`, `dependencies[]`
+Merge results into context.
+
 - **Skip** if format-only / wording-only / technical detail change
+- Validate file paths with Glob. Generic paths like `/src/` are REJECTED.
 
 ### 6. Generate Sync Updates
 
@@ -121,9 +162,14 @@ Fetch full description only for artifacts with impact = UPDATE:
 - If section update → generate new markdown section
 - If full rewrite → generate full content → `tasks/sync-page-xxx.md`
 
-**Gate:** User approves ALL updates before execution
+**⛔ GATE — DO NOT EXECUTE** any sync without user approval of ALL generated updates.
 
 ### 7. Execute Sync
+
+> **🟢 AUTO** — QG check → execute in order → cache invalidate. Escalate only on failure.
+> HR1: Score all Jira ADF updates before execution. QG ≥ 90% required.
+
+**QG Pre-check:** Score all Jira ADF updates against `shared-references/verification-checklist.md`. If < 90% → auto-fix → re-score (max 2). Escalate if still failing.
 
 Order: Parents first → Children → Confluence
 
@@ -138,7 +184,14 @@ Order: Parents first → Children → Confluence
 
 File pattern: `tasks/sync-bep-{type}.json` (Jira) / `tasks/sync-page-xxx.md` (Confluence)
 
+> **🟢 AUTO** — HR6: `cache_invalidate(issue_key)` after EVERY Atlassian write.
+> **🟢 AUTO** — HR3: If assignee needed, use `acli jira workitem assign -k "KEY" -a "email" -y` (never MCP).
+> **🟢 AUTO** — HR4: Confluence pages with macros → use `update_page_storage.py` (never MCP).
+> **🟢 AUTO** — HR5: New subtasks must use Two-Step + Verify Parent.
+
 ### 8. Verify & Report
+
+> **🟢 AUTO** — Verify all artifacts automatically. Report results.
 
 Verify with `audit_confluence_pages.py --config tasks/sync-audit.json`
 
