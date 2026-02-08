@@ -62,10 +62,10 @@ def generate_subtask_adf(tag: str, story_key: str, story_summary: str,
     """Generate subtask ADF template for a service tag."""
     # Map AC to service-specific objective
     objectives = {
-        "BE": "API logic และ business rules",
-        "FE-Admin": "Admin UI components และ interactions",
-        "FE-Web": "Web UI components และ interactions",
-        "QA": "Test cases ครอบคลุม acceptance criteria",
+        "BE": "API logic and business rules",
+        "FE-Admin": "Admin UI components and interactions",
+        "FE-Web": "Web UI components and interactions",
+        "QA": "Test cases covering acceptance criteria",
     }
     objective = objectives.get(tag, f"{tag} implementation")
 
@@ -104,7 +104,7 @@ def generate_subtask_adf(tag: str, story_key: str, story_summary: str,
             {"type": "heading", "attrs": {"level": 2},
              "content": [{"type": "text", "text": "🎯 Objective"}]},
             {"type": "paragraph", "content": [
-                {"type": "text", "text": f"[{tag}] {objective} สำหรับ {story_summary}"},
+                {"type": "text", "text": f"[{tag}] {objective} for {story_summary}"},
             ]},
             {"type": "rule"},
             {"type": "heading", "attrs": {"level": 2},

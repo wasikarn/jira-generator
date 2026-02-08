@@ -70,6 +70,7 @@ def _gwt_paragraph(given="Given: X", when="When: Y", then="Then: Z") -> dict:
 
 
 def _thai_paragraph() -> dict:
+    # "User can log in" — Thai text required for T4 Thai language validation check
     return _paragraph(_text("ผู้ใช้สามารถเข้าสู่ระบบได้"))
 
 
@@ -84,6 +85,7 @@ def _story_adf(num_acs=2, thai=True, narrative=True, scope=True) -> dict:
     if narrative:
         content.append(_heading("User Story"))
         content.append(
+            # "As a merchant I want to manage coupons So that increase sales"
             _panel("info", _paragraph(_text(
                 "As a ร้านค้า I want to จัดการคูปอง So that เพิ่มยอดขาย"
             )))
@@ -117,12 +119,14 @@ def _subtask_adf(tag="[BE]", thai=True) -> dict:
     """Build a valid subtask ADF for testing."""
     content = [
         _heading("Objective"),
+        # "Create API endpoint for coupon management"
         _panel("info", _paragraph(_text("สร้าง API endpoint สำหรับจัดการคูปอง"))),
         _heading("Scope & Files"),
         _panel("note", _paragraph(
             _text("src/modules/coupon/coupon.service.ts", marks=[{"type": "code"}]),
         )),
         _heading("Acceptance Criteria"),
+        # "Given: has coupon / When: call API / Then: get response 200"
         _panel("success", _paragraph(_text("Given: มี coupon\nWhen: เรียก API\nThen: ได้ response 200"))),
         _heading("Reference"),
         _paragraph(

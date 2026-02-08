@@ -4,7 +4,7 @@
 Used for updating page content with find/replace operations.
 
 Example usage:
-    python update_confluence_page.py --page-id 111222333 --find "5 นาที" --replace "3 นาที"
+    python update_confluence_page.py --page-id 111222333 --find "5 minutes" --replace "3 minutes"
     python update_confluence_page.py --page-id 111222333 --find "300" --replace "180" --dry-run
 """
 
@@ -150,7 +150,7 @@ def main() -> int:
         epilog="""
 Examples:
   # Simple text replacement
-  python update_confluence_page.py --page-id 111222333 --find "5 นาที" --replace "3 นาที"
+  python update_confluence_page.py --page-id 111222333 --find "5 minutes" --replace "3 minutes"
 
   # Multiple replacements
   python update_confluence_page.py --page-id 111222333 \\

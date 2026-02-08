@@ -8,7 +8,7 @@ Analyzes story description for service-related keywords and suggests
 which service tags are impacted.
 
 Usage:
-    echo '{"text": "สร้าง API endpoint สำหรับ..."}' | python3 impact_suggester.py
+    echo '{"text": "Create API endpoint for..."}' | python3 impact_suggester.py
     echo '{"story_adf": {...}}' | python3 impact_suggester.py
 
 Input JSON:
@@ -58,7 +58,7 @@ SERVICE_RULES = {
             (r"\bbackoffice\b", 3),
             (r"\bCMS\b", 2),
             (r"\bdashboard\b", 2),
-            (r"\bจัดการ\b", 2),
+            (r"\bจัดการ\b", 2),  # "manage" in Thai
             (r"\bmanage\b", 1),
             (r"\btable\b", 1),
             (r"\bfilter\b", 1),
@@ -76,10 +76,10 @@ SERVICE_RULES = {
             (r"\bUI\b", 1),
             (r"\bcomponent\b", 2),
             (r"\bpage\b", 1),
-            (r"\bหน้า\b", 2),
+            (r"\bหน้า\b", 2),  # "page" in Thai
             (r"\bbutton\b", 1),
-            (r"\bปุ่ม\b", 2),
-            (r"\bแสดง\b", 1),
+            (r"\bปุ่ม\b", 2),  # "button" in Thai
+            (r"\bแสดง\b", 1),  # "display" in Thai
             (r"\bdisplay\b", 1),
             (r"\bnavigat(?:e|ion)\b", 1),
             (r"\broute\b", 1),
@@ -92,7 +92,7 @@ SERVICE_RULES = {
     "QA": {
         "keywords": [
             (r"\btest\b", 2),
-            (r"\bทดสอบ\b", 2),
+            (r"\bทดสอบ\b", 2),  # "test" in Thai
             (r"\bQA\b", 3),
             (r"\bscenario\b", 1),
             (r"\bedge case\b", 2),

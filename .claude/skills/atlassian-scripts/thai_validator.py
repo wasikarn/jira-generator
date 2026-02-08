@@ -8,7 +8,7 @@ Validates that text follows the Thai + English transliteration rules
 defined in writing-style.md. Flags inconsistent term usage.
 
 Usage:
-    echo '{"text": "สร้าง เอพีไอ endpoint"}' | python3 thai_validator.py
+    echo '{"text": "create API endpoint"}' | python3 thai_validator.py
     echo '{"adf": {...}}' | python3 thai_validator.py
 
 Input JSON:
@@ -42,37 +42,38 @@ KEEP_ENGLISH = {
 }
 
 # Thai transliterations that should be replaced with English
+# Keys are Thai phonetic spellings of English tech terms (functional regex patterns)
 THAI_TO_ENGLISH = {
-    r"เอพีไอ": "API",
-    r"เซิร์ฟเวอร์": "server",
-    r"คอมโพเนนต์": "component",
-    r"เอ็นพอยท์|เอ็นด์พอยต์": "endpoint",
-    r"เพย์โหลด": "payload",
-    r"แวลิเดท|แวลิเดต": "validate",
-    r"เซอร์วิส": "service",
-    r"โมเดล": "model",
-    r"สคีมา": "schema",
-    r"คิวรี่|คิวรี": "query",
-    r"รีเควส|รีเควสท์": "request",
-    r"รีสปอนส์": "response",
-    r"ดีพลอย": "deploy",
-    r"คอมมิต": "commit",
-    r"เมิร์จ": "merge",
-    r"แบรนช์": "branch",
-    r"โทเคน": "token",
-    r"เซสชั่น|เซสชัน": "session",
-    r"แคช": "cache",
-    r"มิดเดิลแวร์": "middleware",
-    r"อีเวนต์|อีเว้นท์": "event",
-    r"ฟิลเตอร์": "filter",
-    r"เราท์|เราเตอร์": "route",
-    r"ไมเกรชั่น|ไมเกรชัน": "migration",
-    r"ดาต้าเบส|ดาตาเบส": "database",
+    r"เอพีไอ": "API",                      # "eh-pee-ai" = API
+    r"เซิร์ฟเวอร์": "server",               # "serf-wer" = server
+    r"คอมโพเนนต์": "component",             # "khom-pho-nen" = component
+    r"เอ็นพอยท์|เอ็นด์พอยต์": "endpoint",    # "en-point" = endpoint
+    r"เพย์โหลด": "payload",                 # "pay-load" = payload
+    r"แวลิเดท|แวลิเดต": "validate",         # "wa-li-det" = validate
+    r"เซอร์วิส": "service",                  # "ser-wis" = service
+    r"โมเดล": "model",                      # "mo-den" = model
+    r"สคีมา": "schema",                     # "sa-khee-ma" = schema
+    r"คิวรี่|คิวรี": "query",                 # "khew-ree" = query
+    r"รีเควส|รีเควสท์": "request",           # "ree-kwes" = request
+    r"รีสปอนส์": "response",                 # "ree-sa-pon" = response
+    r"ดีพลอย": "deploy",                     # "dee-ploy" = deploy
+    r"คอมมิต": "commit",                     # "khom-mit" = commit
+    r"เมิร์จ": "merge",                      # "mert" = merge
+    r"แบรนช์": "branch",                     # "braen" = branch
+    r"โทเคน": "token",                      # "tho-khen" = token
+    r"เซสชั่น|เซสชัน": "session",            # "ses-chan" = session
+    r"แคช": "cache",                        # "khaet" = cache
+    r"มิดเดิลแวร์": "middleware",             # "mid-den-wae" = middleware
+    r"อีเวนต์|อีเว้นท์": "event",            # "ee-wen" = event
+    r"ฟิลเตอร์": "filter",                   # "fin-ter" = filter
+    r"เราท์|เราเตอร์": "route",               # "rao-ter" = route
+    r"ไมเกรชั่น|ไมเกรชัน": "migration",      # "mai-kre-chan" = migration
+    r"ดาต้าเบส|ดาตาเบส": "database",        # "da-ta-bes" = database
 }
 
 # Patterns that suggest all-English text (should be Thai + transliteration)
 ALL_ENGLISH_PATTERNS = [
-    (r"^[A-Za-z\s\d\-_.,;:!?/()]+$", "Line is all English — should use Thai"),
+    (r"^[A-Za-z\s\d\-_.,;:!?/()]+$", "Line is all English — should use Thai + transliteration"),
 ]
 
 
