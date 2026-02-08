@@ -89,11 +89,20 @@ def main() -> None:
         return
 
     issue_key = extract_issue_key(data) or "UNKNOWN"
+    session_id = data.get("session_id", "")
+
+    # Save to state for blocker + auto-clear hooks
+    try:
+        sys.path.insert(0, str(Path(__file__).parent))
+        from hooks_state import hr5_add_pending
+        hr5_add_pending(session_id, issue_key, parent_key)
+    except Exception:
+        pass
 
     log_event("REMIND", {
         "issue_key": issue_key,
         "parent_key": parent_key,
-        "session_id": data.get("session_id", ""),
+        "session_id": session_id,
     })
 
     output = {

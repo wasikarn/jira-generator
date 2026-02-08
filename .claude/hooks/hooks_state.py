@@ -70,3 +70,73 @@ def search_mark_done(session_id: str) -> None:
 
 def search_is_done(session_id: str) -> bool:
     return _load(session_id).get("search_done", False)
+
+
+# ── HR5: Parent verification tracking ─────────────────
+
+def hr5_add_pending(session_id: str, child_key: str, parent_key: str) -> None:
+    state = _load(session_id)
+    pending = state.get("hr5_pending", [])
+    if not any(p["child"] == child_key for p in pending):
+        pending.append({"child": child_key, "parent": parent_key})
+    state["hr5_pending"] = pending
+    _save(session_id, state)
+
+
+def hr5_get_pending(session_id: str) -> list:
+    return _load(session_id).get("hr5_pending", [])
+
+
+def hr5_remove_pending(session_id: str, child_key: str) -> None:
+    state = _load(session_id)
+    pending = [p for p in state.get("hr5_pending", []) if p["child"] != child_key]
+    state["hr5_pending"] = pending
+    _save(session_id, state)
+
+
+# ── Event-AC: Domain Model tracking ──────────────────
+
+def event_set_domain_events(session_id: str, epic_key: str, events: list) -> None:
+    state = _load(session_id)
+    catalog = state.get("domain_events", {})
+    catalog[epic_key] = events
+    state["domain_events"] = catalog
+    _save(session_id, state)
+
+
+def event_get_all_events(session_id: str) -> list:
+    """Get all known domain events across all epics."""
+    catalog = _load(session_id).get("domain_events", {})
+    all_events = []
+    for events in catalog.values():
+        all_events.extend(events)
+    return list(set(all_events))
+
+
+# ── VS Integrity: AC coverage tracking ───────────────
+
+def vs_set_story_acs(session_id: str, story_key: str, acs: list) -> None:
+    state = _load(session_id)
+    ac_map = state.get("vs_story_acs", {})
+    ac_map[story_key] = acs
+    state["vs_story_acs"] = ac_map
+    _save(session_id, state)
+
+
+def vs_add_subtask(session_id: str, story_key: str, subtask_key: str, summary: str) -> None:
+    state = _load(session_id)
+    subtasks = state.get("vs_subtasks", {})
+    if story_key not in subtasks:
+        subtasks[story_key] = []
+    if not any(s["key"] == subtask_key for s in subtasks[story_key]):
+        subtasks[story_key].append({"key": subtask_key, "summary": summary})
+    state["vs_subtasks"] = subtasks
+    _save(session_id, state)
+
+
+def vs_get_coverage(session_id: str) -> dict:
+    state = _load(session_id)
+    return {
+        "story_acs": state.get("vs_story_acs", {}),
+        "subtasks": state.get("vs_subtasks", {}),
+    }

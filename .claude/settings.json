@@ -81,6 +81,16 @@
         "hooks": [
           {
             "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/adf-structure-validator.py",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/event-ac-checker.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr1-qg-before-write.py",
             "timeout": 10
           }
@@ -127,6 +137,16 @@
         ]
       },
       {
+        "matcher": "mcp__mcp-atlassian__jira_create_issue",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr5-parent-verify-blocker.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "mcp__mcp-atlassian__jira_create_issue|mcp__mcp-atlassian__jira_update_issue",
         "hooks": [
           {
@@ -164,6 +184,11 @@
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/workflow-chain-suggest.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/vs-integrity-tracker.py",
             "timeout": 5
           }
         ]
@@ -215,6 +240,36 @@
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/auto-parse-large-output.py",
             "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__mcp-atlassian__jira_get_issue",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr5-parent-verify-clear.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/event-model-tracker.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/vs-integrity-tracker.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/explore-fallback-suggest.py",
+            "timeout": 10
           }
         ]
       },
