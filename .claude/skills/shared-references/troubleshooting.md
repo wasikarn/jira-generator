@@ -35,7 +35,7 @@ Note: CREATE has no "issues" field, EDIT requires `"issues": ["{{PROJECT_KEY}}-X
 **Step 1: Create shell with MCP**
 
 ```typescript
-// Subtask — parent เป็น object
+// Subtask — parent is an object
 jira_create_issue({
   project_key: "{{PROJECT_KEY}}",
   summary: "[TAG] - Description",
@@ -43,7 +43,7 @@ jira_create_issue({
   additional_fields: { parent: { key: "{{PROJECT_KEY}}-XXX" } }
 })
 
-// Epic child (Story/Task) — parent เป็น string
+// Epic child (Story/Task) — parent is a string
 jira_create_issue({
   project_key: "{{PROJECT_KEY}}",
   summary: "Story title",

@@ -89,33 +89,33 @@ Expected carry-over = Σ (items × probability per status)
 
 ### Principle
 
-Stories ต้องส่งมอบ **end-to-end user value** ครบทุก layer (UI → API → DB) แต่ละ story = independently deployable + testable
+Stories must deliver **end-to-end user value** across all layers (UI → API → DB) — each story = independently deployable + testable
 
 ### Vertical vs Horizontal
 
 | | Vertical (✅) | Horizontal (❌) |
 | --- | --- | --- |
 | Scope | Full stack for one flow | One layer across many flows |
-| Value | User ใช้งานได้จริง | ต้องรอ layer อื่นจึงจะ work |
-| Testing | QA ทดสอบ flow จริงได้ | ต้องรอ integration |
-| Example | "ผู้ใช้เก็บคูปองเครดิต e2e" | "สร้าง UI shell ทุกหน้า" |
+| Value | User can actually use it | Must wait for other layers to work |
+| Testing | QA can test real flows | Must wait for integration |
+| Example | "User collects credit coupon e2e" | "Build UI shell for all pages" |
 
 ### Patterns
 
 | Pattern | When to Use | Example |
 | --- | --- | --- |
-| **Walking Skeleton** | ต้องการ navigation + empty states ก่อน | `vs1-skeleton`: nav + empty states |
-| **Business Rule Split** | แยกตาม rule/type ที่ต่างกัน | `vs2-credit-e2e`, `vs3-discount-e2e` |
-| **Enabler Story** (SAFe) | Shared component ที่หลาย slice ใช้ร่วม | `vs-enabler`: Side Panel, Toast |
-| **Cross-feature** | ข้ามหลาย feature areas | `ad-integration`: coupon → ad flow |
+| **Walking Skeleton** | Need navigation + empty states first | `vs1-skeleton`: nav + empty states |
+| **Business Rule Split** | Split by different rules/types | `vs2-credit-e2e`, `vs3-discount-e2e` |
+| **Enabler Story** (SAFe) | Shared component used by multiple slices | `vs-enabler`: Side Panel, Toast |
+| **Cross-feature** | Spans multiple feature areas | `ad-integration`: coupon → ad flow |
 
 ### Anti-patterns
 
 | Anti-pattern | Problem | Fix |
 | --- | --- | --- |
-| Shell-only story (UI ไม่มี logic) | ไม่มี value → INVEST fail | เพิ่ม minimal happy path หรือ reframe เป็น Walking Skeleton |
-| Layer split (BE แยกจาก FE) | ต้องรอ layer อื่น → blocked | รวม BE+FE ใน story เดียว |
-| Tab-split (Active tab / History tab) | Tab เดียวไม่มี context | Split ตาม business rule แทน |
+| Shell-only story (UI has no logic) | No value → INVEST fail | Add minimal happy path or reframe as Walking Skeleton |
+| Layer split (BE separated from FE) | Must wait for other layers → blocked | Combine BE+FE in single story |
+| Tab-split (Active tab / History tab) | Single tab has no context | Split by business rule instead |
 
 ### Sprint Assignment Strategy
 
@@ -170,28 +170,28 @@ Stories ต้องส่งมอบ **end-to-end user value** ครบทุ
 
 | Criteria | Question | Example |
 | --- | --- | --- |
-| **S**pecific | What outcome? | "ผู้ใช้สามารถเก็บคูปองเครดิตได้" |
-| **M**easurable | How to verify? | "QA ผ่าน 3 test cases หลัก" |
-| **A**chievable | Within capacity? | ≤80% ของ capacity |
-| **R**elevant | Aligns with product? | ตรงกับ Epic objective |
-| **T**ime-bound | End of sprint? | "ภายใน Sprint 33" |
+| **S**pecific | What outcome? | "Users can collect credit coupons" |
+| **M**easurable | How to verify? | "QA passes 3 main test cases" |
+| **A**chievable | Within capacity? | ≤80% of capacity |
+| **R**elevant | Aligns with product? | Aligns with Epic objective |
+| **T**ime-bound | End of sprint? | "Within Sprint 33" |
 
 ### Sprint Goal Template
 
 ```text
-เมื่อจบ Sprint นี้ [ผู้ใช้กลุ่มเป้าหมาย] จะสามารถ [ทำสิ่งที่มี value] ได้
+By the end of this Sprint, [target users] will be able to [do something valuable]
 ```
 
 **Example:**
-> เมื่อจบ Sprint 33 ผู้ใช้ระบบคูปองจะสามารถเก็บคูปองเครดิตและดูประวัติคูปองได้
+> By the end of Sprint 33, coupon system users will be able to collect credit coupons and view coupon history
 
 ### Anti-patterns
 
 | Anti-pattern | Problem | Fix |
 | --- | --- | --- |
-| "ทำให้เสร็จ" | ไม่มี outcome ชัดเจน | ระบุ user outcome |
-| ไม่มี goal | ทีมไม่มีทิศทาง | กำหนดก่อนเลือก items |
-| Goal ไม่ align กับ items | ทำ items แต่ไม่ถึง goal | Review items vs goal |
+| "Just finish it" | No clear outcome | Specify user outcome |
+| No goal | Team has no direction | Define goal before selecting items |
+| Goal doesn't align with items | Completing items but not reaching goal | Review items vs goal |
 
 ---
 
@@ -216,15 +216,15 @@ Stories ต้องส่งมอบ **end-to-end user value** ครบทุ
 ### Real-time Sign-up Strategy
 
 ```text
-❌ Bad: ก่อน sprint เริ่ม → assign ทุก task ให้ทุกคน
-✅ Good: assign เฉพาะ Day 1-2 → ที่เหลือ sign-up เอง
+❌ Bad: Before sprint starts → assign all tasks to everyone
+✅ Good: Assign only Day 1-2 → rest is self sign-up
 ```
 
 **Benefits:**
 
-- ลด context switching
-- ใครว่างก่อนหยิบงานก่อน
-- Flexibility เมื่อมี blocker
+- Reduce context switching
+- Whoever is free first picks up work first
+- Flexibility when blockers arise
 
 ---
 
@@ -236,17 +236,17 @@ Stories ต้องส่งมอบ **end-to-end user value** ครบทุ
 
 | Size | Duration | Action |
 | --- | --- | --- |
-| XS | < 4h | พอดี |
-| S | 4-8h (1 day) | พอดี |
-| M | 1-2 days | ควร split |
-| L | > 2 days | ต้อง split |
+| XS | < 4h | Appropriate |
+| S | 4-8h (1 day) | Appropriate |
+| M | 1-2 days | Should split |
+| L | > 2 days | Must split |
 
 ### Decomposition Checklist
 
-- [ ] Subtask มี clear deliverable
-- [ ] สามารถ demo/verify ได้
-- [ ] ไม่ต้องรอ subtask อื่นจบก่อน (ถ้าเป็นไปได้)
-- [ ] Assignee คนเดียว (ไม่ share)
+- [ ] Subtask has clear deliverable
+- [ ] Can be demo'd/verified
+- [ ] No dependency on other subtasks completing first (if possible)
+- [ ] Single assignee (no sharing)
 
 ---
 

@@ -50,7 +50,7 @@ argument-hint: "[issue-key]"
 | --- | --- | --- | --- |
 | [user action] | [DomainEvent] | [service/policy] | [state change] |
 
-> ใช้เมื่อ story มี event flow ข้าม service หรือมี policy trigger — ช่วยให้ Phase 4 subtask design แม่นยำขึ้น
+> Use when story has cross-service event flow or policy trigger — helps Phase 4 subtask design be more accurate
 
 **VS Verification:** Story touches all layers for e2e slice? (not layer-only)
 
@@ -92,7 +92,7 @@ If any check fails → auto-adjust subtask scope/design → re-check. Escalate t
 ### 6. Create Artifacts
 
 > **🟢 AUTO** — Create → verify parent → edit descriptions. All automated. Escalate only if parent verify fails after retry.
-> HR5: Two-Step + Verify Parent. acli ไม่รองรับ `parent` field. MCP may silently ignore parent.
+> HR5: Two-Step + Verify Parent. acli does not support the `parent` field. MCP may silently ignore parent.
 
 > [Two-Step Subtask](../shared-references/workflow-patterns.md#two-step-subtask-creation): MCP create shell → verify parent → acli edit. Batch ≥3: create all → verify all → edit all.
 
@@ -115,11 +115,11 @@ Sub-tasks: BEP-YYY, BEP-ZZZ
 
 ## Batch Sub-task Creation
 
-> เมื่อต้องสร้าง sub-tasks ≥3 ตัว ใช้ batch pattern ประหยัด tokens:
+> When creating ≥3 sub-tasks, use batch pattern to save tokens:
 >
-> 1. สร้าง shells ทั้งหมดด้วย MCP (parallel calls)
-> 2. เขียน ADF JSON ทั้งหมดเป็น files ใน `tasks/`
-> 3. Run `acli edit --from-json` ต่อเนื่อง (หรือ Python script สำหรับ batch >5)
+> 1. Create all shells with MCP (parallel calls)
+> 2. Write all ADF JSON as files in `tasks/`
+> 3. Run `acli edit --from-json` sequentially (or Python script for batch >5)
 
 ---
 

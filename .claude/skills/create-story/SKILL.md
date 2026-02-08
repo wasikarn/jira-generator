@@ -31,22 +31,22 @@ argument-hint: "[story-description]"
 
 - If Epic exists → `MCP: jira_get_issue` to read context + VS plan + Problem narrative
 - Ask user: Who? What? Why? Constraints?
-  - **Story Context:** user ปัจจุบันทำอะไรอยู่? อะไรที่ลำบาก? (สำหรับ 📍 context line)
+  - **Story Context:** What is the user currently doing? What's difficult? (for 📍 context line)
 - **VS Assignment:** Which vertical slice does this story belong to? (`vs1-skeleton`, `vs2-*`, `vs-enabler`)
 - **⛔ GATE — DO NOT PROCEED** without user confirmation of requirements + VS assignment.
 
 ### 2. Write Story
 
 ```text
-📍 [สถานการณ์ปัจจุบันของ user — ทำอะไรอยู่, อะไรที่ลำบาก]  ⚡ optional
+📍 [User's current situation — what they're doing, what's difficult]  ⚡ optional
 As a [persona],
 I want to [action],
 So that [benefit].
 ```
 
-- ⚡ **Context line:** ใส่เมื่อ persona ใหม่ หรือ workflow ซับซ้อน — ไม่ต้องใส่ทุก story
+- ⚡ **Context line:** Include when persona is new or workflow is complex — not needed for every story
 - Define ACs: Given/When/Then format
-- **AC Naming:** ใช้ `AC{N}: [Verb] — [Scenario Name]` (ไม่ใช่แค่ "AC1: Title")
+- **AC Naming:** Use `AC{N}: [Verb] — [Scenario Name]` (not just "AC1: Title")
 - Specify Scope (affected services) and DoD
 - **VS Check:** Story delivers end-to-end value? All layers touched? (not shell-only or layer-split)
 - Use Thai + transliteration
@@ -65,9 +65,9 @@ So that [benefit].
 
 **VS Anti-pattern Check:**
 
-- ❌ Shell-only (UI ไม่มี logic) → เพิ่ม minimal happy path
-- ❌ Layer-split (BE แยกจาก FE) → รวมเป็น story เดียว
-- ❌ Tab-split → split ตาม business rule แทน
+- ❌ Shell-only (UI has no logic) → Add minimal happy path
+- ❌ Layer-split (BE separated from FE) → Combine into single story
+- ❌ Tab-split → Split by business rule instead
 
 **🟢 AUTO** — Validate all criteria. If any fail or VS anti-pattern detected → auto-fix and re-validate. Escalate to user only if unfixable.
 
@@ -90,7 +90,7 @@ acli jira workitem create --from-json tasks/story.json
 - **Labels (MANDATORY):**
   - Feature label: `coupon-web`, `credit-topup`, etc.
   - VS label: `vs1-skeleton`, `vs2-credit-e2e`, `vs-enabler`, etc.
-  - ดู convention: [Vertical Slice Guide](../shared-references/vertical-slice-guide.md)
+  - See convention: [Vertical Slice Guide](../shared-references/vertical-slice-guide.md)
 
 > **🟢 AUTO** — HR6: `cache_invalidate(story_key)` after create.
 

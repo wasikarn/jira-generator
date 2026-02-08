@@ -243,7 +243,7 @@ MCP: jira_update_issue(issue_key="{{PROJECT_KEY}}-XXX", additional_fields={"{{SP
 Bash: acli jira workitem assign -k "{{PROJECT_KEY}}-XXX" -a "email@domain.com" -y
 ```
 
-> ⚠️ Sprint field ใช้ `{{SPRINT_FIELD}}` กับ plain number (เช่น `123`) — ห้ามใช้ `{"id": 123}`
+> ⚠️ Sprint field uses `{{SPRINT_FIELD}}` with plain number (e.g. `123`) — do not use `{"id": 123}`
 > **🟢 AUTO** — HR3: NEVER set assignee via MCP. Use `acli jira workitem assign -k "KEY" -a "email" -y`.
 > **🟢 AUTO** — HR6: `cache_invalidate(issue_key)` after EVERY sprint assignment.
 

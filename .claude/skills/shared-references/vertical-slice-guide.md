@@ -9,8 +9,8 @@
 | Vertical (✅) | Horizontal (❌) |
 | --- | --- |
 | Full stack for one flow | One layer across flows |
-| User ใช้งานได้จริง | ต้องรอ layer อื่น |
-| Independently testable | ต้องรอ integration |
+| User can actually use it | Must wait for other layers |
+| Independently testable | Must wait for integration |
 
 ---
 
@@ -53,9 +53,9 @@ Epic received
 
 ```text
 vs1-skeleton
-├─ [FE-Web] Menu item "คูปองของฉัน"
-├─ [FE-Web] Empty state "ยังไม่มีคูปอง"
-├─ [FE-Admin] Menu item "จัดการคูปอง"
+├─ [FE-Web] Menu item "My Coupons"
+├─ [FE-Web] Empty state "No coupons yet"
+├─ [FE-Admin] Menu item "Manage Coupons"
 └─ [BE] GET /v2/coupons/my → empty array
 ```
 
@@ -196,18 +196,18 @@ For each Story:
 
 ```text
 Story: vs2-collect-e2e (Collect Credit Coupon)
-├─ [BE] - API และ logic สำหรับเก็บคูปองเครดิต
-├─ [FE-Web] - UI เก็บคูปองเครดิต
-└─ [QA] - Test: เก็บคูปองเครดิต
+├─ [BE] - API and logic for collecting credit coupons
+├─ [FE-Web] - UI for collecting credit coupons
+└─ [QA] - Test: Collect credit coupons
 ```
 
 **Bad Example (Horizontal):**
 
 ```text
 Story: Coupon UI (❌ No VS label, horizontal)
-├─ [FE-Web] - สร้าง UI ทุกหน้าคูปอง
-├─ [FE-Web] - สร้าง component ทั้งหมด
-└─ [FE-Web] - integrate กับ API
+├─ [FE-Web] - Build UI for all coupon pages
+├─ [FE-Web] - Build all components
+└─ [FE-Web] - Integrate with API
 ```
 
 ---
@@ -271,9 +271,9 @@ Story: Coupon UI (❌ No VS label, horizontal)
 
 ```text
 Sprint 32:
-├─ BEP-100: [BE] สร้าง API คูปองทั้งหมด (5 SP)
-├─ BEP-101: [FE] สร้าง UI คูปองทั้งหมด (5 SP)
-└─ BEP-102: [QA] ทดสอบระบบคูปอง (3 SP)
+├─ BEP-100: [BE] Build all coupon APIs (5 SP)
+├─ BEP-101: [FE] Build all coupon UI (5 SP)
+└─ BEP-102: [QA] Test coupon system (3 SP)
     └─ Blocked until BEP-100 + BEP-101 done
 ```
 

@@ -45,7 +45,7 @@
 **Density rules:**
 
 - Objective: **1 sentence** — what + why only
-- ⚡ Event context (optional): `Handles: [Command] → emits: [Event]` — ใช้เมื่อ parent Epic มี Domain Model
+- ⚡ Event context (optional): `Handles: [Command] → emits: [Event]` — use when parent Epic has Domain Model
 - Scope table: only files that change, **max 10 rows** — if >10, split sub-task
 - AC: **max 3 panels** — sub-task should be smaller than story
 - Reference: ⚡ **skip** if parent story has all links

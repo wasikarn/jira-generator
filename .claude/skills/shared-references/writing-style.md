@@ -77,36 +77,36 @@ Team will **scan before reading** — design content to be scannable in 5 second
 
 ## Storytelling Principles
 
-> **Goal:** ทุก ticket ต้องบอก **ทำไม** ก่อน **อะไร**
+> **Goal:** Every ticket must explain **why** before **what**
 
 ### Narrative Arc → Jira Mapping
 
 | Framework | Jira Mapping |
 | --- | --- |
-| Three-Part (Jobs): Status Quo → Challenge → Solution | Epic: Problem line ใน Overview |
-| Pixar Spine: Once upon a time → Every day | Story: 📍 Context line ก่อน "As a" |
+| Three-Part (Jobs): Status Quo → Challenge → Solution | Epic: Problem line in Overview |
+| Pixar Spine: Once upon a time → Every day | Story: 📍 Context line before "As a" |
 | Scenario Naming | AC: `AC{N}: [Verb] — [Scenario]` |
 | Event Causality: Command → Event → Policy | AC: Given=[state] When=[command] Then=[event effect] |
 
 ### Rules
 
-1. **Problem before Solution** — Epic Overview เริ่มด้วย problem ไม่ใช่ feature
-2. **Context before Action** — Story เปิดด้วยสถานการณ์ปัจจุบันของ user (⚡ optional)
-3. **Scenario Names > Numbers** — AC title บอกว่า _เกิดอะไรขึ้น_ ไม่ใช่แค่ "AC1"
-4. **Business "Why" > Technical "What"** — "So that" ต้องเป็น business value ไม่ใช่ technical benefit
-5. **One Story per Ticket** — ถ้า narrative มี 2 arcs → split ticket
-6. **Event Causality** — ⚡ optional: ระบุ domain events ที่เกี่ยวข้อง (Command → Event → side effect) เพื่อ traceability
+1. **Problem before Solution** — Epic Overview starts with problem, not feature
+2. **Context before Action** — Story opens with user's current situation (⚡ optional)
+3. **Scenario Names > Numbers** — AC title describes _what happens_, not just "AC1"
+4. **Business "Why" > Technical "What"** — "So that" must be business value, not technical benefit
+5. **One Story per Ticket** — If narrative has 2 arcs → split ticket
+6. **Event Causality** — ⚡ optional: specify related domain events (Command → Event → side effect) for traceability
 
 ### Anti-Patterns
 
 | Pattern | Problem | Fix |
 | --- | --- | --- |
-| No Problem Statement | Epic อ่านเป็น feature list | เพิ่ม "Problem:" line |
-| Generic Persona | "As a user" ซ้ำทุก story | เพิ่ม 📍 context line + specific situation |
-| Numbered-only ACs | "AC1", "AC2" ไม่มีความหมาย | ใช้ verb + scenario name |
-| Restated Why | "So that I can do X" = copy ของ "I want X" | "So that" ต้องเพิ่ม business value ใหม่ |
-| Technical Events in AC | "DB_INSERT_SUCCESS" ใน AC | ใช้ domain language: "CouponCollected" |
-| No Event Flow | Story ไม่ระบุ event ที่เกิดขึ้น | ⚡ optional: เพิ่ม command→event ใน AC title |
+| No Problem Statement | Epic reads as feature list | Add "Problem:" line |
+| Generic Persona | "As a user" repeated in every story | Add 📍 context line + specific situation |
+| Numbered-only ACs | "AC1", "AC2" are meaningless | Use verb + scenario name |
+| Restated Why | "So that I can do X" = copy of "I want X" | "So that" must add new business value |
+| Technical Events in AC | "DB_INSERT_SUCCESS" in AC | Use domain language: "CouponCollected" |
+| No Event Flow | Story doesn't specify events | ⚡ optional: add command→event in AC title |
 
 ---
 

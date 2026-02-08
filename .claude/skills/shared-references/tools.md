@@ -73,7 +73,7 @@ What do you need?
 > Date fields: `{{START_DATE_FIELD}}` (Start), `duedate` (Due) · Sprint field: `{{SPRINT_FIELD}}` (plain number)
 >
 > **Issue Link Types (BEP):** `Relates` · `Blocks` · `Duplicate` · `Cloners` · `Test Case`
-> ⚠️ ใช้ `"Relates"` ไม่ใช่ `"Relates to"` — ชื่อต้องตรงกับ Jira config
+> ⚠️ Use `"Relates"` not `"Relates to"` — name must match Jira config
 >
 > ⚠️ **MCP assignee bug:** `jira_update_issue` assignee field reports success but doesn't update.
 > Use `acli jira workitem assign -k "KEY" -a "email" -y` instead.

@@ -150,7 +150,7 @@ What do you need to do?
 | Fix broken code blocks | **Script** `fix_confluence_code_blocks.py` | Post-step after MCP create/update |
 | Issue linking (Blocks/Relates) | MCP `jira_create_issue_link` | Bidirectional links between issues |
 | Web links (Figma/Confluence) | MCP `jira_create_remote_issue_link` | Add external links to issue Links section |
-| Move issues to backlog / sprint mgmt | **Script** via `JiraAPI._request()` | MCP ไม่รองรับ — ใช้ Agile REST API + **numeric IDs** |
+| Move issues to backlog / sprint mgmt | **Script** via `JiraAPI._request()` | MCP not supported — use Agile REST API + **numeric IDs** |
 
 > **⚠️ Known Issue (Code Blocks):** MCP `confluence_create_page` / `confluence_update_page` with `content_format: 'markdown'`
 > renders code blocks as `<pre class="highlight">` instead of Confluence `<ac:structured-macro>`.

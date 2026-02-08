@@ -30,10 +30,10 @@ argument-hint: "[epic-title]"
 ### 1. Discovery
 
 - Interview stakeholder:
-  - **Problem narrative:** สถานการณ์ปัจจุบันเป็นอย่างไร? อะไรที่เป็นปัญหา? ถ้าไม่ทำจะเกิดอะไร?
+  - **Problem narrative:** What is the current situation? What is the problem? What happens if we don't act?
   - Target users? Business value? Success metrics?
 - If existing docs available → read context
-- **Narrative Arc:** สรุปเป็น `[สถานการณ์ปัจจุบัน] → [ปัญหา] → [Epic นี้แก้ปัญหาโดย...]`
+- **Narrative Arc:** Summarize as `[Current situation] → [Problem] → [This Epic solves it by...]`
 - **VS Planning:** Identify potential vertical slices (what distinct user flows exist?)
 - **⛔ GATE — DO NOT PROCEED** without stakeholder confirmation of problem narrative + VS planning.
 

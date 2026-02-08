@@ -48,7 +48,7 @@
         "content": [
           {"type": "paragraph", "content": [
             {"type": "text", "text": "Problem: ", "marks": [{"type": "strong"}]},
-            {"type": "text", "text": "[สถานการณ์ปัจจุบัน] → [ปัญหา] → [Epic นี้แก้ปัญหาโดย...]"}
+            {"type": "text", "text": "[Current situation] → [Problem] → [This Epic solves it by...]"}
           ]},
           {"type": "paragraph", "content": [
             {"type": "text", "text": "[Develop system X for Y]", "marks": [{"type": "strong"}]}
