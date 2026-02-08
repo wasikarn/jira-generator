@@ -146,4 +146,14 @@ Additional: Workflow Steps | CRUD | User Roles | Complexity (manual vs automated
 | warning (edge) | `AC{N}: [Verb] — [Edge scenario]` | `AC2: Validate — Field required ว่างเปล่า` |
 | error (error) | `AC{N}: [Verb] — [Error scenario]` | `AC3: Handle — API return 500` |
 
+⚡ **Event-based AC naming** (optional — use for domain-rich features):
+
+| Panel Type | Pattern | Example |
+| --- | --- | --- |
+| success | `AC{N}: [DomainEvent] — [Scenario]` | `AC1: CouponCollected — User เก็บคูปองสำเร็จ` |
+| warning | `AC{N}: [Invariant] — [Scenario]` | `AC2: DuplicateBlocked — User เก็บซ้ำ` |
+| error | `AC{N}: [FailureEvent] — [Scenario]` | `AC3: CollectionFailed — Campaign หมดอายุ` |
+
+> Event-based naming เหมาะเมื่อ Epic มี Domain Model section — ทำให้ AC trace กลับไปที่ event catalog ได้
+
 Scenario name: **5-8 words max**, read as mini-story — ดู [Storytelling Principles](writing-style.md#storytelling-principles)

@@ -44,6 +44,14 @@ argument-hint: "[issue-key]"
 | Admin | ✅/❌ | [why] |
 | Website | ✅/❌ | [why] |
 
+**⚡ Event Flow (optional — include for complex domains):**
+
+| Command | Event Emitted | Consumer(s) | Side Effect |
+| --- | --- | --- | --- |
+| [user action] | [DomainEvent] | [service/policy] | [state change] |
+
+> ใช้เมื่อ story มี event flow ข้าม service หรือมี policy trigger — ช่วยให้ Phase 4 subtask design แม่นยำขึ้น
+
 **VS Verification:** Story touches all layers for e2e slice? (not layer-only)
 
 **🟡 REVIEW** — Present impact table + VS verification to user. Proceed unless user objects.

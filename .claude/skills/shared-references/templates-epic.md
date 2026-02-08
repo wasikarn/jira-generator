@@ -25,6 +25,7 @@
 - 🎯 Epic Overview (info) — **3 lines max** (Problem → Summary → Supports)
 - 💰 Business Value (success) — **3 bullets max**
 - 📦 Scope (info) — **1 line/item, no description needed**
+- 🔄 Domain Model (info) — ⚡ optional, include for complex domains with multiple aggregates/events
 - 📊 RICE Score (table) — ⚡ skip if priority is already clear
 - 🎯 Success Metrics (table) — ⚡ skip if metrics not yet defined
 - 📋 User Stories (panels) — **list + link only**
@@ -90,6 +91,26 @@
           {"type": "paragraph", "content": [
             {"type": "text", "text": "2. [Feature/Module 2]", "marks": [{"type": "strong"}]},
             {"type": "text", "text": " - [description]"}
+          ]}
+        ]
+      },
+      {"type": "rule"},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔄 Domain Model ⚡"}]},
+      {
+        "type": "panel",
+        "attrs": {"panelType": "info"},
+        "content": [
+          {"type": "paragraph", "content": [
+            {"type": "text", "text": "Aggregates: ", "marks": [{"type": "strong"}]},
+            {"type": "text", "text": "[Aggregate1, Aggregate2]"}
+          ]},
+          {"type": "paragraph", "content": [
+            {"type": "text", "text": "Domain Events: ", "marks": [{"type": "strong"}]},
+            {"type": "text", "text": "[Event1, Event2] — emitted by this Epic's scope"}
+          ]},
+          {"type": "paragraph", "content": [
+            {"type": "text", "text": "Policies: ", "marks": [{"type": "strong"}]},
+            {"type": "text", "text": "WHEN [Event] THEN [Action] — ⚡ skip if no cross-domain triggers"}
           ]}
         ]
       },
@@ -208,4 +229,4 @@
 }
 ```
 
-**Panels:** Overview/Scope=`info`, Business Value=`success`, Progress=`note`, Canceled=`warning`
+**Panels:** Overview/Scope/Domain Model=`info`, Business Value=`success`, Progress=`note`, Canceled=`warning`

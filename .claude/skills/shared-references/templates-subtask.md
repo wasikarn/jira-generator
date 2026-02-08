@@ -45,6 +45,7 @@
 **Density rules:**
 
 - Objective: **1 sentence** — what + why only
+- ⚡ Event context (optional): `Handles: [Command] → emits: [Event]` — ใช้เมื่อ parent Epic มี Domain Model
 - Scope table: only files that change, **max 10 rows** — if >10, split sub-task
 - AC: **max 3 panels** — sub-task should be smaller than story
 - Reference: ⚡ **skip** if parent story has all links
@@ -79,7 +80,7 @@ jira_create_issue({
     "version": 1,
     "content": [
       {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🎯 Objective"}]},
-      {"type": "paragraph", "content": [{"type": "text", "text": "[What and why - 1-2 sentences]"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "[What and why - 1-2 sentences]  ⚡ Handles: [Command] → emits: [Event]"}]},
       {"type": "rule"},
       {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "📁 Scope"}]},
       {"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": "Files (New)"}]},

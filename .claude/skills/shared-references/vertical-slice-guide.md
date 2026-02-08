@@ -232,6 +232,9 @@ Story: Coupon UI (❌ No VS label, horizontal)
 | Layer-split | BE story + FE story separate | Combine into one VS story |
 | Tab-split | "Active tab" / "History tab" as stories | Split by business rule instead |
 | Scope creep | VS grows beyond sprint | Re-split into smaller VS |
+| Event-split | Domain event lifecycle split across 2 VS | ⚡ One VS handles full command→event flow |
+| Consumer-no-emitter | Story consumes event but emitter not in scope | ⚡ Link to producer VS or add dependency |
+| Orphaned event | Event emitted but no consumer VS exists | ⚡ Validate downstream VS or defer event |
 
 ---
 

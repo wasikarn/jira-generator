@@ -86,6 +86,7 @@ Team will **scan before reading** — design content to be scannable in 5 second
 | Three-Part (Jobs): Status Quo → Challenge → Solution | Epic: Problem line ใน Overview |
 | Pixar Spine: Once upon a time → Every day | Story: 📍 Context line ก่อน "As a" |
 | Scenario Naming | AC: `AC{N}: [Verb] — [Scenario]` |
+| Event Causality: Command → Event → Policy | AC: Given=[state] When=[command] Then=[event effect] |
 
 ### Rules
 
@@ -94,6 +95,7 @@ Team will **scan before reading** — design content to be scannable in 5 second
 3. **Scenario Names > Numbers** — AC title บอกว่า _เกิดอะไรขึ้น_ ไม่ใช่แค่ "AC1"
 4. **Business "Why" > Technical "What"** — "So that" ต้องเป็น business value ไม่ใช่ technical benefit
 5. **One Story per Ticket** — ถ้า narrative มี 2 arcs → split ticket
+6. **Event Causality** — ⚡ optional: ระบุ domain events ที่เกี่ยวข้อง (Command → Event → side effect) เพื่อ traceability
 
 ### Anti-Patterns
 
@@ -103,6 +105,8 @@ Team will **scan before reading** — design content to be scannable in 5 second
 | Generic Persona | "As a user" ซ้ำทุก story | เพิ่ม 📍 context line + specific situation |
 | Numbered-only ACs | "AC1", "AC2" ไม่มีความหมาย | ใช้ verb + scenario name |
 | Restated Why | "So that I can do X" = copy ของ "I want X" | "So that" ต้องเพิ่ม business value ใหม่ |
+| Technical Events in AC | "DB_INSERT_SUCCESS" ใน AC | ใช้ domain language: "CouponCollected" |
+| No Event Flow | Story ไม่ระบุ event ที่เกิดขึ้น | ⚡ optional: เพิ่ม command→event ใน AC title |
 
 ---
 
