@@ -140,3 +140,32 @@ def vs_get_coverage(session_id: str) -> dict:
         "story_acs": state.get("vs_story_acs", {}),
         "subtasks": state.get("vs_subtasks", {}),
     }
+
+
+# ── QMD: Usage tracking ─────────────────────────────
+
+# Known indexed project roots → collection name
+QMD_COLLECTIONS = {
+    "/Users/kobig/Codes/Works/tathep/tathep-platform-api": "platform-api",
+    "/Users/kobig/Codes/Works/tathep/tathep-video-processing": "video-processing",
+    "/Users/kobig/Codes/Works/tathep/tathep-website": "website",
+    "/Users/kobig/Codes/Works/tathep/tathep-admin": "admin",
+}
+
+
+def qmd_mark_used(session_id: str) -> None:
+    state = _load(session_id)
+    state["qmd_used"] = True
+    _save(session_id, state)
+
+
+def qmd_is_used(session_id: str) -> bool:
+    return _load(session_id).get("qmd_used", False)
+
+
+def qmd_collection_for_path(path: str) -> str | None:
+    """Return collection name if path falls within an indexed project."""
+    for root, name in QMD_COLLECTIONS.items():
+        if path.startswith(root):
+            return name
+    return None

@@ -16,13 +16,13 @@
       "mcp__context7__*",
       "mcp__plugin_playwright_playwright__*",
       "mcp__plugin_claude-mem_mcp-search__*",
-      "mcp__repomix__*",
       "mcp__sequential-thinking__*",
       "mcp__postman-api__*",
       "mcp__tathep-db__*",
       "mcp__figma__get_figma_*",
       "mcp__figma__get_figma_data",
-      "mcp__jira-cache-server__*"
+      "mcp__jira-cache-server__*",
+      "mcp__qmd__*"
     ],
     "deny": [
       "Bash(rm -rf /)",
