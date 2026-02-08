@@ -15,19 +15,13 @@ argument-hint: "[story-description]"
 
 | Phase | Adds to Context |
 |-------|----------------|
-| 1. Discovery | `epic_data`, `vs_assignment`, `user_requirements` |
+| 1. Discovery | `epic_data`, `vs_assignment`, `user_requirements`, `user_context` |
 | 2. Write Story | `story_narrative`, `acs[]`, `scope`, `dod` |
 | 3. INVEST | `invest_score`, `vs_validated` |
 | 4. QG | `qg_score`, `passed_qg` |
 | 5. Create | `story_key` ({{PROJECT_KEY}}-XXX) |
 
-## Gate Levels
-
-| Level | Symbol | Behavior |
-| --- | --- | --- |
-| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
-| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
-| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ## Phases
 
@@ -35,20 +29,24 @@ argument-hint: "[story-description]"
 
 ### 1. Discovery
 
-- If Epic exists → `MCP: jira_get_issue` to read context + VS plan
+- If Epic exists → `MCP: jira_get_issue` to read context + VS plan + Problem narrative
 - Ask user: Who? What? Why? Constraints?
+  - **Story Context:** user ปัจจุบันทำอะไรอยู่? อะไรที่ลำบาก? (สำหรับ 📍 context line)
 - **VS Assignment:** Which vertical slice does this story belong to? (`vs1-skeleton`, `vs2-*`, `vs-enabler`)
 - **⛔ GATE — DO NOT PROCEED** without user confirmation of requirements + VS assignment.
 
 ### 2. Write Story
 
 ```text
+📍 [สถานการณ์ปัจจุบันของ user — ทำอะไรอยู่, อะไรที่ลำบาก]  ⚡ optional
 As a [persona],
 I want to [action],
 So that [benefit].
 ```
 
+- ⚡ **Context line:** ใส่เมื่อ persona ใหม่ หรือ workflow ซับซ้อน — ไม่ต้องใส่ทุก story
 - Define ACs: Given/When/Then format
+- **AC Naming:** ใช้ `AC{N}: [Verb] — [Scenario Name]` (ไม่ใช่แค่ "AC1: Title")
 - Specify Scope (affected services) and DoD
 - **VS Check:** Story delivers end-to-end value? All layers touched? (not shell-only or layer-split)
 - Use Thai + transliteration
@@ -78,14 +76,7 @@ So that [benefit].
 > **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
 > HR1: DO NOT send Story to Atlassian without QG ≥ 90%.
 
-Score against `shared-references/verification-checklist.md`:
-
-1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
-2. Report: `Technical X/5 | Story Quality X/6 | Overall X%`
-3. If < 90% → auto-fix → re-score (max 2 attempts)
-4. If ≥ 90% → proceed to Phase 5 automatically
-5. If still < 90% after 2 fixes → escalate to user
-6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
+> [QG Scoring Rules](../shared-references/workflow-patterns.md#quality-gate-scoring). Report: `Technical X/5 | Story Quality X/6 | Overall X%`
 
 ### 5. Create in Jira
 
@@ -115,8 +106,8 @@ ACs: N | Scope: [services]
 
 ## References
 
-- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Templates](../shared-references/templates.md) - ADF templates (Story section)
+- [ADF Core Rules](../shared-references/templates-core.md) - CREATE/EDIT rules, panels, styling
+- [Story Template](../shared-references/templates-story.md) - Story ADF template + best practices
 - [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS patterns, labels, DoD
 - [Verification Checklist](../shared-references/verification-checklist.md) - INVEST, AC quality
 - After creation: `/verify-issue {{PROJECT_KEY}}-XXX`

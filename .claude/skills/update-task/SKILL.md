@@ -27,13 +27,7 @@ argument-hint: "{{PROJECT_KEY}}-XXX [changes]"
 | 5. QG | `qg_score`, `passed_qg` |
 | 6. Apply | `applied` |
 
-## Gate Levels
-
-| Level | Symbol | Behavior |
-| --- | --- | --- |
-| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
-| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
-| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ## Phases
 
@@ -136,14 +130,7 @@ Would you like to apply these changes?
 > **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
 > HR1: DO NOT send updates to Atlassian without QG ≥ 90%.
 
-Score against `shared-references/verification-checklist.md`:
-
-1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
-2. Report: `Technical X/5 | Quality X/6 | Overall X%`
-3. If < 90% → auto-fix → re-score (max 2 attempts)
-4. If ≥ 90% → proceed to Phase 6 automatically
-5. If still < 90% after 2 fixes → escalate to user
-6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
+> [QG Scoring Rules](../shared-references/workflow-patterns.md#quality-gate-scoring). Report: `Technical X/5 | Quality X/6 | Overall X%`
 
 ### 6. Apply Update
 
@@ -199,6 +186,6 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 
 ## References
 
-- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Templates](../shared-references/templates.md) - ADF templates (Task section)
+- [ADF Core Rules](../shared-references/templates-core.md) - CREATE/EDIT rules, panels, styling
+- [Task Template](../shared-references/templates-task.md) - Task ADF templates (tech-debt, bug, chore, spike)
 - After: `/verify-issue {{PROJECT_KEY}}-XXX` to check quality

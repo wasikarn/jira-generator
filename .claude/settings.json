@@ -1,5 +1,7 @@
 {
-  "enabledMcpjsonServers": ["jira-cache-server"],
+  "enabledMcpjsonServers": [
+    "jira-cache-server"
+  ],
   "permissions": {
     "allow": [
       "Bash",
@@ -93,6 +95,56 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "mcp__mcp-atlassian__jira_search",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr2-jql-order-by-guard.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__mcp-atlassian__confluence_update_page",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr4-confluence-macro-guard.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__jira-cache-server__cache_get_issue",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr6-read-guard.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__mcp-atlassian__jira_create_issue|mcp__mcp-atlassian__jira_update_issue",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr7-sprint-id-guard.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__mcp-atlassian__jira_get_issue|mcp__mcp-atlassian__jira_search",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/field-preset-guard.py",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -102,6 +154,16 @@
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr5-verify-parent-reminder.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/search-before-create.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/workflow-chain-suggest.py",
             "timeout": 5
           }
         ]
@@ -117,6 +179,36 @@
         ]
       },
       {
+        "matcher": "mcp__mcp-atlassian__jira_search",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/search-tracker.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__mcp-atlassian__jira_get_sprints_from_board",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr7-sprint-lookup-tracker.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__jira-cache-server__cache_invalidate",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr6-invalidate-clear.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "mcp__mcp-atlassian__jira_search|mcp__mcp-atlassian__jira_get_sprint_issues|mcp__mcp-atlassian__jira_get_project_issues|mcp__mcp-atlassian__jira_get_board_issues|mcp__mcp-atlassian__jira_get_issue|mcp__jira-cache-server__cache_search|mcp__jira-cache-server__cache_sprint_issues",
         "hooks": [
           {
@@ -125,15 +217,25 @@
             "timeout": 15
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/auto-verify-suggest.py",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "Stop": [
       {
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "Review this session for HR6 compliance. Check if any Jira write operations (jira_create_issue, jira_update_issue, jira_transition_issue, or acli workitem create/edit) were performed. For each write, verify that cache_invalidate was called for the affected issue key BEFORE any subsequent read of that key. If any writes lack cache_invalidate, respond {\"ok\": false, \"reason\": \"HR6: cache_invalidate missing for [list keys]. Run cache_invalidate for each.\"}. If all writes have matching invalidations or no writes occurred, respond {\"ok\": true}.",
-            "timeout": 15
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr6-stop-check.py",
+            "timeout": 10
           }
         ]
       }

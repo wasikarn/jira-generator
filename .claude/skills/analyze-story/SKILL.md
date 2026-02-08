@@ -24,13 +24,7 @@ argument-hint: "[issue-key]"
 | 5b. QG | `qg_score`, `passed_qg` |
 | 6. Create | `subtask_keys[]` |
 
-## Gate Levels
-
-| Level | Symbol | Behavior |
-| --- | --- | --- |
-| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
-| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
-| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ## Phases
 
@@ -56,23 +50,8 @@ argument-hint: "[issue-key]"
 
 ### 3. Codebase Exploration ⚠️ MANDATORY
 
-Launch 2-3 Explore agents **IN PARALLEL** (single message, multiple Task calls):
-
-```text
-# Agent 1: Backend (models, controllers, routes, services)
-Task(subagent_type: "Explore", prompt: "Find [feature] in backend: models, controllers, routes, services")
-
-# Agent 2: Frontend (pages, components, hooks, stores)
-Task(subagent_type: "Explore", prompt: "Find [feature] in frontend: pages, components, hooks")
-
-# Agent 3 (if needed): Shared/infra (config, middleware, types, utils)
-Task(subagent_type: "Explore", prompt: "Find [feature] in shared: config, middleware, types")
-```
-
-Each agent returns: `file_paths[]`, `patterns[]`, `dependencies[]`
-Merge results into context.
-
-**🟢 AUTO** — Validate file paths with Glob. If zero real paths found → re-explore automatically (max 2 attempts). Generic paths like `/src/` are REJECTED. Escalate to user only if still zero after retries.
+> [Parallel Explore](../shared-references/workflow-patterns.md#parallel-explore): Launch 2-3 agents (Backend/Frontend/Shared) IN PARALLEL.
+> Validate paths with Glob. Generic paths REJECTED. Re-explore max 2 attempts.
 
 ### 4. Design Sub-tasks
 
@@ -100,25 +79,14 @@ If any check fails → auto-adjust subtask scope/design → re-check. Escalate t
 > **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
 > HR1: DO NOT create subtasks in Jira without QG ≥ 90%.
 
-Score each subtask ADF against `shared-references/verification-checklist.md`:
-
-1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
-2. Report: `Technical X/5 | Subtask Quality X/5 | Overall X%`
-3. If < 90% → auto-fix → re-score (max 2 attempts)
-4. If ≥ 90% → proceed to Phase 6 automatically
-5. If still < 90% after 2 fixes → escalate to user
-6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
+> [QG Scoring Rules](../shared-references/workflow-patterns.md#quality-gate-scoring). Report: `Technical X/5 | Subtask Quality X/5 | Overall X%`
 
 ### 6. Create Artifacts
 
 > **🟢 AUTO** — Create → verify parent → edit descriptions. All automated. Escalate only if parent verify fails after retry.
 > HR5: Two-Step + Verify Parent. acli ไม่รองรับ `parent` field. MCP may silently ignore parent.
 
-**Step 1:** MCP `jira_create_issue` (create shell + parent link) — parallel calls ได้
-**Step 2:** Verify parent — `jira_get_issue` each subtask → check `parent.key` = story_key
-**Step 3:** `acli --from-json` (update ADF description)
-
-เมื่อ sub-tasks ≥3 ตัว: สร้าง shells ทั้งหมดก่อน → verify all → batch edit descriptions
+> [Two-Step Subtask](../shared-references/workflow-patterns.md#two-step-subtask-creation): MCP create shell → verify parent → acli edit. Batch ≥3: create all → verify all → edit all.
 
 > **🟢 AUTO** — HR6: `cache_invalidate(subtask_key)` after EVERY Atlassian write.
 > **🟢 AUTO** — HR3: If assignee needed, use `acli jira workitem assign -k "KEY" -a "email" -y` (never MCP).
@@ -149,8 +117,8 @@ Sub-tasks: BEP-YYY, BEP-ZZZ
 
 ## References
 
-- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Templates](../shared-references/templates.md) - ADF templates (Sub-task section)
+- [ADF Core Rules](../shared-references/templates-core.md) - CREATE/EDIT rules, panels, styling
+- [Subtask Template](../shared-references/templates-subtask.md) - Subtask ADF template + best practices
 - [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS decomposition, patterns
 - [Tool Selection](../shared-references/tools.md) - Tools, service tags, effort sizing
 - After creation: `/verify-issue {{PROJECT_KEY}}-XXX --with-subtasks`

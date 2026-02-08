@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""HR6: Remind to cache_invalidate after every Jira write.
+"""HR6: Track and enforce cache_invalidate after every Jira write.
 
 PostToolUse hook for jira_create_issue, jira_update_issue, jira_transition_issue.
-Injects additionalContext so Claude sees the reminder and acts on it.
+Records pending invalidation in session state (hr6-read-guard blocks stale reads)
+and injects additionalContext reminder.
 
 Exit codes: 0 (always — PostToolUse cannot block)
 """
@@ -10,6 +11,9 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_state import hr6_add_pending
 
 LOG_DIR = Path.home() / ".claude" / "hooks-logs"
 
@@ -65,6 +69,10 @@ def main() -> None:
     if not issue_key:
         print("{}")
         return
+
+    # Track pending invalidation in session state
+    session_id = data.get("session_id", "")
+    hr6_add_pending(session_id, issue_key)
 
     tool_name = data.get("tool_name", "unknown")
     log_event("REMIND", {

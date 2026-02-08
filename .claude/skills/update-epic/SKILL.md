@@ -27,13 +27,7 @@ argument-hint: "[issue-key] [changes]"
 | 5. QG | `qg_score`, `passed_qg` |
 | 6. Apply | `applied` |
 
-## Gate Levels
-
-| Level | Symbol | Behavior |
-| --- | --- | --- |
-| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
-| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
-| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ## Phases
 
@@ -77,14 +71,7 @@ argument-hint: "[issue-key] [changes]"
 > **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
 > HR1: DO NOT send updates to Atlassian without QG ≥ 90%.
 
-Score against `shared-references/verification-checklist.md`:
-
-1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
-2. Report: `Technical X/5 | Quality X/6 | Overall X%`
-3. If < 90% → auto-fix → re-score (max 2 attempts)
-4. If ≥ 90% → proceed to Phase 6 automatically
-5. If still < 90% after 2 fixes → escalate to user
-6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
+> [QG Scoring Rules](../shared-references/workflow-patterns.md#quality-gate-scoring). Report: `Technical X/5 | Quality X/6 | Overall X%`
 
 ### 6. Apply Update
 
@@ -122,7 +109,7 @@ Changes: [list]
 
 | Section | Panel Type | Content |
 | --- | --- | --- |
-| 🎯 Epic Overview | `info` | Summary + scope statement |
+| 🎯 Epic Overview | `info` | Problem statement + summary + scope statement |
 | 💰 Business Value | `success` | Revenue, Retention, Operations |
 | 📦 Scope | `info` + table | Features/modules breakdown |
 | 📊 RICE Score | table | R/I/C/E + final score |
@@ -140,6 +127,6 @@ Changes: [list]
 
 ## References
 
-- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Templates](../shared-references/templates.md) - ADF templates (Epic section)
+- [ADF Core Rules](../shared-references/templates-core.md) - CREATE/EDIT rules, panels, styling
+- [Epic Template](../shared-references/templates-epic.md) - Epic ADF template + best practices
 - [Tool Selection](../shared-references/tools.md) - Tool selection

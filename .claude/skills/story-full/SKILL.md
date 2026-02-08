@@ -21,7 +21,7 @@ argument-hint: "[story-description]"
 
 | Phase | Adds to Context |
 |-------|----------------|
-| 1. Discovery | `epic_data`, `vs_assignment`, `user_requirements` |
+| 1. Discovery | `epic_data`, `vs_assignment`, `user_requirements`, `user_context` |
 | 2. Write Story | `story_narrative`, `acs[]`, `scope`, `dod` |
 | 3. INVEST | `invest_score`, `vs_validated` |
 | 3b. QG Story | `story_adf_json`, `story_qg_score` |
@@ -33,13 +33,7 @@ argument-hint: "[story-description]"
 | 9. QG Subtasks | `qg_score`, `passed_qg` |
 | 10. Create | `subtask_keys[]` |
 
-## Gate Levels
-
-| Level | Symbol | Behavior |
-| --- | --- | --- |
-| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
-| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
-| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ## Part A: Create Story (Phases 1-4)
 
@@ -48,19 +42,23 @@ argument-hint: "[story-description]"
 ### 1. Discovery
 
 - Ask: Who? What? Why? Constraints?
-- If Epic exists → `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")` + read VS plan
+  - **Story Context:** user ปัจจุบันทำอะไรอยู่? อะไรที่ลำบาก? (สำหรับ 📍 context line)
+- If Epic exists → `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")` + read VS plan + Problem narrative
 - **VS Assignment:** Which vertical slice? (`vs1-skeleton`, `vs2-*`, `vs-enabler`)
 - **⛔ GATE — DO NOT PROCEED** without user confirmation of requirements + VS assignment.
 
 ### 2. Write User Story
 
 ```text
+📍 [สถานการณ์ปัจจุบันของ user — ทำอะไรอยู่, อะไรที่ลำบาก]  ⚡ optional
 As a [persona],
 I want to [action],
 So that [benefit].
 ```
 
+- ⚡ **Context line:** ใส่เมื่อ persona ใหม่ หรือ workflow ซับซ้อน — ไม่ต้องใส่ทุก story
 - Define ACs, Scope, DoD
+- **AC Naming:** ใช้ `AC{N}: [Verb] — [Scenario Name]` (ไม่ใช่แค่ "AC1: Title")
 - **VS Check:** Story delivers e2e value? All layers touched? (not shell-only)
 - **🟡 REVIEW** — Present story narrative, ACs, scope to user. Proceed unless user objects.
 
@@ -125,23 +123,8 @@ acli jira workitem create --from-json tasks/story.json
 
 ### 6. Codebase Exploration ⚠️ MANDATORY
 
-Launch 2-3 Explore agents **IN PARALLEL** (single message, multiple Task calls):
-
-```text
-# Agent 1: Backend (models, controllers, routes, services)
-Task(subagent_type: "Explore", prompt: "Find [feature] in backend: models, controllers, routes, services")
-
-# Agent 2: Frontend (pages, components, hooks, stores)
-Task(subagent_type: "Explore", prompt: "Find [feature] in frontend: pages, components, hooks")
-
-# Agent 3 (if needed): Shared/infra (config, middleware, types, utils)
-Task(subagent_type: "Explore", prompt: "Find [feature] in shared: config, middleware, types")
-```
-
-Each agent returns: `file_paths[]`, `patterns[]`, `dependencies[]`
-Merge results into context.
-
-**🟢 AUTO** — Validate file paths with Glob. If zero real paths found → re-explore automatically (max 2 attempts). Generic paths like `/src/` are REJECTED. Escalate to user only if still zero after retries.
+> [Parallel Explore](../shared-references/workflow-patterns.md#parallel-explore): Launch 2-3 agents (Backend/Frontend/Shared) IN PARALLEL.
+> Validate paths with Glob. Generic paths REJECTED. Re-explore max 2 attempts.
 
 ### 7. Design Sub-tasks
 
@@ -168,25 +151,14 @@ If any check fails → auto-adjust subtask scope/design → re-check. Escalate t
 > **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
 > HR1: DO NOT create subtasks in Jira without QG ≥ 90%.
 
-Score each subtask ADF against `shared-references/verification-checklist.md`:
-
-1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
-2. Report: `Technical X/5 | Subtask Quality X/5 | Overall X%`
-3. If < 90% → auto-fix → re-score (max 2 attempts)
-4. If ≥ 90% → proceed to Phase 10 automatically
-5. If still < 90% after 2 fixes → escalate to user
-6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
+> [QG Scoring Rules](../shared-references/workflow-patterns.md#quality-gate-scoring). Report: `Technical X/5 | Subtask Quality X/5 | Overall X%`
 
 ### 10. Create Sub-tasks
 
 > **🟢 AUTO** — Create → verify parent → edit descriptions. All automated. Escalate only if parent verify fails after retry.
 > HR5: Two-Step + Verify Parent. acli ไม่รองรับ `parent` field. MCP may silently ignore parent.
 
-**Step 1:** MCP `jira_create_issue` (create shell + parent link) — parallel calls ได้
-**Step 2:** Verify parent — `jira_get_issue` each subtask → check `parent.key` = story_key
-**Step 3:** `acli --from-json` (update ADF description)
-
-เมื่อ sub-tasks ≥3 ตัว: สร้าง shells ทั้งหมดก่อน → verify all → batch edit descriptions
+> [Two-Step Subtask](../shared-references/workflow-patterns.md#two-step-subtask-creation): MCP create shell → verify parent → acli edit. Batch ≥3: create all → verify all → edit all.
 
 ```text
 # Step 1: Create shells (parallel)
@@ -229,7 +201,8 @@ Sub-tasks: BEP-YYY [BE], BEP-ZZZ [FE-Admin]
 
 ## References
 
-- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Templates](../shared-references/templates.md) - ADF templates (Story, Sub-task sections)
+- [ADF Core Rules](../shared-references/templates-core.md) - CREATE/EDIT rules, panels, styling
+- [Story Template](../shared-references/templates-story.md) - Story ADF template + best practices
+- [Subtask Template](../shared-references/templates-subtask.md) - Subtask ADF template + QA
 - [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS patterns, decomposition, labels
 - [Verification Checklist](../shared-references/verification-checklist.md) - INVEST, quality checks

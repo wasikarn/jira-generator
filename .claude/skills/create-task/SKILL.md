@@ -170,13 +170,8 @@ Any changes needed before creating?
 
 ### 4. Quality Gate (MANDATORY)
 
-Before sending to Atlassian, score against `shared-references/verification-checklist.md`:
-
-1. Report: `Technical X/5 | Quality X/6 | Overall X%`
-2. If < 90% → auto-fix issues → re-score (max 2 attempts)
-3. If >= 90% → proceed to create/edit
-4. If still < 90% after fix → ask user before proceeding
-5. After Atlassian write → `cache_invalidate(issue_key)` if cache server available
+> **🟢 AUTO** — [QG Scoring Rules](../shared-references/workflow-patterns.md#quality-gate-scoring). Report: `Technical X/5 | Quality X/6 | Overall X%`
+> HR1: DO NOT send Task to Atlassian without QG ≥ 90%.
 
 ### 5. Create
 
@@ -217,6 +212,6 @@ acli jira workitem create --from-json tasks/bep-xxx-task.json
 
 ## References
 
-- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Templates](../shared-references/templates.md) - ADF templates (Task section)
+- [ADF Core Rules](../shared-references/templates-core.md) - CREATE/EDIT rules, panels, styling
+- [Task Template](../shared-references/templates-task.md) - Task ADF templates (tech-debt, bug, chore, spike)
 - After: `/verify-issue {{PROJECT_KEY}}-XXX` to check quality

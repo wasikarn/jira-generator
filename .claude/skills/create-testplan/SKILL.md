@@ -26,13 +26,7 @@ argument-hint: "[issue-key]"
 | 4. QG | `qg_score`, `passed_qg` |
 | 5. Create | `qa_subtask_key` |
 
-## Gate Levels
-
-| Level | Symbol | Behavior |
-| --- | --- | --- |
-| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
-| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
-| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 > **Note:** Test Plan is embedded in [QA] Sub-task description instead of creating a separate Confluence page
 
@@ -72,14 +66,7 @@ argument-hint: "[issue-key]"
 > **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
 > HR1: DO NOT create QA subtask in Jira without QG ≥ 90%.
 
-Score against `shared-references/verification-checklist.md`:
-
-1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
-2. Report: `Technical X/5 | QA Quality X/5 | Overall X%`
-3. If < 90% → auto-fix → re-score (max 2 attempts)
-4. If ≥ 90% → proceed to Phase 5 automatically
-5. If still < 90% after 2 fixes → escalate to user
-6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
+> [QG Scoring Rules](../shared-references/workflow-patterns.md#quality-gate-scoring). Report: `Technical X/5 | QA Quality X/5 | Overall X%`
 
 ### 5. Create [QA] Sub-task
 
@@ -88,14 +75,14 @@ Score against `shared-references/verification-checklist.md`:
 
 > **Principle:** 1 Story = 1 [QA] Sub-task (Test Plan embedded in description)
 >
-> ⚠️ Use **Two-Step Workflow** (see [Templates](../shared-references/templates.md) - Sub-task section):
+> ⚠️ Use **Two-Step Workflow** (see [Subtask Template](../shared-references/templates-subtask.md)):
 >
 > **Step 1:** MCP `jira_create_issue` → summary: `[QA] - Test: [Feature Name]`, parent: `{{PROJECT_KEY}}-XXX`
 > **Step 2:** `acli jira workitem edit --from-json tasks/bep-xxx-qa.json --yes`
 >
 > ⚠️ EDIT JSON uses `"issues": ["BEP-QQQ"]` (not `"parent"` or `"parentKey"`)
 
-Panel colors: see [ADF Core Rules](../shared-references/templates.md) — success=happy, warning=edge, error=error
+Panel colors: see [ADF Core Rules](../shared-references/templates-core.md) — success=happy, warning=edge, error=error
 
 > **🟢 AUTO** — HR6: `cache_invalidate(qa_subtask_key)` after create.
 > **🟢 AUTO** — HR3: If assignee needed, use `acli jira workitem assign -k "KEY" -a "email" -y` (never MCP).
@@ -130,6 +117,6 @@ Coverage: X ACs → Y test scenarios (100%)
 
 ## References
 
-- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Templates](../shared-references/templates.md) - ADF templates (Sub-task section)
+- [ADF Core Rules](../shared-references/templates-core.md) - CREATE/EDIT rules, panels, styling
+- [Subtask Template](../shared-references/templates-subtask.md) - Subtask + QA ADF templates
 - [Verification](../shared-references/verification-checklist.md) - QA checklist

@@ -15,19 +15,13 @@ argument-hint: "[epic-title]"
 
 | Phase | Adds to Context |
 |-------|----------------|
-| 1. Discovery | `stakeholder_input`, `vs_plan`, `user_requirements` |
+| 1. Discovery | `stakeholder_input`, `problem_narrative`, `vs_plan`, `user_requirements` |
 | 2. RICE | `rice_score`, `priority` |
 | 3. Scope | `scope_items[]`, `vs_stories[]`, `mvp_definition` |
 | 4. QG | `qg_score`, `passed_qg` |
 | 5. Create | `epic_key`, `epic_doc_id` |
 
-## Gate Levels
-
-| Level | Symbol | Behavior |
-| --- | --- | --- |
-| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
-| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
-| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ## Phases
 
@@ -35,10 +29,13 @@ argument-hint: "[epic-title]"
 
 ### 1. Discovery
 
-- Interview stakeholder: Problem? Target users? Business value? Success metrics?
+- Interview stakeholder:
+  - **Problem narrative:** สถานการณ์ปัจจุบันเป็นอย่างไร? อะไรที่เป็นปัญหา? ถ้าไม่ทำจะเกิดอะไร?
+  - Target users? Business value? Success metrics?
 - If existing docs available → read context
+- **Narrative Arc:** สรุปเป็น `[สถานการณ์ปัจจุบัน] → [ปัญหา] → [Epic นี้แก้ปัญหาโดย...]`
 - **VS Planning:** Identify potential vertical slices (what distinct user flows exist?)
-- **⛔ GATE — DO NOT PROCEED** without stakeholder confirmation of problem understanding + VS planning.
+- **⛔ GATE — DO NOT PROCEED** without stakeholder confirmation of problem narrative + VS planning.
 
 ### 2. RICE Prioritization
 
@@ -68,14 +65,7 @@ argument-hint: "[epic-title]"
 > **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
 > HR1: DO NOT send Epic to Atlassian without QG ≥ 90%.
 
-Score against `shared-references/verification-checklist.md`:
-
-1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
-2. Report: `Technical X/5 | Epic Quality X/4 | Overall X%`
-3. If < 90% → auto-fix → re-score (max 2 attempts)
-4. If ≥ 90% → proceed to Phase 5 automatically
-5. If still < 90% after 2 fixes → escalate to user
-6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
+> [QG Scoring Rules](../shared-references/workflow-patterns.md#quality-gate-scoring). Report: `Technical X/5 | Epic Quality X/4 | Overall X%`
 
 ### 5. Create Artifacts
 
@@ -104,7 +94,7 @@ Epic Doc: [link] | Epic: [link]
 
 | Section | Panel Type | Content |
 | --- | --- | --- |
-| 🎯 Epic Overview | `info` | Summary + scope statement |
+| 🎯 Epic Overview | `info` | Problem statement + summary + scope statement |
 | 💰 Business Value | `success` | Revenue, Retention, Operations |
 | 📦 Scope | `info` + table | Features/modules breakdown |
 | 📊 RICE Score | table | R/I/C/E + final score |
@@ -122,8 +112,8 @@ Epic Doc: [link] | Epic: [link]
 
 ## References
 
-- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Templates](../shared-references/templates.md) - ADF templates (Epic section)
+- [ADF Core Rules](../shared-references/templates-core.md) - CREATE/EDIT rules, panels, styling
+- [Epic Template](../shared-references/templates-epic.md) - Epic ADF template + best practices
 - [Tool Selection](../shared-references/tools.md) - Tool selection, effort sizing
 - [Vertical Slice Guide](../shared-references/vertical-slice-guide.md) - VS patterns, decomposition
 - After creation: `/verify-issue {{PROJECT_KEY}}-XXX`

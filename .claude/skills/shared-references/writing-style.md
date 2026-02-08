@@ -75,20 +75,51 @@ Team will **scan before reading** — design content to be scannable in 5 second
 
 ---
 
+## Storytelling Principles
+
+> **Goal:** ทุก ticket ต้องบอก **ทำไม** ก่อน **อะไร**
+
+### Narrative Arc → Jira Mapping
+
+| Framework | Jira Mapping |
+| --- | --- |
+| Three-Part (Jobs): Status Quo → Challenge → Solution | Epic: Problem line ใน Overview |
+| Pixar Spine: Once upon a time → Every day | Story: 📍 Context line ก่อน "As a" |
+| Scenario Naming | AC: `AC{N}: [Verb] — [Scenario]` |
+
+### Rules
+
+1. **Problem before Solution** — Epic Overview เริ่มด้วย problem ไม่ใช่ feature
+2. **Context before Action** — Story เปิดด้วยสถานการณ์ปัจจุบันของ user (⚡ optional)
+3. **Scenario Names > Numbers** — AC title บอกว่า _เกิดอะไรขึ้น_ ไม่ใช่แค่ "AC1"
+4. **Business "Why" > Technical "What"** — "So that" ต้องเป็น business value ไม่ใช่ technical benefit
+5. **One Story per Ticket** — ถ้า narrative มี 2 arcs → split ticket
+
+### Anti-Patterns
+
+| Pattern | Problem | Fix |
+| --- | --- | --- |
+| No Problem Statement | Epic อ่านเป็น feature list | เพิ่ม "Problem:" line |
+| Generic Persona | "As a user" ซ้ำทุก story | เพิ่ม 📍 context line + specific situation |
+| Numbered-only ACs | "AC1", "AC2" ไม่มีความหมาย | ใช้ verb + scenario name |
+| Restated Why | "So that I can do X" = copy ของ "I want X" | "So that" ต้องเพิ่ม business value ใหม่ |
+
+---
+
 ## Content Budget (per section)
 
 > Agent **must** write within this budget — if exceeded, cut or split
 
 | Issue Type | Section | Budget |
 | --- | --- | --- |
-| **Epic** | Overview | 2 sentences |
+| **Epic** | Overview | 3 lines (Problem + Summary + Supports) |
 | | Business Value | 3 bullets (Revenue/Retention/Ops) |
 | | Scope | 1 line/item, no description needed |
 | | RICE | ⚡ optional — skip if priority is already clear |
 | | Success Metrics | ⚡ optional — skip if metrics not yet defined |
 | | User Stories | list + link only, no description |
 | | Progress | auto counts, don't write manually |
-| **Story** | Narrative | 3 lines (As a / I want / So that) |
+| **Story** | Narrative | 3-4 lines (⚡ optional 📍 context + As a / I want / So that) |
 | | AC panels | max 5 panels — if >5, split story |
 | | Each AC | 3 bullets (Given/When/Then) + optional And |
 | | Reference | ⚡ skip if no Figma/external link |

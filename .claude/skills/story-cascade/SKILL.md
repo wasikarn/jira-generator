@@ -30,13 +30,7 @@ argument-hint: "[issue-key] [changes]"
 | 7. QG | `qg_score`, `passed_qg` |
 | 8. Apply | `applied_keys[]` |
 
-## Gate Levels
-
-| Level | Symbol | Behavior |
-| --- | --- | --- |
-| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
-| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
-| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ## Phases
 
@@ -77,24 +71,8 @@ argument-hint: "[issue-key] [changes]"
 > **🟢 AUTO** — Run only if scope changed or new sub-task needed. Skip if format-only. Validate paths with Glob.
 
 - Run only if: New sub-task needed OR scope changed
-- Launch 2-3 Explore agents **IN PARALLEL** (single message, multiple Task calls):
-
-```text
-# Agent 1: Backend (models, controllers, routes, services)
-Task(subagent_type: "Explore", prompt: "Find [feature] in backend: models, controllers, routes, services")
-
-# Agent 2: Frontend (pages, components, hooks, stores)
-Task(subagent_type: "Explore", prompt: "Find [feature] in frontend: pages, components, hooks")
-
-# Agent 3 (if needed): Shared/infra (config, middleware, types, utils)
-Task(subagent_type: "Explore", prompt: "Find [feature] in shared: config, middleware, types")
-```
-
-Each agent returns: `file_paths[]`, `patterns[]`, `dependencies[]`
-Merge results into context.
-
-- Skip if format-only changes
-- Validate file paths with Glob. Generic paths like `/src/` are REJECTED.
+- [Parallel Explore](../shared-references/workflow-patterns.md#parallel-explore): Launch 2-3 agents (Backend/Frontend/Shared) IN PARALLEL.
+- Validate paths with Glob. Generic paths REJECTED. Skip if format-only.
 
 ### 5. Generate Story Update
 
@@ -117,14 +95,7 @@ Merge results into context.
 > **🟢 AUTO** — Score → auto-fix → re-score. Escalate only if still < 90% after 2 attempts.
 > HR1: DO NOT send updates to Atlassian without QG ≥ 90%.
 
-Score against `shared-references/verification-checklist.md`:
-
-1. Score each check with confidence (0-100%). Only report issues with confidence ≥ 80%.
-2. Report: `Technical X/5 | Quality X/6 | Overall X%`
-3. If < 90% → auto-fix → re-score (max 2 attempts)
-4. If ≥ 90% → proceed to Phase 8 automatically
-5. If still < 90% after 2 fixes → escalate to user
-6. Low-confidence items (< 80%) → flag as "needs review" but don't fail QG
+> [QG Scoring Rules](../shared-references/workflow-patterns.md#quality-gate-scoring). Report: `Technical X/5 | Quality X/6 | Overall X%`
 
 ### 8. Apply All Updates
 
@@ -169,6 +140,7 @@ Created: BEP-NEW
 
 ## References
 
-- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Templates](../shared-references/templates.md) - ADF templates (Story, Sub-task sections)
+- [ADF Core Rules](../shared-references/templates-core.md) - CREATE/EDIT rules, panels, styling
+- [Story Template](../shared-references/templates-story.md) - Story ADF template + best practices
+- [Subtask Template](../shared-references/templates-subtask.md) - Subtask ADF template + QA
 - [Tool Selection](../shared-references/tools.md) - Tool selection

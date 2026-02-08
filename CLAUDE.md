@@ -48,6 +48,7 @@ Config: `.claude/project-config.json` (single source of truth) — Jira/Confluen
 | `/story-full` | Create Story + Sub-tasks in one go (preferred) |
 | `/story-cascade {{PROJECT_KEY}}-XXX` | Update Story + cascade to Sub-tasks |
 | `/sync-alignment {{PROJECT_KEY}}-XXX` | Sync all artifacts bidirectional |
+| `/assign {{PROJECT_KEY}}-XXX name` | Quick assign issue (HR3-safe, uses acli) |
 | `/plan-sprint` | Sprint planning: carry-over + capacity + assign |
 | `/dependency-chain` | Dependency analysis, critical path, swim lanes |
 | `/search-issues` | Search before creating (dedup) |
@@ -135,7 +136,7 @@ Config: `.claude/project-config.json` (single source of truth) — Jira/Confluen
 ## References
 
 Shared refs at `.claude/skills/shared-references/` (all `.md`):
-templates (epic·story·subtask·task sections) · tools · verification-checklist · writing-style · jql-quick-ref · troubleshooting · team-capacity · sprint-frameworks · dependency-frameworks · vertical-slice-guide · skill-orchestration
+templates (epic·story·subtask·task sections) · tools · verification-checklist · writing-style · jql-quick-ref · troubleshooting · team-capacity · sprint-frameworks · dependency-frameworks · vertical-slice-guide · skill-orchestration · workflow-patterns
 
 **Templates:** `shared-references/templates.md` | **Writing style:** `shared-references/writing-style.md`
 **Orchestration:** `shared-references/skill-orchestration.md` | **Scripts:** `.claude/skills/atlassian-scripts/SKILL.md`

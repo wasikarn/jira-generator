@@ -30,13 +30,7 @@ argument-hint: "[issue-key-or-page-id] [changes]"
 | 7. Execute | `applied_keys[]`, `execution_log` |
 | 8. Verify | `verification_report` |
 
-## Gate Levels
-
-| Level | Symbol | Behavior |
-| --- | --- | --- |
-| **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
-| **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
-| **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ---
 
@@ -126,24 +120,8 @@ Directions: DOWN (parent→child) / UP (child→parent) / SIDEWAYS (Jira↔Confl
 > **🟢 AUTO** — Run only if scope changed or new file paths needed. Skip if format-only. Validate paths with Glob.
 
 - Run only when: scope changed / need new file paths / new sub-task needed
-- Launch 2-3 Explore agents **IN PARALLEL** (single message, multiple Task calls):
-
-```text
-# Agent 1: Backend (models, controllers, routes, services)
-Task(subagent_type: "Explore", prompt: "Find [feature] in backend: models, controllers, routes, services")
-
-# Agent 2: Frontend (pages, components, hooks, stores)
-Task(subagent_type: "Explore", prompt: "Find [feature] in frontend: pages, components, hooks")
-
-# Agent 3 (if needed): Shared/infra (config, middleware, types, utils)
-Task(subagent_type: "Explore", prompt: "Find [feature] in shared: config, middleware, types")
-```
-
-Each agent returns: `file_paths[]`, `patterns[]`, `dependencies[]`
-Merge results into context.
-
-- **Skip** if format-only / wording-only / technical detail change
-- Validate file paths with Glob. Generic paths like `/src/` are REJECTED.
+- [Parallel Explore](../shared-references/workflow-patterns.md#parallel-explore): Launch 2-3 agents (Backend/Frontend/Shared) IN PARALLEL.
+- **Skip** if format-only / wording-only / technical detail change. Validate paths with Glob. Generic paths REJECTED.
 
 ### 6. Generate Sync Updates
 
@@ -237,8 +215,8 @@ Post-sync: `rm tasks/sync-*.json tasks/sync-*.md` → `/verify-issue {{PROJECT_K
 
 ## References
 
-- [ADF Core Rules](../shared-references/templates.md) - CREATE/EDIT rules, panels, styling
-- [Templates](../shared-references/templates.md) - ADF templates (Epic, Story, Sub-task, Task)
+- [ADF Core Rules](../shared-references/templates-core.md) - CREATE/EDIT rules, panels, styling
+- [Templates Index](../shared-references/templates.md) - Load by issue type (epic, story, subtask, task)
 - [Tool Selection](../shared-references/tools.md)
 - [Verification Checklist](../shared-references/verification-checklist.md)
 - [Atlassian Scripts](../atlassian-scripts/SKILL.md)
