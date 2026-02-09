@@ -163,6 +163,22 @@ def qmd_is_used(session_id: str) -> bool:
     return _load(session_id).get("qmd_used", False)
 
 
+def qmd_mark_collection_searched(session_id: str, collection: str) -> None:
+    """Mark a collection as auto-searched (per-collection tracking)."""
+    state = _load(session_id)
+    searched = set(state.get("qmd_searched_collections", []))
+    searched.add(collection)
+    state["qmd_searched_collections"] = sorted(searched)
+    _save(session_id, state)
+
+
+def qmd_is_collection_searched(session_id: str, collection: str) -> bool:
+    """Check if a collection was already auto-searched."""
+    return collection in set(
+        _load(session_id).get("qmd_searched_collections", [])
+    )
+
+
 def qmd_collection_for_path(path: str) -> str | None:
     """Return collection name if path falls within an indexed project."""
     for root, name in QMD_COLLECTIONS.items():

@@ -165,6 +165,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Glob|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/qmd-auto-search.py",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -279,6 +289,16 @@
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/auto-verify-suggest.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__qmd__search|mcp__qmd__vsearch|mcp__qmd__get|mcp__qmd__query",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/qmd-usage-tracker.py",
             "timeout": 5
           }
         ]
