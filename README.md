@@ -359,6 +359,7 @@ After `./scripts/setup.sh`, git filters handle placeholder↔value conversion **
 | `{{SPRINT_FIELD}}` | `customfield_YYYYY` (Sprint) |
 | `{{COMPANY}}` | `Acme Corp` |
 | `{{COMPANY_LOWER}}` | `acme` |
+| `{{SLOT_1}}` .. `{{SLOT_N}}` | Team member names (from `project-config.json` → `team.members[]`) |
 
 ### Cloning to Another Project
 

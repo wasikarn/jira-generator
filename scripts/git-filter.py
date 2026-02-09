@@ -23,6 +23,15 @@ def load_values():
         return None
     with open(CONFIG_PATH) as f:
         c = json.load(f)
+
+    # Build member name → slot mapping from team.members[]
+    members = c.get("team", {}).get("members", [])
+    member_slots = {}
+    for i, m in enumerate(members):
+        name = m.get("name")
+        if name:
+            member_slots[name] = f"SLOT_{i + 1}"
+
     return {
         "PROJECT_KEY": c["jira"]["project_key"],
         "JIRA_SITE": c["jira"]["site"],
@@ -31,6 +40,7 @@ def load_values():
         "SPRINT_FIELD": c["jira"]["custom_fields"]["sprint"],
         "COMPANY": c.get("company", "Tathep"),
         "COMPANY_LOWER": c.get("company_lower", "tathep"),
+        "MEMBER_SLOTS": member_slots,
     }
 
 
@@ -71,6 +81,10 @@ def smudge(content, v):
         f'~/Codes/Works/{v["COMPANY_LOWER"]}/',
         content,
     )
+
+    # Team member names: {{SLOT_N}} → real name
+    for name, slot in v["MEMBER_SLOTS"].items():
+        content = content.replace(f"{{{{{slot}}}}}", name)
 
     return content
 
@@ -123,6 +137,11 @@ def clean(content, v):
         '~/Projects/{{COMPANY_LOWER}}/',
         content,
     )
+
+    # Team member names: real name → {{SLOT_N}} (longest first to avoid substring issues)
+    for name in sorted(v["MEMBER_SLOTS"], key=len, reverse=True):
+        slot = v["MEMBER_SLOTS"][name]
+        content = content.replace(name, f"{{{{{slot}}}}}")
 
     return content
 

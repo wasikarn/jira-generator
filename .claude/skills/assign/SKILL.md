@@ -15,7 +15,7 @@ argument-hint: "{{PROJECT_KEY}}-XXX [name]"
 
 ```text
 /assign {{PROJECT_KEY}}-XXX Kobi        → assign to Kobi
-/assign {{PROJECT_KEY}}-XXX Natthakarn  → assign to Natthakarn
+/assign {{PROJECT_KEY}}-XXX {{SLOT_5}}  → assign to {{SLOT_5}}
 /assign {{PROJECT_KEY}}-XXX unassign    → remove assignee
 ```
 
@@ -35,7 +35,7 @@ Read team from `project-config.json` → `team.members[]`. Match by first name (
 
 | Name | Note |
 |------|------|
-| Natthakarn | Display name: `"Natthakarn Naowasook"` — use email from config |
+| {{SLOT_5}} | Jira display name differs from config `name` — always lookup email from config |
 
 > HR3: NEVER use MCP `jira_update_issue` with assignee — silently fails.
 > HR6: `cache_invalidate(issue_key)` after assign.
