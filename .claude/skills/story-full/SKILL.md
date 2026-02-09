@@ -183,6 +183,15 @@ MCP: jira_get_issue(issue_key: "BEP-YYY", fields: "parent") → confirm parent.k
 MCP: jira_get_issue(issue_key: "BEP-ZZZ", fields: "parent") → confirm parent.key = "{{PROJECT_KEY}}-XXX"
 # If parent missing → fix via REST API before continuing
 
+# Step 2b: Set subtask dates + OE (HR8 alignment — dates must be within parent range)
+MCP: jira_update_issue(issue_key="BEP-YYY", additional_fields={
+  "timetracking": {"originalEstimate": "<N>h"},
+  "{{START_DATE_FIELD}}": "YYYY-MM-DD",  # Start Date (≥ parent start)
+  "duedate": "YYYY-MM-DD"             # Due Date (≤ parent due)
+})
+# ⚠️ HR10: NEVER set sprint on subtasks — inherits from parent
+# ⚠️ HR8: Distribute subtask dates evenly within parent date range
+
 # Step 3: Update descriptions
 acli jira workitem edit --from-json tasks/subtask-be.json --yes
 acli jira workitem edit --from-json tasks/subtask-fe.json --yes

@@ -35,9 +35,10 @@ argument-hint: "[issue-key] [changes]"
 
 ### 1. Fetch Current State
 
-- `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX")`
-- Fetch parent story for context
+- `MCP: jira_get_issue(issue_key: "{{PROJECT_KEY}}-XXX", fields: "summary,status,description,parent,{{START_DATE_FIELD}},duedate,timetracking")`
+- Fetch parent story: `MCP: jira_get_issue(issue_key: "<parent_key>", fields: "summary,status,{{START_DATE_FIELD}},duedate")`
 - Read: Description, Summary, Status
+- **HR8 baseline:** Record parent start/due dates for Phase 6 validation
 - **🟡 REVIEW** — Present current state to user. Proceed unless user objects.
 
 ### 2. Identify Changes
@@ -82,6 +83,17 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 ```
 
 > **🟢 AUTO** — HR6: `cache_invalidate(issue_key)` after apply.
+
+**HR8 — Validate dates against parent (if dates changed or set):**
+
+```text
+# After apply, verify subtask dates within parent range:
+# - subtask start_date ≥ parent start_date
+# - subtask due_date ≤ parent due_date
+# - If OE was set/changed, validate it matches estimation panel
+# If violation detected → warn user + suggest fix
+# ⚠️ HR10: NEVER set sprint on subtasks — inherits from parent
+```
 
 ---
 

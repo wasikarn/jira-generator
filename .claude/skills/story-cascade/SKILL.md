@@ -113,6 +113,24 @@ acli jira workitem edit --from-json tasks/bep-yyy-update.json --yes
 > **🟢 AUTO** — HR6: `cache_invalidate(issue_key)` after EVERY Atlassian write.
 > **🟢 AUTO** — HR3: If assignee needed, use `acli jira workitem assign -k "KEY" -a "email" -y` (never MCP).
 
+**HR8 — Cascade date alignment (if story dates changed):**
+
+```text
+# For each subtask (existing + new): ensure dates within parent range
+# New subtasks: set dates + OE during Two-Step creation
+MCP: jira_update_issue(issue_key="BEP-YYY", additional_fields={
+  "timetracking": {"originalEstimate": "<N>h"},
+  "{{START_DATE_FIELD}}": "YYYY-MM-DD",  # ≥ parent start
+  "duedate": "YYYY-MM-DD"             # ≤ parent due
+})
+# Existing subtasks: validate + fix if dates now outside new parent range
+# - subtask start < new parent start → clamp to parent start
+# - subtask due > new parent due → extend parent due OR flag
+# ⚠️ HR10: NEVER set sprint on subtasks
+```
+
+> **🟢 AUTO** — HR6: `cache_invalidate(subtask_key)` after each subtask date fix.
+
 ### 9. Cleanup & Summary
 
 ```bash

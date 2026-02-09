@@ -83,11 +83,31 @@ acli jira workitem edit --from-json tasks/bep-xxx-update.json --yes
 
 > **🟢 AUTO** — HR6: `cache_invalidate(issue_key)` after apply.
 
+**If start_date or due_date changed — HR8 subtask alignment:**
+
+```text
+# Fetch subtasks with dates
+MCP: jira_search(jql: "parent = {{PROJECT_KEY}}-XXX", fields: "summary,status,{{START_DATE_FIELD}},duedate,timetracking")
+# ⚠️ NEVER add ORDER BY to parent queries (HR2)
+
+# For each active subtask: validate dates within new parent range
+# - subtask start < new parent start → clamp to parent start
+# - subtask due > new parent due → extend parent due OR flag
+# - missing dates → distribute evenly within parent range
+# - missing OE → estimate from summary keywords (2h-4h)
+
+# Or run batch fix:
+Bash: python3 tasks/sprint-subtask-alignment.py --sprint <id>
+```
+
+> **🟢 AUTO** — HR6: `cache_invalidate(subtask_key)` after each subtask date fix.
+
 **Output:**
 
 ```text
 ## Story Updated: [Title] ({{PROJECT_KEY}}-XXX)
 Changes: [list]
+Subtask alignment: [X subtasks checked, Y adjusted]
 → May need: /update-subtask BEP-YYY
 → May need: /story-cascade {{PROJECT_KEY}}-XXX (for auto cascade)
 ```

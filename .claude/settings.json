@@ -269,6 +269,16 @@
         ]
       },
       {
+        "matcher": "mcp__jira-cache-server__cache_sprint_issues|mcp__mcp-atlassian__jira_get_sprint_issues",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/subtask-alignment-suggest.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "mcp__mcp-atlassian__jira_get_issue|mcp__mcp-atlassian__jira_search",
         "hooks": [
           {

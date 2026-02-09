@@ -181,6 +181,20 @@ acli jira workitem create --from-json tasks/bep-xxx-task.json
 
 **Capture issue key from output** for use in summary
 
+> **🟢 AUTO** — HR6: `cache_invalidate(issue_key)` after create.
+
+**Set estimation fields (after create):**
+
+```text
+MCP: jira_update_issue(issue_key="{{PROJECT_KEY}}-XXX", additional_fields={
+  "customfield_10016": <SP>,                  # Story Points (XS=1,S=2,M=3,L=5,XL=8)
+  "customfield_10107": {"value": "<SIZE>"},   # Size
+  "timetracking": {"originalEstimate": "<N>h"} # Original Estimate
+})
+```
+
+> **🟢 AUTO** — HR6: `cache_invalidate(issue_key)` after field update.
+
 ---
 
 ### 6. Summary

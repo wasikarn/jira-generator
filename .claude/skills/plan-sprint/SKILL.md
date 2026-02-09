@@ -304,6 +304,19 @@ Bash: acli jira workitem assign -k "{{PROJECT_KEY}}-XXX" -a "email@domain.com" -
 > **🟢 AUTO** — HR3: NEVER set assignee via MCP. Use `acli jira workitem assign -k "KEY" -a "email" -y`.
 > **🟢 AUTO** — HR6: `cache_invalidate(issue_key)` after EVERY sprint assignment.
 
+**HR8 — Post-assignment alignment check (MANDATORY):**
+
+```text
+# After all assignments complete, run subtask alignment validation:
+Bash: python3 tasks/sprint-subtask-alignment.py --sprint <target_sprint_id>
+
+# Reviews: dates within parent range, missing OE, missing dates
+# If violations found → run with --apply to auto-fix
+# Then cache_invalidate(sprint_id=<id>) to refresh cache
+```
+
+> **🟢 AUTO** — Always run alignment check after Phase 8. This is the safety net for HR8.
+
 **Output:**
 
 ```text
@@ -311,6 +324,7 @@ Bash: acli jira workitem assign -k "{{PROJECT_KEY}}-XXX" -a "email@domain.com" -
 Sprint: [Name] (ID: XXX)
 Items assigned: XX
 Team members: XX
+Subtask alignment: [X checked, Y fixed]
 
 ### Execution Log
 | # | Key | Action | Status |
