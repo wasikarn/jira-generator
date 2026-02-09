@@ -125,7 +125,7 @@ Config: `.claude/project-config.json` (single source of truth) — Jira/Confluen
 | --- | --- |
 | MCP assignee → silent fail | Use `acli jira workitem assign` |
 | Subtask parent → error | `additional_fields={"parent": {"key": "{{PROJECT_KEY}}-XXX"}}` |
-| Subtask + sprint → error | Remove sprint field — inherits from parent |
+| Subtask + sprint → error | **NEVER** set sprint on subtasks — inherits from parent (HR10, hook-enforced) |
 | `fields` param → error | Use `additional_fields` not `fields` |
 | `project_key_or_id` → error | Use `project_key` |
 | `limit > 50` → error | Max 50, use pagination `start_at` |
@@ -201,4 +201,9 @@ Subtask dates must fall within parent date range. Story points sum must be reaso
 #### HR9. Related Ticket Descriptions Must Align
 
 Story ACs must be covered by subtask objectives. Epic scope must reflect in child Stories. Blocked/blocking tickets must reference each other. Run `/verify-issue --with-subtasks` to check alignment (A1-A6).
+
+#### HR10. Subtask Sprint — Never Set, Always Inherited
+
+**NEVER** set `{{SPRINT_FIELD}}` (sprint) on subtasks via `jira_update_issue`. Jira rejects it — subtasks inherit sprint from parent. Setting it causes API error + parallel cascade failure.
+
 Run `/optimize-context` when CLAUDE.md feels outdated or context exceeds 15 KB.

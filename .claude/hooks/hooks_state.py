@@ -88,6 +88,19 @@ def hr5_get_pending(session_id: str) -> list:
     return _load(session_id).get("hr5_pending", [])
 
 
+def hr5_add_known_subtask(session_id: str, child_key: str) -> None:
+    """Permanently track a key as a known subtask (survives verify-clear)."""
+    state = _load(session_id)
+    subtasks = set(state.get("hr5_known_subtasks", []))
+    subtasks.add(child_key)
+    state["hr5_known_subtasks"] = sorted(subtasks)
+    _save(session_id, state)
+
+
+def hr5_is_known_subtask(session_id: str, issue_key: str) -> bool:
+    return issue_key in set(_load(session_id).get("hr5_known_subtasks", []))
+
+
 def hr5_remove_pending(session_id: str, child_key: str) -> None:
     state = _load(session_id)
     pending = [p for p in state.get("hr5_pending", []) if p["child"] != child_key]

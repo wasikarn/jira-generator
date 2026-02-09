@@ -375,10 +375,10 @@ async def handle_cache_search(args: dict) -> str:
     """JQL search with caching."""
     jql = args["jql"]
     fields = args.get("fields", "summary,status,assignee,issuetype,priority")
-    limit = min(int(args.get("limit", 30)), 50)
+    limit = min(args.get("limit", 30), 50)
     max_age = args.get("max_age_hours", 2)
     force_refresh = args.get("force_refresh", False)
-    start_at = int(args.get("start_at", 0))
+    start_at = args.get("start_at", 0)
 
     source = "cache"
     results = None
@@ -415,11 +415,11 @@ async def handle_cache_search(args: dict) -> str:
 
 async def handle_cache_sprint_issues(args: dict) -> str:
     """Get sprint issues with caching."""
-    sprint_id = int(args["sprint_id"])
+    sprint_id = args["sprint_id"]
     fields = args.get("fields", "summary,status,assignee,issuetype,priority,labels")
     max_age = args.get("max_age_hours", 2)
     force_refresh = args.get("force_refresh", False)
-    response_offset = int(args.get("start_at", 0))
+    response_offset = args.get("start_at", 0)
 
     source = "cache"
     results = None
@@ -583,6 +583,46 @@ async def handle_cache_invalidate(args: dict) -> str:
     return json.dumps({"error": "Specify issue_key, sprint_id, or all=true"})
 
 
+# --- Argument coercion (Claude sends strings for int/bool/number) ---
+
+# Build schema lookup: tool_name -> {param_name: type_spec}
+_TOOL_SCHEMAS: dict[str, dict[str, Any]] = {}
+for _t in TOOLS:
+    props = _t.inputSchema.get("properties", {})
+    _TOOL_SCHEMAS[_t.name] = {k: v.get("type") for k, v in props.items()}
+
+
+def _coerce_args(name: str, args: dict[str, Any]) -> dict[str, Any]:
+    """Coerce string arguments to their schema-declared types."""
+    schema = _TOOL_SCHEMAS.get(name)
+    if not schema:
+        return args
+
+    coerced = dict(args)
+    for key, value in coerced.items():
+        if not isinstance(value, str):
+            continue
+        expected = schema.get(key)
+        # Handle union types like ["integer", "string"]
+        if isinstance(expected, list):
+            if "integer" in expected:
+                expected = "integer"
+            elif "number" in expected:
+                expected = "number"
+            else:
+                continue
+        try:
+            if expected == "integer":
+                coerced[key] = int(value)
+            elif expected == "number":
+                coerced[key] = float(value)
+            elif expected == "boolean":
+                coerced[key] = value.lower() in ("true", "1", "yes")
+        except (ValueError, AttributeError):
+            pass  # Leave as-is if conversion fails
+    return coerced
+
+
 # --- Handler dispatch ---
 
 HANDLERS = {
@@ -614,6 +654,7 @@ async def main() -> None:
             return [TextContent(type="text", text=json.dumps({"error": f"Unknown tool: {name}"}))]
 
         try:
+            arguments = _coerce_args(name, arguments)
             result = await handler(arguments)
 
             # Tiered response size management

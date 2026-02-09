@@ -100,8 +100,9 @@ def main() -> None:
     # Save to state for blocker + auto-clear hooks
     try:
         sys.path.insert(0, str(Path(__file__).parent))
-        from hooks_state import hr5_add_pending
+        from hooks_state import hr5_add_pending, hr5_add_known_subtask
         hr5_add_pending(session_id, issue_key, parent_key)
+        hr5_add_known_subtask(session_id, issue_key)
     except Exception:
         pass
 

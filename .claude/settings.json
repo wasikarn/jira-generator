@@ -103,6 +103,11 @@
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr3-block-mcp-assignee.py",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr10-subtask-sprint-guard.py",
+            "timeout": 5
           }
         ]
       },
