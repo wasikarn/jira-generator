@@ -31,8 +31,8 @@ has_parent = bool(additional.get("parent")) or bool(tool_input.get("parent"))
 if not has_parent:
     sys.exit(0)
 
-# Check for pending parent verifications
-pending = hr5_get_pending(session_id)
+# Check for pending parent verifications (filter out UNKNOWN = failed creates)
+pending = [p for p in hr5_get_pending(session_id) if p.get("child") != "UNKNOWN"]
 if pending:
     children = ", ".join(p["child"] for p in pending)
     parents = ", ".join(f"{p['child']}→{p['parent']}" for p in pending)

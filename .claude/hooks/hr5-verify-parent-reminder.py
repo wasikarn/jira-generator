@@ -88,8 +88,14 @@ def main() -> None:
         print("{}")
         return
 
-    issue_key = extract_issue_key(data) or "UNKNOWN"
+    issue_key = extract_issue_key(data)
     session_id = data.get("session_id", "")
+
+    # If no key returned, creation failed — nothing to verify
+    if not issue_key:
+        log_event("SKIP", {"reason": "no_issue_key_in_response", "parent_key": parent_key})
+        print("{}")
+        return
 
     # Save to state for blocker + auto-clear hooks
     try:

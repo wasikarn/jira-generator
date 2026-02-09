@@ -130,6 +130,7 @@ Config: `.claude/project-config.json` (single source of truth) — Jira/Confluen
 | `project_key_or_id` → error | Use `project_key` |
 | `limit > 50` → error | Max 50, use pagination `start_at` |
 | Sibling tool call errored | One parallel MCP call failed → all cancelled. Fix failing call first |
+| Parallel subtask creation | **NEVER** create subtasks in parallel — one failure cancels all + HR5 deadlock. Always sequential |
 | Confluence macros → raw XML | Use `update_page_storage.py`, never MCP for macros |
 | Prefer `/story-full` over separate create+analyze | `/search-issues` before creating · `/story-cascade` to cascade · `/sync-alignment` for Confluence |
 | After Jira write → stale cache | `cache_invalidate(issue_key)` before next read |
