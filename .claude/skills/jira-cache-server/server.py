@@ -98,7 +98,7 @@ TOOLS = [
         inputSchema={
             "type": "object",
             "properties": {
-                "sprint_id": {"type": "integer", "description": "Jira sprint ID (e.g., 123)"},
+                "sprint_id": {"type": ["integer", "string"], "description": "Jira sprint ID (e.g., 123)"},
                 "fields": {"type": "string", "description": "Comma-separated fields (default: summary,status,assignee,issuetype,priority,labels)", "default": "summary,status,assignee,issuetype,priority,labels"},
                 "max_age_hours": {"type": "number", "description": "Max cache age in hours (default: 2)", "default": 2},
                 "force_refresh": {"type": "boolean", "description": "Skip cache and fetch from Jira upstream, then update cache (default: false)", "default": False},
@@ -375,10 +375,10 @@ async def handle_cache_search(args: dict) -> str:
     """JQL search with caching."""
     jql = args["jql"]
     fields = args.get("fields", "summary,status,assignee,issuetype,priority")
-    limit = min(args.get("limit", 30), 50)
+    limit = min(int(args.get("limit", 30)), 50)
     max_age = args.get("max_age_hours", 2)
     force_refresh = args.get("force_refresh", False)
-    start_at = args.get("start_at", 0)
+    start_at = int(args.get("start_at", 0))
 
     source = "cache"
     results = None
@@ -415,11 +415,11 @@ async def handle_cache_search(args: dict) -> str:
 
 async def handle_cache_sprint_issues(args: dict) -> str:
     """Get sprint issues with caching."""
-    sprint_id = args["sprint_id"]
+    sprint_id = int(args["sprint_id"])
     fields = args.get("fields", "summary,status,assignee,issuetype,priority,labels")
     max_age = args.get("max_age_hours", 2)
     force_refresh = args.get("force_refresh", False)
-    response_offset = args.get("start_at", 0)
+    response_offset = int(args.get("start_at", 0))
 
     source = "cache"
     results = None
