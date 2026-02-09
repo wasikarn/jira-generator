@@ -68,6 +68,7 @@ TOOLS = [
                 "issue_key": {"type": "string", "description": "Jira issue key (e.g., BEP-123)"},
                 "fields": {"type": "string", "description": "Comma-separated fields for upstream fetch (default: summary,status,assignee,issuetype,priority,labels,parent,description)", "default": "summary,status,assignee,issuetype,priority,labels,parent,description"},
                 "max_age_hours": {"type": "number", "description": "Max cache age in hours (default: 24)", "default": 24},
+                "force_refresh": {"type": "boolean", "description": "Skip cache and fetch from Jira upstream, then update cache (default: false)", "default": False},
             },
             "required": ["issue_key"],
         },
@@ -82,6 +83,7 @@ TOOLS = [
                 "fields": {"type": "string", "description": "Comma-separated fields (default: summary,status,assignee,issuetype,priority)", "default": "summary,status,assignee,issuetype,priority"},
                 "limit": {"type": "integer", "description": "Max results (default: 30, max: 50)", "default": 30},
                 "max_age_hours": {"type": "number", "description": "Max cache age in hours (default: 2)", "default": 2},
+                "force_refresh": {"type": "boolean", "description": "Skip cache and fetch from Jira upstream, then update cache (default: false)", "default": False},
             },
             "required": ["jql"],
         },
@@ -95,6 +97,7 @@ TOOLS = [
                 "sprint_id": {"type": "integer", "description": "Jira sprint ID (e.g., 123)"},
                 "fields": {"type": "string", "description": "Comma-separated fields (default: summary,status,assignee,issuetype,priority,labels)", "default": "summary,status,assignee,issuetype,priority,labels"},
                 "max_age_hours": {"type": "number", "description": "Max cache age in hours (default: 2)", "default": 2},
+                "force_refresh": {"type": "boolean", "description": "Skip cache and fetch from Jira upstream, then update cache (default: false)", "default": False},
             },
             "required": ["sprint_id"],
         },
@@ -209,18 +212,20 @@ async def handle_cache_get_issue(args: dict) -> str:
     issue_key = args["issue_key"]
     fields = args.get("fields", "summary,status,assignee,issuetype,priority,labels,parent,description")
     max_age = args.get("max_age_hours") or cache.get_adaptive_ttl(issue_key)
+    force_refresh = args.get("force_refresh", False)
 
-    # Try cache first
-    cached = cache.get_issue(issue_key, max_age_hours=max_age)
-    if cached:
-        logger.info("Cache HIT: %s", issue_key)
-        return json.dumps({"source": "cache", "issue": cached}, ensure_ascii=False)
+    # Try cache first (skip if force_refresh)
+    if not force_refresh:
+        cached = cache.get_issue(issue_key, max_age_hours=max_age)
+        if cached:
+            logger.info("Cache HIT: %s", issue_key)
+            return json.dumps({"source": "cache", "issue": cached}, ensure_ascii=False)
 
-    # Cache miss — fetch upstream
+    # Cache miss or force_refresh — fetch upstream
     if not jira_api:
         return json.dumps({"error": "Issue not in cache and upstream API not available"})
 
-    logger.info("Cache MISS: %s — fetching upstream", issue_key)
+    logger.info("Cache %s: %s — fetching upstream", "REFRESH" if force_refresh else "MISS", issue_key)
     try:
         issue = jira_api.get_issue(issue_key, fields=fields)
         cache.put_issue(issue_key, issue)
@@ -239,14 +244,16 @@ async def handle_cache_search(args: dict) -> str:
     fields = args.get("fields", "summary,status,assignee,issuetype,priority")
     limit = min(args.get("limit", 30), 50)
     max_age = args.get("max_age_hours", 2)
+    force_refresh = args.get("force_refresh", False)
 
-    # Try cache
-    cached = cache.get_search(jql, fields, limit, max_age_hours=max_age)
-    if cached:
-        logger.info("Search cache HIT: %s", jql[:60])
-        return json.dumps({"source": "cache", "results": cached}, ensure_ascii=False)
+    # Try cache (skip if force_refresh)
+    if not force_refresh:
+        cached = cache.get_search(jql, fields, limit, max_age_hours=max_age)
+        if cached:
+            logger.info("Search cache HIT: %s", jql[:60])
+            return json.dumps({"source": "cache", "results": cached}, ensure_ascii=False)
 
-    # Cache miss
+    # Cache miss or force_refresh
     if not jira_api:
         return json.dumps({"error": "Search not in cache and upstream API not available"})
 
@@ -268,13 +275,15 @@ async def handle_cache_sprint_issues(args: dict) -> str:
     sprint_id = args["sprint_id"]
     fields = args.get("fields", "summary,status,assignee,issuetype,priority,labels")
     max_age = args.get("max_age_hours", 2)
+    force_refresh = args.get("force_refresh", False)
 
     # Use JQL-based search cache (sprint issues = search query)
     jql = f"sprint = {sprint_id}"
-    cached = cache.get_search(jql, fields, 50, max_age_hours=max_age)
-    if cached:
-        logger.info("Sprint cache HIT: %d", sprint_id)
-        return json.dumps({"source": "cache", "results": cached}, ensure_ascii=False)
+    if not force_refresh:
+        cached = cache.get_search(jql, fields, 50, max_age_hours=max_age)
+        if cached:
+            logger.info("Sprint cache HIT: %d", sprint_id)
+            return json.dumps({"source": "cache", "results": cached}, ensure_ascii=False)
 
     if not jira_api:
         return json.dumps({"error": "Sprint not in cache and upstream API not available"})

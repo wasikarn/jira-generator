@@ -86,6 +86,7 @@ Config: `.claude/project-config.json` (single source of truth) — Jira/Confluen
 - **Issue Links:** MCP `jira_create_issue_link` (Blocks/Relates) | **Web Links:** MCP `jira_create_remote_issue_link`
 - **Sprint Mgmt:** Agile REST API via `JiraAPI._request()` — MCP doesn't support move to backlog
 - **Cache:** MCP `jira-cache-server` — local SQLite cache for fast search/similarity (8 tools: `cache_get_issue`, `cache_search`, `cache_text_search`, etc.)
+- **Force Refresh:** Use `force_refresh=true` on cache tools when: user says "ล่าสุด/latest/refresh/stale/ดึงใหม่", re-reading after Jira web edits, or verifying post-write data
 
 ### jira_get_issue — always use `fields` param
 
