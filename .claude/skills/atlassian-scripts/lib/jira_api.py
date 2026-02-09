@@ -296,6 +296,72 @@ class JiraAPI:
         logger.info("Updated %s (HTTP %d)", issue_key, status)
         return status
 
+    def create_issue(
+        self,
+        project_key: str,
+        issue_type: str,
+        summary: str,
+        parent_key: str | None = None,
+        additional_fields: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Create a new Jira issue via REST API v3.
+
+        Args:
+            project_key: Project key (e.g., 'BEP')
+            issue_type: Issue type name (e.g., 'Story', 'Task', 'Subtask', 'Epic')
+            summary: Issue summary/title
+            parent_key: Parent issue key for subtasks (e.g., 'BEP-1200')
+            additional_fields: Extra fields to set on creation
+
+        Returns:
+            Created issue data with 'key', 'id', 'self' fields.
+
+        Raises:
+            APIError: If creation fails
+        """
+        logger.info("Creating %s in %s: %s", issue_type, project_key, summary[:60])
+
+        fields: dict[str, Any] = {
+            "project": {"key": project_key},
+            "issuetype": {"name": issue_type},
+            "summary": summary,
+        }
+        if parent_key:
+            fields["parent"] = {"key": parent_key}
+        if additional_fields:
+            fields.update(additional_fields)
+
+        return self._request("POST", "/rest/api/3/issue", {"fields": fields})
+
+    def update_fields(
+        self,
+        issue_key: str,
+        fields: dict[str, Any],
+    ) -> int:
+        """Update arbitrary fields on a Jira issue via REST API v3.
+
+        Args:
+            issue_key: Jira issue key (e.g., 'BEP-2819')
+            fields: Dictionary of field IDs to values
+
+        Returns:
+            HTTP status code (204 = success).
+
+        Raises:
+            IssueNotFoundError: If issue key doesn't exist
+            APIError: If API request fails
+        """
+        logger.info("Updating fields for %s: %s", issue_key, list(fields.keys()))
+
+        result = self._request(
+            "PUT",
+            f"/rest/api/3/issue/{issue_key}",
+            {"fields": fields},
+        )
+        status = result.get("_status", 200)
+        logger.info("Updated %s (HTTP %d)", issue_key, status)
+        return status
+
     def fix_description(
         self,
         issue_key: str,
