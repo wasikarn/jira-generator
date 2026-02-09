@@ -8,11 +8,13 @@ Injects additionalContext reminder to verify the parent link.
 Exit codes: 0 (always — PostToolUse cannot block)
 """
 import json
+import sqlite3
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 LOG_DIR = Path.home() / ".claude" / "hooks-logs"
+CACHE_DB = Path.home() / ".cache" / "jira-generator" / "jira.db"
 
 
 def log_event(level: str, data: dict) -> None:
@@ -103,6 +105,18 @@ def main() -> None:
         from hooks_state import hr5_add_pending, hr5_add_known_subtask
         hr5_add_pending(session_id, issue_key, parent_key)
         hr5_add_known_subtask(session_id, issue_key)
+    except Exception:
+        pass
+
+    # Enrich cache DB so HR10 can detect subtask cross-session
+    try:
+        conn = sqlite3.connect(str(CACHE_DB))
+        conn.execute(
+            "UPDATE issues SET issue_type = 'Subtask', parent_key = ? WHERE issue_key = ? AND (issue_type IS NULL OR issue_type = '')",
+            (parent_key, issue_key),
+        )
+        conn.commit()
+        conn.close()
     except Exception:
         pass
 
