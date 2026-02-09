@@ -45,6 +45,7 @@
 **Density rules:**
 
 - Objective: **1 sentence** — what + why only
+- ⏱️ Estimation: **Size (XS/S/M/L) + Estimated Hours** — required for sprint capacity tracking
 - ⚡ Event context (optional): `Handles: [Command] → emits: [Event]` — use when parent Epic has Domain Model
 - Scope table: only files that change, **max 10 rows** — if >10, split sub-task
 - AC: **max 3 panels** — sub-task should be smaller than story
@@ -81,6 +82,16 @@ jira_create_issue({
     "content": [
       {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🎯 Objective"}]},
       {"type": "paragraph", "content": [{"type": "text", "text": "[What and why - 1-2 sentences]  ⚡ Handles: [Command] → emits: [Event]"}]},
+      {
+        "type": "panel",
+        "attrs": {"panelType": "note"},
+        "content": [
+          {"type": "paragraph", "content": [
+            {"type": "text", "text": "⏱️ Estimation: ", "marks": [{"type": "strong"}]},
+            {"type": "text", "text": "Size [XS/S/M/L] · [N] hours"}
+          ]}
+        ]
+      },
       {"type": "rule"},
       {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "📁 Scope"}]},
       {"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": "Files (New)"}]},

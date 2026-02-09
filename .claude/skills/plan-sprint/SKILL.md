@@ -34,11 +34,12 @@ argument-hint: "[--sprint <id>] [--carry-over-only]"
 
 **Order of Operations:**
 
-1. Calculate total team capacity (Phase 2)
+1. Calculate team velocity + individual productive hours (Phase 2)
 2. Prioritize backlog items (Phase 4)
-3. THEN assign to individuals (Phase 5)
+3. THEN assign to individuals using skill matrix (Phase 5)
 
 **Anti-Pattern:** Assigning work to individuals first → leads to unbalanced sprints, burnout, missed commitments
+**Anti-Pattern:** Using fixed "items/sprint" per person → ignores task complexity and skill fit
 
 ## Context Object (accumulated across phases)
 
@@ -85,19 +86,36 @@ MCP: jira_get_sprint_issues(sprint_id="<target>", fields="summary,status,assigne
 
 ```text
 Read: .claude/skills/shared-references/team-capacity.md
+Read: .claude/project-config.json → team.members[], team.velocity
 ```
 
-**Calculate per person:**
+**Step 2a: Team Velocity (SP-based)**
 
-- Max capacity (items/sprint from budget)
-- Already assigned (target sprint items)
-- Available slots = max - already assigned
+```text
+If velocity.story_points.avg_velocity exists:
+  Sprint Capacity = avg_velocity × 0.8 (safety buffer)
+Else (bootstrap phase):
+  Sprint Capacity = avg_throughput_per_sprint (ticket count as proxy)
+```
+
+**Step 2b: Individual Productive Hours**
+
+```text
+Per person:
+  Productive Hours = sprint_length_days × 8h × focus_factor - (leave_days × 8h × focus_factor)
+  Already Assigned Hours = sum of estimated_hours on target sprint items
+  Available Hours = Productive Hours - Already Assigned Hours
+```
+
+**Step 2c: Skill Profile Summary**
+
+Read each member's `skill_profile` from config for use in Phase 5 assignment matching.
 
 **Output:** Capacity table
 
-| Member | Role | Budget | Assigned | Available |
-| -------- | ------ | -------- | ---------- | ----------- |
-| ... | ... | ... | ... | ... |
+| Member | Role | Focus Factor | Productive Hrs | Assigned Hrs | Available Hrs | Top Skills |
+| ------ | ---- | ------------ | -------------- | ------------ | ------------- | ---------- |
+| ...    | ...  | ...          | ...            | ...          | ...           | ...        |
 
 **🟡 REVIEW** — Present capacity table to user. Proceed unless user objects.
 
@@ -115,27 +133,29 @@ Read: .claude/skills/shared-references/team-capacity.md
 Task(subagent_type: "general-purpose", prompt: """
 You are a sprint planning strategist. Read and apply the frameworks from:
 - .claude/skills/shared-references/sprint-frameworks.md (RICE, Impact/Effort, carry-over model)
-- .claude/skills/shared-references/team-capacity.md (team roster, capacity, skill mapping)
+- .claude/skills/shared-references/team-capacity.md (capacity model, skill matrix, focus factor, throughput)
+- .claude/project-config.json → team.members[] (skill_profile, focus_factor, avg_throughput)
 
 Also reference Tresor sprint-prioritizer methodology from:
 - ~/.claude/subagents/product/management/sprint-prioritizer/agent.md
 
 ## Sprint Data
 [Insert Phase 1 data: source sprint items, target sprint items, statuses, assignees]
+[Insert Phase 2 data: capacity table with productive hours per person]
 
 ## Tasks
 1. **Carry-over Analysis:** Calculate carry-over probability using the status-based model
 2. **Prioritization:** Rank items using the Impact/Effort matrix (skip RICE if insufficient data)
-3. **Workload Distribution:** Match items → team members based on skill match + capacity
-4. **Risk Assessment:** Flag overloads, dependencies, blockers
+3. **Workload Distribution:** Match items → team members using skill_profile match scores + hours capacity
+4. **Risk Assessment:** Flag overloads (>95% utilization), skill gaps, dependencies, blockers
 
 ## Output Format
 ### Carry-over Summary
-| Key | Summary | Status | Probability | Assignee |
+| Key | Summary | Status | Probability | Assignee | Est. Hours |
 ### Prioritized Items
-| Priority | Key | Summary | Quadrant | Reason |
+| Priority | Key | Summary | Quadrant | Required Skill | Reason |
 ### Recommended Assignments
-| Member | Carry-over | New | Total | Budget | Risk Flag |
+| Member | Productive Hrs | Carry-over Hrs | New Hrs | Total Hrs | Utilization% | Risk Flag |
 ### Risk Flags
 | Risk | Severity | Mitigation |
 """)
@@ -172,17 +192,27 @@ Also reference Tresor sprint-prioritizer methodology from:
 
 ### 5. Workload Distribution
 
-**Input:** Prioritized items + team capacity + carry-over
-**Method:** Skill match → existing context → capacity check → grouping
+**Input:** Prioritized items + team capacity (hours) + carry-over + skill profiles
+**Method:** Skill matrix match → existing context → hours capacity check → grouping
+
+**Assignment Algorithm:**
+
+1. For each item, determine required skill area (from service tag: [BE]→backend, [FE-Admin]→frontend_admin, etc.)
+2. Score each team member: `Match Score = skill_level × (1 + context_bonus)`
+   - expert=1.0, intermediate=0.8, basic=0.6
+   - context_bonus=0.2 if member has related carry-over items
+3. Check hours capacity: `Available Hours ≥ Estimated Hours` for the item
+4. Assign to highest score member with available capacity
 
 **Rules:**
 
 - Related items → same person (reduce context switching)
 - Blockers → prioritize (unblock others)
-- Critical path → senior/lead
-- Never exceed capacity ceiling
+- Critical path → expert-level skill match required
+- Never exceed productive hours ceiling
+- Track cumulative assigned hours vs available hours (not just item count)
 
-**Output:** Assignment recommendation table
+**Output:** Assignment recommendation table with hours tracking
 
 ### 6. Risk Assessment
 
@@ -210,14 +240,17 @@ Present the complete sprint plan to the user:
 ## Sprint Plan: [Sprint Name]
 📅 [Start Date] → [End Date]
 🎯 Sprint Goal: [goal]
+📊 Team Velocity: [X SP or Y tickets] (based on last 3-5 sprints)
 
-### Team Workload
-| Member | Carry-over | New | Total | Budget | Status |
-| ... | ... | ... | ... | ... | 🟢/⚠️/🔴 |
+### Team Workload (Hours-Based)
+| Member | Role | Productive Hrs | Carry-over Hrs | New Hrs | Total Hrs | Utilization | Status |
+| ... | ... | ... | ... | ... | ... | ...% | 🟢/⚠️/🔴 |
+
+Status: 🟢 ≤80% | ⚠️ 80-95% | 🔴 >95%
 
 ### Items to Assign
-| # | Key | Summary | Assignee | Priority | Action |
-| 1 | {{PROJECT_KEY}}-XXX | ... | Name | P1 | assign + move |
+| # | Key | Summary | Assignee | Skill Match | Est. Hours | Priority | Action |
+| 1 | {{PROJECT_KEY}}-XXX | ... | Name | expert | 4h | P1 | assign + move |
 
 ### Risk Summary
 | Risk | Severity | Mitigation |
