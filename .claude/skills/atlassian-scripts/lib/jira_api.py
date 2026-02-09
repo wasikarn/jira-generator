@@ -362,6 +362,38 @@ class JiraAPI:
         logger.info("Updated %s (HTTP %d)", issue_key, status)
         return status
 
+    def rank_issues(
+        self,
+        issue_keys: list[str],
+        rank_after_key: str | None = None,
+        rank_before_key: str | None = None,
+    ) -> int:
+        """Rank issues in the backlog via Agile REST API.
+
+        Args:
+            issue_keys: List of issue keys to rank (in order)
+            rank_after_key: Rank these issues after this key
+            rank_before_key: Rank these issues before this key
+
+        Returns:
+            HTTP status code (204 = success).
+
+        Raises:
+            APIError: If ranking fails
+        """
+        logger.info("Ranking %d issues", len(issue_keys))
+
+        body: dict[str, Any] = {"issues": issue_keys}
+        if rank_after_key:
+            body["rankAfterIssue"] = rank_after_key
+        elif rank_before_key:
+            body["rankBeforeIssue"] = rank_before_key
+
+        result = self._request("PUT", "/rest/agile/1.0/issue/rank", body)
+        status = result.get("_status", 200)
+        logger.info("Ranked %d issues (HTTP %d)", len(issue_keys), status)
+        return status
+
     def fix_description(
         self,
         issue_key: str,
