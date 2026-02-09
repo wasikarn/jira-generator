@@ -146,10 +146,10 @@ def vs_get_coverage(session_id: str) -> dict:
 
 # Known indexed project roots → collection name
 QMD_COLLECTIONS = {
-    "/Users/kobig/Codes/Works/tathep/tathep-platform-api": "platform-api",
-    "/Users/kobig/Codes/Works/tathep/tathep-video-processing": "video-processing",
-    "/Users/kobig/Codes/Works/tathep/tathep-website": "website",
-    "/Users/kobig/Codes/Works/tathep/tathep-admin": "admin",
+    "/Users/kobig/Codes/Works/tathep/tathep-platform-api": "tathep-platform-api",
+    "/Users/kobig/Codes/Works/tathep/tathep-video-processing": "tathep-video-processing",
+    "/Users/kobig/Codes/Works/tathep/tathep-website": "tathep-website",
+    "/Users/kobig/Codes/Works/tathep/tathep-admin": "tathep-admin",
 }
 
 
