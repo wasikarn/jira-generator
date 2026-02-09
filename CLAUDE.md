@@ -76,8 +76,8 @@ Config: `.claude/project-config.json` (single source of truth) — Jira/Confluen
 ## Tool Selection
 
 - **Desc:** `acli --from-json` (ADF JSON) | **Fields:** MCP `jira_update_issue`
-- **Read:** MCP `jira_get_issue` — **always use `fields` param**
-- **Search:** MCP `jira_search` (JQL) — **always use `fields` + `limit` params**
+- **Read:** `cache_get_issue` first → fallback `jira_get_issue` if cache miss — **always use `fields` param**
+- **Search:** `cache_search` / `cache_text_search` first → fallback `jira_search` (JQL) if cache miss — **always use `fields` + `limit` params**
 - **Comment:** MCP `jira_add_comment`
 - **Sub-task:** Two-Step: MCP create → acli edit (`parent` doesn't work with acli)
 - **Script:** `update_jira_description.py` (REST) | **Format:** `/atlassian-scripts`

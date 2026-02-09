@@ -167,6 +167,16 @@
         ]
       },
       {
+        "matcher": "mcp__mcp-atlassian__jira_get_issue",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/cache-prefer.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "Glob|Grep",
         "hooks": [
           {
@@ -254,6 +264,16 @@
         ]
       },
       {
+        "matcher": "mcp__mcp-atlassian__jira_get_issue|mcp__mcp-atlassian__jira_search",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/cache-suggest.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "mcp__mcp-atlassian__jira_get_issue",
         "hooks": [
           {
@@ -269,6 +289,16 @@
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/vs-integrity-tracker.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__jira-cache-server__cache_get_issue",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/cache-checked-tracker.py",
             "timeout": 5
           }
         ]

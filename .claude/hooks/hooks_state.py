@@ -1,7 +1,8 @@
 """Shared session state for Claude hooks.
 
 Single state file per session at /tmp/claude-hooks-state/{session_id}.json.
-Used by HR6 (cache invalidation), HR7 (sprint lookup), and search tracking.
+Used by HR6 (cache invalidation), HR7 (sprint lookup), search tracking,
+cache-prefer (cache-first reads), and qmd (codebase search).
 """
 import json
 from pathlib import Path
@@ -140,6 +141,24 @@ def vs_get_coverage(session_id: str) -> dict:
         "story_acs": state.get("vs_story_acs", {}),
         "subtasks": state.get("vs_subtasks", {}),
     }
+
+
+# ── Cache-prefer: per-issue cache-first tracking ─────
+
+def cache_mark_checked(session_id: str, issue_key: str) -> None:
+    """Mark that cache was tried for this issue (allows MCP fallback)."""
+    state = _load(session_id)
+    checked = set(state.get("cache_checked_issues", []))
+    checked.add(issue_key)
+    state["cache_checked_issues"] = sorted(checked)
+    _save(session_id, state)
+
+
+def cache_is_checked(session_id: str, issue_key: str) -> bool:
+    """Check if cache was already tried for this issue."""
+    return issue_key in set(
+        _load(session_id).get("cache_checked_issues", [])
+    )
 
 
 # ── QMD: Usage tracking ─────────────────────────────
