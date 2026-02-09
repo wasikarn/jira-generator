@@ -103,19 +103,23 @@ Else (bootstrap phase):
 ```text
 Per person:
   Productive Hours = sprint_length_days × 8h × focus_factor - (leave_days × 8h × focus_factor)
-  Already Assigned Hours = sum of estimated_hours on target sprint items
-  Available Hours = Productive Hours - Already Assigned Hours
+  Review Load = count(reviewees) × review_cost.hours_per_junior_per_sprint  (from config)
+  Net Available = Productive Hours - Review Load - Already Assigned Hours
 ```
 
-**Step 2c: Skill Profile Summary**
+> **Review Cost:** Tech Lead reviews 4 people (~15h/sprint), Senior reviews 2 (~4h/sprint).
+> Read `team.review_cost` from project-config.json.
 
-Read each member's `skill_profile` from config for use in Phase 5 assignment matching.
+**Step 2c: Skill Profile + Complexity**
+
+Read each member's `skill_profile` + `growth_tracks` + `bus_factor` from config.
+Use **complexity-adjusted throughput** (from team-capacity.md) instead of raw throughput for item count limits.
 
 **Output:** Capacity table
 
-| Member | Role | Focus Factor | Productive Hrs | Assigned Hrs | Available Hrs | Top Skills |
-| ------ | ---- | ------------ | -------------- | ------------ | ------------- | ---------- |
-| ...    | ...  | ...          | ...            | ...          | ...           | ...        |
+| Member | Role | Productive Hrs | Review Load | Net Available | Complexity-Adj Throughput |
+| ------ | ---- | -------------- | ----------- | ------------- | ------------------------ |
+| ...    | ...  | ...            | ...         | ...           | ...                      |
 
 **🟡 REVIEW** — Present capacity table to user. Proceed unless user objects.
 
@@ -218,11 +222,14 @@ Also reference Tresor sprint-prioritizer methodology from:
 
 **Check:**
 
-- [ ] No one exceeds capacity ceiling
+- [ ] No one exceeds capacity ceiling (utilization >95%)
 - [ ] Dependencies identified
 - [ ] Critical path items have an owner
 - [ ] Junior devs have mentor support
 - [ ] No one has >3 sticky carry-over items
+- [ ] Bus factor areas covered (Video Processing, DevOps, Mobile → check if sole owner is overloaded or on leave)
+- [ ] Review load validated (reviewer not >40% of productive hours on reviews)
+- [ ] Cross-training opportunity flagged (if sprint items touch bus-factor=1 areas → suggest pairing)
 
 **Output:** Risk flags with severity + mitigation
 

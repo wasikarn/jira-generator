@@ -116,3 +116,80 @@ Priority order:
 | Junior (FS) | varies | at avg_throughput | >avg_throughput |
 
 > **Note:** joakim has high throughput (~14) due to mostly small fixes (XS/S). Don't use this as benchmark for complex tasks. Adjust threshold by task size mix.
+
+## Complexity Weighting
+
+> Throughput alone is misleading — 14 small fixes ≠ 6 complex features. Use complexity-adjusted throughput for planning.
+
+| Member | Avg Throughput | Dominant Size | Complexity Factor | Adjusted Throughput |
+|--------|---------------|---------------|-------------------|---------------------|
+| BIG-TATHEP | ~6 | M/L (complex features, review) | 1.0 | 6 effective |
+| K.Thanainun | ~6 | M/L (coupon lifecycle, auth systems) | 1.0 | 6 effective |
+| joakim | ~14 | XS/S (bug fixes, UI tweaks) | 0.5 | 7 effective |
+| wanchalerm | ~9 | XS/S (fixes, wording, locale) | 0.6 | 5.4 effective |
+| Natthakarn | ~4 | M (mobile features, CI/CD setup) | 1.0 | 4 effective |
+
+> **Complexity Factor:** 1.0 = mostly M/L tasks, 0.5 = mostly XS/S tasks, 0.6-0.8 = mixed
+> **Adjusted Throughput** = raw throughput × complexity factor — comparable across team members
+
+## Review Dependencies
+
+> Junior work requires code review → costs reviewer capacity. Factor this into sprint planning.
+
+```
+BIG-TATHEP (Tech Lead) reviews:
+  ├── joakim (FE + BE)     ~5h/sprint
+  ├── wanchalerm (FE + BE) ~5h/sprint
+  ├── K.Thanainun (BE complex) ~3h/sprint
+  └── Natthakarn (Web + Mobile) ~2h/sprint
+  Total review load: ~15h/sprint (of 40h productive = 37.5%)
+
+K.Thanainun (Sr. BE) reviews:
+  ├── joakim (BE only)     ~2h/sprint
+  └── wanchalerm (BE only) ~2h/sprint
+  Total review load: ~4h/sprint (of 48h productive = 8.3%)
+```
+
+**Impact on Productive Hours:**
+
+| Reviewer | Base Productive Hrs | Review Load | Net Available |
+|----------|-------------------|-------------|---------------|
+| BIG-TATHEP | 40h | -15h | **25h** for own work |
+| K.Thanainun | 48h | -4h | **44h** for own work |
+
+> Already partially captured in focus_factor (Tech Lead 0.5 includes review time). But when juniors have more items → review load increases proportionally.
+
+## Bus Factor Risk
+
+> Areas with only 1 person who can handle them. If that person is absent, the team is blocked.
+
+| Risk Level | Area | Sole Owner | Backup | Action |
+|-----------|------|------------|--------|--------|
+| 🔴 Critical | Video Processing | BIG-TATHEP | None | Document architecture, pair with K.Thanainun |
+| 🔴 Critical | DevOps/Infra | BIG-TATHEP | None | Create runbooks, share access with K.Thanainun |
+| 🔴 Critical | Mobile (Flutter) | Natthakarn | None | Cross-train joakim on Flutter basics |
+| 🟡 Medium | Database/Complex | BIG-TATHEP + K.Thanainun | None at junior level | Train joakim/wanchalerm on migrations |
+| 🟡 Medium | Frontend (Web) | Natthakarn (intermediate) | joakim, wanchalerm (intermediate) | No senior expert — Tech Lead is intermediate |
+
+## Growth Tracks (Junior Development)
+
+> Track skill progression to plan gradual responsibility increase.
+
+| Member | Current Strength | Growing Toward | Evidence | Next Step |
+|--------|-----------------|----------------|----------|-----------|
+| joakim | FE (Admin+Web) intermediate | BE API intermediate→expert | API commits: Jun=6→Dec=15→Jan=19 | Database basics |
+| wanchalerm | FE (Admin+Web) intermediate | Domain expert (coupon/invoice) | Deep coupon(34)+invoice(16)+accounting(11) | Reduce fix ratio (<40%), API complexity |
+| Natthakarn | Mobile expert | Full-stack mobile+web | Website 9 commits (S31) — starting web | Admin panel basics, more website features |
+
+## Cross-Training Priority
+
+> Reduce bus factor through targeted knowledge sharing.
+
+| Priority | Trainee | Skill | Trainer | Reason |
+|----------|---------|-------|---------|--------|
+| P1 | K.Thanainun | DevOps basics | BIG-TATHEP | Bus factor=1, already intermediate |
+| P1 | K.Thanainun | Video Processing overview | BIG-TATHEP | Bus factor=1, backup needed |
+| P2 | joakim | Database (migrations, indexing) | K.Thanainun | Currently basic, growing into BE |
+| P2 | wanchalerm | Database (migrations, indexing) | K.Thanainun | Currently basic, needs BE depth |
+| P3 | joakim | Flutter/Mobile basics | Natthakarn | Mobile bus factor=1 |
+| P3 | Natthakarn | Backend API basics | K.Thanainun | Currently basic, needed for full-stack |
