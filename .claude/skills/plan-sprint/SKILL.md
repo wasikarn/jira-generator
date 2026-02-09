@@ -258,9 +258,9 @@ Present the complete sprint plan to the user:
 
 Status: 🟢 ≤80% | ⚠️ 80-95% | 🔴 >95%
 
-### Items to Assign
-| # | Key | Summary | Assignee | Skill Match | Est. Hours | Priority | Action |
-| 1 | {{PROJECT_KEY}}-XXX | ... | Name | expert | 4h | P1 | assign + move |
+### Items to Assign (sorted by Due Date ↑ then Priority ↑)
+| # | Key | Summary | Assignee | Skill Match | Est. Hours | Due Date | Priority | Action |
+| 1 | {{PROJECT_KEY}}-XXX | ... | Name | expert | 4h | Feb 10 | Highest | assign + move |
 
 ### Risk Summary
 | Risk | Severity | Mitigation |
@@ -276,7 +276,9 @@ Status: 🟢 ≤80% | ⚠️ 80-95% | 🔴 >95%
 > **🟢 AUTO** — If Phase 7 approved → execute all assignments automatically. Escalate only on failure.
 > HR7: Sprint ID must be looked up dynamically. NEVER hardcode sprint IDs.
 
-Execute according to the user-approved plan:
+**Execution Order:** Sort items by due date (ascending) then priority (Highest→Low). This ensures critical early-due items are assigned first.
+
+Execute according to the user-approved plan (in due date + priority order):
 
 ```text
 # Move items to target sprint + set estimation fields (⚠️ sprint field = plain number, NOT object)
@@ -326,9 +328,9 @@ Items assigned: XX
 Team members: XX
 Subtask alignment: [X checked, Y fixed]
 
-### Execution Log
-| # | Key | Action | Status |
-| 1 | {{PROJECT_KEY}}-XXX | Assigned to Name + moved to sprint | ✅ |
+### Execution Log (ordered by Due Date ↑ then Priority ↑)
+| # | Key | Due | Priority | Action | Status |
+| 1 | {{PROJECT_KEY}}-XXX | Feb 10 | Highest | Assigned to Name + moved to sprint | ✅ |
 
 → To verify: /verify-issue {{PROJECT_KEY}}-XXX
 → To update a story: /update-story {{PROJECT_KEY}}-XXX
