@@ -39,12 +39,12 @@ data = json.loads(raw)
 tool_name = data.get("tool_name", "")
 tool_input = data.get("tool_input", {})
 
-if "jira_get_issue" in tool_name:
+if tool_name.endswith("jira_get_issue"):
     if not tool_input.get("fields"):
         print(PRESETS_GET.strip())
         sys.exit(2)
 
-elif "jira_search" in tool_name:
+elif tool_name.endswith("jira_search"):
     missing = []
     if not tool_input.get("fields"):
         missing.append("fields")

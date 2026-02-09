@@ -193,3 +193,54 @@ Priority order:
 | P2 | {{SLOT_4}} | Database (migrations, indexing) | {{SLOT_2}} | Currently basic, needs BE depth |
 | P3 | {{SLOT_3}} | Flutter/Mobile basics | {{SLOT_5}} | Mobile bus factor=1 |
 | P3 | {{SLOT_5}} | Backend API basics | {{SLOT_2}} | Currently basic, needed for full-stack |
+
+## Jira Field Integration
+
+> Fields used for machine-queryable capacity tracking (replaces manual ADF extraction)
+
+### Field Mapping
+
+| Concept | Jira Field ID | Type | Set On |
+|---------|--------------|------|--------|
+| Story Points | `customfield_10016` | Numeric (1,2,3,5,8,13) | Story, Task |
+| Size (T-shirt) | `customfield_10107` | Select (XS/S/M/L/XL) | Story, Task |
+| Original Estimate | `timetracking` | Time (`{"originalEstimate":"4h"}`) | Subtask |
+| Start Date | `{{START_DATE_FIELD}}` | Date (YYYY-MM-DD) | Story, Task, Subtask |
+| Due Date | `duedate` | Date (YYYY-MM-DD) | Story, Task, Subtask |
+
+### Size → Story Points Mapping
+
+| Size | Story Points | Hours (approx) | Subtask Count (typical) |
+|------|-------------|----------------|------------------------|
+| XS | 1 | < 4h | 1-2 |
+| S | 2 | 4-8h | 2-3 |
+| M | 3 | 8-16h | 3-5 |
+| L | 5 | 16-32h | 5-7 |
+| XL | 8 | > 32h | 7+ (must split) |
+
+### Capacity Formula (Field-Based)
+
+```
+Sprint Capacity (SP) = sum(story_points) of all planned stories in sprint
+  → compare with Team Velocity to detect over-commitment
+
+Individual Load (Hours) = sum(original_estimate) of assigned subtasks
+  → compare with Net Available Hours for utilization%
+
+Utilization% = Individual Load / Net Available Hours × 100
+  → 🟢 ≤80% | ⚠️ 80-95% | 🔴 >95%
+
+Schedule Check:
+  → Subtask start_date ≥ parent start_date (HR8)
+  → Subtask due_date ≤ parent due_date (HR8)
+  → No overlapping subtask dates for same assignee (warns if >2 concurrent)
+```
+
+### Data Source Priority
+
+| Data | Primary Source | Fallback |
+|------|---------------|----------|
+| Story estimation | `customfield_10016` (Story Points) | Size Guide table above |
+| Subtask estimation | `timetracking.originalEstimate` | ADF `⏱️ Estimation` panel |
+| Team velocity | `velocity.story_points.avg_velocity` in config | `avg_throughput_per_sprint` (ticket count) |
+| Individual workload | JQL: `assignee=X AND sprint=Y` → sum `originalEstimate` | Manual from ADF |

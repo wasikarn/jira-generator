@@ -99,6 +99,17 @@ If any check fails → auto-adjust subtask scope/design → re-check. Escalate t
 > **🟢 AUTO** — HR6: `cache_invalidate(subtask_key)` after EVERY Atlassian write.
 > **🟢 AUTO** — HR3: If assignee needed, use `acli jira workitem assign -k "KEY" -a "email" -y` (never MCP).
 
+**Set subtask estimation (after verify parent, before acli edit):**
+
+```text
+MCP: jira_update_issue(issue_key="BEP-YYY", additional_fields={
+  "timetracking": {"originalEstimate": "<N>h"},  # Original Estimate (from ⏱️ panel)
+  "{{START_DATE_FIELD}}": "YYYY-MM-DD",             # Start Date (within parent range — HR8)
+  "duedate": "YYYY-MM-DD"                        # Due Date (within parent range — HR8)
+})
+# ⚠️ HR10: NEVER set sprint on subtasks — inherits from parent
+```
+
 - Technical Note (if needed):
   - Simple text → `MCP: confluence_create_page`
   - With code blocks → Python script (see `.claude/skills/atlassian-scripts/SKILL.md`)

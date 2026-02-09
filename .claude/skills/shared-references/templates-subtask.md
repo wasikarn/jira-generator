@@ -38,6 +38,20 @@
 
 **Anti-Patterns:** Over-layering (deep hierarchy = admin overhead) | No AC (can't tell when done) | Subtask replacing story split (hiding value in subtask) | Generic paths ("fix backend files") | Copy-paste AC from parent (subtask AC should be more specific)
 
+**Jira Fields (set in Step 1 MCP create via `additional_fields`):**
+
+| Field | Jira ID | Value | Required |
+| --- | --- | --- | --- |
+| Original Estimate | `timetracking` | `{"originalEstimate": "4h"}` (e.g. 1d, 4h, 30m) | Yes |
+| Start Date | `{{START_DATE_FIELD}}` | `"YYYY-MM-DD"` (within parent date range — HR8) | Recommended |
+| Due Date | `duedate` | `"YYYY-MM-DD"` (within parent date range — HR8) | Recommended |
+
+> **Do NOT set sprint on subtasks** (HR10) — inherits from parent automatically.
+>
+> **Estimation:** Set BOTH the ADF `⏱️ Estimation` panel (human-readable) AND `timetracking` field (machine-queryable).
+>
+> **Example Step 1:** `jira_create_issue(project_key="{{PROJECT_KEY}}", summary="[BE] ...", issue_type="Subtask", additional_fields={"parent":{"key":"{{PROJECT_KEY}}-XXX"}, "timetracking":{"originalEstimate":"4h"}, "{{START_DATE_FIELD}}":"2026-02-10", "duedate":"2026-02-11"})`
+
 ## Sub-task Template (ADF) - TWO-STEP WORKFLOW
 
 > **Content Budget** → see [writing-style.md](writing-style.md#content-budget-per-section)

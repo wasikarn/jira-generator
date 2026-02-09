@@ -103,6 +103,19 @@ acli jira workitem create --from-json tasks/story.json
 
 > **🟢 AUTO** — HR6: `cache_invalidate(story_key)` after create.
 
+**Set story estimation fields:**
+
+```text
+MCP: jira_update_issue(issue_key="{{PROJECT_KEY}}-XXX", additional_fields={
+  "customfield_10016": <SP>,                  # Story Points (XS=1,S=2,M=3,L=5,XL=8)
+  "customfield_10107": {"value": "<SIZE>"},   # Size
+  "{{START_DATE_FIELD}}": "YYYY-MM-DD",          # Start Date
+  "duedate": "YYYY-MM-DD"                     # Due Date
+})
+```
+
+> **🟢 AUTO** — HR6: `cache_invalidate(story_key)` after field update.
+
 ---
 
 ## Part B: Create Sub-tasks (Phases 5-10)
@@ -162,8 +175,8 @@ If any check fails → auto-adjust subtask scope/design → re-check. Escalate t
 
 ```text
 # Step 1: Create shells (parallel)
-MCP: jira_create_issue({project_key: "{{PROJECT_KEY}}", summary:"[BE] - ...", issue_type:"Subtask", additional_fields:{parent:{key:"{{PROJECT_KEY}}-XXX"}}})
-MCP: jira_create_issue({project_key: "{{PROJECT_KEY}}", summary:"[FE-Web] - ...", issue_type:"Subtask", additional_fields:{parent:{key:"{{PROJECT_KEY}}-XXX"}}})
+MCP: jira_create_issue({project_key: "{{PROJECT_KEY}}", summary:"[BE] - ...", issue_type:"Subtask", additional_fields:{parent:{key:"{{PROJECT_KEY}}-XXX"}, timetracking:{originalEstimate:"4h"}}})
+MCP: jira_create_issue({project_key: "{{PROJECT_KEY}}", summary:"[FE-Web] - ...", issue_type:"Subtask", additional_fields:{parent:{key:"{{PROJECT_KEY}}-XXX"}, timetracking:{originalEstimate:"4h"}}})
 
 # Step 2: Verify parent (HR5) — DO NOT SKIP
 MCP: jira_get_issue(issue_key: "BEP-YYY", fields: "parent") → confirm parent.key = "{{PROJECT_KEY}}-XXX"

@@ -70,8 +70,8 @@ Ask the user:
 - Which source sprint for carry-over? (if not specified → current active sprint)
 
 ```text
-MCP: jira_get_sprint_issues(sprint_id="<source>", fields="summary,status,assignee,priority,issuetype")
-MCP: jira_get_sprint_issues(sprint_id="<target>", fields="summary,status,assignee,priority,issuetype")
+MCP: jira_get_sprint_issues(sprint_id="<source>", fields="summary,status,assignee,priority,issuetype,customfield_10016,timetracking,{{START_DATE_FIELD}},duedate")
+MCP: jira_get_sprint_issues(sprint_id="<target>", fields="summary,status,assignee,priority,issuetype,customfield_10016,timetracking,{{START_DATE_FIELD}},duedate")
 ```
 
 **Collect:**
@@ -96,6 +96,8 @@ If velocity.story_points.avg_velocity exists:
   Sprint Capacity = avg_velocity × 0.8 (safety buffer)
 Else (bootstrap phase):
   Sprint Capacity = avg_throughput_per_sprint (ticket count as proxy)
+
+Also: sum(customfield_10016) of sprint stories → compare with Sprint Capacity to detect over-commitment
 ```
 
 **Step 2b: Individual Productive Hours**
@@ -104,7 +106,8 @@ Else (bootstrap phase):
 Per person:
   Productive Hours = sprint_length_days × 8h × focus_factor - (leave_days × 8h × focus_factor)
   Review Load = count(reviewees) × review_cost.hours_per_junior_per_sprint  (from config)
-  Net Available = Productive Hours - Review Load - Already Assigned Hours
+  Already Assigned = sum(timetracking.originalEstimate) of current sprint subtasks (from Phase 1 data)
+  Net Available = Productive Hours - Review Load - Already Assigned
 ```
 
 > **Review Cost:** Tech Lead reviews 4 people (~15h/sprint), Senior reviews 2 (~4h/sprint).
@@ -205,7 +208,7 @@ Also reference Tresor sprint-prioritizer methodology from:
 2. Score each team member: `Match Score = skill_level × (1 + context_bonus)`
    - expert=1.0, intermediate=0.8, basic=0.6
    - context_bonus=0.2 if member has related carry-over items
-3. Check hours capacity: `Available Hours ≥ Estimated Hours` for the item
+3. Check hours capacity: `Available Hours ≥ Estimated Hours` for the item (read from `timetracking.originalEstimate` if set, else estimate from ADF panel)
 4. Assign to highest score member with available capacity
 
 **Rules:**
@@ -276,8 +279,22 @@ Status: 🟢 ≤80% | ⚠️ 80-95% | 🔴 >95%
 Execute according to the user-approved plan:
 
 ```text
-# Move items to target sprint (⚠️ sprint field = plain number, NOT object)
-MCP: jira_update_issue(issue_key="{{PROJECT_KEY}}-XXX", additional_fields={"{{SPRINT_FIELD}}": 123})
+# Move items to target sprint + set estimation fields (⚠️ sprint field = plain number, NOT object)
+# Story/Task: set sprint + story_points + size + dates
+MCP: jira_update_issue(issue_key="{{PROJECT_KEY}}-XXX", additional_fields={
+  "{{SPRINT_FIELD}}": 123,
+  "customfield_10016": 3,                        # Story Points
+  "customfield_10107": {"value": "M"},            # Size
+  "{{START_DATE_FIELD}}": "YYYY-MM-DD",              # Start Date
+  "duedate": "YYYY-MM-DD"                         # Due Date
+})
+
+# Subtask: set original_estimate + dates (⚠️ HR10: NEVER set sprint on subtasks)
+MCP: jira_update_issue(issue_key="{{PROJECT_KEY}}-YYY", additional_fields={
+  "timetracking": {"originalEstimate": "4h"},     # Original Estimate
+  "{{START_DATE_FIELD}}": "YYYY-MM-DD",              # Start Date
+  "duedate": "YYYY-MM-DD"                         # Due Date
+})
 
 # Assign items (⚠️ MCP assignee silent fail — use acli instead)
 Bash: acli jira workitem assign -k "{{PROJECT_KEY}}-XXX" -a "email@domain.com" -y

@@ -39,6 +39,19 @@ Additional: Workflow Steps | CRUD | User Roles | Complexity (manual vs automated
 
 **AC Best Practices:** No vague ACs ("loads fast" → "loads within 2 seconds") | Each AC independently testable | Cover happy + edge + error | Don't duplicate story narrative in AC | Write AC before sprint planning
 
+**Jira Fields (set after create via MCP `jira_update_issue`):**
+
+| Field | Jira ID | Value | Required |
+| --- | --- | --- | --- |
+| Story Points | `customfield_10016` | XS=1, S=2, M=3, L=5, XL=8 | Yes |
+| Size | `customfield_10107` | `{"value": "M"}` | Yes |
+| Start Date | `{{START_DATE_FIELD}}` | `"YYYY-MM-DD"` (sprint start or planned start) | Recommended |
+| Due Date | `duedate` | `"YYYY-MM-DD"` (planned completion) | Recommended |
+
+> **Size → Story Points mapping:** Use Size Guide above. Set both fields — Size for visual, Story Points for velocity tracking.
+>
+> **Example:** `jira_update_issue(issue_key="{{PROJECT_KEY}}-XXX", additional_fields={"customfield_10016": 3, "customfield_10107": {"value": "M"}, "{{START_DATE_FIELD}}": "2026-02-10", "duedate": "2026-02-14"})`
+
 ## User Story Template (ADF) - CREATE
 
 > Used with `acli jira workitem create --from-json`

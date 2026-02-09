@@ -94,6 +94,19 @@ acli jira workitem create --from-json tasks/story.json
 
 > **🟢 AUTO** — HR6: `cache_invalidate(story_key)` after create.
 
+**Set estimation fields (after create):**
+
+```text
+MCP: jira_update_issue(issue_key="{{PROJECT_KEY}}-XXX", additional_fields={
+  "customfield_10016": <SP>,                  # Story Points (XS=1,S=2,M=3,L=5,XL=8)
+  "customfield_10107": {"value": "<SIZE>"},   # Size (XS/S/M/L)
+  "{{START_DATE_FIELD}}": "YYYY-MM-DD",          # Start Date
+  "duedate": "YYYY-MM-DD"                     # Due Date
+})
+```
+
+> **🟢 AUTO** — HR6: `cache_invalidate(story_key)` after field update.
+
 ### 6. Handoff
 
 ```text

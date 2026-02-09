@@ -2,6 +2,16 @@
 
 > **Prerequisite:** Read [templates-core.md](templates-core.md) for CREATE/EDIT rules, panel types, styling
 
+**Jira Fields (set after create via MCP `jira_update_issue`):**
+
+| Field | Jira ID | Value | Required |
+| --- | --- | --- | --- |
+| Story Points | `customfield_10016` | 1-8 based on effort | Recommended |
+| Size | `customfield_10107` | `{"value": "S"}` | Recommended |
+| Original Estimate | `timetracking` | `{"originalEstimate": "4h"}` | Recommended |
+| Start Date | `{{START_DATE_FIELD}}` | `"YYYY-MM-DD"` | Optional |
+| Due Date | `duedate` | `"YYYY-MM-DD"` | Optional |
+
 ## tech-debt Template
 
 **Use case:** PR review issues, code improvements, refactoring
