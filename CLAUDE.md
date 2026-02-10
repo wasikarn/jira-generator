@@ -17,21 +17,11 @@ scripts/                           ← setup + sync utilities
 
 ## Project Settings
 
-Config: `.claude/project-config.json` (single source of truth) — Jira/Confluence, team, services, environments
-
-| Setting | Config Key |
-| --- | --- |
-| Jira/Confluence | `jira.*`, `confluence.*` |
-| Team + Capacity | `team.members[]` |
-| Service Tags | `services.tags[]` |
-| Environments | `environments.*` |
+Full config (team, fields, services, environments): @.claude/project-config.json
 
 **Dynamic lookup:** Board → `jira_get_agile_boards(project_key="{{PROJECT_KEY}}")` · Sprint → `jira_get_sprints_from_board(board_id, state="future")`
 **Prerequisites:** `acli` CLI, MCP (Jira + Confluence + Figma + GitHub), Python 3.x
-
-**Configuration:** Git smudge/clean filters auto-convert placeholders↔real values (setup.sh configures). Repo always stores placeholders; working tree shows real values. Pre-commit hook as safety net.
-
-**Cloning:** `cp .template .json` → edit values → `./scripts/setup.sh`
+**Git filters:** smudge/clean auto-convert placeholders↔real values · `./scripts/setup.sh` to configure
 
 ## Skill Commands
 
@@ -117,32 +107,29 @@ Config: `.claude/project-config.json` (single source of truth) — Jira/Confluen
 **Subtask Two-Step:** MCP `jira_create_issue` (with `parent:{key:"{{PROJECT_KEY}}-XXX"}`) → acli `workitem edit --from-json`
 **Smart Link:** `{"type":"inlineCard","attrs":{"url":"https://...atlassian.net/browse/BEP-XXX"}}`
 
-## Common Mistakes (unified)
+## Common Mistakes
 
-> Full troubleshooting: `shared-references/troubleshooting.md`
+> Hook-enforced mistakes (HR2-HR7, HR10) are blocked automatically — see `.claude/hooks/`. Full troubleshooting: `shared-references/troubleshooting.md`
 
 | Category | Quick Fix |
 | --- | --- |
-| MCP assignee → silent fail | Use `acli jira workitem assign` |
 | Subtask parent → error | `additional_fields={"parent": {"key": "{{PROJECT_KEY}}-XXX"}}` |
-| Subtask + sprint → error | **NEVER** set sprint on subtasks — inherits from parent (HR10, hook-enforced) |
 | `fields` param → error | Use `additional_fields` not `fields` |
 | `project_key_or_id` → error | Use `project_key` |
 | `limit > 50` → error | Max 50, use pagination `start_at` |
 | Sibling tool call errored | One parallel MCP call failed → all cancelled. Fix failing call first |
-| Parallel subtask creation | **NEVER** create subtasks in parallel — one failure cancels all + HR5 deadlock. Always sequential |
-| Confluence macros → raw XML | Use `update_page_storage.py`, never MCP for macros |
-| Prefer `/story-full` over separate create+analyze | `/search-issues` before creating · `/story-cascade` to cascade · `/sync-alignment` for Confluence |
-| After Jira write → stale cache | `cache_invalidate(issue_key)` before next read |
+| Prefer `/story-full` | `/search-issues` → `/story-full` → `/verify-issue` |
 
 ## References
 
-Shared refs at `.claude/skills/shared-references/` (all `.md`):
-templates (epic·story·subtask·task sections) · tools · verification-checklist · writing-style · jql-quick-ref · troubleshooting · team-capacity · sprint-frameworks · dependency-frameworks · vertical-slice-guide · skill-orchestration · workflow-patterns
+Key shared references (loaded by skills on demand):
+- Templates: @.claude/skills/shared-references/templates.md
+- Writing style: @.claude/skills/shared-references/writing-style.md
+- Tools: @.claude/skills/shared-references/tools.md
+- Troubleshooting: @.claude/skills/shared-references/troubleshooting.md
 
-**Templates:** `shared-references/templates.md` | **Writing style:** `shared-references/writing-style.md`
-**Orchestration:** `shared-references/skill-orchestration.md` | **Scripts:** `.claude/skills/atlassian-scripts/SKILL.md`
-**Tresor:** `~/.claude/subagents/` (133 agents: product, engineering, core, design)
+Other refs at `.claude/skills/shared-references/`: verification-checklist · jql-quick-ref · team-capacity · sprint-frameworks · dependency-frameworks · vertical-slice-guide · skill-orchestration · workflow-patterns
+**Scripts:** `.claude/skills/atlassian-scripts/SKILL.md` | **Tresor:** `~/.claude/subagents/` (133 agents)
 
 ## Core Principles
 
@@ -205,5 +192,11 @@ Story ACs must be covered by subtask objectives. Epic scope must reflect in chil
 #### HR10. Subtask Sprint — Never Set, Always Inherited
 
 **NEVER** set `{{SPRINT_FIELD}}` (sprint) on subtasks via `jira_update_issue`. Jira rejects it — subtasks inherit sprint from parent. Setting it causes API error + parallel cascade failure.
+
+## Context Management
+
+**Compaction:** When context is compacted, ALWAYS preserve: (1) list of modified files + issue keys, (2) pending HR5/HR6 operations, (3) current phase of active skill workflow, (4) sprint IDs looked up this session. Hooks re-inject HR reminders automatically via `post-compact-reinject.py`.
+
+**Subagents:** Use `.claude/agents/` for isolated investigation — keeps main context clean. Available: `code-explorer` (haiku), `issue-reader` (haiku), `jira-search` (haiku), `quality-gate` (haiku), `story-writer` (sonnet), `alignment-checker` (sonnet), `sprint-planner` (opus).
 
 Run `/optimize-context` when CLAUDE.md feels outdated or context exceeds 15 KB.
