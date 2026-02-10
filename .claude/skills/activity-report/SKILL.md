@@ -1,6 +1,7 @@
 ---
 name: activity-report
 context: fork
+model: haiku
 description: |
   Generate activity report from claude-mem database showing past work sessions, observations, and effort.
   Default: today. Supports date ranges, project filters, observation type filters.
@@ -17,6 +18,7 @@ argument-hint: "[--hours <N>] [--start <date>] [--end <date>] [--project <name>]
 ## Dynamic Context
 
 - **Today:** !`date +%Y-%m-%d`
+- **Session ID:** ${CLAUDE_SESSION_ID}
 
 ## Phase 1: Parse Arguments
 

@@ -1,6 +1,7 @@
 ---
 name: search-issues
 context: fork
+model: haiku
 description: |
   Search for existing issues before creating new ones (prevent duplicates) with a 3-phase workflow
 
