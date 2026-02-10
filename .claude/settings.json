@@ -356,6 +356,34 @@
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr6-stop-check.py",
             "timeout": 10
+          },
+          {
+            "type": "prompt",
+            "prompt": "You are a task completion verifier for a Jira automation system. Check the conversation for incomplete work. Specifically check: (1) If a Jira issue was created or updated, was cache_invalidate called afterward? (2) If a subtask was created, was the parent verified with jira_get_issue? (3) If the user invoked a skill (/story-full, /analyze-story, /plan-sprint, etc.), did all phases complete? (4) If there are pending operations mentioned in the conversation, are they resolved? If everything looks complete OR if this is just a simple Q&A response (not a Jira workflow), respond {\"ok\": true}. If critical steps were skipped, respond {\"ok\": false, \"reason\": \"specific step that was missed\"}. Be conservative — only block if you are confident a critical step was skipped.",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post-compact-reinject.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pre-compact-save.py",
+            "timeout": 10
           }
         ]
       }
