@@ -1,5 +1,6 @@
 ---
 name: update-subtask
+disable-model-invocation: true
 description: |
   Update an existing Sub-task with a 6-phase update workflow
 

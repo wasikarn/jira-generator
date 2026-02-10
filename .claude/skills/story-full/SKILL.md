@@ -1,5 +1,6 @@
 ---
 name: story-full
+disable-model-invocation: true
 context: fork
 description: |
   Create User Story + Sub-tasks in one complete workflow (PO + TA combined) with a 10-phase workflow
@@ -16,6 +17,10 @@ argument-hint: "[story-description]"
 
 **Role:** PO + TA Combined
 **Output:** User Story + Sub-tasks (complete workflow)
+
+## Dynamic Context
+
+- **Today:** !`date +%Y-%m-%d`
 
 ## Context Object (accumulated across phases)
 

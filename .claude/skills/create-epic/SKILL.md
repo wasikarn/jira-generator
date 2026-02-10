@@ -1,5 +1,6 @@
 ---
 name: create-epic
+disable-model-invocation: true
 description: |
   Create Epic + Epic Doc from product vision with a 5-phase PM workflow
   Use when creating a new initiative, have a product vision, or need RICE prioritization

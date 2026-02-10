@@ -1,5 +1,6 @@
 ---
 name: analyze-story
+disable-model-invocation: true
 context: fork
 description: |
   Analyze User Story and create Sub-tasks + Technical Note with a 7-phase TA workflow
@@ -11,6 +12,10 @@ argument-hint: "[issue-key]"
 
 **Role:** Senior Technical Analyst
 **Output:** Sub-tasks + Technical Note
+
+## Dynamic Context
+
+- **Today:** !`date +%Y-%m-%d`
 
 ## Context Object (accumulated across phases)
 

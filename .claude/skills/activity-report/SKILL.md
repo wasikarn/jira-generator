@@ -14,6 +14,10 @@ argument-hint: "[--hours <N>] [--start <date>] [--end <date>] [--project <name>]
 **Role:** Any
 **Output:** Markdown activity report from claude-mem history
 
+## Dynamic Context
+
+- **Today:** !`date +%Y-%m-%d`
+
 ## Phase 1: Parse Arguments
 
 **Parse from user request:**

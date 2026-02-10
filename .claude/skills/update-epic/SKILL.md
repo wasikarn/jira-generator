@@ -1,5 +1,6 @@
 ---
 name: update-epic
+disable-model-invocation: true
 description: |
   Update an existing Epic with a 6-phase update workflow
 

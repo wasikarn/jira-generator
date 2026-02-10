@@ -1,5 +1,6 @@
 ---
 name: create-task
+disable-model-invocation: true
 description: |
   Create a new Jira Task with a 5-phase workflow
   Supports 4 task types: tech-debt, bug, chore, spike

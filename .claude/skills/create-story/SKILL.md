@@ -1,5 +1,6 @@
 ---
 name: create-story
+disable-model-invocation: true
 description: |
   Create a new User Story from requirements with a 5-phase PO workflow
   Use when creating a new story, have a feature request, or need to convert requirements into a story

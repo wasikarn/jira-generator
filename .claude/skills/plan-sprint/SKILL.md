@@ -1,5 +1,6 @@
 ---
 name: plan-sprint
+disable-model-invocation: true
 context: fork
 description: |
   Sprint Planning with Tresor Strategy + Jira Execution using an 8-phase workflow
@@ -17,6 +18,11 @@ argument-hint: "[--sprint <id>] [--carry-over-only]"
 
 **Role:** Scrum Master + Sprint Planner (Tresor-powered)
 **Output:** Sprint plan with assignments executed in Jira
+
+## Dynamic Context
+
+- **Today:** !`date +%Y-%m-%d`
+- **Recent commits:** !`git -C /Users/kobig/Codes/Works/tathep/tathep-platform-api log --oneline -5 2>/dev/null || echo "N/A"`
 
 ## Pre-Meeting Checklist
 

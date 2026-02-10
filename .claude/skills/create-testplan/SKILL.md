@@ -1,5 +1,6 @@
 ---
 name: create-testplan
+disable-model-invocation: true
 description: |
   Create Test Plan + [QA] Sub-task from User Story with a 5-phase QA workflow
 

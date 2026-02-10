@@ -1,5 +1,6 @@
 ---
 name: update-task
+disable-model-invocation: true
 description: |
   Update an existing Jira Task with a 6-phase update workflow
 
