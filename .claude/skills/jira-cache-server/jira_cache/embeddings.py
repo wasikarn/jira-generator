@@ -43,7 +43,7 @@ def _load_sqlite_vec(conn: sqlite3.Connection) -> bool:
         _vec_loaded = True
         logger.debug("sqlite-vec extension loaded")
         return True
-    except (ImportError, sqlite3.OperationalError) as e:
+    except (ImportError, AttributeError, sqlite3.OperationalError) as e:
         logger.warning("sqlite-vec not available: %s", e)
         return False
 

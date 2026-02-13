@@ -1,0 +1,14 @@
+[project]
+name = "jira-cache-server"
+version = "0.1.0"
+description = "Local Jira cache MCP server with SQLite + FTS5"
+requires-python = ">=3.14"
+dependencies = [
+    "mcp>=1.0.0",
+]
+
+[project.optional-dependencies]
+embeddings = [
+    "sqlite-vec>=0.1.1",
+    "sentence-transformers>=2.2.0",
+]

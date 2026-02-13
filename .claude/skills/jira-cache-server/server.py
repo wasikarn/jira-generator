@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.12"
+# requires-python = ">=3.14"
 # dependencies = [
 #     "mcp>=1.0.0",
 #     "sqlite-vec>=0.1.1",
