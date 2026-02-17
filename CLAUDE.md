@@ -4,12 +4,12 @@
 
 Agile Documentation System for **{{COMPANY}} Platform** — skills-based Jira/Confluence automation
 
-**Structure:** `.claude/skills/` — 19 skills (`SKILL.md` → phases → `shared-references/`) + `atlassian-scripts/` (7 Python scripts) + `jira-cache-server/` (MCP) + `shared-references/` (11 docs)
+**Structure:** `.claude/skills/` — 20 skills (`SKILL.md` → phases → `shared-references/`) + `atlassian-scripts/` (13 Python scripts) + `jira-cache-server/` (MCP) + `shared-references/` (18 docs)
 
 ```text
 .claude/skills/{name}/SKILL.md     ← skill entry (reads shared-references/)
-.claude/skills/shared-references/  ← 11 docs: templates, tools, verification, orchestration
-.claude/skills/atlassian-scripts/  ← 7 Python scripts + lib/ (REST API)
+.claude/skills/shared-references/  ← 18 docs: templates, tools, verification, orchestration
+.claude/skills/atlassian-scripts/  ← 13 Python scripts + lib/ (REST API)
 .claude/skills/jira-cache-server/  ← MCP server (SQLite + FTS5, local Jira cache)
 tasks/                             ← ADF JSON output (acli --from-json input)
 scripts/                           ← setup + sync utilities
@@ -78,33 +78,12 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 - **Cache:** MCP `jira-cache-server` — local SQLite cache for fast search/similarity (8 tools: `cache_get_issue`, `cache_search`, `cache_text_search`, etc.)
 - **Force Refresh:** Use `force_refresh=true` on cache tools when: user says "ล่าสุด/latest/refresh/stale/ดึงใหม่", re-reading after Jira web edits, or verifying post-write data
 
-### jira_get_issue — always use `fields` param
+### Field & ADF Quick Reference
 
-| Use Case | Fields |
-| --- | --- |
-| Quick check | `summary,status,assignee` |
-| Read description | `summary,status,description` |
-| Full analysis | `summary,status,description,issuetype,parent,labels` |
+**`jira_get_issue`** — always use `fields` param · **`jira_search`** — always use `fields` + `limit` params → see `shared-references/tools.md` for preset tables
 
-### jira_search — always use `fields` + `limit` params
-
-| Use Case | Fields | Limit |
-| --- | --- | --- |
-| Sprint overview | `summary,status,assignee,issuetype,priority` | 30 |
-| Sub-task list | `summary,status,assignee` | 20 |
-| Search duplicates | `summary,status,issuetype` | 10 |
-| Full with links | `summary,status,assignee,issuetype,issuelinks,priority,labels` | 20 |
-
-### ADF Quick Reference
-
-**CREATE vs EDIT — JSON formats differ (do not interchange!):**
-
-| Operation | Required | Forbidden |
-| --- | --- | --- |
-| **CREATE** `acli jira workitem create` | `projectKey`, `type`, `summary`, `description` | `issues` |
-| **EDIT** `acli jira workitem edit` | `issues`, `description` | `projectKey`, `type`, `summary`, `parent` |
-
-**Subtask Two-Step:** MCP `jira_create_issue` (with `parent:{key:"{{PROJECT_KEY}}-XXX"}`) → acli `workitem edit --from-json`
+**ADF CREATE vs EDIT differ** — CREATE: `projectKey`+`type`+`summary`+`description` (no `issues`) · EDIT: `issues`+`description` (no `projectKey`/`type`/`summary`/`parent`) → details in `shared-references/templates-core.md`
+**Subtask Two-Step:** MCP create (with `parent:{key:"{{PROJECT_KEY}}-XXX"}`) → acli `workitem edit --from-json`
 **Smart Link:** `{"type":"inlineCard","attrs":{"url":"https://...atlassian.net/browse/BEP-XXX"}}`
 
 ## Common Mistakes
@@ -128,8 +107,8 @@ Key shared references (loaded by skills on demand):
 - Tools: @.claude/skills/shared-references/tools.md
 - Troubleshooting: @.claude/skills/shared-references/troubleshooting.md
 
-Other refs at `.claude/skills/shared-references/`: verification-checklist · jql-quick-ref · team-capacity · sprint-frameworks · dependency-frameworks · vertical-slice-guide · skill-orchestration · workflow-patterns
-**Scripts:** `.claude/skills/atlassian-scripts/SKILL.md` | **Tresor:** `~/.claude/subagents/` (133 agents)
+Other refs at `.claude/skills/shared-references/`: verification-checklist · jql-quick-ref · team-capacity · sprint-frameworks · dependency-frameworks · vertical-slice-guide · skill-orchestration · workflow-patterns · context-packs.json
+**Scripts:** `.claude/skills/atlassian-scripts/SKILL.md` (13 scripts + lib/) | **Tresor:** `~/.claude/subagents/` (133 agents)
 
 ## Core Principles
 
