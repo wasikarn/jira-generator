@@ -11,6 +11,8 @@ Agile Documentation System for **{{COMPANY}} Platform** — skills-based Jira/Co
 .claude/skills/shared-references/  ← 18 docs: templates, tools, verification, orchestration
 .claude/skills/atlassian-scripts/  ← 13 Python scripts + lib/ (REST API)
 .claude/skills/jira-cache-server/  ← MCP server (SQLite + FTS5, local Jira cache)
+.claude/hooks/                     ← 37 Python hooks (HR enforcement + automation)
+.claude/agents/                    ← 7 subagent definitions (haiku/sonnet/opus)
 tasks/                             ← ADF JSON output (acli --from-json input)
 scripts/                           ← setup + sync utilities
 ```
@@ -65,18 +67,19 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 
 ## Tool Selection
 
-- **Desc:** `acli --from-json` (ADF JSON) | **Fields:** MCP `jira_update_issue`
-- **Read:** `cache_get_issue` first → fallback `jira_get_issue` if cache miss — **always use `fields` param**
-- **Search:** `cache_search` / `cache_text_search` first → fallback `jira_search` (JQL) if cache miss — **always use `fields` + `limit` params**
-- **Comment:** MCP `jira_add_comment`
-- **Sub-task:** Two-Step: MCP create → acli edit (`parent` doesn't work with acli)
-- **Script:** `update_jira_description.py` (REST) | **Format:** `/atlassian-scripts`
-- **Confluence:** MCP (read/simple), Python scripts (code/macros), `audit_confluence_pages.py` (audit)
-- **Explore:** Task(Explore) — always before creating subtasks
-- **Issue Links:** MCP `jira_create_issue_link` (Blocks/Relates) | **Web Links:** MCP `jira_create_remote_issue_link`
-- **Sprint Mgmt:** Agile REST API via `JiraAPI._request()` — MCP doesn't support move to backlog
-- **Cache:** MCP `jira-cache-server` — local SQLite cache for fast search/similarity (8 tools: `cache_get_issue`, `cache_search`, `cache_text_search`, etc.)
-- **Force Refresh:** Use `force_refresh=true` on cache tools when: user says "ล่าสุด/latest/refresh/stale/ดึงใหม่", re-reading after Jira web edits, or verifying post-write data
+| Operation | Tool | Notes |
+| --- | --- | --- |
+| Description | `acli --from-json` (ADF JSON) | Fields: MCP `jira_update_issue` |
+| Read issue | `cache_get_issue` → `jira_get_issue` | Always use `fields` param |
+| Search | `cache_search` / `cache_text_search` → `jira_search` | Always use `fields` + `limit` |
+| Comment | MCP `jira_add_comment` | |
+| Sub-task | Two-Step: MCP create → acli edit | `parent` doesn't work with acli |
+| Script | `update_jira_description.py` (REST) | `/atlassian-scripts` for format |
+| Confluence | MCP (read/simple), Python scripts (code/macros) | `audit_confluence_pages.py` (audit) |
+| Explore | Task(Explore) | Always before creating subtasks |
+| Issue Links | MCP `jira_create_issue_link` | Blocks/Relates · `jira_create_remote_issue_link` (web) |
+| Sprint | Agile REST via `JiraAPI._request()` | MCP can't move to backlog |
+| Cache | MCP `jira-cache-server` (8 tools) | `force_refresh=true` after web edits or "ล่าสุด/refresh/stale" |
 
 ### Field & ADF Quick Reference
 
@@ -107,8 +110,7 @@ Key shared references (loaded by skills on demand):
 - Tools: @.claude/skills/shared-references/tools.md
 - Troubleshooting: @.claude/skills/shared-references/troubleshooting.md
 
-Other refs at `.claude/skills/shared-references/`: verification-checklist · jql-quick-ref · team-capacity · sprint-frameworks · dependency-frameworks · vertical-slice-guide · skill-orchestration · workflow-patterns · context-packs.json
-**Scripts:** `.claude/skills/atlassian-scripts/SKILL.md` (13 scripts + lib/) | **Tresor:** `~/.claude/subagents/` (133 agents)
+Other refs: `.claude/skills/shared-references/CLAUDE.md` (full index of 18 docs) | **Scripts:** `atlassian-scripts/SKILL.md` | **Tresor:** `~/.claude/subagents/` (133 agents)
 
 ## Core Principles
 
