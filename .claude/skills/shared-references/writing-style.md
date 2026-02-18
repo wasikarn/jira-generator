@@ -72,6 +72,36 @@ Team will **scan before reading** — design content to be scannable in 5 second
 2. **Bullets > Paragraphs** — no long paragraphs, use bullet points
 3. **Tables > Lists** — if 2+ columns of data, use table
 4. **Skip if empty** — if a section has no real data, don't add placeholder
+5. **Numbered sections** — prefix H2 headings with `N. Emoji Title` for easy reference
+
+### Numbered Section Pattern
+
+> **Preferred for Task/Epic with 4+ sections** — numbers let teammates reference "section 3" in standup
+
+**Format:** `## N. 📋 Section Title` where N = sequential number, Emoji = section type
+
+| Emoji | Section Type | When to use |
+| --- | --- | --- |
+| 📋 | Context / Overview | Always first — problem statement |
+| 📊 | Data / Inventory | Tables, metrics, lists |
+| 🔑 | Key Convention / Config | Standards, naming, settings |
+| 🔧 | Phases / Steps | Implementation plan |
+| ⚠️ | Scope / Boundaries | In-scope vs out-of-scope |
+| ✅ | Acceptance Criteria | Done criteria, verification |
+| 🔗 | Reference | Links, docs, related issues |
+
+**ADF heading:**
+
+```json
+{"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "1. 📋 Context"}]}
+```
+
+**Rules:**
+
+- Numbers are sequential (1, 2, 3...) — no gaps
+- Context/Overview always section 1, Reference always last
+- Middle sections ordered by reading flow (data → plan → boundaries → criteria)
+- Emoji is optional for simple tasks (<4 sections) but recommended for complex ones
 
 ---
 

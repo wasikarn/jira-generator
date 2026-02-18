@@ -56,6 +56,7 @@
 | **AC Summary** | table (optional) | - |
 | **Fields/Spec** | table | panels |
 | **Notes/Dependencies** | panel (note) | table |
+| **H2 headings (4+ sections)** | `N. Emoji Title` numbered | unnumbered headings |
 
 ### AC Format: Hybrid Approach (Recommended)
 

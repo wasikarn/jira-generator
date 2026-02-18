@@ -18,6 +18,7 @@
 **Summary:** `[BE] [Title] - [Context]`
 
 > Used with `acli jira workitem create --from-json`
+> **Section format:** `N. Emoji Title` — see [writing-style.md](writing-style.md#numbered-section-pattern)
 
 ```json
 {
@@ -28,7 +29,7 @@
     "type": "doc",
     "version": 1,
     "content": [
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "📋 Context"}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "1. 📋 Context"}]},
       {
         "type": "panel",
         "attrs": {"panelType": "info"},
@@ -39,7 +40,7 @@
         ]
       },
       {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔴 HIGH Priority"}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "2. 🔴 HIGH Priority"}]},
       {
         "type": "panel",
         "attrs": {"panelType": "error"},
@@ -57,7 +58,7 @@
         ]
       },
       {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🟡 MEDIUM Priority"}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "3. 🟡 MEDIUM Priority"}]},
       {
         "type": "panel",
         "attrs": {"panelType": "warning"},
@@ -67,7 +68,7 @@
         ]
       },
       {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🟣 LOW Priority"}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "4. 🟣 LOW Priority"}]},
       {
         "type": "panel",
         "attrs": {"panelType": "note"},
@@ -77,7 +78,7 @@
         ]
       },
       {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "✅ Acceptance Criteria"}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "5. ✅ Acceptance Criteria"}]},
       {
         "type": "table",
         "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
@@ -97,7 +98,7 @@
         ]
       },
       {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔗 Reference"}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "6. 🔗 Reference"}]},
       {
         "type": "table",
         "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
@@ -124,36 +125,36 @@
 **Use case:** Bug fixes from QA or production
 **Summary:** `[Bug] [Title]`
 
-**Sections:**
+**Sections:** (numbered `N. Emoji Title`)
 
-1. `🐛 Bug Description` — panel(error): describe symptoms + impact
-2. `🔄 Reproduction Steps` — orderedList: step-by-step
-3. `📊 Expected vs Actual` — table with green/red headers
-4. `🔍 Root Cause` — panel(note): root cause or TBD
-5. `✅ Fix Criteria` — panel(success): bulletList of criteria
-6. `🔗 Reference` — purple table
+1. `1. 🐛 Bug Description` — panel(error): describe symptoms + impact
+2. `2. 🔄 Reproduction Steps` — orderedList: step-by-step
+3. `3. 📊 Expected vs Actual` — table with green/red headers
+4. `4. 🔍 Root Cause` — panel(note): root cause or TBD
+5. `5. ✅ Fix Criteria` — panel(success): bulletList of criteria
+6. `6. 🔗 Reference` — purple table
 
 ## chore Template
 
 **Use case:** Maintenance, dependency updates, configs
 **Summary:** `[Chore] [Title]`
 
-**Sections:**
+**Sections:** (numbered `N. Emoji Title`)
 
-1. `🎯 Objective` — panel(info): task objective
-2. `📋 Tasks` — panel(note): bulletList with ⬜ checkboxes
-3. `🔗 Reference` — purple table
+1. `1. 🎯 Objective` — panel(info): task objective
+2. `2. 📋 Tasks` — panel(note): bulletList with ⬜ checkboxes
+3. `3. 🔗 Reference` — purple table
 
 ## spike Template
 
 **Use case:** Research, investigation, POC
 **Summary:** `[Spike] [Title]`
 
-**Sections:**
+**Sections:** (numbered `N. Emoji Title`)
 
-1. `❓ Research Question` — panel(info): main question
-2. `📋 Context` — paragraph: background/rationale
-3. `🔍 Investigation Areas` — bulletList: topics to study
-4. `📝 Findings` — panel(note): *[To be filled after research]*
-5. `💡 Recommendations` — panel(success): *[To be filled after research]*
-6. `🔗 Reference` — purple table
+1. `1. ❓ Research Question` — panel(info): main question
+2. `2. 📋 Context` — paragraph: background/rationale
+3. `3. 🔍 Investigation Areas` — bulletList: topics to study
+4. `4. 📝 Findings` — panel(note): *[To be filled after research]*
+5. `5. 💡 Recommendations` — panel(success): *[To be filled after research]*
+6. `6. 🔗 Reference` — purple table
