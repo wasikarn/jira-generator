@@ -1,7 +1,7 @@
 """ADF Validator — Quality Gate enforcement for Jira ADF documents.
 
 Validates ADF JSON against templates.md + verification-checklist.md rules.
-Supports: Story, Subtask, Epic, QA issue types.
+Supports: Story, Subtask, Epic, QA, Task issue types.
 Scoring: pass=1, warn=0.5, fail=0. Overall >=90% = pass.
 
 Usage (via scripts/validate_adf.py):
@@ -21,7 +21,7 @@ from typing import Any, Callable
 # ═══════════════════════════════════════════════════════════
 
 VALID_PANEL_TYPES = frozenset({"info", "success", "warning", "error", "note"})
-VALID_ISSUE_TYPES = frozenset({"story", "subtask", "epic", "qa"})
+VALID_ISSUE_TYPES = frozenset({"story", "subtask", "epic", "qa", "task"})
 SUBTASK_TAGS = ("[BE]", "[FE-Admin]", "[FE-Web]", "[QA]")
 QG_THRESHOLD = 90.0
 
@@ -229,6 +229,7 @@ class AdfValidator:
         Subtask: T1-T5 (technical) + ST1-ST5 (quality) = 10 checks
         Epic:    T1-T5 (technical) + E1-E4 (quality)   = 9 checks
         QA:      T1-T5 (technical) + QA1-QA5 (quality) = 10 checks
+        Task:    T1-T5 (technical) + TK1-TK4 (quality) = 9 checks
     """
 
     def validate(
@@ -276,6 +277,12 @@ class AdfValidator:
                 lambda: self._check_qa3_scenarios(adf),
                 lambda: self._check_qa4_test_data(adf),
                 lambda: self._check_qa5_language(adf),
+            ],
+            "task": [
+                lambda: self._check_tk1_context(adf),
+                lambda: self._check_tk2_actionable(adf),
+                lambda: self._check_tk3_acceptance(adf),
+                lambda: self._check_tk4_language(adf),
             ],
         }
 
@@ -843,6 +850,68 @@ class AdfValidator:
     def _check_qa5_language(self, adf: dict) -> CheckResult:
         """QA5: Language — Thai + English technical terms."""
         return self._check_language("QA5", adf)
+
+    # ───────────────────────────────────────────────────────
+    # Task Quality Checks (TK1–TK4)
+    # ───────────────────────────────────────────────────────
+
+    def _check_tk1_context(self, adf: dict) -> CheckResult:
+        """TK1: Context — problem/reason section explaining why this task exists."""
+        context_section = get_section_content(adf, "context")
+        if not context_section:
+            context_section = get_section_content(adf, "objective")
+        if not context_section:
+            context_section = get_section_content(adf, "bug description")
+        if not context_section:
+            return CheckResult("TK1", CheckStatus.FAIL, "No Context/Objective section found")
+
+        text = extract_text(context_section).strip()
+        if len(text.split()) < 5:
+            return CheckResult("TK1", CheckStatus.WARN, "Context section too brief")
+        return CheckResult("TK1", CheckStatus.PASS, "Context section present")
+
+    def _check_tk2_actionable(self, adf: dict) -> CheckResult:
+        """TK2: Actionable — has concrete tasks/phases/steps (panels or lists)."""
+        full_text = extract_text(adf).lower()
+        panels = find_adf_nodes(adf, lambda n: n.get("type") == "panel")
+        lists = find_adf_nodes(
+            adf, lambda n: n.get("type") in ("bulletList", "orderedList")
+        )
+
+        if len(panels) < 2 and len(lists) < 1:
+            return CheckResult(
+                "TK2", CheckStatus.FAIL,
+                "No actionable items — need panels or lists with concrete steps",
+            )
+        # Check for action words
+        action_words = ["install", "create", "update", "replace", "migrate", "remove",
+                        "delete", "add", "configure", "fix", "สร้าง", "ลบ", "เพิ่ม", "แก้"]
+        found = [w for w in action_words if w in full_text]
+        if not found:
+            return CheckResult("TK2", CheckStatus.WARN, "No action verbs found in content")
+        return CheckResult("TK2", CheckStatus.PASS, f"Actionable content ({len(panels)} panels, {len(lists)} lists)")
+
+    def _check_tk3_acceptance(self, adf: dict) -> CheckResult:
+        """TK3: Acceptance criteria — table or list of done criteria."""
+        ac_section = get_section_content(adf, "acceptance criteria")
+        if not ac_section:
+            ac_section = get_section_content(adf, "done criteria")
+        if not ac_section:
+            ac_section = get_section_content(adf, "fix criteria")
+
+        if not ac_section:
+            return CheckResult("TK3", CheckStatus.WARN, "No Acceptance Criteria section found")
+
+        tables = find_adf_nodes(ac_section, lambda n: n.get("type") == "table")
+        lists = find_adf_nodes(ac_section, lambda n: n.get("type") in ("bulletList", "orderedList"))
+
+        if tables or lists:
+            return CheckResult("TK3", CheckStatus.PASS, "Acceptance criteria present")
+        return CheckResult("TK3", CheckStatus.WARN, "AC section has no table or list")
+
+    def _check_tk4_language(self, adf: dict) -> CheckResult:
+        """TK4: Language — Thai + English technical terms."""
+        return self._check_language("TK4", adf)
 
     # ───────────────────────────────────────────────────────
     # Shared Helpers

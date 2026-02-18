@@ -64,7 +64,7 @@ def detect_issue_type(file_path: Path, data: dict) -> str:
     if "epic" in type_val:
         return "epic"
     if "task" in type_val and "sub" not in type_val:
-        return "story"  # Task uses story checks
+        return "task"  # Task has its own checks (no narrative required)
 
     # 2. Try filename inference
     name = file_path.stem.lower()
