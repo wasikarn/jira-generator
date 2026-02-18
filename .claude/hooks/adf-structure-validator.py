@@ -33,7 +33,7 @@ TYPE_KEYWORDS = {
     "story": re.compile(r"story", re.I),
     "subtask": re.compile(r"subtask|sub[-_]", re.I),
     "qa": re.compile(r"qa|testplan|test[-_]plan", re.I),
-    "task": re.compile(r"task", re.I),
+    "task": re.compile(r"task|migration|spike|chore|tech[-_]debt", re.I),
 }
 
 
