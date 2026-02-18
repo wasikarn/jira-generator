@@ -12,10 +12,10 @@ Fixes:
 - Missing OE → estimate from summary keywords (conservative 4h default)
 
 Usage:
-    python3 tasks/sprint-subtask-alignment.py                    # dry-run current active sprint
-    python3 tasks/sprint-subtask-alignment.py --sprint 640       # dry-run specific sprint
-    python3 tasks/sprint-subtask-alignment.py --apply            # actually update Jira
-    python3 tasks/sprint-subtask-alignment.py --report-only      # report without fix suggestions
+    python3 scripts/sprint-subtask-alignment.py                    # dry-run current active sprint
+    python3 scripts/sprint-subtask-alignment.py --sprint 640       # dry-run specific sprint
+    python3 scripts/sprint-subtask-alignment.py --apply            # actually update Jira
+    python3 scripts/sprint-subtask-alignment.py --report-only      # report without fix suggestions
 """
 
 import sys

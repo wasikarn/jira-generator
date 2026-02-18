@@ -8,9 +8,9 @@ Sorts all parent issues (Story/Task/Bug) in a sprint by:
 This changes the actual board/backlog ordering in Jira.
 
 Usage:
-    python3 tasks/sprint-rank-by-date.py                    # dry-run active sprint
-    python3 tasks/sprint-rank-by-date.py --sprint 640       # dry-run specific sprint
-    python3 tasks/sprint-rank-by-date.py --apply            # actually re-rank in Jira
+    python3 scripts/sprint-rank-by-date.py                    # dry-run active sprint
+    python3 scripts/sprint-rank-by-date.py --sprint 640       # dry-run specific sprint
+    python3 scripts/sprint-rank-by-date.py --apply            # actually re-rank in Jira
 """
 
 import sys

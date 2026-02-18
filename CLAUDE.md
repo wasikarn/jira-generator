@@ -4,17 +4,17 @@
 
 Agile Documentation System for **{{COMPANY}} Platform** — skills-based Jira/Confluence automation
 
-**Structure:** `.claude/skills/` — 20 skills (`SKILL.md` → phases → `shared-references/`) + `atlassian-scripts/` (13 Python scripts) + `jira-cache-server/` (MCP) + `shared-references/` (18 docs)
+**Structure:** `.claude/skills/` — 22 skills (`SKILL.md` → phases → `shared-references/`) + `atlassian-scripts/` (19 Python scripts) + `jira-cache-server/` (MCP) + `shared-references/` (19 docs)
 
 ```text
 .claude/skills/{name}/SKILL.md     ← skill entry (reads shared-references/)
-.claude/skills/shared-references/  ← 18 docs: templates, tools, verification, orchestration
-.claude/skills/atlassian-scripts/  ← 13 Python scripts + lib/ (REST API)
+.claude/skills/shared-references/  ← 19 docs: templates, tools, verification, orchestration
+.claude/skills/atlassian-scripts/  ← 19 Python scripts + lib/ (REST API)
 .claude/skills/jira-cache-server/  ← MCP server (SQLite + FTS5, local Jira cache)
 .claude/hooks/                     ← 37 Python hooks (HR enforcement + automation)
 .claude/agents/                    ← 7 subagent definitions (haiku/sonnet/opus)
 tasks/                             ← ADF JSON output (acli --from-json input)
-scripts/                           ← setup + sync utilities
+scripts/                           ← setup, sync, sprint utilities
 ```
 
 ## Project Settings
@@ -79,6 +79,7 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 | Explore | Task(Explore) | Always before creating subtasks |
 | Issue Links | MCP `jira_create_issue_link` | Blocks/Relates · `jira_create_remote_issue_link` (web) |
 | Sprint | Agile REST via `JiraAPI._request()` | MCP can't move to backlog |
+| Sprint batch | `scripts/` utilities | `clear-sprint-dates`, `sprint-set-fields`, `sprint-rank-by-date`, `sprint-subtask-alignment` |
 | Cache | MCP `jira-cache-server` (8 tools) | `force_refresh=true` after web edits or "ล่าสุด/refresh/stale" |
 
 ### Field & ADF Quick Reference
@@ -87,7 +88,7 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 
 **ADF CREATE vs EDIT differ** — CREATE: `projectKey`+`type`+`summary`+`description` (no `issues`) · EDIT: `issues`+`description` (no `projectKey`/`type`/`summary`/`parent`) → details in `shared-references/templates-core.md`
 **Subtask Two-Step:** MCP create (with `parent:{key:"{{PROJECT_KEY}}-XXX"}`) → acli `workitem edit --from-json`
-**Smart Link:** `{"type":"inlineCard","attrs":{"url":"https://...atlassian.net/browse/BEP-XXX"}}`
+**Smart Link:** see `shared-references/templates-core.md` for inlineCard format
 
 ## Common Mistakes
 

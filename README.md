@@ -312,7 +312,11 @@ scripts/
 ├── configure-project.py            <- Manual placeholder ↔ real value converter
 ├── fix-table-format.py             <- Markdown table formatter
 ├── update-sprint-goals.py          <- Sprint goals updater
-└── sync-skills                     <- Sync skills to ~/.claude/skills/
+├── sync-skills                     <- Sync skills to ~/.claude/skills/
+├── clear-sprint-dates.py           <- Batch clear start/due dates from sprint
+├── sprint-set-fields.py            <- Set SP/OE from Size field for sprint
+├── sprint-rank-by-date.py          <- Re-rank sprint issues by date
+└── sprint-subtask-alignment.py     <- HR8 subtask date/OE alignment check
 
 tasks/                              <- Generated ADF JSON outputs (gitignored)
 CLAUDE.md                           <- Agent instructions (passive context)

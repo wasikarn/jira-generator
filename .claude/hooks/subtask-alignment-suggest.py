@@ -44,7 +44,7 @@ state["alignment_suggested_sprints"] = sorted(suggested)
 _save(session_id, state)
 
 print(f"📐 Sprint {sprint_id} data loaded. Run subtask alignment check:")
-print(f"   python3 tasks/sprint-subtask-alignment.py --sprint {sprint_id}")
+print(f"   python3 scripts/sprint-subtask-alignment.py --sprint {sprint_id}")
 print(f"   Checks: HR8 dates, missing OE, parent range violations")
 print(f"   Add --apply to fix automatically")
 
