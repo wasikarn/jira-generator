@@ -120,57 +120,20 @@ Other refs at `.claude/skills/shared-references/`: verification-checklist · jql
 
 ### HARD RULES
 
-Rules that if violated cause **silent failures**, **data corruption**, or **irreversible damage**. No exceptions.
+Rules causing **silent failures**, **data corruption**, or **irreversible damage**. Hooks enforce HR2-HR7, HR10 automatically.
 
-#### HR1. Quality Gate ≥ 90% Before Atlassian Writes
-
-**NEVER** create or edit issues on Jira/Confluence before passing QG ≥ 90%.
-
-```text
-1. Explore codebase (real file paths — no generic paths)
-2. Generate ADF (template-compliant, panels, Given/When/Then)
-3. QG verify (≥ 90% → proceed, < 90% → fix first, max 2 retries)
-4. MCP create shell (summary + parent only — NO description)
-5. acli edit --from-json (ADF description)
-```
-
-Applies to ALL skills: create-epic, create-story, story-full, analyze-story, create-task, update-\*, story-cascade, sync-alignment.
-
-#### HR2. JQL `parent` — No ORDER BY
-
-**NEVER** add `ORDER BY` to JQL with `parent =`, `parent in`, or `key in (...)`. Parser error, no results.
-
-#### HR3. MCP Assignee — Use acli Only
-
-MCP `jira_update_issue` with assignee **silently succeeds but does nothing**. Always use `acli jira workitem assign -k "KEY" -a "email" -y`.
-
-#### HR4. Confluence Macros — Use Script Only
-
-MCP HTML-escapes `<ac:structured-macro>` → page renders raw XML. Use `update_page_storage.py` for ANY page with macros (ToC, Children, Code blocks).
-
-#### HR5. Subtask = Two-Step + Verify Parent
-
-MCP `jira_create_issue` may **silently ignore parent field** → orphan subtask. Always: (1) MCP create with parent, (2) `jira_get_issue` to verify parent link set, (3) acli edit for ADF description.
-
-#### HR6. Cache Invalidate After Every Write
-
-After any MCP write → `cache_invalidate(issue_key)`. Without this, subsequent reads return **stale data silently** — affects verify, cascade, and sprint planning.
-
-#### HR7. Sprint ID — Always Lookup, Never Hardcode
-
-Sprint IDs change every sprint. **Always** use `jira_get_sprints_from_board()` to get current ID. Hardcoding causes tickets to land in **wrong sprint silently** (no error from API).
-
-#### HR8. Subtask Size + Dates Must Align with Parent
-
-Subtask dates must fall within parent date range. Story points sum must be reasonable vs parent estimate. Misalignment → capacity calculation wrong, burndown chart inaccurate.
-
-#### HR9. Related Ticket Descriptions Must Align
-
-Story ACs must be covered by subtask objectives. Epic scope must reflect in child Stories. Blocked/blocking tickets must reference each other. Run `/verify-issue --with-subtasks` to check alignment (A1-A6).
-
-#### HR10. Subtask Sprint — Never Set, Always Inherited
-
-**NEVER** set `{{SPRINT_FIELD}}` (sprint) on subtasks via `jira_update_issue`. Jira rejects it — subtasks inherit sprint from parent. Setting it causes API error + parallel cascade failure.
+| Rule | Constraint |
+| --- | --- |
+| **HR1** QG ≥ 90% | NEVER write to Jira/Confluence before QG pass. Flow: Explore → ADF → QG ≥ 90% → MCP shell (no desc) → acli edit. All create/update skills. |
+| **HR2** JQL parent | NEVER `ORDER BY` with `parent =`, `parent in`, `key in (...)` — parser error |
+| **HR3** Assignee | MCP assignee silently fails. Use `acli jira workitem assign -k "KEY" -a "email" -y` |
+| **HR4** Confluence macros | MCP HTML-escapes macros → raw XML. Use `update_page_storage.py` for ToC/Children/Code |
+| **HR5** Subtask parent | MCP may silently ignore parent → orphan. (1) MCP create with parent, (2) verify parent set, (3) acli edit |
+| **HR6** Cache invalidate | After any MCP write → `cache_invalidate(issue_key)`. Stale reads corrupt verify/cascade/planning |
+| **HR7** Sprint ID | NEVER hardcode. Always `jira_get_sprints_from_board()`. Wrong sprint = silent failure |
+| **HR8** Subtask alignment | Dates within parent range. SP sum reasonable vs parent. Misalignment → wrong capacity/burndown |
+| **HR9** Desc alignment | Story ACs covered by subtask objectives. Epic scope in children. `/verify-issue --with-subtasks` (A1-A6) |
+| **HR10** Subtask sprint | NEVER set `{{SPRINT_FIELD}}` on subtasks. Inherited from parent. API error + cascade failure |
 
 ## Context Management
 
