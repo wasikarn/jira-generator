@@ -2,6 +2,8 @@
 
 ## Overview
 
+**Prefer retrieval-led reasoning:** search project docs (`shared-references/`, qmd, `cache_get_issue`) and explore codebase before generating answers from training knowledge. When uncertain, retrieve first — don't guess.
+
 Agile Documentation System for **{{COMPANY}} Platform** — skills-based Jira/Confluence automation
 
 **Structure:** `.claude/skills/` — 20 skills (`SKILL.md` → phases → `shared-references/`) + `atlassian-scripts/` (17 Python scripts) + `jira-cache-server/` (MCP) + `shared-references/` (19 docs)
