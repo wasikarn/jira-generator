@@ -4,7 +4,7 @@
 
 Agile Documentation System for **{{COMPANY}} Platform** — skills-based Jira/Confluence automation
 
-**Structure:** `.claude/skills/` — 22 skills (`SKILL.md` → phases → `shared-references/`) + `atlassian-scripts/` (19 Python scripts) + `jira-cache-server/` (MCP) + `shared-references/` (19 docs)
+**Structure:** `.claude/skills/` — 20 skills (`SKILL.md` → phases → `shared-references/`) + `atlassian-scripts/` (17 Python scripts) + `jira-cache-server/` (MCP) + `shared-references/` (19 docs)
 
 ```text
 .claude/skills/{name}/SKILL.md     ← skill entry (reads shared-references/)
@@ -111,7 +111,7 @@ Key shared references (loaded by skills on demand):
 - Tools: @.claude/skills/shared-references/tools.md
 - Troubleshooting: @.claude/skills/shared-references/troubleshooting.md
 
-Other refs: `.claude/skills/shared-references/CLAUDE.md` (full index of 18 docs) | **Scripts:** `atlassian-scripts/SKILL.md` | **Tresor:** `~/.claude/subagents/` (133 agents)
+Other refs: `.claude/skills/shared-references/CLAUDE.md` (full index of 19 docs) | **Scripts:** `atlassian-scripts/SKILL.md` | **Tresor:** `~/.claude/subagents/` (133 agents)
 
 ## Core Principles
 
