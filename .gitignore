@@ -26,3 +26,4 @@ tasks/
 # Claude-Mem (ignore subdirectory CLAUDE.md, keep root)
 **/CLAUDE.md
 !/CLAUDE.md
+.claude/skills/jira-cache-server/.coverage
