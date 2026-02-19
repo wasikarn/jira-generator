@@ -2,78 +2,6 @@
   "enabledMcpjsonServers": [
     "jira-cache-server"
   ],
-  "permissions": {
-    "allow": [
-      "Bash",
-      "Read",
-      "Edit",
-      "Write",
-      "WebFetch",
-      "WebSearch",
-      "Skill",
-      "mcp__mcp-atlassian__*",
-      "mcp__github__*",
-      "mcp__context7__*",
-      "mcp__plugin_playwright_playwright__*",
-      "mcp__plugin_claude-mem_mcp-search__*",
-      "mcp__sequential-thinking__*",
-      "mcp__postman-api__*",
-      "mcp__tathep-db__*",
-      "mcp__figma__get_figma_*",
-      "mcp__figma__get_figma_data",
-      "mcp__jira-cache-server__*",
-      "mcp__qmd__*"
-    ],
-    "deny": [
-      "Bash(rm -rf /)",
-      "Bash(rm -rf /*)",
-      "Bash(rm -rf ~*)",
-      "Bash(sudo rm -rf *)",
-      "Bash(dd if=/dev/zero of=/dev/*)",
-      "Bash(dd if=/dev/random of=/dev/*)",
-      "Bash(mkfs*)",
-      "Read(**/.env)",
-      "Read(**/.env.*)",
-      "Read(**/.ssh/id_*)",
-      "Read(**/.aws/credentials)",
-      "Read(**/.aws/config)",
-      "Read(**/credentials.json)",
-      "Read(**/*.pem)",
-      "Read(**/*.key)",
-      "Bash(cat ~/.ssh/*)",
-      "Bash(cat ~/.aws/*)",
-      "Bash(env | base64*)",
-      "Bash(printenv | base64*)",
-      "Bash(git push --force origin main*)",
-      "Bash(git push --force origin master*)",
-      "Bash(git push -f origin main*)",
-      "Bash(git push -f origin master*)",
-      "Bash(git reset --hard origin/main*)",
-      "Bash(git reset --hard origin/master*)",
-      "Bash(curl * | sh*)",
-      "Bash(curl * | bash*)",
-      "Bash(wget * | sh*)",
-      "Bash(wget * | bash*)",
-      "Bash(curl http://169.254.169.254/*)",
-      "Bash(wget http://169.254.169.254/*)",
-      "Bash(bash -i >& /dev/tcp/*)",
-      "Bash(sh -i >& /dev/tcp/*)",
-      "Bash(nc -l*)",
-      "Bash(netcat -l*)",
-      "Bash(shutdown*)",
-      "Bash(reboot*)",
-      "Bash(halt*)",
-      "Bash(poweroff*)",
-      "Bash(docker run --privileged *)",
-      "Bash(docker run -v /:/host *)",
-      "Bash(docker run -v /var/run/docker.sock:*)",
-      "Bash(sudo chmod 777 /*)",
-      "Bash(chmod -R 777 /*)",
-      "Bash(sudo rm /etc/*)",
-      "Bash(sudo rm /bin/*)",
-      "Bash(sudo rm /usr/*)"
-    ]
-  },
   "hooks": {
     "PreToolUse": [
       {
@@ -339,7 +267,7 @@
         ]
       },
       {
-        "matcher": "mcp__qmd__search|mcp__qmd__vsearch|mcp__qmd__get|mcp__qmd__query",
+        "matcher": "mcp__qmd__search|mcp__qmd__vector_search|mcp__qmd__deep_search|mcp__qmd__get|mcp__qmd__multi_get",
         "hooks": [
           {
             "type": "command",
