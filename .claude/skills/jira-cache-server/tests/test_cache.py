@@ -328,6 +328,22 @@ class TestBatchOperations:
         assert len(found) == 0
         assert missing == ["BEP-1"]
 
+    def test_get_issues_batch_triggers_flush(self, cache, multiple_issues):
+        """Batch get should flush stats when threshold is reached."""
+        cache._stat_flush_threshold = 2  # Low threshold
+        cache.put_issues_batch(multiple_issues)
+        # 5 hits + 1 miss = 6 buffer → triggers flush
+        found, missing = cache.get_issues_batch(
+            ["BEP-1", "BEP-2", "BEP-3", "BEP-4", "BEP-5", "BEP-999"]
+        )
+        assert len(found) == 5
+        assert missing == ["BEP-999"]
+        # Verify flush happened — stats in DB
+        row = cache.conn.execute(
+            "SELECT value FROM cache_stats WHERE key='hits'"
+        ).fetchone()
+        assert row is not None and row[0] >= 5
+
 
 # --- Sprint Operations ---
 
@@ -412,6 +428,11 @@ class TestTextSearch:
     def test_fts_bad_syntax(self, cache):
         """Bad FTS5 syntax returns empty list, not error."""
         results = cache.text_search("AND OR NOT )")
+        assert results == []
+
+    def test_fts_sanitized_empty(self, cache):
+        """Query that sanitizes to empty string returns [] immediately."""
+        results = cache.text_search('""  \'\'')
         assert results == []
 
 

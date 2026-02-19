@@ -39,19 +39,37 @@ class Credentials(TypedDict):
 
 
 def create_ssl_context() -> ssl.SSLContext:
-    """Create SSL context with certificate verification disabled.
+    """Create SSL context with proper certificate verification.
 
-    Note:
-        This is needed for macOS environments where certificate verification
-        may fail due to system certificate store issues.
+    Attempts to use certifi for reliable cross-platform certificate handling.
+    Falls back to system certificates, then to verification disabled as last resort.
 
     Returns:
-        ssl.SSLContext: Configured SSL context with verification disabled.
+        ssl.SSLContext: Configured SSL context.
     """
+    # Try certifi first (most reliable cross-platform)
+    try:
+        import certifi
+        ctx = ssl.create_default_context(cafile=certifi.where())
+        logger.debug("Created SSL context with certifi certificates")
+        return ctx
+    except ImportError:
+        pass
+
+    # Try system certificates
+    try:
+        ctx = ssl.create_default_context()
+        # Quick validation — if this doesn't raise, system certs are usable
+        logger.debug("Created SSL context with system certificates")
+        return ctx
+    except ssl.SSLError:
+        pass
+
+    # Last resort: disable verification (macOS cert store issues)
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
-    logger.debug("Created SSL context with verification disabled")
+    logger.warning("Created SSL context with verification DISABLED (install certifi for proper TLS)")
     return ctx
 
 

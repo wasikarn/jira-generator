@@ -38,8 +38,10 @@ def _load_sqlite_vec(conn: sqlite3.Connection) -> bool:
         import sqlite_vec  # noqa: F401
 
         conn.enable_load_extension(True)
-        sqlite_vec.load(conn)
-        conn.enable_load_extension(False)
+        try:
+            sqlite_vec.load(conn)
+        finally:
+            conn.enable_load_extension(False)
         _vec_loaded = True
         logger.debug("sqlite-vec extension loaded")
         return True

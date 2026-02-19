@@ -299,9 +299,24 @@ class JiraCache:
 
     def _apply_pragmas(self) -> None:
         """Apply session-level performance PRAGMAs."""
-        self.conn.execute("PRAGMA cache_size = -16000")   # 16MB (vs default 2MB)
-        self.conn.execute("PRAGMA mmap_size = 67108864")   # 64MB mmap
-        self.conn.execute("PRAGMA temp_store = MEMORY")    # FTS5 temp in RAM
+        self.conn.execute("PRAGMA cache_size = -16000")      # 16MB (vs default 2MB)
+        self.conn.execute("PRAGMA mmap_size = 67108864")      # 64MB mmap
+        self.conn.execute("PRAGMA temp_store = MEMORY")       # FTS5 temp in RAM
+        self.conn.execute("PRAGMA busy_timeout = 5000")       # Wait 5s on lock contention
+        self.conn.execute("PRAGMA wal_autocheckpoint = 100")  # Checkpoint every 100 pages
+
+    # --- Helpers ---
+
+    @staticmethod
+    def _extract_sprint_id(fields: dict) -> int | None:
+        """Extract sprint_id from custom field (can be list or dict)."""
+        sprint_data = fields.get("customfield_10020")
+        if isinstance(sprint_data, list) and sprint_data:
+            first = sprint_data[0]
+            return first.get("id") if isinstance(first, dict) else first
+        if isinstance(sprint_data, dict):
+            return sprint_data.get("id")
+        return None
 
     # --- Issue Operations ---
 
@@ -357,21 +372,14 @@ class JiraCache:
 
         fields = data.get("fields", {})
         description_text = extract_adf_text(fields.get("description"))
-
-        # Extract sprint_id from custom field (can be list or dict)
-        sprint_id = None
-        sprint_data = fields.get("customfield_10020")
-        if isinstance(sprint_data, list) and sprint_data:
-            first = sprint_data[0]
-            sprint_id = first.get("id") if isinstance(first, dict) else first
-        elif isinstance(sprint_data, dict):
-            sprint_id = sprint_data.get("id")
+        sprint_id = self._extract_sprint_id(fields)
 
         now = datetime.now().isoformat()
-        self._put_issue_row(
-            issue_key, fields, description_text, sprint_id, data, now,
-        )
-        self.conn.commit()
+        with self._lock:
+            self._put_issue_row(
+                issue_key, fields, description_text, sprint_id, data, now,
+            )
+            self.conn.commit()
         logger.debug("Cached issue %s", issue_key)
 
     def _put_issue_row(
@@ -431,14 +439,7 @@ class JiraCache:
                 issue_data = strip_noise(issue_data)
                 fields = issue_data.get("fields", {})
                 description_text = extract_adf_text(fields.get("description"))
-
-                sprint_id = None
-                sprint_data = fields.get("customfield_10020")
-                if isinstance(sprint_data, list) and sprint_data:
-                    first = sprint_data[0]
-                    sprint_id = first.get("id") if isinstance(first, dict) else first
-                elif isinstance(sprint_data, dict):
-                    sprint_id = sprint_data.get("id")
+                sprint_id = self._extract_sprint_id(fields)
 
                 self._put_issue_row(
                     key, fields, description_text, sprint_id, issue_data, now,
@@ -482,16 +483,28 @@ class JiraCache:
             if cached_at >= cutoff:
                 found[row["issue_key"]] = json.loads(row["data"])
 
-        # Preserve order, track misses
+        # Preserve order, track misses (batch stat increment)
         found_issues = []
         missing_keys = []
+        hit_count = 0
+        miss_count = 0
         for key in issue_keys:
             if key in found:
                 found_issues.append(found[key])
-                self._incr_stat("hits")
+                hit_count += 1
             else:
                 missing_keys.append(key)
-                self._incr_stat("misses")
+                miss_count += 1
+
+        # Single batch increment (avoids mid-batch flush)
+        if hit_count > 0:
+            self._stat_buffer["hits"] = self._stat_buffer.get("hits", 0) + hit_count
+            self._stat_buffer_count += hit_count
+        if miss_count > 0:
+            self._stat_buffer["misses"] = self._stat_buffer.get("misses", 0) + miss_count
+            self._stat_buffer_count += miss_count
+        if self._stat_buffer_count >= self._stat_flush_threshold:
+            self._flush_stats()
 
         return found_issues, missing_keys
 
@@ -581,6 +594,18 @@ class JiraCache:
 
     # --- Full-Text Search ---
 
+    @staticmethod
+    def _sanitize_fts_query(query: str) -> str:
+        """Sanitize user input for FTS5 MATCH to prevent injection.
+
+        Strips characters that have special meaning in FTS5 syntax
+        when they could cause unexpected behavior.
+        """
+        # Remove characters that can break FTS5 parsing
+        sanitized = query.replace('"', ' ').replace("'", ' ')
+        # Collapse whitespace
+        return " ".join(sanitized.split()).strip()
+
     def text_search(self, query: str, limit: int = 10) -> list[dict]:
         """FTS5 keyword search on cached issues.
 
@@ -591,6 +616,10 @@ class JiraCache:
         Returns:
             List of matching issue data dicts, or empty list on FTS5 syntax error.
         """
+        sanitized = self._sanitize_fts_query(query)
+        if not sanitized:
+            return []
+
         try:
             rows = self.conn.execute(
                 """SELECT i.data FROM issues i
@@ -598,7 +627,7 @@ class JiraCache:
                 WHERE issues_fts MATCH ?
                 ORDER BY rank
                 LIMIT ?""",
-                (query, limit),
+                (sanitized, limit),
             ).fetchall()
             return [json.loads(row["data"]) for row in rows]
         except sqlite3.OperationalError as e:
@@ -617,10 +646,15 @@ class JiraCache:
         return cursor.rowcount > 0
 
     def invalidate_sprint(self, sprint_id: int) -> int:
-        """Remove all issues for a sprint and the sprint itself."""
+        """Remove all issues for a sprint, related searches, and the sprint itself."""
         with self._lock:
             cursor = self.conn.execute(
                 "DELETE FROM issues WHERE sprint_id = ?", (sprint_id,)
+            )
+            # Clear search cache entries referencing this sprint
+            self.conn.execute(
+                "DELETE FROM searches WHERE jql LIKE ?",
+                (f"%sprint = {sprint_id}%",),
             )
             self.conn.execute(
                 "DELETE FROM sprints WHERE sprint_id = ?", (sprint_id,)

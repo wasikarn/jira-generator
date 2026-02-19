@@ -58,6 +58,14 @@ logger = logging.getLogger("jira-cache-server")
 # Claude Code MCP token limit is ~30K chars; keep well under
 MAX_RESPONSE_CHARS = 25_000
 
+# Safety guard: max pages for sprint pagination (prevents infinite loops)
+MAX_SPRINT_PAGES = 20
+
+# Limit caps for search tools
+MAX_TEXT_SEARCH_LIMIT = 50
+MAX_SIMILAR_LIMIT = 20
+MAX_ISSUE_KEYS_BATCH = 100
+
 # --- Globals (initialized on startup) ---
 cache: JiraCache | None = None
 embeddings: EmbeddingStore | None = None
@@ -362,7 +370,8 @@ async def handle_cache_get_issue(args: dict) -> str:
     """Get issue: cache-first with upstream fallback + stale fallback."""
     issue_key = args["issue_key"]
     fields = args.get("fields", "summary,status,assignee,issuetype,priority,labels,parent,description")
-    max_age = args.get("max_age_hours") or cache.get_adaptive_ttl(issue_key)
+    max_age_raw = args.get("max_age_hours")
+    max_age = max_age_raw if max_age_raw is not None else cache.get_adaptive_ttl(issue_key)
     force_refresh = args.get("force_refresh", False)
     compact = args.get("compact", False)
 
@@ -409,6 +418,9 @@ async def handle_cache_get_issues(args: dict) -> str:
     issue_keys = args.get("issue_keys", [])
     if not issue_keys:
         return json.dumps({"error": "issue_keys is required and must be non-empty"})
+
+    # Cap batch size to prevent excessive upstream calls
+    issue_keys = issue_keys[:MAX_ISSUE_KEYS_BATCH]
 
     fields = args.get("fields", "summary,status,assignee,issuetype,priority,labels,parent,description")
     max_age = args.get("max_age_hours", 24)
@@ -522,7 +534,8 @@ async def handle_cache_sprint_issues(args: dict) -> str:
         try:
             all_issues: list[dict] = []
             upstream_offset = 0
-            while True:
+            pages_fetched = 0
+            while pages_fetched < MAX_SPRINT_PAGES:
                 page = _timed_upstream(
                     f"sprint({sprint_id}, offset={upstream_offset})",
                     jira_api.get_sprint_issues, sprint_id,
@@ -530,7 +543,8 @@ async def handle_cache_sprint_issues(args: dict) -> str:
                 )
                 issues = page.get("issues", [])
                 all_issues.extend(issues)
-                if upstream_offset + len(issues) >= page.get("total", 0):
+                pages_fetched += 1
+                if not issues or upstream_offset + len(issues) >= page.get("total", 0):
                     break
                 upstream_offset += len(issues)
 
@@ -553,7 +567,7 @@ async def handle_cache_sprint_issues(args: dict) -> str:
 async def handle_cache_text_search(args: dict) -> str:
     """FTS5 keyword search on cached issues."""
     query = args["query"]
-    limit = args.get("limit", 10)
+    limit = min(args.get("limit", 10), MAX_TEXT_SEARCH_LIMIT)
 
     results = cache.text_search(query, limit=limit)
     summaries = [_format_issue_summary(r) for r in results]
@@ -572,7 +586,7 @@ async def handle_cache_similar_issues(args: dict) -> str:
         return json.dumps({"error": "Embeddings not available (install sqlite-vec and sentence-transformers)"})
 
     query = args["query"]
-    limit = args.get("limit", 5)
+    limit = min(args.get("limit", 5), MAX_SIMILAR_LIMIT)
     exclude = args.get("exclude_keys", [])
 
     similar = embeddings.find_similar(query, limit=limit, exclude_keys=exclude)
@@ -623,7 +637,8 @@ async def handle_cache_refresh(args: dict) -> str:
         try:
             cache.invalidate_sprint(sprint_id)
             start_at = 0
-            while True:
+            pages_fetched = 0
+            while pages_fetched < MAX_SPRINT_PAGES:
                 page = _timed_upstream(
                     f"refresh_sprint({sprint_id}, offset={start_at})",
                     jira_api.get_sprint_issues, sprint_id,
@@ -634,7 +649,8 @@ async def handle_cache_refresh(args: dict) -> str:
                 if embeddings and embeddings.available:
                     embeddings.store_batch(issues)
                 refreshed.extend(i.get("key", "") for i in issues)
-                if start_at + len(issues) >= page.get("total", 0):
+                pages_fetched += 1
+                if not issues or start_at + len(issues) >= page.get("total", 0):
                     break
                 start_at += len(issues)
         except Exception as e:
@@ -798,7 +814,9 @@ async def main() -> None:  # pragma: no cover
             return [TextContent(type="text", text=result)]
         except Exception as e:
             logger.exception("Tool %s failed", name)
-            return [TextContent(type="text", text=json.dumps({"error": str(e)}))]
+            # Sanitize: only expose exception type and first 200 chars
+            safe_msg = f"{type(e).__name__}: {str(e)[:200]}"
+            return [TextContent(type="text", text=json.dumps({"error": safe_msg}))]
 
     logger.info("Starting jira-cache-server (stdio)")
     async with stdio_server() as (read_stream, write_stream):
