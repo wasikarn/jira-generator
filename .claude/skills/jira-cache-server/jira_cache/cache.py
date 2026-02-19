@@ -25,9 +25,19 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_DB_PATH = Path.home() / ".cache" / "jira-generator" / "jira.db"
 
-SCHEMA_SQL = """
+# Current schema version — increment when adding migrations
+SCHEMA_VERSION = 2
+
+# --- P0: Migration-based schema ---
+
+# Base schema (version 1) — original tables
+_SCHEMA_V1 = """
 PRAGMA journal_mode=WAL;
 PRAGMA synchronous=NORMAL;
+
+CREATE TABLE IF NOT EXISTS schema_version (
+    version INTEGER PRIMARY KEY
+);
 
 CREATE TABLE IF NOT EXISTS issues (
     issue_key TEXT PRIMARY KEY,
@@ -85,6 +95,19 @@ INSERT OR IGNORE INTO cache_stats (key, value) VALUES ('hits', 0);
 INSERT OR IGNORE INTO cache_stats (key, value) VALUES ('misses', 0);
 """
 
+# Migration to v2: drop accessed_at column (P1-B), add purge stats
+_MIGRATION_V2 = """
+-- P1-B: accessed_at is unused (deferred stat counting replaces it)
+-- SQLite doesn't support DROP COLUMN before 3.35 so we just leave it
+-- but stop writing to it. New stat counters for purge tracking:
+INSERT OR IGNORE INTO cache_stats (key, value) VALUES ('purged_issues', 0);
+INSERT OR IGNORE INTO cache_stats (key, value) VALUES ('purged_searches', 0);
+"""
+
+_MIGRATIONS = {
+    2: _MIGRATION_V2,
+}
+
 FTS_SCHEMA_SQL = """
 CREATE VIRTUAL TABLE IF NOT EXISTS issues_fts USING fts5(
     issue_key UNINDEXED,
@@ -114,6 +137,38 @@ END;
 """
 
 
+# --- P2-A: Noise stripping at storage time ---
+
+_NOISE_FIELDS = frozenset({
+    "self",            # REST API URL on every object
+    "avatarUrls",      # 4 avatar size URLs per user
+    "accountId",       # Internal Jira account ID
+    "accountType",     # "atlassian" etc
+    "emailAddress",    # Privacy; use displayName instead
+    "timeZone",        # User timezone
+    "active",          # User active status
+    "iconUrl",         # Status/priority icon URLs
+    "statusCategory",  # Redundant (use status.name)
+    "expand",          # Jira API metadata
+    "hierarchyLevel",  # Redundant issuetype metadata
+    "subtask",         # Redundant boolean (use issuetype)
+    "entityId",        # Internal entity ID
+    "scope",           # Project scope details
+})
+
+
+def strip_noise(obj: Any) -> Any:
+    """Recursively strip noise fields from Jira response objects.
+
+    Module-level function so server.py can also call it directly.
+    """
+    if isinstance(obj, dict):
+        return {k: strip_noise(v) for k, v in obj.items() if k not in _NOISE_FIELDS}
+    if isinstance(obj, list):
+        return [strip_noise(item) for item in obj]
+    return obj
+
+
 def extract_adf_text(adf: Any) -> str | None:
     """Extract plain text from ADF (Atlassian Document Format) JSON.
 
@@ -138,7 +193,7 @@ def extract_adf_text(adf: Any) -> str | None:
                 if key in node and isinstance(node[key], list):
                     for child in node[key]:
                         walk(child)
-        elif isinstance(node, list):
+        elif isinstance(node, list):  # pragma: no cover — defensive
             for item in node:
                 walk(item)
 
@@ -164,6 +219,10 @@ STATUS_TTL = {
 }
 DEFAULT_TTL = 24.0
 
+# --- P1-E: Stale data purge thresholds ---
+PURGE_ISSUES_DAYS = 7
+PURGE_SEARCHES_HOURS = 24
+
 
 class JiraCache:
     """SQLite cache for Jira issues with FTS5 full-text search.
@@ -179,19 +238,70 @@ class JiraCache:
         self.conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self._lock = threading.Lock()
+        # P1-B: In-memory stat buffer (flush every N calls or on get_stats)
+        self._stat_buffer: dict[str, int] = {"hits": 0, "misses": 0}
+        self._stat_flush_threshold = 20
+        self._stat_buffer_count = 0
         self._init_schema()
+        self._apply_pragmas()
+        self._purge_stale()
         logger.debug("JiraCache initialized at %s", self.db_path)
 
+    # --- P0: Migration system ---
+
+    def _get_schema_version(self) -> int:
+        """Get current schema version from DB, or 0 if table doesn't exist."""
+        try:
+            row = self.conn.execute(
+                "SELECT MAX(version) FROM schema_version"
+            ).fetchone()
+            return row[0] if row and row[0] else 0
+        except sqlite3.OperationalError:
+            return 0
+
+    def _set_schema_version(self, version: int) -> None:
+        """Record schema version."""
+        self.conn.execute(
+            "INSERT OR REPLACE INTO schema_version (version) VALUES (?)",
+            (version,),
+        )
+
     def _init_schema(self) -> None:
-        """Create tables and indexes."""
-        self.conn.executescript(SCHEMA_SQL)
+        """Create tables and run migrations."""
+        current = self._get_schema_version()
+
+        if current == 0:
+            # Fresh DB — create base schema
+            self.conn.executescript(_SCHEMA_V1)
+            self._set_schema_version(1)
+            current = 1
+            self.conn.commit()
+
+        # Run pending migrations
+        for ver in range(current + 1, SCHEMA_VERSION + 1):
+            migration = _MIGRATIONS.get(ver)
+            if migration:
+                logger.info("Running migration to schema v%d", ver)
+                self.conn.executescript(migration)
+                self._set_schema_version(ver)
+                self.conn.commit()
+                logger.info("Migration to v%d complete", ver)
+
+        # FTS5 setup (idempotent)
         try:
             self.conn.executescript(FTS_SCHEMA_SQL)
-        except sqlite3.OperationalError as e:
-            # FTS5 triggers may already exist — safe to ignore
+        except sqlite3.OperationalError as e:  # pragma: no cover — FTS5 IF NOT EXISTS
             if "already exists" not in str(e):
                 logger.warning("FTS5 setup warning: %s", e)
         self.conn.commit()
+
+    # --- P2-C: SQLite PRAGMA tuning ---
+
+    def _apply_pragmas(self) -> None:
+        """Apply session-level performance PRAGMAs."""
+        self.conn.execute("PRAGMA cache_size = -16000")   # 16MB (vs default 2MB)
+        self.conn.execute("PRAGMA mmap_size = 67108864")   # 64MB mmap
+        self.conn.execute("PRAGMA temp_store = MEMORY")    # FTS5 temp in RAM
 
     # --- Issue Operations ---
 
@@ -219,14 +329,21 @@ class JiraCache:
             self._incr_stat("misses")
             return None
 
-        # Update access time
-        self.conn.execute(
-            "UPDATE issues SET accessed_at = ? WHERE issue_key = ?",
-            (datetime.now().isoformat(), issue_key),
-        )
-        self.conn.commit()
+        # P1-B: No more accessed_at UPDATE + COMMIT on read path
         self._incr_stat("hits")
         return json.loads(row["data"])
+
+    def get_issue_stale(self, issue_key: str) -> dict | None:
+        """Get cached issue regardless of age (for stale fallback).
+
+        Returns:
+            Full issue JSON data, or None if not in cache at all.
+        """
+        row = self.conn.execute(
+            "SELECT data FROM issues WHERE issue_key = ?",
+            (issue_key,),
+        ).fetchone()
+        return json.loads(row["data"]) if row else None
 
     def put_issue(self, issue_key: str, data: dict) -> None:
         """Store issue in cache, updating FTS5 index automatically.
@@ -235,6 +352,9 @@ class JiraCache:
             issue_key: Jira issue key
             data: Full issue JSON from Jira API
         """
+        # P2-A: Strip noise BEFORE storing
+        data = strip_noise(data)
+
         fields = data.get("fields", {})
         description_text = extract_adf_text(fields.get("description"))
 
@@ -248,36 +368,51 @@ class JiraCache:
             sprint_id = sprint_data.get("id")
 
         now = datetime.now().isoformat()
-        with self._lock:
-            self.conn.execute(
-                """INSERT OR REPLACE INTO issues
-                (issue_key, summary, status, assignee, issue_type, sprint_id,
-                 parent_key, priority, labels, start_date, due_date,
-                 description_text, data, cached_at, accessed_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    issue_key,
-                    fields.get("summary", ""),
-                    _extract_field(fields, "status", "name"),
-                    _extract_field(fields, "assignee", "displayName"),
-                    _extract_field(fields, "issuetype", "name"),
-                    sprint_id,
-                    _extract_field(fields, "parent", "key"),
-                    _extract_field(fields, "priority", "name"),
-                    json.dumps(fields.get("labels", [])),
-                    fields.get("customfield_10015"),
-                    fields.get("duedate"),
-                    description_text,
-                    json.dumps(data),
-                    now,
-                    now,
-                ),
-            )
-            self.conn.commit()
+        self._put_issue_row(
+            issue_key, fields, description_text, sprint_id, data, now,
+        )
+        self.conn.commit()
         logger.debug("Cached issue %s", issue_key)
 
+    def _put_issue_row(
+        self,
+        issue_key: str,
+        fields: dict,
+        description_text: str | None,
+        sprint_id: int | None,
+        data: dict,
+        now: str,
+    ) -> None:
+        """Insert/replace a single issue row WITHOUT commit (for batch use)."""
+        self.conn.execute(
+            """INSERT OR REPLACE INTO issues
+            (issue_key, summary, status, assignee, issue_type, sprint_id,
+             parent_key, priority, labels, start_date, due_date,
+             description_text, data, cached_at, accessed_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                issue_key,
+                fields.get("summary", ""),
+                _extract_field(fields, "status", "name"),
+                _extract_field(fields, "assignee", "displayName"),
+                _extract_field(fields, "issuetype", "name"),
+                sprint_id,
+                _extract_field(fields, "parent", "key"),
+                _extract_field(fields, "priority", "name"),
+                json.dumps(fields.get("labels", [])),
+                fields.get("customfield_10015"),
+                fields.get("duedate"),
+                description_text,
+                json.dumps(data),
+                now,
+                None,  # P1-B: Stop writing accessed_at
+            ),
+        )
+
     def put_issues_batch(self, issues: list[dict]) -> int:
-        """Bulk insert issues for cache warming.
+        """Bulk insert issues in a single transaction.
+
+        P1-A: Uses _put_issue_row (no commit) + single COMMIT at end.
 
         Args:
             issues: List of issue dicts from Jira API
@@ -286,12 +421,79 @@ class JiraCache:
             Number of issues cached.
         """
         count = 0
-        for issue_data in issues:
-            key = issue_data.get("key")
-            if key:
-                self.put_issue(key, issue_data)
+        now = datetime.now().isoformat()
+        with self._lock:
+            for issue_data in issues:
+                key = issue_data.get("key")
+                if not key:
+                    continue
+                # P2-A: Strip noise before storing
+                issue_data = strip_noise(issue_data)
+                fields = issue_data.get("fields", {})
+                description_text = extract_adf_text(fields.get("description"))
+
+                sprint_id = None
+                sprint_data = fields.get("customfield_10020")
+                if isinstance(sprint_data, list) and sprint_data:
+                    first = sprint_data[0]
+                    sprint_id = first.get("id") if isinstance(first, dict) else first
+                elif isinstance(sprint_data, dict):
+                    sprint_id = sprint_data.get("id")
+
+                self._put_issue_row(
+                    key, fields, description_text, sprint_id, issue_data, now,
+                )
                 count += 1
+
+            if count > 0:
+                self.conn.commit()
+        logger.info("Batch cached %d issues (single commit)", count)
         return count
+
+    # --- P1-F: Batch get issues ---
+
+    def get_issues_batch(
+        self, issue_keys: list[str], max_age_hours: float = 24.0
+    ) -> tuple[list[dict], list[str]]:
+        """Get multiple cached issues in one query.
+
+        Args:
+            issue_keys: List of issue keys
+            max_age_hours: Maximum age in hours
+
+        Returns:
+            Tuple of (found_issues, missing_keys).
+            found_issues: list of full issue JSON dicts
+            missing_keys: list of keys not in cache or stale
+        """
+        if not issue_keys:
+            return [], []
+
+        placeholders = ",".join("?" * len(issue_keys))
+        rows = self.conn.execute(
+            f"SELECT issue_key, data, cached_at FROM issues WHERE issue_key IN ({placeholders})",
+            issue_keys,
+        ).fetchall()
+
+        cutoff = datetime.now() - timedelta(hours=max_age_hours)
+        found = {}
+        for row in rows:
+            cached_at = datetime.fromisoformat(row["cached_at"])
+            if cached_at >= cutoff:
+                found[row["issue_key"]] = json.loads(row["data"])
+
+        # Preserve order, track misses
+        found_issues = []
+        missing_keys = []
+        for key in issue_keys:
+            if key in found:
+                found_issues.append(found[key])
+                self._incr_stat("hits")
+            else:
+                missing_keys.append(key)
+                self._incr_stat("misses")
+
+        return found_issues, missing_keys
 
     # --- Sprint Operations ---
 
@@ -374,7 +576,7 @@ class JiraCache:
             )
             self.conn.commit()
 
-        # Also cache individual issues
+        # Also cache individual issues (batch)
         self.put_issues_batch(issues)
 
     # --- Full-Text Search ---
@@ -435,10 +637,54 @@ class JiraCache:
             self.conn.commit()
         logger.info("Cache cleared")
 
+    # --- P1-E: Stale data purge ---
+
+    def _purge_stale(self) -> dict[str, int]:
+        """Purge stale issues (>7d) and searches (>24h) on startup."""
+        now = datetime.now()
+        issue_cutoff = (now - timedelta(days=PURGE_ISSUES_DAYS)).isoformat()
+        search_cutoff = (now - timedelta(hours=PURGE_SEARCHES_HOURS)).isoformat()
+
+        with self._lock:
+            c1 = self.conn.execute(
+                "DELETE FROM issues WHERE cached_at < ?", (issue_cutoff,)
+            )
+            c2 = self.conn.execute(
+                "DELETE FROM searches WHERE cached_at < ?", (search_cutoff,)
+            )
+            purged_issues = c1.rowcount
+            purged_searches = c2.rowcount
+
+            if purged_issues > 0 or purged_searches > 0:
+                # Update purge counters
+                self.conn.execute(
+                    "UPDATE cache_stats SET value = value + ? WHERE key = 'purged_issues'",
+                    (purged_issues,),
+                )
+                self.conn.execute(
+                    "UPDATE cache_stats SET value = value + ? WHERE key = 'purged_searches'",
+                    (purged_searches,),
+                )
+                self.conn.commit()
+                logger.info(
+                    "Purged stale data: %d issues (>%dd), %d searches (>%dh)",
+                    purged_issues, PURGE_ISSUES_DAYS,
+                    purged_searches, PURGE_SEARCHES_HOURS,
+                )
+
+        return {"purged_issues": purged_issues, "purged_searches": purged_searches}
+
+    def purge_stale(self) -> dict[str, int]:
+        """Public interface for stale data purge."""
+        return self._purge_stale()
+
     # --- Statistics ---
 
     def get_stats(self) -> dict:
         """Cache statistics: counts, size, hit rate."""
+        # Flush stat buffer before reporting
+        self._flush_stats()
+
         issue_count = self.conn.execute(
             "SELECT COUNT(*) FROM issues"
         ).fetchone()[0]
@@ -459,6 +705,8 @@ class JiraCache:
         hits = self._get_stat("hits")
         misses = self._get_stat("misses")
         total = hits + misses
+        purged_issues = self._get_stat("purged_issues")
+        purged_searches = self._get_stat("purged_searches")
 
         db_size_mb = self.db_path.stat().st_size / (1024 * 1024) if self.db_path.exists() else 0
 
@@ -469,10 +717,13 @@ class JiraCache:
             "hits": hits,
             "misses": misses,
             "hit_rate": f"{hits / total * 100:.1f}%" if total > 0 else "N/A",
+            "purged_issues": purged_issues,
+            "purged_searches": purged_searches,
             "db_size_mb": round(db_size_mb, 2),
             "oldest_entry": oldest,
             "newest_entry": newest,
             "db_path": str(self.db_path),
+            "schema_version": self._get_schema_version(),
         }
 
     def vacuum(self) -> None:
@@ -483,20 +734,45 @@ class JiraCache:
     # --- Internal ---
 
     def _search_key(self, jql: str, fields: str, limit: int) -> str:
-        raw = f"{jql}|{fields}|{limit}"
+        """P1-D: Normalized search key to avoid duplicate cache entries."""
+        # Normalize JQL: collapse whitespace, lowercase
+        jql_norm = " ".join(jql.lower().split())
+        # Normalize fields: sort, strip whitespace
+        fields_norm = ",".join(sorted(f.strip() for f in fields.split(",")))
+        raw = f"{jql_norm}|{fields_norm}|{limit}"
         return hashlib.sha256(raw.encode()).hexdigest()
 
+    # --- P1-B: Deferred stat counting ---
+
     def _incr_stat(self, key: str) -> None:
-        self.conn.execute(
-            "UPDATE cache_stats SET value = value + 1 WHERE key = ?", (key,)
-        )
-        self.conn.commit()
+        """Buffer stat increments in memory; flush periodically."""
+        self._stat_buffer[key] = self._stat_buffer.get(key, 0) + 1
+        self._stat_buffer_count += 1
+        if self._stat_buffer_count >= self._stat_flush_threshold:
+            self._flush_stats()
+
+    def _flush_stats(self) -> None:
+        """Flush buffered stats to SQLite."""
+        if self._stat_buffer_count == 0:
+            return
+        with self._lock:
+            for key, val in self._stat_buffer.items():
+                if val > 0:
+                    self.conn.execute(
+                        "UPDATE cache_stats SET value = value + ? WHERE key = ?",
+                        (val, key),
+                    )
+            self.conn.commit()
+        self._stat_buffer = {k: 0 for k in self._stat_buffer}
+        self._stat_buffer_count = 0
 
     def _get_stat(self, key: str) -> int:
         row = self.conn.execute(
             "SELECT value FROM cache_stats WHERE key = ?", (key,)
         ).fetchone()
-        return row[0] if row else 0
+        db_val = row[0] if row else 0
+        # Add unflushed buffer
+        return db_val + self._stat_buffer.get(key, 0)
 
     def get_adaptive_ttl(self, issue_key: str) -> float:
         """Get TTL based on issue status. Done=7d, Active=6h, else=24h."""
@@ -508,5 +784,6 @@ class JiraCache:
         return STATUS_TTL.get(row["status"], DEFAULT_TTL)
 
     def close(self) -> None:
-        """Close database connection."""
+        """Close database connection (flush stats first)."""
+        self._flush_stats()
         self.conn.close()

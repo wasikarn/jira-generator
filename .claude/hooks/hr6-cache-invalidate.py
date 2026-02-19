@@ -85,8 +85,9 @@ def main() -> None:
         "hookSpecificOutput": {
             "hookEventName": "PostToolUse",
             "additionalContext": (
-                f"HR6 REQUIRED: Run cache_invalidate(issue_key='{issue_key}') "
+                f"HR6 REQUIRED: Run cache_invalidate(issue_key='{issue_key}', auto_refresh=true) "
                 f"before any subsequent read of {issue_key}. "
+                f"auto_refresh=true fetches fresh data in the same call (saves 1 MCP round-trip). "
                 f"Stale cache causes silent data corruption."
             ),
         }

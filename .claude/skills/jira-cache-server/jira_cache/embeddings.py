@@ -123,6 +123,24 @@ class EmbeddingStore:
         embedding = model.encode(text, normalize_embeddings=True)
         return embedding.tolist()
 
+    def generate_embeddings_batch(self, texts: list[str]) -> list[list[float]]:
+        """P1-C: Batch encode multiple texts in one call.
+
+        Uses sentence-transformers batch encoding for ~5-10x speedup
+        over sequential encode calls.
+
+        Args:
+            texts: List of input texts
+
+        Returns:
+            List of 384-dimensional float vectors.
+        """
+        if not texts:
+            return []
+        model = _get_model()
+        embeddings = model.encode(texts, batch_size=32, normalize_embeddings=True)
+        return [e.tolist() for e in embeddings]
+
     def store_embedding(self, issue_key: str, text: str) -> bool:
         """Generate and store embedding for an issue.
 
@@ -194,7 +212,10 @@ class EmbeddingStore:
             return []
 
     def store_batch(self, issues: list[dict]) -> int:
-        """Batch store embeddings for multiple issues.
+        """P1-C: Batch store embeddings using batch encoding.
+
+        Collects all texts first, encodes in one batch call,
+        then stores with executemany + single commit.
 
         Args:
             issues: List of issue dicts from Jira API
@@ -205,26 +226,48 @@ class EmbeddingStore:
         if not self.available:
             return 0
 
-        count = 0
+        # Phase 1: Collect texts
+        items: list[tuple[str, str]] = []  # (key, text)
         for issue in issues:
             key = issue.get("key", "")
             fields = issue.get("fields", {})
             summary = fields.get("summary", "")
-            # Use summary as primary text; add description excerpt if available
             desc = ""
             desc_raw = fields.get("description")
             if isinstance(desc_raw, dict):
-                # ADF format — extract text
                 from .cache import extract_adf_text
-
                 desc = extract_adf_text(desc_raw) or ""
             elif isinstance(desc_raw, str):
                 desc = desc_raw
 
             text = f"{summary} {desc[:500]}".strip()
             if key and text:
-                if self.store_embedding(key, text):
-                    count += 1
+                items.append((key, text))
+
+        if not items:
+            return 0
+
+        # Phase 2: Batch encode
+        try:
+            texts = [text for _, text in items]
+            vectors = self.generate_embeddings_batch(texts)
+        except Exception as e:
+            logger.error("Batch embedding encode failed: %s", e)
+            return 0
+
+        # Phase 3: Batch store with single commit
+        count = 0
+        try:
+            for (key, _), vec in zip(items, vectors):
+                self.conn.execute(
+                    "INSERT OR REPLACE INTO issue_embeddings (issue_key, embedding) VALUES (?, ?)",
+                    (key, _serialize_f32(vec)),
+                )
+                count += 1
+            self.conn.commit()
+            logger.info("Batch stored %d embeddings (single commit)", count)
+        except Exception as e:
+            logger.error("Batch embedding store failed: %s", e)
 
         return count
 

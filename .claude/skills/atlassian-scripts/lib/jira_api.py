@@ -140,7 +140,7 @@ class JiraAPI:
             req.data = json.dumps(data).encode("utf-8")
 
         try:
-            with urllib.request.urlopen(req, context=self.ssl_context) as resp:
+            with urllib.request.urlopen(req, context=self.ssl_context, timeout=15) as resp:
                 body = resp.read().decode("utf-8")
                 if body:
                     return json.loads(body)

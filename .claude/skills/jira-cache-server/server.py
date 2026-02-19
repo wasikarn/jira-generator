@@ -8,15 +8,16 @@
 # ///
 """MCP server for Jira data caching with FTS5 and vector search.
 
-Provides 8 tools for cached Jira data access:
-- cache_get_issue: Get issue (cache-first, upstream fallback)
+Provides 10 tools for cached Jira data access:
+- cache_get_issue: Get issue (cache-first, upstream fallback, compact mode)
+- cache_get_issues: Batch get multiple issues (single MCP call)
 - cache_search: JQL search with caching
 - cache_sprint_issues: Sprint issues with caching
 - cache_text_search: FTS5 keyword search on cached issues
 - cache_similar_issues: Semantic similarity via embeddings
 - cache_refresh: Force-refresh from upstream
 - cache_stats: Cache statistics
-- cache_invalidate: Clear cache entries
+- cache_invalidate: Clear cache entries (with optional auto_refresh)
 
 Runs as stdio MCP server for Claude Code integration.
 
@@ -27,6 +28,7 @@ Usage:
 import json
 import logging
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -43,7 +45,7 @@ from lib.auth import create_ssl_context, get_auth_header, load_credentials
 from lib.jira_api import JiraAPI, derive_jira_url
 
 # Local imports (jira_cache to avoid namespace collision with atlassian-scripts/lib)
-from jira_cache.cache import JiraCache
+from jira_cache.cache import JiraCache, strip_noise
 from jira_cache.embeddings import EmbeddingStore
 
 logging.basicConfig(
@@ -64,7 +66,7 @@ jira_api: JiraAPI | None = None
 TOOLS = [
     Tool(
         name="cache_get_issue",
-        description="Get a Jira issue by key. Returns cached data if fresh, otherwise fetches from Jira REST API and caches the result. Specify fields to control which Jira fields are returned from upstream.",
+        description="Get a Jira issue by key. Returns cached data if fresh, otherwise fetches from Jira REST API and caches the result. Use compact=true for minimal response (key, summary, status, assignee only).",
         inputSchema={
             "type": "object",
             "properties": {
@@ -72,8 +74,28 @@ TOOLS = [
                 "fields": {"type": "string", "description": "Comma-separated fields for upstream fetch (default: summary,status,assignee,issuetype,priority,labels,parent,description)", "default": "summary,status,assignee,issuetype,priority,labels,parent,description"},
                 "max_age_hours": {"type": "number", "description": "Max cache age in hours (default: 24)", "default": 24},
                 "force_refresh": {"type": "boolean", "description": "Skip cache and fetch from Jira upstream, then update cache (default: false)", "default": False},
+                "compact": {"type": "boolean", "description": "Return minimal fields only: key, summary, status, assignee, issuetype, priority, labels, parent (~200 chars vs ~5KB). Use for overviews. (default: false)", "default": False},
             },
             "required": ["issue_key"],
+        },
+    ),
+    # P1-F: Batch get issues tool
+    Tool(
+        name="cache_get_issues",
+        description="Get multiple Jira issues in one call. Returns cached data for fresh issues, fetches missing ones from upstream. Much more efficient than calling cache_get_issue multiple times. Use compact=true for minimal responses.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "issue_keys": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of Jira issue keys (e.g., ['BEP-123', 'BEP-456'])",
+                },
+                "fields": {"type": "string", "description": "Comma-separated fields for upstream fetch (default: summary,status,assignee,issuetype,priority,labels,parent,description)", "default": "summary,status,assignee,issuetype,priority,labels,parent,description"},
+                "max_age_hours": {"type": "number", "description": "Max cache age in hours (default: 24)", "default": 24},
+                "compact": {"type": "boolean", "description": "Return minimal fields only (default: false)", "default": False},
+            },
+            "required": ["issue_keys"],
         },
     ),
     Tool(
@@ -154,7 +176,7 @@ TOOLS = [
     ),
     Tool(
         name="cache_stats",
-        description="Get cache statistics: issue count, hit/miss rate, database size, oldest/newest entries.",
+        description="Get cache statistics: issue count, hit/miss rate, database size, oldest/newest entries, schema version, purge counts.",
         inputSchema={
             "type": "object",
             "properties": {},
@@ -162,13 +184,14 @@ TOOLS = [
     ),
     Tool(
         name="cache_invalidate",
-        description="Clear cache entries. Can invalidate specific issues, a sprint, or the entire cache.",
+        description="Clear cache entries. Can invalidate specific issues, a sprint, or the entire cache. Use auto_refresh=true to invalidate AND immediately re-fetch from upstream in one call (saves an extra MCP round-trip).",
         inputSchema={
             "type": "object",
             "properties": {
                 "issue_key": {"type": "string", "description": "Invalidate a specific issue"},
                 "sprint_id": {"type": "integer", "description": "Invalidate all issues in a sprint"},
                 "all": {"type": "boolean", "description": "Clear entire cache", "default": False},
+                "auto_refresh": {"type": "boolean", "description": "After invalidating, immediately re-fetch from upstream and cache the result (default: false). Reduces 2 MCP calls to 1.", "default": False},
             },
         },
     ),
@@ -209,35 +232,30 @@ def _format_issue_summary(issue: dict) -> str:
     return f"[{key}] ({type_name}) {summary} | {status_name} | {assignee_name}"
 
 
+# --- P2-B: Compact mode extraction ---
+
+def _compact_issue(issue: dict) -> dict:
+    """Extract minimal fields from a full issue dict."""
+    fields = issue.get("fields", {})
+    compact = {
+        "key": issue.get("key", "?"),
+        "summary": fields.get("summary", ""),
+        "status": fields.get("status", {}).get("name", "") if isinstance(fields.get("status"), dict) else str(fields.get("status", "")),
+        "assignee": fields.get("assignee", {}).get("displayName", "Unassigned") if isinstance(fields.get("assignee"), dict) else str(fields.get("assignee") or "Unassigned"),
+        "issuetype": fields.get("issuetype", {}).get("name", "") if isinstance(fields.get("issuetype"), dict) else str(fields.get("issuetype", "")),
+    }
+    if "priority" in fields:
+        p = fields["priority"]
+        compact["priority"] = p.get("name", "") if isinstance(p, dict) else str(p)
+    if "labels" in fields:
+        compact["labels"] = fields["labels"]
+    if "parent" in fields:
+        p = fields["parent"]
+        compact["parent"] = p.get("key", "") if isinstance(p, dict) else str(p)
+    return compact
+
+
 # --- Response size management (tiered: strip → paginate → compact) ---
-
-# Level 1: Fields that are never useful to Claude (API URLs, avatars, internal IDs)
-_NOISE_FIELDS = frozenset({
-    "self",            # REST API URL on every object
-    "avatarUrls",      # 4 avatar size URLs per user
-    "accountId",       # Internal Jira account ID
-    "accountType",     # "atlassian" etc
-    "emailAddress",    # Privacy; use displayName instead
-    "timeZone",        # User timezone
-    "active",          # User active status
-    "iconUrl",         # Status/priority icon URLs
-    "statusCategory",  # Redundant (use status.name)
-    "expand",          # Jira API metadata
-    "hierarchyLevel",  # Redundant issuetype metadata
-    "subtask",         # Redundant boolean (use issuetype)
-    "entityId",        # Internal entity ID
-    "scope",           # Project scope details
-})
-
-
-def _strip_noise(obj: Any) -> Any:
-    """Recursively strip noise fields from Jira response objects."""
-    if isinstance(obj, dict):
-        return {k: _strip_noise(v) for k, v in obj.items() if k not in _NOISE_FIELDS}
-    if isinstance(obj, list):
-        return [_strip_noise(item) for item in obj]
-    return obj
-
 
 def _strip_response_noise(result_json: str) -> str:
     """Level 1: Strip Jira metadata noise from JSON response."""
@@ -245,7 +263,7 @@ def _strip_response_noise(result_json: str) -> str:
         data = json.loads(result_json)
     except (json.JSONDecodeError, TypeError):
         return result_json
-    stripped = _strip_noise(data)
+    stripped = strip_noise(data)
     return json.dumps(stripped, ensure_ascii=False)
 
 
@@ -311,23 +329,7 @@ def _compact_response(result_json: str) -> str:
     compact_issues = []
     for issue in issues:
         if isinstance(issue, dict) and "fields" in issue:
-            fields = issue["fields"]
-            compact = {
-                "key": issue.get("key", "?"),
-                "summary": fields.get("summary", ""),
-                "status": fields.get("status", {}).get("name", "") if isinstance(fields.get("status"), dict) else str(fields.get("status", "")),
-                "assignee": fields.get("assignee", {}).get("displayName", "Unassigned") if isinstance(fields.get("assignee"), dict) else str(fields.get("assignee") or "Unassigned"),
-                "issuetype": fields.get("issuetype", {}).get("name", "") if isinstance(fields.get("issuetype"), dict) else str(fields.get("issuetype", "")),
-            }
-            if "priority" in fields:
-                p = fields["priority"]
-                compact["priority"] = p.get("name", "") if isinstance(p, dict) else str(p)
-            if "labels" in fields:
-                compact["labels"] = fields["labels"]
-            if "parent" in fields:
-                p = fields["parent"]
-                compact["parent"] = p.get("key", "") if isinstance(p, dict) else str(p)
-            compact_issues.append(compact)
+            compact_issues.append(_compact_issue(issue))
         else:
             compact_issues.append(issue)
 
@@ -337,38 +339,118 @@ def _compact_response(result_json: str) -> str:
     return json.dumps(data, ensure_ascii=False)
 
 
+# --- P3: Upstream fetch timing ---
+
+def _timed_upstream(label: str, func, *args, **kwargs):
+    """Call func with timing logged at INFO level."""
+    t0 = time.perf_counter()
+    try:
+        result = func(*args, **kwargs)
+        elapsed = time.perf_counter() - t0
+        logger.info("Upstream %s: %.1fms", label, elapsed * 1000)
+        return result
+    except Exception:
+        elapsed = time.perf_counter() - t0
+        logger.warning("Upstream %s FAILED after %.1fms", label, elapsed * 1000)
+        raise
+
+
 # --- Tool Handlers ---
 
 
 async def handle_cache_get_issue(args: dict) -> str:
-    """Get issue: cache-first with upstream fallback."""
+    """Get issue: cache-first with upstream fallback + stale fallback."""
     issue_key = args["issue_key"]
     fields = args.get("fields", "summary,status,assignee,issuetype,priority,labels,parent,description")
     max_age = args.get("max_age_hours") or cache.get_adaptive_ttl(issue_key)
     force_refresh = args.get("force_refresh", False)
+    compact = args.get("compact", False)
 
     # Try cache first (skip if force_refresh)
     if not force_refresh:
         cached = cache.get_issue(issue_key, max_age_hours=max_age)
         if cached:
             logger.info("Cache HIT: %s", issue_key)
-            return json.dumps({"source": "cache", "issue": cached}, ensure_ascii=False)
+            issue_data = _compact_issue(cached) if compact else cached
+            return json.dumps({"source": "cache", "issue": issue_data}, ensure_ascii=False)
 
     # Cache miss or force_refresh — fetch upstream
     if not jira_api:
+        # P2-D: Stale fallback when upstream unavailable
+        stale = cache.get_issue_stale(issue_key)
+        if stale:
+            issue_data = _compact_issue(stale) if compact else stale
+            return json.dumps({"source": "stale_cache", "warning": "Upstream API not available, returning stale data", "issue": issue_data}, ensure_ascii=False)
         return json.dumps({"error": "Issue not in cache and upstream API not available"})
 
     logger.info("Cache %s: %s — fetching upstream", "REFRESH" if force_refresh else "MISS", issue_key)
     try:
-        issue = jira_api.get_issue(issue_key, fields=fields)
+        issue = _timed_upstream(f"get_issue({issue_key})", jira_api.get_issue, issue_key, fields=fields)
         cache.put_issue(issue_key, issue)
         if embeddings and embeddings.available:
             f = issue.get("fields", {})
             text = f"{f.get('summary', '')} {f.get('description', '') if isinstance(f.get('description'), str) else ''}"
             embeddings.store_embedding(issue_key, text[:500])
-        return json.dumps({"source": "upstream", "issue": issue}, ensure_ascii=False)
+        issue_data = _compact_issue(issue) if compact else issue
+        return json.dumps({"source": "upstream", "issue": issue_data}, ensure_ascii=False)
     except Exception as e:
+        # P2-D: Stale fallback on upstream error
+        stale = cache.get_issue_stale(issue_key)
+        if stale:
+            issue_data = _compact_issue(stale) if compact else stale
+            return json.dumps({"source": "stale_cache", "warning": f"Upstream failed ({e}), returning stale data", "issue": issue_data}, ensure_ascii=False)
         return json.dumps({"error": f"Failed to fetch {issue_key}: {e}"})
+
+
+# --- P1-F: Batch get issues handler ---
+
+async def handle_cache_get_issues(args: dict) -> str:
+    """Batch get multiple issues: cache-first, upstream for misses."""
+    issue_keys = args.get("issue_keys", [])
+    if not issue_keys:
+        return json.dumps({"error": "issue_keys is required and must be non-empty"})
+
+    fields = args.get("fields", "summary,status,assignee,issuetype,priority,labels,parent,description")
+    max_age = args.get("max_age_hours", 24)
+    compact = args.get("compact", False)
+
+    # Batch get from cache
+    found_issues, missing_keys = cache.get_issues_batch(issue_keys, max_age_hours=max_age)
+
+    # Fetch missing from upstream
+    upstream_issues = []
+    if missing_keys and jira_api:
+        for key in missing_keys:
+            try:
+                issue = _timed_upstream(f"get_issue({key})", jira_api.get_issue, key, fields=fields)
+                cache.put_issue(key, issue)
+                if embeddings and embeddings.available:
+                    f = issue.get("fields", {})
+                    text = f"{f.get('summary', '')}"[:500]
+                    embeddings.store_embedding(key, text)
+                upstream_issues.append(issue)
+            except Exception as e:
+                logger.error("Failed to fetch %s: %s", key, e)
+                # Try stale fallback
+                stale = cache.get_issue_stale(key)
+                if stale:
+                    upstream_issues.append(stale)
+
+    all_issues = found_issues + upstream_issues
+
+    if compact:
+        all_issues = [_compact_issue(i) for i in all_issues]
+
+    return json.dumps({
+        "source": "batch",
+        "total": len(all_issues),
+        "from_cache": len(found_issues),
+        "from_upstream": len(upstream_issues),
+        "still_missing": [k for k in missing_keys if not any(
+            i.get("key") == k for i in upstream_issues
+        )],
+        "issues": all_issues,
+    }, ensure_ascii=False)
 
 
 async def handle_cache_search(args: dict) -> str:
@@ -397,7 +479,7 @@ async def handle_cache_search(args: dict) -> str:
 
         logger.info("Search cache MISS: %s — fetching upstream", jql[:60])
         try:
-            results = jira_api.search_issues(jql, fields=fields, max_results=limit)
+            results = _timed_upstream(f"search({jql[:40]})", jira_api.search_issues, jql, fields=fields, max_results=limit)
             cache.put_search(jql, fields, limit, results)
             if embeddings and embeddings.available:
                 embeddings.store_batch(results.get("issues", []))
@@ -441,7 +523,11 @@ async def handle_cache_sprint_issues(args: dict) -> str:
             all_issues: list[dict] = []
             upstream_offset = 0
             while True:
-                page = jira_api.get_sprint_issues(sprint_id, fields=fields, max_results=50, start_at=upstream_offset)
+                page = _timed_upstream(
+                    f"sprint({sprint_id}, offset={upstream_offset})",
+                    jira_api.get_sprint_issues, sprint_id,
+                    fields=fields, max_results=50, start_at=upstream_offset,
+                )
                 issues = page.get("issues", [])
                 all_issues.extend(issues)
                 if upstream_offset + len(issues) >= page.get("total", 0):
@@ -521,7 +607,7 @@ async def handle_cache_refresh(args: dict) -> str:
     issue_keys = args.get("issue_keys", [])
     for key in issue_keys:
         try:
-            issue = jira_api.get_issue(key)
+            issue = _timed_upstream(f"refresh({key})", jira_api.get_issue, key)
             cache.put_issue(key, issue)
             if embeddings and embeddings.available:
                 f = issue.get("fields", {})
@@ -538,7 +624,11 @@ async def handle_cache_refresh(args: dict) -> str:
             cache.invalidate_sprint(sprint_id)
             start_at = 0
             while True:
-                page = jira_api.get_sprint_issues(sprint_id, max_results=50, start_at=start_at)
+                page = _timed_upstream(
+                    f"refresh_sprint({sprint_id}, offset={start_at})",
+                    jira_api.get_sprint_issues, sprint_id,
+                    max_results=50, start_at=start_at,
+                )
                 issues = page.get("issues", [])
                 cache.put_issues_batch(issues)
                 if embeddings and embeddings.available:
@@ -563,7 +653,9 @@ async def handle_cache_stats(args: dict) -> str:
 
 
 async def handle_cache_invalidate(args: dict) -> str:
-    """Cache invalidation."""
+    """Cache invalidation with optional auto_refresh (P1-G)."""
+    auto_refresh = args.get("auto_refresh", False)
+
     if args.get("all"):
         cache.invalidate_all()
         return json.dumps({"invalidated": "all"})
@@ -573,6 +665,34 @@ async def handle_cache_invalidate(args: dict) -> str:
         removed = cache.invalidate_issue(issue_key)
         if embeddings:
             embeddings.remove_embedding(issue_key)
+
+        # P1-G: Auto-refresh after invalidation
+        if auto_refresh and jira_api:
+            try:
+                issue = _timed_upstream(
+                    f"auto_refresh({issue_key})",
+                    jira_api.get_issue, issue_key,
+                )
+                cache.put_issue(issue_key, issue)
+                if embeddings and embeddings.available:
+                    f = issue.get("fields", {})
+                    text = f"{f.get('summary', '')}"[:500]
+                    embeddings.store_embedding(issue_key, text)
+                return json.dumps({
+                    "invalidated": issue_key,
+                    "found": removed,
+                    "auto_refreshed": True,
+                    "issue": issue,
+                })
+            except Exception as e:
+                logger.error("Auto-refresh failed for %s: %s", issue_key, e)
+                return json.dumps({
+                    "invalidated": issue_key,
+                    "found": removed,
+                    "auto_refreshed": False,
+                    "auto_refresh_error": str(e),
+                })
+
         return json.dumps({"invalidated": issue_key, "found": removed})
 
     sprint_id = args.get("sprint_id")
@@ -627,6 +747,7 @@ def _coerce_args(name: str, args: dict[str, Any]) -> dict[str, Any]:
 
 HANDLERS = {
     "cache_get_issue": handle_cache_get_issue,
+    "cache_get_issues": handle_cache_get_issues,
     "cache_search": handle_cache_search,
     "cache_sprint_issues": handle_cache_sprint_issues,
     "cache_text_search": handle_cache_text_search,
@@ -637,7 +758,7 @@ HANDLERS = {
 }
 
 
-async def main() -> None:
+async def main() -> None:  # pragma: no cover
     """Run MCP server over stdio."""
     _init()
 
@@ -657,7 +778,8 @@ async def main() -> None:
             arguments = _coerce_args(name, arguments)
             result = await handler(arguments)
 
-            # Tiered response size management
+            # P2-A: Always apply L1 strip on responses (noise already stripped at
+            # storage, but upstream responses in auto_refresh may still have noise)
             if len(result) > MAX_RESPONSE_CHARS:
                 # Level 1: Strip Jira metadata noise
                 result = _strip_response_noise(result)
@@ -683,7 +805,7 @@ async def main() -> None:
         await server.run(read_stream, write_stream, server.create_initialization_options())
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     import asyncio
 
     asyncio.run(main())
