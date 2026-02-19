@@ -596,21 +596,7 @@ class AdfValidator:
 
     def _check_s6_language(self, adf: dict) -> CheckResult:
         """S6: Language — Thai content with English technical terms."""
-        # Extract text excluding code-marked content
-        plain_texts: list[str] = []
-
-        def _collect(n: dict) -> None:
-            if n.get("type") == "text" and "text" in n and not has_code_mark(n):
-                plain_texts.append(n["text"])
-
-        walk_adf(adf, _collect)
-        text = " ".join(plain_texts)
-
-        if not text:
-            return CheckResult("S6", CheckStatus.WARN, "No text content found")
-        if THAI_RE.search(text):
-            return CheckResult("S6", CheckStatus.PASS, "Thai language detected")
-        return CheckResult("S6", CheckStatus.FAIL, "No Thai text — content should be in Thai")
+        return self._check_language("S6", adf)
 
     # ───────────────────────────────────────────────────────
     # Subtask Quality Checks (ST1–ST5)

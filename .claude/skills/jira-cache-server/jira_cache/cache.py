@@ -527,12 +527,9 @@ class JiraCache:
 
         # L2: Single batch increment with _stat_lock (avoids mid-batch flush)
         with self._stat_lock:
-            if hit_count > 0:
-                self._stat_buffer["hits"] = self._stat_buffer.get("hits", 0) + hit_count
-                self._stat_buffer_count += hit_count
-            if miss_count > 0:
-                self._stat_buffer["misses"] = self._stat_buffer.get("misses", 0) + miss_count
-                self._stat_buffer_count += miss_count
+            self._stat_buffer["hits"] += hit_count
+            self._stat_buffer["misses"] += miss_count
+            self._stat_buffer_count += hit_count + miss_count
             should_flush = self._stat_buffer_count >= self._stat_flush_threshold
         if should_flush:
             self._flush_stats()
@@ -633,10 +630,10 @@ class JiraCache:
                 if not key:
                     continue
                 issue_data = strip_noise(issue_data)
-                f = issue_data.get("fields", {})
-                description_text = extract_adf_text(f.get("description"))
-                sid = self._extract_sprint_id(f)
-                self._put_issue_row(key, f, description_text, sid, issue_data, now)
+                fields = issue_data.get("fields", {})
+                description_text = extract_adf_text(fields.get("description"))
+                sid = self._extract_sprint_id(fields)
+                self._put_issue_row(key, fields, description_text, sid, issue_data, now)
             self.conn.commit()
         logger.debug("Cached search + %d issues (single transaction)", len(issues))
 
@@ -859,6 +856,7 @@ class JiraCache:
                 self.conn.commit()
 
     def _get_stat(self, key: str) -> int:
+        """Get stat value from DB plus unflushed buffer for accurate real-time reads."""
         row = self.conn.execute(
             "SELECT value FROM cache_stats WHERE key = ?", (key,)
         ).fetchone()

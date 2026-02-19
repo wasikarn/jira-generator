@@ -8,13 +8,16 @@ Exit 0 = allow (always), prints additionalContext suggestion.
 """
 import json
 import sys
-import os
+from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hooks_state import _load, _save
 
 raw = sys.stdin.read()
-data = json.loads(raw)
+try:
+    data = json.loads(raw)
+except json.JSONDecodeError:
+    sys.exit(0)
 tool_name = data.get("tool_name", "")
 tool_input = data.get("tool_input", {})
 session_id = data.get("session_id", "")

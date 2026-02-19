@@ -70,7 +70,10 @@ def detect_type(file_path: Path, data: dict) -> str:
 
 
 raw = sys.stdin.read()
-data = json.loads(raw)
+try:
+    data = json.loads(raw)
+except json.JSONDecodeError:
+    sys.exit(0)
 
 if data.get("tool_name") != "Bash":
     sys.exit(0)

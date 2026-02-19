@@ -311,7 +311,7 @@ def _strip_response_noise(result_json: str) -> str:
     return json.dumps(stripped, ensure_ascii=False)
 
 
-def _find_issues_list(data: dict) -> tuple[list | None, dict | None, str | None]:
+def _find_issues_list(data: dict) -> tuple[list[dict] | None, dict | None, str | None]:
     """Find the issues array in common response shapes."""
     for parent_key in ("results", None):
         container = data.get(parent_key) if parent_key else data
@@ -385,7 +385,7 @@ def _compact_response(result_json: str) -> str:
 
 # --- P3: Upstream fetch timing ---
 
-def _timed_upstream(label: str, func, *args, **kwargs):
+def _timed_upstream(label: str, func: Any, *args: Any, **kwargs: Any) -> Any:
     """Call func with timing logged at INFO level."""
     t0 = time.perf_counter()
     try:
@@ -404,19 +404,20 @@ def _timed_upstream(label: str, func, *args, **kwargs):
 
 async def handle_cache_get_issue(args: dict) -> str:
     """Get issue: cache-first with upstream fallback + stale fallback."""
+    c = _require_cache()
     try:
         issue_key = _validate_issue_key(args["issue_key"])
     except ValueError as e:
         return json.dumps({"error": str(e)})
     fields = args.get("fields", "summary,status,assignee,issuetype,priority,labels,parent,description")
     max_age_raw = args.get("max_age_hours")
-    max_age = max_age_raw if max_age_raw is not None else cache.get_adaptive_ttl(issue_key)
+    max_age = max_age_raw if max_age_raw is not None else c.get_adaptive_ttl(issue_key)
     force_refresh = args.get("force_refresh", False)
     compact = args.get("compact", False)
 
     # Try cache first (skip if force_refresh)
     if not force_refresh:
-        cached = cache.get_issue(issue_key, max_age_hours=max_age)
+        cached = c.get_issue(issue_key, max_age_hours=max_age)
         if cached:
             logger.info("Cache HIT: %s", issue_key)
             issue_data = _compact_issue(cached) if compact else cached
@@ -425,7 +426,7 @@ async def handle_cache_get_issue(args: dict) -> str:
     # Cache miss or force_refresh — fetch upstream
     if not jira_api:
         # P2-D: Stale fallback when upstream unavailable
-        stale = cache.get_issue_stale(issue_key)
+        stale = c.get_issue_stale(issue_key)
         if stale:
             issue_data = _compact_issue(stale) if compact else stale
             return json.dumps({"source": "stale_cache", "warning": "Upstream API not available, returning stale data", "issue": issue_data}, ensure_ascii=False)
@@ -434,14 +435,14 @@ async def handle_cache_get_issue(args: dict) -> str:
     logger.info("Cache %s: %s — fetching upstream", "REFRESH" if force_refresh else "MISS", issue_key)
     try:
         issue = _timed_upstream(f"get_issue({issue_key})", jira_api.get_issue, issue_key, fields=fields)
-        cache.put_issue(issue_key, issue)
+        c.put_issue(issue_key, issue)
         if embeddings and embeddings.available:
             embeddings.store_embedding(issue_key, _embedding_text(issue))
         issue_data = _compact_issue(issue) if compact else issue
         return json.dumps({"source": "upstream", "issue": issue_data}, ensure_ascii=False)
     except Exception as e:
         # P2-D: Stale fallback on upstream error
-        stale = cache.get_issue_stale(issue_key)
+        stale = c.get_issue_stale(issue_key)
         if stale:
             issue_data = _compact_issue(stale) if compact else stale
             return json.dumps({"source": "stale_cache", "warning": f"Upstream failed ({e}), returning stale data", "issue": issue_data}, ensure_ascii=False)
@@ -452,6 +453,7 @@ async def handle_cache_get_issue(args: dict) -> str:
 
 async def handle_cache_get_issues(args: dict) -> str:
     """Batch get multiple issues: cache-first, upstream for misses."""
+    c = _require_cache()
     issue_keys = args.get("issue_keys", [])
     if not issue_keys:
         return json.dumps({"error": "issue_keys is required and must be non-empty"})
@@ -464,7 +466,7 @@ async def handle_cache_get_issues(args: dict) -> str:
     compact = args.get("compact", False)
 
     # Batch get from cache
-    found_issues, missing_keys = cache.get_issues_batch(issue_keys, max_age_hours=max_age)
+    found_issues, missing_keys = c.get_issues_batch(issue_keys, max_age_hours=max_age)
 
     # Fetch missing from upstream
     upstream_issues = []
@@ -472,14 +474,14 @@ async def handle_cache_get_issues(args: dict) -> str:
         for key in missing_keys:
             try:
                 issue = _timed_upstream(f"get_issue({key})", jira_api.get_issue, key, fields=fields)
-                cache.put_issue(key, issue)
+                c.put_issue(key, issue)
                 if embeddings and embeddings.available:
                     embeddings.store_embedding(key, _embedding_text(issue))
                 upstream_issues.append(issue)
             except Exception as e:
                 logger.error("Failed to fetch %s: %s", key, e)
                 # Try stale fallback
-                stale = cache.get_issue_stale(key)
+                stale = c.get_issue_stale(key)
                 if stale:
                     upstream_issues.append(stale)
 
@@ -493,15 +495,16 @@ async def handle_cache_get_issues(args: dict) -> str:
         "total": len(all_issues),
         "from_cache": len(found_issues),
         "from_upstream": len(upstream_issues),
-        "still_missing": [k for k in missing_keys if not any(
-            i.get("key") == k for i in upstream_issues
-        )],
+        "still_missing": [k for k in missing_keys if k not in {
+            i.get("key") for i in upstream_issues
+        }],
         "issues": all_issues,
     }, ensure_ascii=False)
 
 
 async def handle_cache_search(args: dict) -> str:
     """JQL search with caching."""
+    c = _require_cache()
     jql = args["jql"]
     fields = args.get("fields", "summary,status,assignee,issuetype,priority")
     limit = min(args.get("limit", 30), 50)
@@ -514,7 +517,7 @@ async def handle_cache_search(args: dict) -> str:
 
     # Try cache (skip if force_refresh)
     if not force_refresh:
-        cached = cache.get_search(jql, fields, limit, max_age_hours=max_age)
+        cached = c.get_search(jql, fields, limit, max_age_hours=max_age)
         if cached:
             logger.info("Search cache HIT: %s", jql[:60])
             results = cached
@@ -527,7 +530,7 @@ async def handle_cache_search(args: dict) -> str:
         logger.info("Search cache MISS: %s — fetching upstream", jql[:60])
         try:
             results = _timed_upstream(f"search({jql[:40]})", jira_api.search_issues, jql, fields=fields, max_results=limit)
-            cache.put_search(jql, fields, limit, results)
+            c.put_search(jql, fields, limit, results)
             if embeddings and embeddings.available:
                 embeddings.store_batch(results.get("issues", []))
             source = "upstream"
@@ -544,6 +547,7 @@ async def handle_cache_search(args: dict) -> str:
 
 async def handle_cache_sprint_issues(args: dict) -> str:
     """Get sprint issues with caching."""
+    c = _require_cache()
     sprint_id = args["sprint_id"]
     fields = args.get("fields", "summary,status,assignee,issuetype,priority,labels")
     max_age = args.get("max_age_hours", 2)
@@ -556,7 +560,7 @@ async def handle_cache_sprint_issues(args: dict) -> str:
     # Use JQL-based search cache (sprint issues = search query)
     jql = f"sprint = {sprint_id}"
     if not force_refresh:
-        cached = cache.get_search(jql, fields, 50, max_age_hours=max_age)
+        cached = c.get_search(jql, fields, 50, max_age_hours=max_age)
         if cached:
             logger.info("Sprint cache HIT: %d", sprint_id)
             results = cached
@@ -584,7 +588,7 @@ async def handle_cache_sprint_issues(args: dict) -> str:
                 upstream_offset += len(issues)
 
             results = {"issues": all_issues, "total": len(all_issues)}
-            cache.put_search(jql, fields, 50, results)
+            c.put_search(jql, fields, 50, results)
             if embeddings and embeddings.available:
                 embeddings.store_batch(all_issues)
             source = "upstream"
@@ -601,10 +605,11 @@ async def handle_cache_sprint_issues(args: dict) -> str:
 
 async def handle_cache_text_search(args: dict) -> str:
     """FTS5 keyword search on cached issues."""
+    c = _require_cache()
     query = args["query"]
     limit = min(args.get("limit", 10), MAX_TEXT_SEARCH_LIMIT)
 
-    results = cache.text_search(query, limit=limit)
+    results = c.text_search(query, limit=limit)
     summaries = [_format_issue_summary(r) for r in results]
 
     return json.dumps({
@@ -628,7 +633,7 @@ async def handle_cache_similar_issues(args: dict) -> str:
     # Enrich with issue data from cache
     enriched = []
     for item in similar:
-        issue = cache.get_issue(item["issue_key"], max_age_hours=9999)
+        issue = _require_cache().get_issue(item["issue_key"], max_age_hours=9999)
         if issue:
             enriched.append({
                 **item,
@@ -646,6 +651,7 @@ async def handle_cache_similar_issues(args: dict) -> str:
 
 async def handle_cache_refresh(args: dict) -> str:
     """Force-refresh from upstream."""
+    c = _require_cache()
     if not jira_api:
         return json.dumps({"error": "Upstream API not available"})
 
@@ -656,7 +662,7 @@ async def handle_cache_refresh(args: dict) -> str:
     for key in issue_keys:
         try:
             issue = _timed_upstream(f"refresh({key})", jira_api.get_issue, key)
-            cache.put_issue(key, issue)
+            c.put_issue(key, issue)
             if embeddings and embeddings.available:
                 embeddings.store_embedding(key, _embedding_text(issue))
             refreshed.append(key)
@@ -667,7 +673,7 @@ async def handle_cache_refresh(args: dict) -> str:
     sprint_id = args.get("sprint_id")
     if sprint_id:
         try:
-            cache.invalidate_sprint(sprint_id)
+            c.invalidate_sprint(sprint_id)
             start_at = 0
             pages_fetched = 0
             while pages_fetched < MAX_SPRINT_PAGES:
@@ -677,7 +683,7 @@ async def handle_cache_refresh(args: dict) -> str:
                     max_results=50, start_at=start_at,
                 )
                 issues = page.get("issues", [])
-                cache.put_issues_batch(issues)
+                c.put_issues_batch(issues)
                 if embeddings and embeddings.available:
                     embeddings.store_batch(issues)
                 refreshed.extend(i.get("key", "") for i in issues)
@@ -693,7 +699,7 @@ async def handle_cache_refresh(args: dict) -> str:
 
 async def handle_cache_stats(args: dict) -> str:
     """Cache statistics."""
-    stats = cache.get_stats()
+    stats = _require_cache().get_stats()
     if embeddings:
         stats["embeddings_count"] = embeddings.count()
         stats["embeddings_available"] = embeddings.available
@@ -702,17 +708,18 @@ async def handle_cache_stats(args: dict) -> str:
 
 async def handle_cache_invalidate(args: dict) -> str:
     """Cache invalidation with optional auto_refresh (P1-G)."""
+    c = _require_cache()
     auto_refresh = args.get("auto_refresh", False)
 
     if args.get("all"):
         if not args.get("confirm"):
             return json.dumps({"error": "Set confirm=true to invalidate entire cache"})
-        cache.invalidate_all()
+        c.invalidate_all()
         return json.dumps({"invalidated": "all"})
 
     issue_key = args.get("issue_key")
     if issue_key:
-        removed = cache.invalidate_issue(issue_key)
+        removed = c.invalidate_issue(issue_key)
         if embeddings:
             embeddings.remove_embedding(issue_key)
 
@@ -723,7 +730,7 @@ async def handle_cache_invalidate(args: dict) -> str:
                     f"auto_refresh({issue_key})",
                     jira_api.get_issue, issue_key,
                 )
-                cache.put_issue(issue_key, issue)
+                c.put_issue(issue_key, issue)
                 if embeddings and embeddings.available:
                     embeddings.store_embedding(issue_key, _embedding_text(issue))
                 # M9: strip_noise on auto_refresh response
@@ -747,7 +754,7 @@ async def handle_cache_invalidate(args: dict) -> str:
 
     sprint_id = args.get("sprint_id")
     if sprint_id:
-        count = cache.invalidate_sprint(sprint_id)
+        count = c.invalidate_sprint(sprint_id)
         return json.dumps({"invalidated_sprint": sprint_id, "issues_removed": count})
 
     return json.dumps({"error": "Specify issue_key, sprint_id, or all=true"})
