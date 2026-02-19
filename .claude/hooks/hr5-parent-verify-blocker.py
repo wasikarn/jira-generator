@@ -7,6 +7,7 @@ hasn't been verified yet.
 
 Exit codes: 0 = allow, 2 = block (pending verification)
 """
+
 import json
 import sys
 from pathlib import Path

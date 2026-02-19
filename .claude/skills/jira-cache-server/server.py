@@ -42,12 +42,11 @@ _scripts_dir = Path(__file__).resolve().parent.parent / "atlassian-scripts"
 if str(_scripts_dir) not in sys.path:
     sys.path.insert(0, str(_scripts_dir))
 
-from lib.auth import create_ssl_context, get_auth_header, load_credentials
-from lib.jira_api import JiraAPI, derive_jira_url
-
 # Local imports (jira_cache to avoid namespace collision with atlassian-scripts/lib)
 from jira_cache.cache import JiraCache, strip_noise
 from jira_cache.embeddings import EmbeddingStore
+from lib.auth import create_ssl_context, get_auth_header, load_credentials
+from lib.jira_api import JiraAPI, derive_jira_url
 
 logging.basicConfig(
     level=logging.INFO,
@@ -68,7 +67,7 @@ MAX_SIMILAR_LIMIT = 20
 MAX_ISSUE_KEYS_BATCH = 100
 
 # H4: Validate issue key format at MCP boundary (prevent injection)
-_ISSUE_KEY_RE = re.compile(r'^[A-Z][A-Z0-9]{0,9}-\d{1,6}$')
+_ISSUE_KEY_RE = re.compile(r"^[A-Z][A-Z0-9]{0,9}-\d{1,6}$")
 
 
 def _validate_issue_key(key: str) -> str:
@@ -103,8 +102,10 @@ def _embedding_text(issue: dict) -> str:
         desc = desc_raw[:500]
     elif isinstance(desc_raw, dict):
         from jira_cache.cache import extract_adf_text
+
         desc = (extract_adf_text(desc_raw) or "")[:500]
     return f"{summary} {desc}".strip()[:500]
+
 
 TOOLS = [
     Tool(
@@ -114,10 +115,26 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "issue_key": {"type": "string", "description": "Jira issue key (e.g., BEP-123)"},
-                "fields": {"type": "string", "description": "Comma-separated fields for upstream fetch (default: summary,status,assignee,issuetype,priority,labels,parent,description)", "default": "summary,status,assignee,issuetype,priority,labels,parent,description"},
-                "max_age_hours": {"type": "number", "description": "Max cache age in hours (default: 24)", "default": 24},
-                "force_refresh": {"type": "boolean", "description": "Skip cache and fetch from Jira upstream, then update cache (default: false)", "default": False},
-                "compact": {"type": "boolean", "description": "Return minimal fields only: key, summary, status, assignee, issuetype, priority, labels, parent (~200 chars vs ~5KB). Use for overviews. (default: false)", "default": False},
+                "fields": {
+                    "type": "string",
+                    "description": "Comma-separated fields for upstream fetch (default: summary,status,assignee,issuetype,priority,labels,parent,description)",
+                    "default": "summary,status,assignee,issuetype,priority,labels,parent,description",
+                },
+                "max_age_hours": {
+                    "type": "number",
+                    "description": "Max cache age in hours (default: 24)",
+                    "default": 24,
+                },
+                "force_refresh": {
+                    "type": "boolean",
+                    "description": "Skip cache and fetch from Jira upstream, then update cache (default: false)",
+                    "default": False,
+                },
+                "compact": {
+                    "type": "boolean",
+                    "description": "Return minimal fields only: key, summary, status, assignee, issuetype, priority, labels, parent (~200 chars vs ~5KB). Use for overviews. (default: false)",
+                    "default": False,
+                },
             },
             "required": ["issue_key"],
         },
@@ -134,9 +151,21 @@ TOOLS = [
                     "items": {"type": "string"},
                     "description": "List of Jira issue keys (e.g., ['BEP-123', 'BEP-456'])",
                 },
-                "fields": {"type": "string", "description": "Comma-separated fields for upstream fetch (default: summary,status,assignee,issuetype,priority,labels,parent,description)", "default": "summary,status,assignee,issuetype,priority,labels,parent,description"},
-                "max_age_hours": {"type": "number", "description": "Max cache age in hours (default: 24)", "default": 24},
-                "compact": {"type": "boolean", "description": "Return minimal fields only (default: false)", "default": False},
+                "fields": {
+                    "type": "string",
+                    "description": "Comma-separated fields for upstream fetch (default: summary,status,assignee,issuetype,priority,labels,parent,description)",
+                    "default": "summary,status,assignee,issuetype,priority,labels,parent,description",
+                },
+                "max_age_hours": {
+                    "type": "number",
+                    "description": "Max cache age in hours (default: 24)",
+                    "default": 24,
+                },
+                "compact": {
+                    "type": "boolean",
+                    "description": "Return minimal fields only (default: false)",
+                    "default": False,
+                },
             },
             "required": ["issue_keys"],
         },
@@ -148,11 +177,23 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "jql": {"type": "string", "description": "JQL query string"},
-                "fields": {"type": "string", "description": "Comma-separated fields (default: summary,status,assignee,issuetype,priority)", "default": "summary,status,assignee,issuetype,priority"},
+                "fields": {
+                    "type": "string",
+                    "description": "Comma-separated fields (default: summary,status,assignee,issuetype,priority)",
+                    "default": "summary,status,assignee,issuetype,priority",
+                },
                 "limit": {"type": "integer", "description": "Max results (default: 30, max: 50)", "default": 30},
                 "max_age_hours": {"type": "number", "description": "Max cache age in hours (default: 2)", "default": 2},
-                "force_refresh": {"type": "boolean", "description": "Skip cache and fetch from Jira upstream, then update cache (default: false)", "default": False},
-                "start_at": {"type": "integer", "description": "Response offset for pagination. Use when previous response had has_more=true (default: 0)", "default": 0},
+                "force_refresh": {
+                    "type": "boolean",
+                    "description": "Skip cache and fetch from Jira upstream, then update cache (default: false)",
+                    "default": False,
+                },
+                "start_at": {
+                    "type": "integer",
+                    "description": "Response offset for pagination. Use when previous response had has_more=true (default: 0)",
+                    "default": 0,
+                },
             },
             "required": ["jql"],
         },
@@ -164,10 +205,22 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "sprint_id": {"type": ["integer", "string"], "description": "Jira sprint ID (e.g., 123)"},
-                "fields": {"type": "string", "description": "Comma-separated fields (default: summary,status,assignee,issuetype,priority,labels)", "default": "summary,status,assignee,issuetype,priority,labels"},
+                "fields": {
+                    "type": "string",
+                    "description": "Comma-separated fields (default: summary,status,assignee,issuetype,priority,labels)",
+                    "default": "summary,status,assignee,issuetype,priority,labels",
+                },
                 "max_age_hours": {"type": "number", "description": "Max cache age in hours (default: 2)", "default": 2},
-                "force_refresh": {"type": "boolean", "description": "Skip cache and fetch from Jira upstream, then update cache (default: false)", "default": False},
-                "start_at": {"type": "integer", "description": "Response offset for pagination. Use when previous response had has_more=true (default: 0)", "default": 0},
+                "force_refresh": {
+                    "type": "boolean",
+                    "description": "Skip cache and fetch from Jira upstream, then update cache (default: false)",
+                    "default": False,
+                },
+                "start_at": {
+                    "type": "integer",
+                    "description": "Response offset for pagination. Use when previous response had has_more=true (default: 0)",
+                    "default": 0,
+                },
             },
             "required": ["sprint_id"],
         },
@@ -178,7 +231,10 @@ TOOLS = [
         inputSchema={
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Search keywords (supports FTS5 syntax: AND, OR, NOT, quotes for phrases)"},
+                "query": {
+                    "type": "string",
+                    "description": "Search keywords (supports FTS5 syntax: AND, OR, NOT, quotes for phrases)",
+                },
                 "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10},
             },
             "required": ["query"],
@@ -213,7 +269,10 @@ TOOLS = [
                     "items": {"type": "string"},
                     "description": "Issue keys to refresh (e.g., ['BEP-123', 'BEP-456'])",
                 },
-                "sprint_id": {"type": "integer", "description": "Refresh all issues in this sprint (alternative to issue_keys)"},
+                "sprint_id": {
+                    "type": "integer",
+                    "description": "Refresh all issues in this sprint (alternative to issue_keys)",
+                },
             },
         },
     ),
@@ -233,9 +292,21 @@ TOOLS = [
             "properties": {
                 "issue_key": {"type": "string", "description": "Invalidate a specific issue"},
                 "sprint_id": {"type": "integer", "description": "Invalidate all issues in a sprint"},
-                "all": {"type": "boolean", "description": "Clear entire cache (requires confirm=true)", "default": False},
-                "confirm": {"type": "boolean", "description": "Safety guard: must be true when using all=true", "default": False},
-                "auto_refresh": {"type": "boolean", "description": "After invalidating, immediately re-fetch from upstream and cache the result (default: false). Reduces 2 MCP calls to 1.", "default": False},
+                "all": {
+                    "type": "boolean",
+                    "description": "Clear entire cache (requires confirm=true)",
+                    "default": False,
+                },
+                "confirm": {
+                    "type": "boolean",
+                    "description": "Safety guard: must be true when using all=true",
+                    "default": False,
+                },
+                "auto_refresh": {
+                    "type": "boolean",
+                    "description": "After invalidating, immediately re-fetch from upstream and cache the result (default: false). Reduces 2 MCP calls to 1.",
+                    "default": False,
+                },
             },
         },
     ),
@@ -269,7 +340,9 @@ def _format_issue_summary(issue: dict) -> str:
     status = fields.get("status", {})
     status_name = status.get("name", "") if isinstance(status, dict) else str(status)
     assignee = fields.get("assignee", {})
-    assignee_name = assignee.get("displayName", "Unassigned") if isinstance(assignee, dict) else str(assignee or "Unassigned")
+    assignee_name = (
+        assignee.get("displayName", "Unassigned") if isinstance(assignee, dict) else str(assignee or "Unassigned")
+    )
     issue_type = fields.get("issuetype", {})
     type_name = issue_type.get("name", "") if isinstance(issue_type, dict) else str(issue_type)
 
@@ -278,15 +351,22 @@ def _format_issue_summary(issue: dict) -> str:
 
 # --- P2-B: Compact mode extraction ---
 
+
 def _compact_issue(issue: dict) -> dict:
     """Extract minimal fields from a full issue dict."""
     fields = issue.get("fields", {})
     compact = {
         "key": issue.get("key", "?"),
         "summary": fields.get("summary", ""),
-        "status": fields.get("status", {}).get("name", "") if isinstance(fields.get("status"), dict) else str(fields.get("status", "")),
-        "assignee": fields.get("assignee", {}).get("displayName", "Unassigned") if isinstance(fields.get("assignee"), dict) else str(fields.get("assignee") or "Unassigned"),
-        "issuetype": fields.get("issuetype", {}).get("name", "") if isinstance(fields.get("issuetype"), dict) else str(fields.get("issuetype", "")),
+        "status": fields.get("status", {}).get("name", "")
+        if isinstance(fields.get("status"), dict)
+        else str(fields.get("status", "")),
+        "assignee": fields.get("assignee", {}).get("displayName", "Unassigned")
+        if isinstance(fields.get("assignee"), dict)
+        else str(fields.get("assignee") or "Unassigned"),
+        "issuetype": fields.get("issuetype", {}).get("name", "")
+        if isinstance(fields.get("issuetype"), dict)
+        else str(fields.get("issuetype", "")),
     }
     if "priority" in fields:
         p = fields["priority"]
@@ -300,6 +380,7 @@ def _compact_issue(issue: dict) -> dict:
 
 
 # --- Response size management (tiered: strip → paginate → compact) ---
+
 
 def _strip_response_noise(result_json: str) -> str:
     """Level 1: Strip Jira metadata noise from JSON response."""
@@ -385,6 +466,7 @@ def _compact_response(result_json: str) -> str:
 
 # --- P3: Upstream fetch timing ---
 
+
 def _timed_upstream(label: str, func: Any, *args: Any, **kwargs: Any) -> Any:
     """Call func with timing logged at INFO level."""
     t0 = time.perf_counter()
@@ -429,7 +511,14 @@ async def handle_cache_get_issue(args: dict) -> str:
         stale = c.get_issue_stale(issue_key)
         if stale:
             issue_data = _compact_issue(stale) if compact else stale
-            return json.dumps({"source": "stale_cache", "warning": "Upstream API not available, returning stale data", "issue": issue_data}, ensure_ascii=False)
+            return json.dumps(
+                {
+                    "source": "stale_cache",
+                    "warning": "Upstream API not available, returning stale data",
+                    "issue": issue_data,
+                },
+                ensure_ascii=False,
+            )
         return json.dumps({"error": "Issue not in cache and upstream API not available"})
 
     logger.info("Cache %s: %s — fetching upstream", "REFRESH" if force_refresh else "MISS", issue_key)
@@ -445,11 +534,19 @@ async def handle_cache_get_issue(args: dict) -> str:
         stale = c.get_issue_stale(issue_key)
         if stale:
             issue_data = _compact_issue(stale) if compact else stale
-            return json.dumps({"source": "stale_cache", "warning": f"Upstream failed ({e}), returning stale data", "issue": issue_data}, ensure_ascii=False)
+            return json.dumps(
+                {
+                    "source": "stale_cache",
+                    "warning": f"Upstream failed ({e}), returning stale data",
+                    "issue": issue_data,
+                },
+                ensure_ascii=False,
+            )
         return json.dumps({"error": f"Failed to fetch {issue_key}: {e}"})
 
 
 # --- P1-F: Batch get issues handler ---
+
 
 async def handle_cache_get_issues(args: dict) -> str:
     """Batch get multiple issues: cache-first, upstream for misses."""
@@ -490,16 +587,17 @@ async def handle_cache_get_issues(args: dict) -> str:
     if compact:
         all_issues = [_compact_issue(i) for i in all_issues]
 
-    return json.dumps({
-        "source": "batch",
-        "total": len(all_issues),
-        "from_cache": len(found_issues),
-        "from_upstream": len(upstream_issues),
-        "still_missing": [k for k in missing_keys if k not in {
-            i.get("key") for i in upstream_issues
-        }],
-        "issues": all_issues,
-    }, ensure_ascii=False)
+    return json.dumps(
+        {
+            "source": "batch",
+            "total": len(all_issues),
+            "from_cache": len(found_issues),
+            "from_upstream": len(upstream_issues),
+            "still_missing": [k for k in missing_keys if k not in {i.get("key") for i in upstream_issues}],
+            "issues": all_issues,
+        },
+        ensure_ascii=False,
+    )
 
 
 async def handle_cache_search(args: dict) -> str:
@@ -529,7 +627,9 @@ async def handle_cache_search(args: dict) -> str:
 
         logger.info("Search cache MISS: %s — fetching upstream", jql[:60])
         try:
-            results = _timed_upstream(f"search({jql[:40]})", jira_api.search_issues, jql, fields=fields, max_results=limit)
+            results = _timed_upstream(
+                f"search({jql[:40]})", jira_api.search_issues, jql, fields=fields, max_results=limit
+            )
             c.put_search(jql, fields, limit, results)
             if embeddings and embeddings.available:
                 embeddings.store_batch(results.get("issues", []))
@@ -577,8 +677,11 @@ async def handle_cache_sprint_issues(args: dict) -> str:
             while pages_fetched < MAX_SPRINT_PAGES:
                 page = _timed_upstream(
                     f"sprint({sprint_id}, offset={upstream_offset})",
-                    jira_api.get_sprint_issues, sprint_id,
-                    fields=fields, max_results=50, start_at=upstream_offset,
+                    jira_api.get_sprint_issues,
+                    sprint_id,
+                    fields=fields,
+                    max_results=50,
+                    start_at=upstream_offset,
                 )
                 issues = page.get("issues", [])
                 all_issues.extend(issues)
@@ -612,11 +715,14 @@ async def handle_cache_text_search(args: dict) -> str:
     results = c.text_search(query, limit=limit)
     summaries = [_format_issue_summary(r) for r in results]
 
-    return json.dumps({
-        "source": "fts5",
-        "count": len(results),
-        "issues": summaries,
-    }, ensure_ascii=False)
+    return json.dumps(
+        {
+            "source": "fts5",
+            "count": len(results),
+            "issues": summaries,
+        },
+        ensure_ascii=False,
+    )
 
 
 async def handle_cache_similar_issues(args: dict) -> str:
@@ -635,18 +741,23 @@ async def handle_cache_similar_issues(args: dict) -> str:
     for item in similar:
         issue = _require_cache().get_issue(item["issue_key"], max_age_hours=9999)
         if issue:
-            enriched.append({
-                **item,
-                "summary": _format_issue_summary(issue),
-            })
+            enriched.append(
+                {
+                    **item,
+                    "summary": _format_issue_summary(issue),
+                }
+            )
         else:
             enriched.append(item)
 
-    return json.dumps({
-        "source": "embeddings",
-        "count": len(enriched),
-        "results": enriched,
-    }, ensure_ascii=False)
+    return json.dumps(
+        {
+            "source": "embeddings",
+            "count": len(enriched),
+            "results": enriched,
+        },
+        ensure_ascii=False,
+    )
 
 
 async def handle_cache_refresh(args: dict) -> str:
@@ -679,8 +790,10 @@ async def handle_cache_refresh(args: dict) -> str:
             while pages_fetched < MAX_SPRINT_PAGES:
                 page = _timed_upstream(
                     f"refresh_sprint({sprint_id}, offset={start_at})",
-                    jira_api.get_sprint_issues, sprint_id,
-                    max_results=50, start_at=start_at,
+                    jira_api.get_sprint_issues,
+                    sprint_id,
+                    max_results=50,
+                    start_at=start_at,
                 )
                 issues = page.get("issues", [])
                 c.put_issues_batch(issues)
@@ -728,27 +841,32 @@ async def handle_cache_invalidate(args: dict) -> str:
             try:
                 issue = _timed_upstream(
                     f"auto_refresh({issue_key})",
-                    jira_api.get_issue, issue_key,
+                    jira_api.get_issue,
+                    issue_key,
                 )
                 c.put_issue(issue_key, issue)
                 if embeddings and embeddings.available:
                     embeddings.store_embedding(issue_key, _embedding_text(issue))
                 # M9: strip_noise on auto_refresh response
                 clean_issue = strip_noise(issue)
-                return json.dumps({
-                    "invalidated": issue_key,
-                    "found": removed,
-                    "auto_refreshed": True,
-                    "issue": clean_issue,
-                })
+                return json.dumps(
+                    {
+                        "invalidated": issue_key,
+                        "found": removed,
+                        "auto_refreshed": True,
+                        "issue": clean_issue,
+                    }
+                )
             except Exception as e:
                 logger.error("Auto-refresh failed for %s: %s", issue_key, e)
-                return json.dumps({
-                    "invalidated": issue_key,
-                    "found": removed,
-                    "auto_refreshed": False,
-                    "auto_refresh_error": str(e),
-                })
+                return json.dumps(
+                    {
+                        "invalidated": issue_key,
+                        "found": removed,
+                        "auto_refreshed": False,
+                        "auto_refresh_error": str(e),
+                    }
+                )
 
         return json.dumps({"invalidated": issue_key, "found": removed})
 

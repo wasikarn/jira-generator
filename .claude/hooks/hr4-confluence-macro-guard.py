@@ -7,10 +7,11 @@ Macro content must use update_page_storage.py instead.
 
 Exit codes: 0 = allow, 2 = deny
 """
+
 import json
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 LOG_DIR = Path.home() / ".claude" / "hooks-logs"
@@ -27,7 +28,7 @@ MACRO_PATTERNS = [
 def log_event(level: str, data: dict) -> None:
     try:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         entry = {"ts": now.isoformat(), "hook": "hr4-confluence-macro-guard", "level": level, **data}
         with open(LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl", "a") as f:
             f.write(json.dumps(entry) + "\n")
@@ -60,10 +61,13 @@ def main() -> None:
                 f"MCP HTML-escapes macros → page renders raw XML.\n"
                 f"Use: python3 .claude/skills/atlassian-scripts/update_page_storage.py instead."
             )
-            log_event("BLOCKED", {
-                "page_id": str(page_id),
-                "session_id": data.get("session_id", ""),
-            })
+            log_event(
+                "BLOCKED",
+                {
+                    "page_id": str(page_id),
+                    "session_id": data.get("session_id", ""),
+                },
+            )
             print(reason, file=sys.stderr)
             sys.exit(2)
 

@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / ".claude/skills/atlassian-scripts"))
 
-from lib.auth import create_ssl_context, load_credentials, get_auth_header
+from lib.auth import create_ssl_context, get_auth_header, load_credentials
 from lib.jira_api import JiraAPI, derive_jira_url
 
 DEFAULT_FIELDS = ["customfield_10015", "duedate"]
@@ -30,7 +30,7 @@ def fetch_all_tickets(api: JiraAPI, jql: str, fields: list[str]) -> list[dict]:
     tickets = []
     start_at = 0
     while True:
-        result = api.search_issues(jql, fields=",".join(["key"] + fields), max_results=50, start_at=start_at)
+        result = api.search_issues(jql, fields=",".join(["key", *fields]), max_results=50, start_at=start_at)
         issues = result.get("issues", [])
         if not issues:
             break
@@ -52,8 +52,11 @@ def main():
     parser = argparse.ArgumentParser(description="Clear date fields from sprint tickets")
     parser.add_argument("--sprint", required=True, type=int, help="Sprint ID (e.g., 673)")
     parser.add_argument("--project", default="BEP", help="Project key (default: BEP)")
-    parser.add_argument("--fields", default=",".join(DEFAULT_FIELDS),
-                        help=f"Comma-separated field IDs to clear (default: {','.join(DEFAULT_FIELDS)})")
+    parser.add_argument(
+        "--fields",
+        default=",".join(DEFAULT_FIELDS),
+        help=f"Comma-separated field IDs to clear (default: {','.join(DEFAULT_FIELDS)})",
+    )
     parser.add_argument("--jql", default="", help="Additional JQL filter (e.g., 'status != Done')")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be cleared without making changes")
     args = parser.parse_args()

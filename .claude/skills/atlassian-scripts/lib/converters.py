@@ -52,10 +52,10 @@ def create_code_macro(language: str, content: str) -> str:
     normalized_lang = LANGUAGE_ALIASES.get(language, language)
     logger.debug("Creating code macro with language: %s", normalized_lang)
 
-    return f'''<ac:structured-macro ac:name="code" ac:schema-version="1">
+    return f"""<ac:structured-macro ac:name="code" ac:schema-version="1">
 <ac:parameter ac:name="language">{normalized_lang}</ac:parameter>
 <ac:plain-text-body><![CDATA[{content}]]></ac:plain-text-body>
-</ac:structured-macro>'''
+</ac:structured-macro>"""
 
 
 def convert_inline(text: str) -> str:

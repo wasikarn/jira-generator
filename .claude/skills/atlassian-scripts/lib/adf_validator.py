@@ -10,11 +10,11 @@ Usage (via scripts/validate_adf.py):
 """
 
 import re
+from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable
-
+from typing import Any
 
 # ═══════════════════════════════════════════════════════════
 # Constants
@@ -72,10 +72,7 @@ class ValidationReport:
         if not self.checks:
             return 0.0
         total = sum(
-            1.0 if c.status == CheckStatus.PASS
-            else 0.5 if c.status == CheckStatus.WARN
-            else 0.0
-            for c in self.checks
+            1.0 if c.status == CheckStatus.PASS else 0.5 if c.status == CheckStatus.WARN else 0.0 for c in self.checks
         )
         return total / len(self.checks) * 100
 
@@ -157,10 +154,7 @@ def find_headings(adf: dict, level: int | None = None) -> list[dict]:
     """Find all heading nodes, optionally filtered by level."""
     return find_adf_nodes(
         adf,
-        lambda n: (
-            n.get("type") == "heading"
-            and (level is None or n.get("attrs", {}).get("level") == level)
-        ),
+        lambda n: n.get("type") == "heading" and (level is None or n.get("attrs", {}).get("level") == level),
     )
 
 
@@ -291,9 +285,7 @@ class AdfValidator:
 
         return report
 
-    def auto_fix(
-        self, adf: dict, report: ValidationReport
-    ) -> tuple[dict, ValidationReport]:
+    def auto_fix(self, adf: dict, report: ValidationReport) -> tuple[dict, ValidationReport]:
         """Apply auto-fixes for fixable issues, return fixed ADF and new report."""
         fixed = deepcopy(adf)
         applied = []
@@ -344,14 +336,16 @@ class AdfValidator:
 
         if invalid_types:
             return CheckResult(
-                "T2", CheckStatus.FAIL,
+                "T2",
+                CheckStatus.FAIL,
                 f"Invalid panelType: {invalid_types}",
                 fix_hint="Change to one of: info, success, warning, error, note",
                 auto_fixable=True,
             )
         if nested_tables:
             return CheckResult(
-                "T2", CheckStatus.WARN,
+                "T2",
+                CheckStatus.WARN,
                 f"{nested_tables} table(s) nested inside panels — use bulletList instead",
             )
         return CheckResult("T2", CheckStatus.PASS, f"{len(panels)} panels OK")
@@ -366,9 +360,7 @@ class AdfValidator:
             if has_code_mark(node) or has_link_mark(node):
                 return
             text = node["text"]
-            if FILE_PATH_RE.search(text) or API_ROUTE_RE.search(text):
-                unmarked.append(text[:60])
-            elif COMPONENT_RE.search(text):
+            if FILE_PATH_RE.search(text) or API_ROUTE_RE.search(text) or COMPONENT_RE.search(text):
                 unmarked.append(text[:60])
 
         walk_adf(adf, _check_text)
@@ -377,13 +369,15 @@ class AdfValidator:
             return CheckResult("T3", CheckStatus.PASS, "Code marks OK")
         if len(unmarked) <= 2:
             return CheckResult(
-                "T3", CheckStatus.WARN,
+                "T3",
+                CheckStatus.WARN,
                 f"{len(unmarked)} text(s) missing code marks: {unmarked[0]}",
                 fix_hint="Add code marks to file paths and technical terms",
                 auto_fixable=True,
             )
         return CheckResult(
-            "T3", CheckStatus.FAIL,
+            "T3",
+            CheckStatus.FAIL,
             f"{len(unmarked)} text(s) missing code marks",
             fix_hint="Add code marks to file paths, API routes, component names",
             auto_fixable=True,
@@ -394,16 +388,14 @@ class AdfValidator:
         # Find link marks or inlineCard nodes
         links = find_adf_nodes(
             adf,
-            lambda n: (
-                n.get("type") == "inlineCard"
-                or (n.get("type") == "text" and has_link_mark(n))
-            ),
+            lambda n: n.get("type") == "inlineCard" or (n.get("type") == "text" and has_link_mark(n)),
         )
         ref_section = get_section_content(adf, "reference")
 
         if issue_type in ("subtask", "story") and not ref_section and not links:
             return CheckResult(
-                "T4", CheckStatus.WARN,
+                "T4",
+                CheckStatus.WARN,
                 "No Reference section or links found",
                 fix_hint="Add Reference table with parent/Epic links",
             )
@@ -411,9 +403,7 @@ class AdfValidator:
             return CheckResult("T4", CheckStatus.PASS, f"{len(links)} link(s) found")
         return CheckResult("T4", CheckStatus.PASS, "Links check N/A for this type")
 
-    def _check_t5_required_fields(
-        self, adf: dict, issue_type: str, wrapper: dict | None
-    ) -> CheckResult:
+    def _check_t5_required_fields(self, adf: dict, issue_type: str, wrapper: dict | None) -> CheckResult:
         """T5: Required fields in wrapper JSON."""
         if not wrapper:
             # Raw ADF — can only check description not empty
@@ -439,7 +429,8 @@ class AdfValidator:
             forbidden = [f for f in ("projectKey", "type", "summary", "parent") if f in wrapper]
             if forbidden:
                 return CheckResult(
-                    "T5", CheckStatus.FAIL,
+                    "T5",
+                    CheckStatus.FAIL,
                     f"EDIT has forbidden fields: {forbidden}",
                 )
             if missing:
@@ -461,7 +452,8 @@ class AdfValidator:
             return CheckResult("S1", CheckStatus.FAIL, "No AC panels found — not testable")
         if len(ac_panels) > 5:
             return CheckResult(
-                "S1", CheckStatus.WARN,
+                "S1",
+                CheckStatus.WARN,
                 f"{len(ac_panels)} AC panels (>5) — consider splitting with SPIDR",
             )
         # Check testability: at least one panel has Given/When/Then
@@ -472,12 +464,14 @@ class AdfValidator:
                 testable += 1
         if testable == 0:
             return CheckResult(
-                "S1", CheckStatus.FAIL,
+                "S1",
+                CheckStatus.FAIL,
                 "No AC panels have Given/When/Then — not testable",
             )
         if testable < len(ac_panels):
             return CheckResult(
-                "S1", CheckStatus.WARN,
+                "S1",
+                CheckStatus.WARN,
                 f"{testable}/{len(ac_panels)} ACs have Given/When/Then",
             )
         return CheckResult("S1", CheckStatus.PASS, f"INVEST OK ({len(ac_panels)} ACs, all testable)")
@@ -491,8 +485,7 @@ class AdfValidator:
             # Try first info panel as fallback
             panels = find_adf_nodes(
                 adf,
-                lambda n: n.get("type") == "panel"
-                and n.get("attrs", {}).get("panelType") == "info",
+                lambda n: n.get("type") == "panel" and n.get("attrs", {}).get("panelType") == "info",
             )
             story_section = panels[:1] if panels else []
 
@@ -537,7 +530,7 @@ class AdfValidator:
         # Missing why: "So that" followed by very short text or restated goal
         so_match = NARRATIVE_SO_RE.search(text)
         if so_match:
-            so_text = text[so_match.end():].strip()
+            so_text = text[so_match.end() :].strip()
             # If benefit is less than 10 chars, likely too vague
             if len(so_text) < 10:
                 issues.append("Missing why: 'So that' benefit too short")
@@ -630,16 +623,14 @@ class AdfValidator:
         text = extract_text(scope_section)
         paths = FILE_PATH_RE.findall(text)
         generic_markers = ["feature/", "component/", "module/", "xxx", "placeholder"]
-        generic_count = sum(
-            1 for p in paths
-            if any(g in p.lower() for g in generic_markers)
-        )
+        generic_count = sum(1 for p in paths if any(g in p.lower() for g in generic_markers))
 
         if not paths:
             return CheckResult("ST2", CheckStatus.WARN, "No file paths in scope tables")
         if generic_count > len(paths) / 2:
             return CheckResult(
-                "ST2", CheckStatus.WARN,
+                "ST2",
+                CheckStatus.WARN,
                 f"{generic_count}/{len(paths)} paths look generic",
             )
         return CheckResult("ST2", CheckStatus.PASS, f"{len(paths)} file paths OK")
@@ -662,7 +653,8 @@ class AdfValidator:
             return CheckResult("ST3", CheckStatus.FAIL, "No ACs have Given/When/Then")
         if gwt_count < len(panels):
             return CheckResult(
-                "ST3", CheckStatus.WARN,
+                "ST3",
+                CheckStatus.WARN,
                 f"{gwt_count}/{len(panels)} ACs have Given/When/Then",
             )
         return CheckResult("ST3", CheckStatus.PASS, f"{len(panels)} ACs correct")
@@ -683,7 +675,8 @@ class AdfValidator:
             return CheckResult("ST4", CheckStatus.PASS, f"Summary tag OK: {summary[:20]}")
 
         return CheckResult(
-            "ST4", CheckStatus.FAIL,
+            "ST4",
+            CheckStatus.FAIL,
             f"Summary missing tag — must start with {'/'.join(SUBTASK_TAGS)}",
             fix_hint="Prepend [BE], [FE-Admin], [FE-Web], or [QA] to summary",
         )
@@ -791,7 +784,8 @@ class AdfValidator:
             return CheckResult("QA2", CheckStatus.FAIL, "No TCs have Given/When/Then")
         if gwt_count < len(panels):
             return CheckResult(
-                "QA2", CheckStatus.WARN,
+                "QA2",
+                CheckStatus.WARN,
                 f"{gwt_count}/{len(panels)} TCs have Given/When/Then",
             )
         return CheckResult("QA2", CheckStatus.PASS, f"{len(panels)} TCs formatted correctly")
@@ -814,7 +808,8 @@ class AdfValidator:
             return CheckResult("QA3", CheckStatus.WARN, "No happy path tests (success panels)")
         if len(types_found) < 2:
             return CheckResult(
-                "QA3", CheckStatus.WARN,
+                "QA3",
+                CheckStatus.WARN,
                 "Only happy path — add edge case (warning) or error handling (error) tests",
             )
         return CheckResult("QA3", CheckStatus.PASS, f"Test types: {types_found}")
@@ -828,7 +823,8 @@ class AdfValidator:
 
         if not found:
             return CheckResult(
-                "QA4", CheckStatus.WARN,
+                "QA4",
+                CheckStatus.WARN,
                 "No test data/precondition references found",
             )
         return CheckResult("QA4", CheckStatus.PASS, f"Test data indicators: {found}")
@@ -860,18 +856,31 @@ class AdfValidator:
         """TK2: Actionable — has concrete tasks/phases/steps (panels or lists)."""
         full_text = extract_text(adf).lower()
         panels = find_adf_nodes(adf, lambda n: n.get("type") == "panel")
-        lists = find_adf_nodes(
-            adf, lambda n: n.get("type") in ("bulletList", "orderedList")
-        )
+        lists = find_adf_nodes(adf, lambda n: n.get("type") in ("bulletList", "orderedList"))
 
         if len(panels) < 2 and len(lists) < 1:
             return CheckResult(
-                "TK2", CheckStatus.FAIL,
+                "TK2",
+                CheckStatus.FAIL,
                 "No actionable items — need panels or lists with concrete steps",
             )
         # Check for action words
-        action_words = ["install", "create", "update", "replace", "migrate", "remove",
-                        "delete", "add", "configure", "fix", "สร้าง", "ลบ", "เพิ่ม", "แก้"]
+        action_words = [
+            "install",
+            "create",
+            "update",
+            "replace",
+            "migrate",
+            "remove",
+            "delete",
+            "add",
+            "configure",
+            "fix",
+            "สร้าง",
+            "ลบ",
+            "เพิ่ม",
+            "แก้",
+        ]
         found = [w for w in action_words if w in full_text]
         if not found:
             return CheckResult("TK2", CheckStatus.WARN, "No action verbs found in content")
@@ -919,7 +928,8 @@ class AdfValidator:
         if THAI_RE.search(text):
             return CheckResult(check_id, CheckStatus.PASS, "Thai language detected")
         return CheckResult(
-            check_id, CheckStatus.FAIL,
+            check_id,
+            CheckStatus.FAIL,
             "No Thai text — content should be in Thai",
         )
 

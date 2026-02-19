@@ -6,6 +6,7 @@ Used by search-before-create to verify dedup was attempted.
 
 Exit codes: 0 (always — PostToolUse cannot block)
 """
+
 import json
 import sys
 from pathlib import Path

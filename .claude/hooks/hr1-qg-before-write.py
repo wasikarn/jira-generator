@@ -10,10 +10,11 @@ Only matches:
 
 Exit codes: 0 = allow (or not an acli command), 2 = deny (QG < 90%)
 """
+
 import json
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # ── Paths ──────────────────────────────────────────────
@@ -40,7 +41,7 @@ def log_event(level: str, data: dict) -> None:
     """Append JSON log entry."""
     try:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         log_file = LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl"
         entry = {
             "ts": now.isoformat(),
@@ -155,11 +156,7 @@ def main() -> None:
         print("{}")
     else:
         # Build failure details
-        issues = [
-            f"  {c.check_id}: {c.message}"
-            for c in report.checks
-            if c.status.value == "fail"
-        ]
+        issues = [f"  {c.check_id}: {c.message}" for c in report.checks if c.status.value == "fail"]
         issues_text = "\n".join(issues[:5])  # Top 5 failures
         reason = (
             f"HR1 BLOCKED: Quality Gate {report.score:.1f}% < 90% "

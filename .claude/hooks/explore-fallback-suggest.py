@@ -7,6 +7,7 @@ file paths and suggests switching to hybrid mode.
 
 Exit 0 = always allow
 """
+
 import json
 import re
 import sys
@@ -25,20 +26,18 @@ if tool_input.get("subagent_type") != "Explore":
 
 # Check for generic path indicators
 GENERIC_INDICATORS = [
-    r"src/\w+/",           # bare "src/something/" without full path
-    r"lib/\w+\.ts",        # generic lib paths
-    r"\[file path\]",      # placeholder text
-    r"path/to/",           # obvious placeholder
-    r"example\.ts",        # example files
-    r"could not find",     # search failure
-    r"no results found",   # empty results
-    r"generic",            # self-describing
+    r"src/\w+/",  # bare "src/something/" without full path
+    r"lib/\w+\.ts",  # generic lib paths
+    r"\[file path\]",  # placeholder text
+    r"path/to/",  # obvious placeholder
+    r"example\.ts",  # example files
+    r"could not find",  # search failure
+    r"no results found",  # empty results
+    r"generic",  # self-describing
 ]
 
 # Count generic indicators
-generic_count = sum(
-    1 for pattern in GENERIC_INDICATORS if re.search(pattern, tool_output, re.I)
-)
+generic_count = sum(1 for pattern in GENERIC_INDICATORS if re.search(pattern, tool_output, re.I))
 
 # Also check for very short output (explore returned almost nothing)
 is_too_short = len(tool_output.strip()) < 100

@@ -7,11 +7,12 @@ summary table as additionalContext.
 
 Exit codes: 0 (always — PostToolUse cannot block)
 """
+
 import json
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 LOG_DIR = Path.home() / ".claude" / "hooks-logs"
@@ -25,7 +26,7 @@ def log_event(level: str, data: dict) -> None:
     """Append JSON log entry."""
     try:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         log_file = LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl"
         entry = {
             "ts": now.isoformat(),
@@ -72,9 +73,7 @@ def run_parser(file_path: str) -> str | None:
             if len(lines) > MAX_OUTPUT_LINES:
                 truncated = lines[:MAX_OUTPUT_LINES]
                 truncated.append(f"... ({len(lines) - MAX_OUTPUT_LINES} more rows)")
-                truncated.append(
-                    f"Full output: python3 scripts/parse-mcp-output.py \"{file_path}\""
-                )
+                truncated.append(f'Full output: python3 scripts/parse-mcp-output.py "{file_path}"')
                 return "\n".join(truncated) + f"\n{count_line}"
 
             return result.stdout.strip() + f"\n{count_line}"
@@ -121,11 +120,14 @@ def main() -> None:
         print("{}")
         return
 
-    log_event("PARSED", {
-        "tool": tool_name,
-        "file": file_path,
-        "lines": parsed.count("\n") + 1,
-    })
+    log_event(
+        "PARSED",
+        {
+            "tool": tool_name,
+            "file": file_path,
+            "lines": parsed.count("\n") + 1,
+        },
+    )
 
     output = {
         "hookSpecificOutput": {
@@ -134,7 +136,7 @@ def main() -> None:
                 f"AUTO-PARSED large output from {tool_name}:\n\n"
                 f"{parsed}\n\n"
                 f"Raw file: {file_path}\n"
-                f"Filter: python3 scripts/parse-mcp-output.py \"{file_path}\" --status \"In Progress\" --assignee joakim"
+                f'Filter: python3 scripts/parse-mcp-output.py "{file_path}" --status "In Progress" --assignee joakim'
             ),
         }
     }

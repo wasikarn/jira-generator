@@ -17,7 +17,7 @@ import json
 import sqlite3
 import sys
 from collections import Counter
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 DB_PATH = Path.home() / ".claude-mem" / "claude-mem.db"
@@ -50,9 +50,7 @@ class ClaudeMemDB:
     def close(self):
         self.conn.close()
 
-    def get_sessions(
-        self, start_epoch: int, end_epoch: int, project: str | None = None
-    ) -> list[dict]:
+    def get_sessions(self, start_epoch: int, end_epoch: int, project: str | None = None) -> list[dict]:
         sql = """
             SELECT
                 memory_session_id, project, user_prompt,
@@ -98,9 +96,7 @@ class ClaudeMemDB:
         rows = self.conn.execute(sql, params).fetchall()
         return [dict(r) for r in rows]
 
-    def get_stats(
-        self, start_epoch: int, end_epoch: int, project: str | None = None
-    ) -> dict:
+    def get_stats(self, start_epoch: int, end_epoch: int, project: str | None = None) -> dict:
         sql = """
             SELECT
                 COUNT(DISTINCT memory_session_id) as session_count,
@@ -333,9 +329,7 @@ def generate_json_output(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Generate activity report from claude-mem database"
-    )
+    parser = argparse.ArgumentParser(description="Generate activity report from claude-mem database")
     parser.add_argument(
         "--hours",
         type=int,
@@ -344,9 +338,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--start", type=str, help="Start date (YYYY-MM-DD)")
     parser.add_argument("--end", type=str, help="End date (YYYY-MM-DD)")
-    parser.add_argument(
-        "--project", type=str, help="Filter by project name (substring match)"
-    )
+    parser.add_argument("--project", type=str, help="Filter by project name (substring match)")
     parser.add_argument(
         "--types",
         type=str,
@@ -359,9 +351,7 @@ def parse_args() -> argparse.Namespace:
         help="Output format (default: markdown)",
     )
     parser.add_argument("--output", type=str, help="Save to file instead of stdout")
-    parser.add_argument(
-        "--db", type=str, default=str(DB_PATH), help="Database path"
-    )
+    parser.add_argument("--db", type=str, default=str(DB_PATH), help="Database path")
     return parser.parse_args()
 
 
@@ -422,13 +412,9 @@ def main():
 
         # Format output
         if args.format == "json":
-            output = generate_json_output(
-                sessions, observations, stats, args.project, start_dt, end_dt
-            )
+            output = generate_json_output(sessions, observations, stats, args.project, start_dt, end_dt)
         else:
-            output = generate_markdown(
-                sessions, observations, stats, args.project, start_dt, end_dt
-            )
+            output = generate_markdown(sessions, observations, stats, args.project, start_dt, end_dt)
 
         # Write output
         if args.output:

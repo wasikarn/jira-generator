@@ -1,10 +1,7 @@
 """Shared test fixtures for jira-cache-server tests."""
 
-import json
-import sqlite3
 import sys
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -28,8 +25,24 @@ def make_issue(
     fields = {
         "summary": summary,
         "status": {"name": status, "self": "https://jira/status/1", "statusCategory": {"name": "To Do"}},
-        "assignee": {"displayName": assignee, "accountId": "abc123", "emailAddress": "test@test.com", "avatarUrls": {"48x48": "url"}, "active": True, "timeZone": "UTC", "accountType": "atlassian"} if assignee else None,
-        "issuetype": {"name": issue_type, "subtask": False, "hierarchyLevel": 0, "self": "https://jira/issuetype/1", "iconUrl": "url"},
+        "assignee": {
+            "displayName": assignee,
+            "accountId": "abc123",
+            "emailAddress": "test@test.com",
+            "avatarUrls": {"48x48": "url"},
+            "active": True,
+            "timeZone": "UTC",
+            "accountType": "atlassian",
+        }
+        if assignee
+        else None,
+        "issuetype": {
+            "name": issue_type,
+            "subtask": False,
+            "hierarchyLevel": 0,
+            "self": "https://jira/issuetype/1",
+            "iconUrl": "url",
+        },
         "priority": {"name": priority, "iconUrl": "url", "self": "https://jira/priority/1"},
         "labels": labels or [],
         "description": description,
@@ -58,6 +71,7 @@ def tmp_db(tmp_path):
 def cache(tmp_db):
     """Create a JiraCache with a temporary database."""
     from jira_cache.cache import JiraCache
+
     c = JiraCache(db_path=tmp_db)
     yield c
     c.close()
@@ -78,11 +92,7 @@ def sample_issue_with_noise():
         description={
             "type": "doc",
             "version": 1,
-            "content": [
-                {"type": "paragraph", "content": [
-                    {"type": "text", "text": "Description text here"}
-                ]}
-            ],
+            "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Description text here"}]}],
         },
     )
 
@@ -90,7 +100,4 @@ def sample_issue_with_noise():
 @pytest.fixture
 def multiple_issues():
     """Return a list of issues for batch testing."""
-    return [
-        make_issue(key=f"BEP-{i}", summary=f"Issue {i}", status="To Do")
-        for i in range(1, 6)
-    ]
+    return [make_issue(key=f"BEP-{i}", summary=f"Issue {i}", status="To Do") for i in range(1, 6)]

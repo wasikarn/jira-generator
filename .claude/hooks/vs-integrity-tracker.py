@@ -9,13 +9,14 @@ Prints coverage summary when gaps are detected.
 
 Exit 0 = always allow
 """
+
 import json
 import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from hooks_state import vs_set_story_acs, vs_add_subtask, vs_get_coverage
+from hooks_state import vs_add_subtask, vs_get_coverage, vs_set_story_acs
 
 raw = sys.stdin.read()
 data = json.loads(raw)

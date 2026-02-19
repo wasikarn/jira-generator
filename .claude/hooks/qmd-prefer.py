@@ -13,6 +13,7 @@ Safeguards:
 
 Exit 0 = allow, Exit 2 = block
 """
+
 import json
 import sys
 from pathlib import Path
@@ -45,12 +46,16 @@ if not collection:
     sys.exit(0)
 
 # Block with helpful message
-print(json.dumps({
-    "error": (
-        f"⚠️ [{collection}] is indexed by qmd — use qmd search first to save ~95% tokens.\n"
-        f"→ mcp__qmd__search(query=\"...\", collection=\"{collection}\") for keyword search\n"
-        f"→ mcp__qmd__vsearch(query=\"...\", collection=\"{collection}\") for semantic search\n"
-        f"After using qmd, Glob/Grep will be unblocked for this session."
+print(
+    json.dumps(
+        {
+            "error": (
+                f"⚠️ [{collection}] is indexed by qmd — use qmd search first to save ~95% tokens.\n"
+                f'→ mcp__qmd__search(query="...", collection="{collection}") for keyword search\n'
+                f'→ mcp__qmd__vsearch(query="...", collection="{collection}") for semantic search\n'
+                f"After using qmd, Glob/Grep will be unblocked for this session."
+            )
+        }
     )
-}))
+)
 sys.exit(2)

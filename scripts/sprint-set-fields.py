@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / ".claude/skills/atlassian-scripts"))
 
-from lib.auth import create_ssl_context, load_credentials, get_auth_header
+from lib.auth import create_ssl_context, get_auth_header, load_credentials
 from lib.jira_api import JiraAPI, derive_jira_url
 
 # --- Mappings ---
@@ -151,12 +151,12 @@ def main():
             print(f"  ... and {len(skipped) - 10} more")
 
     if errors:
-        print(f"\nErrors:")
+        print("\nErrors:")
         for e in errors:
             print(f"  {e}")
 
     if not dry_run and updated:
-        print(f"\nRemember: cache_invalidate after this!")
+        print("\nRemember: cache_invalidate after this!")
 
     return 0 if not errors else 1
 

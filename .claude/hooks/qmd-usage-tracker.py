@@ -5,6 +5,7 @@ PostToolUse hook — marks qmd as used so L3 block hook unblocks Glob/Grep.
 
 Exit 0 = always allow
 """
+
 import json
 import sys
 from pathlib import Path

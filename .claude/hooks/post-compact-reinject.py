@@ -6,6 +6,7 @@ so Claude doesn't lose track of rules and in-progress operations.
 
 stdout → injected into Claude's post-compaction context.
 """
+
 import json
 import sys
 from pathlib import Path

@@ -184,7 +184,8 @@ Exit codes: 0=pass, 1=fail, 2=error
 
     parser.add_argument("issues", nargs="+", help="Issue key(s) to verify")
     parser.add_argument(
-        "--check", "-c",
+        "--check",
+        "-c",
         required=True,
         help="Comma-separated checks: parent, assignee, description",
     )

@@ -20,55 +20,115 @@ Output JSON:
     score: 0-100 consistency score
     summary: human-readable summary
 """
+
 import json
 import re
 import sys
 
-
 # Technical terms that should STAY in English (never transliterate to Thai)
 KEEP_ENGLISH = {
-    "endpoint", "payload", "validate", "component", "service", "API",
-    "route", "model", "schema", "query", "filter", "response", "request",
-    "deploy", "commit", "merge", "branch", "push", "pull", "config",
-    "token", "session", "cookie", "cache", "middleware", "webhook",
-    "callback", "async", "sync", "batch", "queue", "event", "handler",
-    "controller", "repository", "entity", "aggregate", "domain",
-    "interface", "abstract", "implement", "extend", "module",
-    "provider", "consumer", "producer", "subscriber", "publisher",
-    "migration", "seed", "fixture", "mock", "stub", "spy",
-    "frontend", "backend", "fullstack", "database", "server", "client",
-    "staging", "production", "development", "test", "debug",
-    "sprint", "backlog", "epic", "story", "task", "subtask", "bug",
+    "endpoint",
+    "payload",
+    "validate",
+    "component",
+    "service",
+    "API",
+    "route",
+    "model",
+    "schema",
+    "query",
+    "filter",
+    "response",
+    "request",
+    "deploy",
+    "commit",
+    "merge",
+    "branch",
+    "push",
+    "pull",
+    "config",
+    "token",
+    "session",
+    "cookie",
+    "cache",
+    "middleware",
+    "webhook",
+    "callback",
+    "async",
+    "sync",
+    "batch",
+    "queue",
+    "event",
+    "handler",
+    "controller",
+    "repository",
+    "entity",
+    "aggregate",
+    "domain",
+    "interface",
+    "abstract",
+    "implement",
+    "extend",
+    "module",
+    "provider",
+    "consumer",
+    "producer",
+    "subscriber",
+    "publisher",
+    "migration",
+    "seed",
+    "fixture",
+    "mock",
+    "stub",
+    "spy",
+    "frontend",
+    "backend",
+    "fullstack",
+    "database",
+    "server",
+    "client",
+    "staging",
+    "production",
+    "development",
+    "test",
+    "debug",
+    "sprint",
+    "backlog",
+    "epic",
+    "story",
+    "task",
+    "subtask",
+    "bug",
 }
 
 # Thai transliterations that should be replaced with English
 # Keys are Thai phonetic spellings of English tech terms (functional regex patterns)
 THAI_TO_ENGLISH = {
-    r"เอพีไอ": "API",                      # "eh-pee-ai" = API
-    r"เซิร์ฟเวอร์": "server",               # "serf-wer" = server
-    r"คอมโพเนนต์": "component",             # "khom-pho-nen" = component
-    r"เอ็นพอยท์|เอ็นด์พอยต์": "endpoint",    # "en-point" = endpoint
-    r"เพย์โหลด": "payload",                 # "pay-load" = payload
-    r"แวลิเดท|แวลิเดต": "validate",         # "wa-li-det" = validate
-    r"เซอร์วิส": "service",                  # "ser-wis" = service
-    r"โมเดล": "model",                      # "mo-den" = model
-    r"สคีมา": "schema",                     # "sa-khee-ma" = schema
-    r"คิวรี่|คิวรี": "query",                 # "khew-ree" = query
-    r"รีเควส|รีเควสท์": "request",           # "ree-kwes" = request
-    r"รีสปอนส์": "response",                 # "ree-sa-pon" = response
-    r"ดีพลอย": "deploy",                     # "dee-ploy" = deploy
-    r"คอมมิต": "commit",                     # "khom-mit" = commit
-    r"เมิร์จ": "merge",                      # "mert" = merge
-    r"แบรนช์": "branch",                     # "braen" = branch
-    r"โทเคน": "token",                      # "tho-khen" = token
-    r"เซสชั่น|เซสชัน": "session",            # "ses-chan" = session
-    r"แคช": "cache",                        # "khaet" = cache
-    r"มิดเดิลแวร์": "middleware",             # "mid-den-wae" = middleware
-    r"อีเวนต์|อีเว้นท์": "event",            # "ee-wen" = event
-    r"ฟิลเตอร์": "filter",                   # "fin-ter" = filter
-    r"เราท์|เราเตอร์": "route",               # "rao-ter" = route
-    r"ไมเกรชั่น|ไมเกรชัน": "migration",      # "mai-kre-chan" = migration
-    r"ดาต้าเบส|ดาตาเบส": "database",        # "da-ta-bes" = database
+    r"เอพีไอ": "API",  # "eh-pee-ai" = API
+    r"เซิร์ฟเวอร์": "server",  # "serf-wer" = server
+    r"คอมโพเนนต์": "component",  # "khom-pho-nen" = component
+    r"เอ็นพอยท์|เอ็นด์พอยต์": "endpoint",  # "en-point" = endpoint
+    r"เพย์โหลด": "payload",  # "pay-load" = payload
+    r"แวลิเดท|แวลิเดต": "validate",  # "wa-li-det" = validate
+    r"เซอร์วิส": "service",  # "ser-wis" = service
+    r"โมเดล": "model",  # "mo-den" = model
+    r"สคีมา": "schema",  # "sa-khee-ma" = schema
+    r"คิวรี่|คิวรี": "query",  # "khew-ree" = query
+    r"รีเควส|รีเควสท์": "request",  # "ree-kwes" = request
+    r"รีสปอนส์": "response",  # "ree-sa-pon" = response
+    r"ดีพลอย": "deploy",  # "dee-ploy" = deploy
+    r"คอมมิต": "commit",  # "khom-mit" = commit
+    r"เมิร์จ": "merge",  # "mert" = merge
+    r"แบรนช์": "branch",  # "braen" = branch
+    r"โทเคน": "token",  # "tho-khen" = token
+    r"เซสชั่น|เซสชัน": "session",  # "ses-chan" = session
+    r"แคช": "cache",  # "khaet" = cache
+    r"มิดเดิลแวร์": "middleware",  # "mid-den-wae" = middleware
+    r"อีเวนต์|อีเว้นท์": "event",  # "ee-wen" = event
+    r"ฟิลเตอร์": "filter",  # "fin-ter" = filter
+    r"เราท์|เราเตอร์": "route",  # "rao-ter" = route
+    r"ไมเกรชั่น|ไมเกรชัน": "migration",  # "mai-kre-chan" = migration
+    r"ดาต้าเบส|ดาตาเบส": "database",  # "da-ta-bes" = database
 }
 
 # Patterns that suggest all-English text (should be Thai + transliteration)
@@ -115,31 +175,32 @@ def validate_text(texts: list[str]) -> list[dict]:
         for thai_pattern, english in THAI_TO_ENGLISH.items():
             matches = re.findall(thai_pattern, text)
             if matches:
-                issues.append({
-                    "type": "thai_transliteration",
-                    "text": matches[0],
-                    "suggestion": f"Use '{english}' instead of Thai transliteration",
-                    "line": i + 1,
-                    "severity": "warning",
-                })
+                issues.append(
+                    {
+                        "type": "thai_transliteration",
+                        "text": matches[0],
+                        "suggestion": f"Use '{english}' instead of Thai transliteration",
+                        "line": i + 1,
+                        "severity": "warning",
+                    }
+                )
 
         # Check for all-English lines in non-code context
         # Skip lines that are labels, headings, or short phrases
         if len(text) > 20:
             for pattern, message in ALL_ENGLISH_PATTERNS:
-                if re.match(pattern, text):
-                    # Allow if it's a technical reference or path
-                    if not any(
-                        text.startswith(p)
-                        for p in ("src/", "http", "/api", "GET ", "POST ", "BEP-")
-                    ):
-                        issues.append({
+                if re.match(pattern, text) and not any(
+                    text.startswith(p) for p in ("src/", "http", "/api", "GET ", "POST ", "BEP-")
+                ):
+                    issues.append(
+                        {
                             "type": "all_english",
                             "text": text[:50] + ("..." if len(text) > 50 else ""),
                             "suggestion": message,
                             "line": i + 1,
                             "severity": "info",
-                        })
+                        }
+                    )
 
     return issues
 
@@ -178,12 +239,18 @@ def main():
     else:
         summary = f"ℹ️ {issue_count} suggestion(s) for improvement"
 
-    print(json.dumps({
-        "issues": issues,
-        "score": score,
-        "total_segments": total_segments,
-        "summary": summary,
-    }, indent=2, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "issues": issues,
+                "score": score,
+                "total_segments": total_segments,
+                "summary": summary,
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+    )
 
 
 if __name__ == "__main__":

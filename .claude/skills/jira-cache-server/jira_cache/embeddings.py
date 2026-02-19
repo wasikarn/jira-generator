@@ -11,7 +11,6 @@ Usage:
     similar = store.find_similar("coupon payment flow", limit=5)
 """
 
-import json
 import logging
 import sqlite3
 import struct
@@ -35,7 +34,7 @@ def _load_sqlite_vec(conn: sqlite3.Connection) -> bool:
         return True
 
     try:
-        import sqlite_vec  # noqa: F401
+        import sqlite_vec
 
         conn.enable_load_extension(True)
         try:
@@ -203,10 +202,12 @@ class EmbeddingStore:
             excluded = set(exclude_keys or [])
             for row in rows:
                 if row[0] not in excluded and len(results) < limit:
-                    results.append({
-                        "issue_key": row[0],
-                        "distance": round(row[1], 4),
-                    })
+                    results.append(
+                        {
+                            "issue_key": row[0],
+                            "distance": round(row[1], 4),
+                        }
+                    )
 
             return results
         except Exception as e:
@@ -238,6 +239,7 @@ class EmbeddingStore:
             desc_raw = fields.get("description")
             if isinstance(desc_raw, dict):
                 from .cache import extract_adf_text
+
                 desc = extract_adf_text(desc_raw) or ""
             elif isinstance(desc_raw, str):
                 desc = desc_raw
@@ -260,7 +262,7 @@ class EmbeddingStore:
         # Phase 3: Batch store with single commit
         count = 0
         try:
-            for (key, _), vec in zip(items, vectors):
+            for (key, _), vec in zip(items, vectors, strict=True):
                 self.conn.execute(
                     "INSERT OR REPLACE INTO issue_embeddings (issue_key, embedding) VALUES (?, ?)",
                     (key, _serialize_f32(vec)),
@@ -294,9 +296,7 @@ class EmbeddingStore:
         if not self.available:
             return 0
         try:
-            row = self.conn.execute(
-                "SELECT COUNT(*) FROM issue_embeddings"
-            ).fetchone()
+            row = self.conn.execute("SELECT COUNT(*) FROM issue_embeddings").fetchone()
             return row[0] if row else 0
         except Exception:
             return 0

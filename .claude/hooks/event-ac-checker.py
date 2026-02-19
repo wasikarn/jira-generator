@@ -9,6 +9,7 @@ Warns (does not block) if event names are unrecognized.
 
 Exit codes: 0 = always allow (warning only)
 """
+
 import json
 import re
 import sys

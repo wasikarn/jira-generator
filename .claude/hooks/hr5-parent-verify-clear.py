@@ -7,6 +7,7 @@ automatically clears the pending verification.
 
 Exit 0 = always allow
 """
+
 import json
 import sys
 from pathlib import Path
@@ -37,8 +38,7 @@ if expected_parent in tool_output:
         "hookSpecificOutput": {
             "hookEventName": "PostToolUse",
             "additionalContext": (
-                f"✅ HR5 verified: {issue_key} parent={expected_parent} confirmed. "
-                f"Cleared from pending."
+                f"✅ HR5 verified: {issue_key} parent={expected_parent} confirmed. Cleared from pending."
             ),
         }
     }

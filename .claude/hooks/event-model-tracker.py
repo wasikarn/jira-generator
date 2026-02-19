@@ -7,6 +7,7 @@ section and saves to session state for event-AC consistency checking.
 
 Exit 0 = always allow
 """
+
 import json
 import re
 import sys
@@ -44,13 +45,7 @@ events_text = re.sub(r"[\[\]]", "", events_text)
 events = [e.strip() for e in events_text.split(",") if e.strip()]
 
 # Filter out placeholder/template text
-events = [
-    e
-    for e in events
-    if not e.startswith("[")
-    and e not in ("Event1", "Event2")
-    and len(e) > 2
-]
+events = [e for e in events if not e.startswith("[") and e not in ("Event1", "Event2") and len(e) > 2]
 
 if events:
     event_set_domain_events(session_id, issue_key, events)

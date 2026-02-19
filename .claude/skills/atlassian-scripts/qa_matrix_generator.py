@@ -19,6 +19,7 @@ Output JSON:
     qa_adf: Complete QA subtask ADF (ready for acli --from-json)
     coverage_matrix: AC → TC mapping
 """
+
 import json
 import sys
 
@@ -57,13 +58,15 @@ def extract_acs(adf: dict) -> list[dict]:
                             then = line.replace("Then:", "").strip()
 
         if title:
-            acs.append({
-                "title": title,
-                "panel_type": panel_type,
-                "given": given or "[precondition]",
-                "when": when or "[action]",
-                "then": then or "[expected result]",
-            })
+            acs.append(
+                {
+                    "title": title,
+                    "panel_type": panel_type,
+                    "given": given or "[precondition]",
+                    "when": when or "[action]",
+                    "then": then or "[expected result]",
+                }
+            )
     return acs
 
 
@@ -85,104 +88,195 @@ def generate_qa_adf(story_key: str, story_summary: str, acs: list[dict]) -> dict
 
     # AC Coverage table rows
     coverage_rows = [
-        {"type": "tableRow", "content": [
-            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"},
-             "content": [{"type": "paragraph", "content": [{"type": "text", "text": "#"}]}]},
-            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"},
-             "content": [{"type": "paragraph", "content": [{"type": "text", "text": "AC"}]}]},
-            {"type": "tableHeader", "attrs": {"background": "#f4f5f7"},
-             "content": [{"type": "paragraph", "content": [
-                 {"type": "text", "text": "Scenarios"}]}]},
-        ]},
+        {
+            "type": "tableRow",
+            "content": [
+                {
+                    "type": "tableHeader",
+                    "attrs": {"background": "#f4f5f7"},
+                    "content": [{"type": "paragraph", "content": [{"type": "text", "text": "#"}]}],
+                },
+                {
+                    "type": "tableHeader",
+                    "attrs": {"background": "#f4f5f7"},
+                    "content": [{"type": "paragraph", "content": [{"type": "text", "text": "AC"}]}],
+                },
+                {
+                    "type": "tableHeader",
+                    "attrs": {"background": "#f4f5f7"},
+                    "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Scenarios"}]}],
+                },
+            ],
+        },
     ]
     for i, ac in enumerate(acs):
-        coverage_rows.append({"type": "tableRow", "content": [
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
-                {"type": "text", "text": str(i + 1)}]}]},
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
-                {"type": "text", "text": ac["title"]}]}]},
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
-                {"type": "text", "text": f"TC{i + 1}"}]}]},
-        ]})
+        coverage_rows.append(
+            {
+                "type": "tableRow",
+                "content": [
+                    {
+                        "type": "tableCell",
+                        "content": [{"type": "paragraph", "content": [{"type": "text", "text": str(i + 1)}]}],
+                    },
+                    {
+                        "type": "tableCell",
+                        "content": [{"type": "paragraph", "content": [{"type": "text", "text": ac["title"]}]}],
+                    },
+                    {
+                        "type": "tableCell",
+                        "content": [{"type": "paragraph", "content": [{"type": "text", "text": f"TC{i + 1}"}]}],
+                    },
+                ],
+            }
+        )
 
     # Test Case panels
     tc_panels = []
     for i, ac in enumerate(acs):
         priority = PRIORITY_MAP.get(ac["panel_type"], "🟡 Medium")
         panel_type = TC_PANEL_MAP.get(ac["panel_type"], "success")
-        tc_panels.append({
-            "type": "panel",
-            "attrs": {"panelType": panel_type},
-            "content": [
-                {"type": "paragraph", "content": [
-                    {"type": "text", "text": f"TC{i+1}: {ac['title']}",
-                     "marks": [{"type": "strong"}]},
-                ]},
-                {"type": "bulletList", "content": [
-                    {"type": "listItem", "content": [{"type": "paragraph", "content": [
-                        {"type": "text", "text": f"AC: {i+1} | Priority: {priority}"},
-                    ]}]},
-                    {"type": "listItem", "content": [{"type": "paragraph", "content": [
-                        {"type": "text", "text": "Given: ", "marks": [{"type": "strong"}]},
-                        {"type": "text", "text": ac["given"]},
-                    ]}]},
-                    {"type": "listItem", "content": [{"type": "paragraph", "content": [
-                        {"type": "text", "text": "When: ", "marks": [{"type": "strong"}]},
-                        {"type": "text", "text": ac["when"]},
-                    ]}]},
-                    {"type": "listItem", "content": [{"type": "paragraph", "content": [
-                        {"type": "text", "text": "Then: ", "marks": [{"type": "strong"}]},
-                        {"type": "text", "text": ac["then"]},
-                    ]}]},
-                ]},
-            ],
-        })
+        tc_panels.append(
+            {
+                "type": "panel",
+                "attrs": {"panelType": panel_type},
+                "content": [
+                    {
+                        "type": "paragraph",
+                        "content": [
+                            {"type": "text", "text": f"TC{i + 1}: {ac['title']}", "marks": [{"type": "strong"}]},
+                        ],
+                    },
+                    {
+                        "type": "bulletList",
+                        "content": [
+                            {
+                                "type": "listItem",
+                                "content": [
+                                    {
+                                        "type": "paragraph",
+                                        "content": [
+                                            {"type": "text", "text": f"AC: {i + 1} | Priority: {priority}"},
+                                        ],
+                                    }
+                                ],
+                            },
+                            {
+                                "type": "listItem",
+                                "content": [
+                                    {
+                                        "type": "paragraph",
+                                        "content": [
+                                            {"type": "text", "text": "Given: ", "marks": [{"type": "strong"}]},
+                                            {"type": "text", "text": ac["given"]},
+                                        ],
+                                    }
+                                ],
+                            },
+                            {
+                                "type": "listItem",
+                                "content": [
+                                    {
+                                        "type": "paragraph",
+                                        "content": [
+                                            {"type": "text", "text": "When: ", "marks": [{"type": "strong"}]},
+                                            {"type": "text", "text": ac["when"]},
+                                        ],
+                                    }
+                                ],
+                            },
+                            {
+                                "type": "listItem",
+                                "content": [
+                                    {
+                                        "type": "paragraph",
+                                        "content": [
+                                            {"type": "text", "text": "Then: ", "marks": [{"type": "strong"}]},
+                                            {"type": "text", "text": ac["then"]},
+                                        ],
+                                    }
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            }
+        )
 
     adf = {
         "type": "doc",
         "version": 1,
         "content": [
-            {"type": "heading", "attrs": {"level": 2},
-             "content": [{"type": "text", "text": "🎯 Test Objective"}]},
-            {"type": "panel", "attrs": {"panelType": "info"}, "content": [
-                {"type": "paragraph", "content": [
-                    {"type": "text", "text": f"Validate acceptance criteria for {story_summary}"},
-                ]},
-            ]},
+            {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🎯 Test Objective"}]},
+            {
+                "type": "panel",
+                "attrs": {"panelType": "info"},
+                "content": [
+                    {
+                        "type": "paragraph",
+                        "content": [
+                            {"type": "text", "text": f"Validate acceptance criteria for {story_summary}"},
+                        ],
+                    },
+                ],
+            },
             {"type": "rule"},
-            {"type": "heading", "attrs": {"level": 2},
-             "content": [{"type": "text", "text": "📊 AC Coverage"}]},
-            {"type": "table",
-             "attrs": {"isNumberColumnEnabled": False, "layout": "default"},
-             "content": coverage_rows},
+            {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "📊 AC Coverage"}]},
+            {"type": "table", "attrs": {"isNumberColumnEnabled": False, "layout": "default"}, "content": coverage_rows},
             {"type": "rule"},
-            {"type": "heading", "attrs": {"level": 2},
-             "content": [{"type": "text", "text": "🧪 Test Cases"}]},
+            {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🧪 Test Cases"}]},
             *tc_panels,
             {"type": "rule"},
-            {"type": "heading", "attrs": {"level": 2},
-             "content": [{"type": "text", "text": "🔗 Reference"}]},
-            {"type": "table",
-             "attrs": {"isNumberColumnEnabled": False, "layout": "default"},
-             "content": [
-                 {"type": "tableRow", "content": [
-                     {"type": "tableHeader", "attrs": {"background": "#eae6ff"},
-                      "content": [{"type": "paragraph", "content": [
-                          {"type": "text", "text": "Type"}]}]},
-                     {"type": "tableHeader", "attrs": {"background": "#eae6ff"},
-                      "content": [{"type": "paragraph", "content": [
-                          {"type": "text", "text": "Link"}]}]},
-                 ]},
-                 {"type": "tableRow", "content": [
-                     {"type": "tableCell", "content": [{"type": "paragraph", "content": [
-                         {"type": "text", "text": "User Story"}]}]},
-                     {"type": "tableCell", "content": [{"type": "paragraph", "content": [
-                         {"type": "text", "text": story_key,
-                          "marks": [{"type": "link", "attrs": {
-                              "href": f"https://JIRA_DOMAIN/browse/{story_key}"
-                          }}]}]}]},
-                 ]},
-             ]},
+            {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔗 Reference"}]},
+            {
+                "type": "table",
+                "attrs": {"isNumberColumnEnabled": False, "layout": "default"},
+                "content": [
+                    {
+                        "type": "tableRow",
+                        "content": [
+                            {
+                                "type": "tableHeader",
+                                "attrs": {"background": "#eae6ff"},
+                                "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}],
+                            },
+                            {
+                                "type": "tableHeader",
+                                "attrs": {"background": "#eae6ff"},
+                                "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}],
+                            },
+                        ],
+                    },
+                    {
+                        "type": "tableRow",
+                        "content": [
+                            {
+                                "type": "tableCell",
+                                "content": [{"type": "paragraph", "content": [{"type": "text", "text": "User Story"}]}],
+                            },
+                            {
+                                "type": "tableCell",
+                                "content": [
+                                    {
+                                        "type": "paragraph",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": story_key,
+                                                "marks": [
+                                                    {
+                                                        "type": "link",
+                                                        "attrs": {"href": f"https://JIRA_DOMAIN/browse/{story_key}"},
+                                                    }
+                                                ],
+                                            }
+                                        ],
+                                    }
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
         ],
     }
     return adf
@@ -205,19 +299,22 @@ def main():
         sys.exit(0)
 
     qa_adf = generate_qa_adf(story_key, story_summary, acs)
-    coverage = [
-        {"ac": i + 1, "title": ac["title"], "tc": f"TC{i + 1}"}
-        for i, ac in enumerate(acs)
-    ]
+    coverage = [{"ac": i + 1, "title": ac["title"], "tc": f"TC{i + 1}"} for i, ac in enumerate(acs)]
 
-    print(json.dumps({
-        "story_key": story_key,
-        "ac_count": len(acs),
-        "tc_count": len(acs),
-        "coverage_matrix": coverage,
-        "qa_summary": f"[QA] - Test: {story_summary}",
-        "qa_adf": qa_adf,
-    }, indent=2, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "story_key": story_key,
+                "ac_count": len(acs),
+                "tc_count": len(acs),
+                "coverage_matrix": coverage,
+                "qa_summary": f"[QA] - Test: {story_summary}",
+                "qa_adf": qa_adf,
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+    )
 
 
 if __name__ == "__main__":

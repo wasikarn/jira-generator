@@ -7,10 +7,11 @@ Injects additionalContext reminder to verify the parent link.
 
 Exit codes: 0 (always — PostToolUse cannot block)
 """
+
 import json
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 LOG_DIR = Path.home() / ".claude" / "hooks-logs"
@@ -21,7 +22,7 @@ def log_event(level: str, data: dict) -> None:
     """Append JSON log entry."""
     try:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         log_file = LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl"
         entry = {
             "ts": now.isoformat(),
@@ -102,7 +103,8 @@ def main() -> None:
     # Save to state for blocker + auto-clear hooks
     try:
         sys.path.insert(0, str(Path(__file__).parent))
-        from hooks_state import hr5_add_pending, hr5_add_known_subtask
+        from hooks_state import hr5_add_known_subtask, hr5_add_pending
+
         hr5_add_pending(session_id, issue_key, parent_key)
         hr5_add_known_subtask(session_id, issue_key)
     except Exception:
@@ -120,11 +122,14 @@ def main() -> None:
     except Exception:
         pass
 
-    log_event("REMIND", {
-        "issue_key": issue_key,
-        "parent_key": parent_key,
-        "session_id": session_id,
-    })
+    log_event(
+        "REMIND",
+        {
+            "issue_key": issue_key,
+            "parent_key": parent_key,
+            "session_id": session_id,
+        },
+    )
 
     output = {
         "hookSpecificOutput": {

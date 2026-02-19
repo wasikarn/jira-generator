@@ -54,31 +54,31 @@ def smudge(content, v):
     content = re.sub(r'project_key="\{\{PROJECT_KEY\}\}"', f'project_key="{pk}"', content)
     content = re.sub(r'space_key:\s*"\{\{SPACE_KEY\}\}"', f'space_key: "{pk}"', content)
     content = re.sub(r'space_key="\{\{SPACE_KEY\}\}"', f'space_key="{pk}"', content)
-    content = re.sub(r'\{\{PROJECT_KEY\}\}-XXX', f'{pk}-XXX', content)
+    content = re.sub(r"\{\{PROJECT_KEY\}\}-XXX", f"{pk}-XXX", content)
 
     # JIRA_SITE
-    content = re.sub(r'https://\{\{JIRA_SITE\}\}', f'https://{v["JIRA_SITE"]}', content)
+    content = re.sub(r"https://\{\{JIRA_SITE\}\}", f"https://{v['JIRA_SITE']}", content)
 
     # CONFLUENCE_SITE
-    content = re.sub(r'https://\{\{CONFLUENCE_SITE\}\}', f'https://{v["CONFLUENCE_SITE"]}', content)
+    content = re.sub(r"https://\{\{CONFLUENCE_SITE\}\}", f"https://{v['CONFLUENCE_SITE']}", content)
 
     # Custom fields
-    content = re.sub(r'\{\{START_DATE_FIELD\}\}', v["START_DATE_FIELD"], content)
-    content = re.sub(r'\{\{SPRINT_FIELD\}\}', v["SPRINT_FIELD"], content)
+    content = re.sub(r"\{\{START_DATE_FIELD\}\}", v["START_DATE_FIELD"], content)
+    content = re.sub(r"\{\{SPRINT_FIELD\}\}", v["SPRINT_FIELD"], content)
 
     # COMPANY
-    content = re.sub(r'\{\{COMPANY\}\} Platform', f'{v["COMPANY"]} Platform', content)
-    content = re.sub(r'for \*\*\{\{COMPANY\}\} Platform\*\*', f'for **{v["COMPANY"]} Platform**', content)
+    content = re.sub(r"\{\{COMPANY\}\} Platform", f"{v['COMPANY']} Platform", content)
+    content = re.sub(r"for \*\*\{\{COMPANY\}\} Platform\*\*", f"for **{v['COMPANY']} Platform**", content)
     content = re.sub(
-        r'Agile Documentation System for \*\*\{\{COMPANY\}\}',
-        f'Agile Documentation System for **{v["COMPANY"]}',
+        r"Agile Documentation System for \*\*\{\{COMPANY\}\}",
+        f"Agile Documentation System for **{v['COMPANY']}",
         content,
     )
 
     # COMPANY_LOWER
     content = re.sub(
-        r'~/Projects/\{\{COMPANY_LOWER\}\}/',
-        f'~/Codes/Works/{v["COMPANY_LOWER"]}/',
+        r"~/Projects/\{\{COMPANY_LOWER\}\}/",
+        f"~/Codes/Works/{v['COMPANY_LOWER']}/",
         content,
     )
 
@@ -100,41 +100,41 @@ def clean(content, v):
     content = re.sub(rf'space_key:\s*"{pk}"', 'space_key: "{{SPACE_KEY}}"', content)
     content = re.sub(rf'space_key="{pk}"', 'space_key="{{SPACE_KEY}}"', content)
     # Issue key pattern (but not in URLs/smart links)
-    content = re.sub(rf'(?<!/browse/){pk}-XXX', '{{PROJECT_KEY}}-XXX', content)
+    content = re.sub(rf"(?<!/browse/){pk}-XXX", "{{PROJECT_KEY}}-XXX", content)
 
     # JIRA_SITE
     content = re.sub(
-        rf'https://{re.escape(v["JIRA_SITE"])}',
-        'https://{{JIRA_SITE}}',
+        rf"https://{re.escape(v['JIRA_SITE'])}",
+        "https://{{JIRA_SITE}}",
         content,
     )
 
     # CONFLUENCE_SITE (only if different from JIRA_SITE)
     if v["CONFLUENCE_SITE"] != v["JIRA_SITE"]:
         content = re.sub(
-            rf'https://{re.escape(v["CONFLUENCE_SITE"])}',
-            'https://{{CONFLUENCE_SITE}}',
+            rf"https://{re.escape(v['CONFLUENCE_SITE'])}",
+            "https://{{CONFLUENCE_SITE}}",
             content,
         )
 
     # Custom fields
-    content = re.sub(re.escape(v["START_DATE_FIELD"]), '{{START_DATE_FIELD}}', content)
-    content = re.sub(re.escape(v["SPRINT_FIELD"]), '{{SPRINT_FIELD}}', content)
+    content = re.sub(re.escape(v["START_DATE_FIELD"]), "{{START_DATE_FIELD}}", content)
+    content = re.sub(re.escape(v["SPRINT_FIELD"]), "{{SPRINT_FIELD}}", content)
 
     # COMPANY
     co = re.escape(v["COMPANY"])
-    content = re.sub(rf'{co} Platform', '{{COMPANY}} Platform', content)
-    content = re.sub(rf'for \*\*{co} Platform\*\*', 'for **{{COMPANY}} Platform**', content)
+    content = re.sub(rf"{co} Platform", "{{COMPANY}} Platform", content)
+    content = re.sub(rf"for \*\*{co} Platform\*\*", "for **{{COMPANY}} Platform**", content)
     content = re.sub(
-        rf'Agile Documentation System for \*\*{co}',
-        'Agile Documentation System for **{{COMPANY}}',
+        rf"Agile Documentation System for \*\*{co}",
+        "Agile Documentation System for **{{COMPANY}}",
         content,
     )
 
     # COMPANY_LOWER
     content = re.sub(
-        rf'~/Codes/Works/{re.escape(v["COMPANY_LOWER"])}/',
-        '~/Projects/{{COMPANY_LOWER}}/',
+        rf"~/Codes/Works/{re.escape(v['COMPANY_LOWER'])}/",
+        "~/Projects/{{COMPANY_LOWER}}/",
         content,
     )
 

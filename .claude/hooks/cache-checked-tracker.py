@@ -5,6 +5,7 @@ PostToolUse hook — when cache_get_issue is called, marks the issue key
 in session state so that cache-prefer.py (PreToolUse) allows subsequent
 jira_get_issue calls for the same key (cache miss fallback).
 """
+
 import json
 import sys
 from pathlib import Path

@@ -110,12 +110,13 @@ def cmd_status(args: argparse.Namespace) -> int:
         print(f"Current Phase: {state.get('current_phase', 'none')}")
         gates = state.get("gates_passed", {})
         if gates:
-            print(f"Gates Passed:")
+            print("Gates Passed:")
             for gate, info in gates.items():
                 print(f"  \u2705 {gate}: {info['score']:.1f}%")
         phases = state.get("phases_completed", [])
         if phases:
-            print(f"Phases: {' \u2192 '.join(phases)}")
+            phases_str = " → ".join(phases)
+            print(f"Phases: {phases_str}")
 
     return 0
 

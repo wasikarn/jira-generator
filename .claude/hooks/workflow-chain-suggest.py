@@ -4,6 +4,7 @@
 Detects issue type from creation and suggests the appropriate next command.
 Exit 0 = allow (always), prints additionalContext suggestion.
 """
+
 import json
 import re
 import sys

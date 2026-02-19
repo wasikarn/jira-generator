@@ -154,7 +154,7 @@ class ConfluenceAPI:
             result = self._request("GET", f"/rest/api/content/{page_id}?expand={expand}")
             return PageInfo(**result)
         except PageNotFoundError:
-            raise PageNotFoundError(page_id)
+            raise PageNotFoundError(page_id) from None
 
     def create_page(
         self,

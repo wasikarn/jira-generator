@@ -44,7 +44,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from lib import (
     APIError,
     CredentialsError,
-    IssueNotFoundError,
     JiraAPI,
     create_ssl_context,
     derive_jira_url,
@@ -106,7 +105,7 @@ def validate_adf(file_path: Path, issue_type: str) -> tuple[dict, dict, bool]:
     print(f"  HR1 Quality Gate: {score:.1f}% {status}")
 
     if not report.passed:
-        print(f"  Issues:")
+        print("  Issues:")
         for issue in result["issues"]:
             print(f"    - {issue['id']}: {issue['message']}")
 
@@ -115,7 +114,7 @@ def validate_adf(file_path: Path, issue_type: str) -> tuple[dict, dict, bool]:
 
 def run_acli(args_list: list[str]) -> tuple[int, str]:
     """Run acli command and return (exit_code, output)."""
-    cmd = ["acli"] + args_list
+    cmd = ["acli", *args_list]
     logger.debug("Running: %s", " ".join(cmd))
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -129,12 +128,18 @@ def run_acli(args_list: list[str]) -> tuple[int, str]:
 
 def assign_issue(issue_key: str, assignee: str) -> bool:
     """Assign issue using acli (HR3: MCP assignee broken)."""
-    code, output = run_acli([
-        "jira", "workitem", "assign",
-        "-k", issue_key,
-        "-a", assignee,
-        "-y",
-    ])
+    code, output = run_acli(
+        [
+            "jira",
+            "workitem",
+            "assign",
+            "-k",
+            issue_key,
+            "-a",
+            assignee,
+            "-y",
+        ]
+    )
     if code == 0:
         print(f"  HR3 Assign: {assignee} \u2705")
         return True
@@ -184,10 +189,10 @@ def set_issue_fields(
     if getattr(args, "points", None) is not None:
         fields[cf["story_points"]] = args.points
     if getattr(args, "labels", None):
-        fields["labels"] = [l.strip() for l in args.labels.split(",")]
+        fields["labels"] = [label.strip() for label in args.labels.split(",")]
     if getattr(args, "sprint", None) is not None:
         if is_subtask:
-            print(f"  HR10: Skipping sprint on subtask (inherits from parent)")
+            print("  HR10: Skipping sprint on subtask (inherits from parent)")
         else:
             fields[cf["sprint"]] = args.sprint
 
@@ -233,10 +238,15 @@ def cmd_create_issue(args: argparse.Namespace) -> int:
 
     # Step 2: Create via acli (CREATE format JSON)
     print(f"\n[2/{total_steps}] Creating {jira_type} (acli)...")
-    code, output = run_acli([
-        "jira", "workitem", "create",
-        "--from-json", str(file_path),
-    ])
+    code, output = run_acli(
+        [
+            "jira",
+            "workitem",
+            "create",
+            "--from-json",
+            str(file_path),
+        ]
+    )
 
     new_key = parse_acli_key(output)
     if code != 0 or not new_key:
@@ -329,7 +339,7 @@ def cmd_create_subtask(args: argparse.Namespace) -> int:
     # Step 3: Verify parent link — HR5 step 2
     print(f"\n[3/{total_steps}] Verifying parent link (HR5)...")
     if not verify_parent(api, new_key, args.parent):
-        print(f"  \u26a0\ufe0f Parent link verification failed \u2014 may need manual fix")
+        print("  \u26a0\ufe0f Parent link verification failed \u2014 may need manual fix")
 
     # Step 4: Update description via acli (ADF) — HR5 step 3
     print(f"\n[4/{total_steps}] Updating description (acli)...")
@@ -338,15 +348,20 @@ def cmd_create_subtask(args: argparse.Namespace) -> int:
     with open(edit_path, "w") as f:
         json.dump(edit_data, f, ensure_ascii=False)
 
-    code, output = run_acli([
-        "jira", "workitem", "edit",
-        "--from-json", str(edit_path),
-        "--yes",
-    ])
+    code, output = run_acli(
+        [
+            "jira",
+            "workitem",
+            "edit",
+            "--from-json",
+            str(edit_path),
+            "--yes",
+        ]
+    )
     edit_path.unlink(missing_ok=True)
 
     if code == 0:
-        print(f"  Description updated \u2705")
+        print("  Description updated \u2705")
     else:
         print(f"  Description update FAILED: {output}")
 
@@ -394,27 +409,32 @@ def cmd_update_description(args: argparse.Namespace) -> int:
         return 0
 
     # Step 2: Update via acli
-    print(f"\n[2/3] Updating description (acli)...")
+    print("\n[2/3] Updating description (acli)...")
     edit_data = {"issues": [args.issue], "description": adf}
     edit_path = file_path.with_stem(file_path.stem + "-edit-tmp")
     with open(edit_path, "w") as f:
         json.dump(edit_data, f, ensure_ascii=False)
 
-    code, output = run_acli([
-        "jira", "workitem", "edit",
-        "--from-json", str(edit_path),
-        "--yes",
-    ])
+    code, output = run_acli(
+        [
+            "jira",
+            "workitem",
+            "edit",
+            "--from-json",
+            str(edit_path),
+            "--yes",
+        ]
+    )
     edit_path.unlink(missing_ok=True)
 
     if code == 0:
-        print(f"  Description updated \u2705")
+        print("  Description updated \u2705")
     else:
         print(f"  Description update FAILED: {output}")
         return 1
 
     # Step 3: Report
-    print(f"\n[3/3] Done")
+    print("\n[3/3] Done")
     print(f"\n{'=' * 60}")
     print(f"\u2705 Updated: {args.issue}")
     print(f"HR6 Action: cache_invalidate('{args.issue}')")
@@ -465,8 +485,9 @@ def main() -> int:
     upd = subparsers.add_parser("update-description", help="Update issue description")
     upd.add_argument("--issue", required=True, help="Issue key (e.g., BEP-1234)")
     upd.add_argument("--adf", required=True, help="Path to ADF JSON file")
-    upd.add_argument("--type", "-t", choices=["story", "subtask", "epic", "qa"],
-                      help="Issue type for validation (default: subtask)")
+    upd.add_argument(
+        "--type", "-t", choices=["story", "subtask", "epic", "qa"], help="Issue type for validation (default: subtask)"
+    )
     upd.add_argument("--dry-run", action="store_true", help="Validate only, no writes")
     upd.add_argument("--verbose", "-v", action="store_true")
 

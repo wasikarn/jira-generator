@@ -7,9 +7,10 @@ was done in this session, blocks the operation.
 
 Exit codes: 0 = allow, 2 = deny
 """
+
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -22,7 +23,7 @@ SPRINT_FIELD = "customfield_10020"
 def log_event(level: str, data: dict) -> None:
     try:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         entry = {"ts": now.isoformat(), "hook": "hr7-sprint-id-guard", "level": level, **data}
         with open(LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl", "a") as f:
             f.write(json.dumps(entry) + "\n")

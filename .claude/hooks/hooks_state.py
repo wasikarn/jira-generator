@@ -4,6 +4,7 @@ Single state file per session at /tmp/claude-hooks-state/{session_id}.json.
 Used by HR6 (cache invalidation), HR7 (sprint lookup), search tracking,
 cache-prefer (cache-first reads), and qmd (codebase search).
 """
+
 import json
 from pathlib import Path
 
@@ -29,6 +30,7 @@ def _save(session_id: str, state: dict) -> None:
 
 # ── HR6: Cache invalidation tracking ──────────────────
 
+
 def hr6_add_pending(session_id: str, key: str) -> None:
     state = _load(session_id)
     pending = set(state.get("hr6_pending", []))
@@ -51,6 +53,7 @@ def hr6_get_pending(session_id: str) -> set[str]:
 
 # ── HR7: Sprint lookup tracking ───────────────────────
 
+
 def hr7_mark_lookup_done(session_id: str) -> None:
     state = _load(session_id)
     state["hr7_lookup_done"] = True
@@ -63,6 +66,7 @@ def hr7_is_lookup_done(session_id: str) -> bool:
 
 # ── Search tracking ───────────────────────────────────
 
+
 def search_mark_done(session_id: str) -> None:
     state = _load(session_id)
     state["search_done"] = True
@@ -74,6 +78,7 @@ def search_is_done(session_id: str) -> bool:
 
 
 # ── HR5: Parent verification tracking ─────────────────
+
 
 def hr5_add_pending(session_id: str, child_key: str, parent_key: str) -> None:
     state = _load(session_id)
@@ -110,6 +115,7 @@ def hr5_remove_pending(session_id: str, child_key: str) -> None:
 
 # ── Event-AC: Domain Model tracking ──────────────────
 
+
 def event_set_domain_events(session_id: str, epic_key: str, events: list) -> None:
     state = _load(session_id)
     catalog = state.get("domain_events", {})
@@ -128,6 +134,7 @@ def event_get_all_events(session_id: str) -> list:
 
 
 # ── VS Integrity: AC coverage tracking ───────────────
+
 
 def vs_set_story_acs(session_id: str, story_key: str, acs: list) -> None:
     state = _load(session_id)
@@ -158,6 +165,7 @@ def vs_get_coverage(session_id: str) -> dict:
 
 # ── Cache-prefer: per-issue cache-first tracking ─────
 
+
 def cache_mark_checked(session_id: str, issue_key: str) -> None:
     """Mark that cache was tried for this issue (allows MCP fallback)."""
     state = _load(session_id)
@@ -169,9 +177,7 @@ def cache_mark_checked(session_id: str, issue_key: str) -> None:
 
 def cache_is_checked(session_id: str, issue_key: str) -> bool:
     """Check if cache was already tried for this issue."""
-    return issue_key in set(
-        _load(session_id).get("cache_checked_issues", [])
-    )
+    return issue_key in set(_load(session_id).get("cache_checked_issues", []))
 
 
 # ── QMD: Usage tracking ─────────────────────────────
@@ -206,9 +212,7 @@ def qmd_mark_collection_searched(session_id: str, collection: str) -> None:
 
 def qmd_is_collection_searched(session_id: str, collection: str) -> bool:
     """Check if a collection was already auto-searched."""
-    return collection in set(
-        _load(session_id).get("qmd_searched_collections", [])
-    )
+    return collection in set(_load(session_id).get("qmd_searched_collections", []))
 
 
 def qmd_collection_for_path(path: str) -> str | None:

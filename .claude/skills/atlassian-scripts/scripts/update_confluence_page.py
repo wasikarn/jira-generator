@@ -89,7 +89,7 @@ def process_page(
     Returns:
         True if changes were made (or would be made in dry run), False otherwise.
     """
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Processing page ID: {page_id}")
     print("=" * 60)
 
@@ -188,7 +188,7 @@ Examples:
         return 1
 
     # Build replacements list
-    replacements = [(f, r, args.regex) for f, r in zip(args.find, args.replace)]
+    replacements = [(f, r, args.regex) for f, r in zip(args.find, args.replace, strict=True)]
 
     # Process page
     success = process_page(api, args.page_id, replacements, args.dry_run)

@@ -113,7 +113,7 @@ Examples:
     # Get content
     if args.content_file:
         try:
-            with open(args.content_file, "r", encoding="utf-8") as f:
+            with open(args.content_file, encoding="utf-8") as f:
                 markdown_content = f.read()
         except OSError as e:
             logger.error("Failed to read content file: %s", e)

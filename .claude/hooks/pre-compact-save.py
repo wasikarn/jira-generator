@@ -7,6 +7,7 @@ can reference. Also outputs state summary to stderr for debug logging.
 Note: PreCompact stdout is NOT injected into context (only SessionStart
 and UserPromptSubmit do). State is saved to a file for post-compact use.
 """
+
 import json
 import sys
 import time
@@ -41,7 +42,6 @@ snapshot_file.write_text(json.dumps(snapshot, indent=2))
 # Log to stderr (visible in verbose/debug mode)
 pending_count = len(state.get("hr5_pending", [])) + len(state.get("hr6_pending", []))
 print(
-    f"Pre-compact snapshot saved: {pending_count} pending operations, "
-    f"session={session_id}",
+    f"Pre-compact snapshot saved: {pending_count} pending operations, session={session_id}",
     file=sys.stderr,
 )

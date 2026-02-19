@@ -31,7 +31,7 @@ DEFAULT_DB_PATH = Path.home() / ".cache" / "jira-generator" / "jira.db"
 SCHEMA_VERSION = 3
 
 # H3: Whitelist of allowed FTS5 operators (everything else stripped)
-_FTS5_ALLOWED_RE = re.compile(r'[^a-zA-Z0-9\u0E00-\u0E7F\s]')  # Keep alphanumeric + Thai + spaces
+_FTS5_ALLOWED_RE = re.compile(r"[^a-zA-Z0-9\u0E00-\u0E7F\s]")  # Keep alphanumeric + Thai + spaces
 
 # M7: Maximum ADF recursion depth to prevent stack overflow
 MAX_ADF_DEPTH = 50
@@ -157,22 +157,24 @@ END;
 
 # --- P2-A: Noise stripping at storage time ---
 
-_NOISE_FIELDS = frozenset({
-    "self",            # REST API URL on every object
-    "avatarUrls",      # 4 avatar size URLs per user
-    "accountId",       # Internal Jira account ID
-    "accountType",     # "atlassian" etc
-    "emailAddress",    # Privacy; use displayName instead
-    "timeZone",        # User timezone
-    "active",          # User active status
-    "iconUrl",         # Status/priority icon URLs
-    "statusCategory",  # Redundant (use status.name)
-    "expand",          # Jira API metadata
-    "hierarchyLevel",  # Redundant issuetype metadata
-    "subtask",         # Redundant boolean (use issuetype)
-    "entityId",        # Internal entity ID
-    "scope",           # Project scope details
-})
+_NOISE_FIELDS = frozenset(
+    {
+        "self",  # REST API URL on every object
+        "avatarUrls",  # 4 avatar size URLs per user
+        "accountId",  # Internal Jira account ID
+        "accountType",  # "atlassian" etc
+        "emailAddress",  # Privacy; use displayName instead
+        "timeZone",  # User timezone
+        "active",  # User active status
+        "iconUrl",  # Status/priority icon URLs
+        "statusCategory",  # Redundant (use status.name)
+        "expand",  # Jira API metadata
+        "hierarchyLevel",  # Redundant issuetype metadata
+        "subtask",  # Redundant boolean (use issuetype)
+        "entityId",  # Internal entity ID
+        "scope",  # Project scope details
+    }
+)
 
 
 def strip_noise(obj: Any) -> Any:
@@ -239,8 +241,12 @@ _DONE_TTL_HOURS = float(os.environ.get("JIRA_CACHE_DONE_TTL_HOURS", "168"))
 _ACTIVE_TTL_HOURS = float(os.environ.get("JIRA_CACHE_ACTIVE_TTL_HOURS", "6"))
 
 STATUS_TTL = {
-    "Done": _DONE_TTL_HOURS, "Closed": _DONE_TTL_HOURS, "Won't Do": _DONE_TTL_HOURS,
-    "In Progress": _ACTIVE_TTL_HOURS, "In Review": _ACTIVE_TTL_HOURS, "TO FIX": _ACTIVE_TTL_HOURS,
+    "Done": _DONE_TTL_HOURS,
+    "Closed": _DONE_TTL_HOURS,
+    "Won't Do": _DONE_TTL_HOURS,
+    "In Progress": _ACTIVE_TTL_HOURS,
+    "In Review": _ACTIVE_TTL_HOURS,
+    "TO FIX": _ACTIVE_TTL_HOURS,
     "WAITING TO TEST": _ACTIVE_TTL_HOURS,
 }
 DEFAULT_TTL = _DEFAULT_TTL_HOURS
@@ -281,9 +287,7 @@ class JiraCache:
     def _get_schema_version(self) -> int:
         """Get current schema version from DB, or 0 if table doesn't exist."""
         try:
-            row = self.conn.execute(
-                "SELECT MAX(version) FROM schema_version"
-            ).fetchone()
+            row = self.conn.execute("SELECT MAX(version) FROM schema_version").fetchone()
             return row[0] if row and row[0] else 0
         except sqlite3.OperationalError:
             return 0
@@ -328,10 +332,10 @@ class JiraCache:
 
     def _apply_pragmas(self) -> None:
         """Apply session-level performance PRAGMAs."""
-        self.conn.execute("PRAGMA cache_size = -16000")      # 16MB (vs default 2MB)
-        self.conn.execute("PRAGMA mmap_size = 67108864")      # 64MB mmap
-        self.conn.execute("PRAGMA temp_store = MEMORY")       # FTS5 temp in RAM
-        self.conn.execute("PRAGMA busy_timeout = 5000")       # Wait 5s on lock contention
+        self.conn.execute("PRAGMA cache_size = -16000")  # 16MB (vs default 2MB)
+        self.conn.execute("PRAGMA mmap_size = 67108864")  # 64MB mmap
+        self.conn.execute("PRAGMA temp_store = MEMORY")  # FTS5 temp in RAM
+        self.conn.execute("PRAGMA busy_timeout = 5000")  # Wait 5s on lock contention
         self.conn.execute("PRAGMA wal_autocheckpoint = 100")  # Checkpoint every 100 pages
 
     # --- Helpers ---
@@ -406,7 +410,12 @@ class JiraCache:
         now = datetime.now().isoformat()
         with self._lock:
             self._put_issue_row(
-                issue_key, fields, description_text, sprint_id, data, now,
+                issue_key,
+                fields,
+                description_text,
+                sprint_id,
+                data,
+                now,
             )
             self.conn.commit()
         logger.debug("Cached issue %s", issue_key)
@@ -471,7 +480,12 @@ class JiraCache:
                 sprint_id = self._extract_sprint_id(fields)
 
                 self._put_issue_row(
-                    key, fields, description_text, sprint_id, issue_data, now,
+                    key,
+                    fields,
+                    description_text,
+                    sprint_id,
+                    issue_data,
+                    now,
                 )
                 count += 1
 
@@ -482,9 +496,7 @@ class JiraCache:
 
     # --- P1-F: Batch get issues ---
 
-    def get_issues_batch(
-        self, issue_keys: list[str], max_age_hours: float = 24.0
-    ) -> tuple[list[dict], list[str]]:
+    def get_issues_batch(self, issue_keys: list[str], max_age_hours: float = 24.0) -> tuple[list[dict], list[str]]:
         """Get multiple cached issues in one query.
 
         Args:
@@ -595,7 +607,11 @@ class JiraCache:
         return json.loads(row["data"])
 
     def put_search(
-        self, jql: str, fields: str, limit: int, data: dict,
+        self,
+        jql: str,
+        fields: str,
+        limit: int,
+        data: dict,
         sprint_id: int | None = None,
     ) -> None:
         """Store search results and cache individual issues.
@@ -648,7 +664,7 @@ class JiraCache:
         (column filters, operators, boolean syntax abuse).
         """
         # Strip everything except alphanumeric + Thai + whitespace
-        sanitized = _FTS5_ALLOWED_RE.sub(' ', query)
+        sanitized = _FTS5_ALLOWED_RE.sub(" ", query)
         # Collapse whitespace
         return " ".join(sanitized.split()).strip()
 
@@ -685,26 +701,20 @@ class JiraCache:
     def invalidate_issue(self, issue_key: str) -> bool:
         """Remove an issue from cache."""
         with self._lock:
-            cursor = self.conn.execute(
-                "DELETE FROM issues WHERE issue_key = ?", (issue_key,)
-            )
+            cursor = self.conn.execute("DELETE FROM issues WHERE issue_key = ?", (issue_key,))
             self.conn.commit()
         return cursor.rowcount > 0
 
     def invalidate_sprint(self, sprint_id: int) -> int:
         """Remove all issues for a sprint, related searches, and the sprint itself."""
         with self._lock:
-            cursor = self.conn.execute(
-                "DELETE FROM issues WHERE sprint_id = ?", (sprint_id,)
-            )
+            cursor = self.conn.execute("DELETE FROM issues WHERE sprint_id = ?", (sprint_id,))
             # Clear search cache entries referencing this sprint
             self.conn.execute(
                 "DELETE FROM searches WHERE jql LIKE ?",
                 (f"%sprint = {sprint_id}%",),
             )
-            self.conn.execute(
-                "DELETE FROM sprints WHERE sprint_id = ?", (sprint_id,)
-            )
+            self.conn.execute("DELETE FROM sprints WHERE sprint_id = ?", (sprint_id,))
             self.conn.commit()
         return cursor.rowcount
 
@@ -726,12 +736,8 @@ class JiraCache:
         search_cutoff = (now - timedelta(hours=PURGE_SEARCHES_HOURS)).isoformat()
 
         with self._lock:
-            c1 = self.conn.execute(
-                "DELETE FROM issues WHERE cached_at < ?", (issue_cutoff,)
-            )
-            c2 = self.conn.execute(
-                "DELETE FROM searches WHERE cached_at < ?", (search_cutoff,)
-            )
+            c1 = self.conn.execute("DELETE FROM issues WHERE cached_at < ?", (issue_cutoff,))
+            c2 = self.conn.execute("DELETE FROM searches WHERE cached_at < ?", (search_cutoff,))
             purged_issues = c1.rowcount
             purged_searches = c2.rowcount
 
@@ -748,8 +754,10 @@ class JiraCache:
                 self.conn.commit()
                 logger.info(
                     "Purged stale data: %d issues (>%dd), %d searches (>%dh)",
-                    purged_issues, PURGE_ISSUES_DAYS,
-                    purged_searches, PURGE_SEARCHES_HOURS,
+                    purged_issues,
+                    PURGE_ISSUES_DAYS,
+                    purged_searches,
+                    PURGE_SEARCHES_HOURS,
                 )
 
         return {"purged_issues": purged_issues, "purged_searches": purged_searches}
@@ -765,22 +773,12 @@ class JiraCache:
         # Flush stat buffer before reporting
         self._flush_stats()
 
-        issue_count = self.conn.execute(
-            "SELECT COUNT(*) FROM issues"
-        ).fetchone()[0]
-        sprint_count = self.conn.execute(
-            "SELECT COUNT(*) FROM sprints"
-        ).fetchone()[0]
-        search_count = self.conn.execute(
-            "SELECT COUNT(*) FROM searches"
-        ).fetchone()[0]
+        issue_count = self.conn.execute("SELECT COUNT(*) FROM issues").fetchone()[0]
+        sprint_count = self.conn.execute("SELECT COUNT(*) FROM sprints").fetchone()[0]
+        search_count = self.conn.execute("SELECT COUNT(*) FROM searches").fetchone()[0]
 
-        oldest = self.conn.execute(
-            "SELECT MIN(cached_at) FROM issues"
-        ).fetchone()[0]
-        newest = self.conn.execute(
-            "SELECT MAX(cached_at) FROM issues"
-        ).fetchone()[0]
+        oldest = self.conn.execute("SELECT MIN(cached_at) FROM issues").fetchone()[0]
+        newest = self.conn.execute("SELECT MAX(cached_at) FROM issues").fetchone()[0]
 
         hits = self._get_stat("hits")
         misses = self._get_stat("misses")
@@ -857,18 +855,14 @@ class JiraCache:
 
     def _get_stat(self, key: str) -> int:
         """Get stat value from DB plus unflushed buffer for accurate real-time reads."""
-        row = self.conn.execute(
-            "SELECT value FROM cache_stats WHERE key = ?", (key,)
-        ).fetchone()
+        row = self.conn.execute("SELECT value FROM cache_stats WHERE key = ?", (key,)).fetchone()
         db_val = row[0] if row else 0
         # Add unflushed buffer
         return db_val + self._stat_buffer.get(key, 0)
 
     def get_adaptive_ttl(self, issue_key: str) -> float:
         """Get TTL based on issue status. Done=7d, Active=6h, else=24h."""
-        row = self.conn.execute(
-            "SELECT status FROM issues WHERE issue_key = ?", (issue_key,)
-        ).fetchone()
+        row = self.conn.execute("SELECT status FROM issues WHERE issue_key = ?", (issue_key,)).fetchone()
         if not row:
             return DEFAULT_TTL
         return STATUS_TTL.get(row["status"], DEFAULT_TTL)
@@ -883,7 +877,8 @@ class JiraCache:
         if size_mb > MAX_DB_SIZE_MB:
             logger.warning(
                 "DB size %.1f MB exceeds limit %d MB — consider running vacuum() or purge_stale()",
-                size_mb, MAX_DB_SIZE_MB,
+                size_mb,
+                MAX_DB_SIZE_MB,
             )
 
     def close(self) -> None:

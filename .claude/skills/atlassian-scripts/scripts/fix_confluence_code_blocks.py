@@ -162,7 +162,7 @@ Examples:
         else:
             skipped_count += 1
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("SUMMARY")
     print("=" * 60)
     if args.dry_run:

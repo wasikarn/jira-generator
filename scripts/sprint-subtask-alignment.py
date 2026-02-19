@@ -18,16 +18,15 @@ Usage:
     python3 scripts/sprint-subtask-alignment.py --report-only      # report without fix suggestions
 """
 
-import sys
 import os
 import re
+import sys
 from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".claude", "skills", "atlassian-scripts"))
 
-from lib.auth import create_ssl_context, load_credentials, get_auth_header
+from lib.auth import create_ssl_context, get_auth_header, load_credentials
 from lib.jira_api import JiraAPI, derive_jira_url
-
 
 # --- Configuration ---
 BOARD_ID = 2  # BEP board
@@ -139,7 +138,9 @@ def main():
             return 1
 
     # --- Phase 1: Fetch parent issues ---
-    parent_fields = "summary,status,issuetype,assignee,customfield_10015,duedate,customfield_10016,customfield_10107,timetracking"
+    parent_fields = (
+        "summary,status,issuetype,assignee,customfield_10015,duedate,customfield_10016,customfield_10107,timetracking"
+    )
     subtask_fields = "summary,status,issuetype,parent,assignee,priority,customfield_10015,duedate,timetracking"
     result = api.get_sprint_issues(sprint_id, fields=parent_fields, max_results=50)
     all_issues = result.get("issues", [])
@@ -183,7 +184,7 @@ def main():
     # JQL: fetch in batches of 20 (HR2: no ORDER BY with parent)
     all_subtasks = []
     for i in range(0, len(parent_keys), 20):
-        batch = parent_keys[i:i + 20]
+        batch = parent_keys[i : i + 20]
         jql = f"parent in ({','.join(batch)})"
         sub_result = api.search_issues(jql, fields=subtask_fields, max_results=50)
         all_subtasks.extend(sub_result.get("issues", []))
@@ -196,7 +197,9 @@ def main():
         if status not in SKIP_STATUSES:
             active_subtasks.append(s)
 
-    print(f"Found {len(all_subtasks)} subtasks ({len(active_subtasks)} active, {len(all_subtasks) - len(active_subtasks)} done)\n")
+    print(
+        f"Found {len(all_subtasks)} subtasks ({len(active_subtasks)} active, {len(all_subtasks) - len(active_subtasks)} done)\n"
+    )
 
     # --- Phase 3: Analyze alignment ---
     date_violations = []
@@ -269,9 +272,12 @@ def main():
             # Fix: distribute within parent range
             if not report_only:
                 siblings = subtasks_by_parent.get(parent_key, [])
-                missing_in_group = [x for x in siblings
-                                    if not parse_date(x.get("fields", {}).get("customfield_10015"))
-                                    or not x.get("fields", {}).get("duedate")]
+                missing_in_group = [
+                    x
+                    for x in siblings
+                    if not parse_date(x.get("fields", {}).get("customfield_10015"))
+                    or not x.get("fields", {}).get("duedate")
+                ]
                 if missing_in_group:
                     idx = next((i for i, x in enumerate(missing_in_group) if x["key"] == key), 0)
                     dates = distribute_dates(len(missing_in_group), p_start, effective_p_due)
@@ -348,7 +354,7 @@ def main():
             print(f"  ... and {len(missing_oe) - 10} more")
 
     if report_only:
-        print(f"\n📋 Report complete. Use without --report-only to see fix suggestions.")
+        print("\n📋 Report complete. Use without --report-only to see fix suggestions.")
         return 0
 
     # --- Phase 5: Apply fixes ---
@@ -382,7 +388,7 @@ def main():
     print(f"Summary: {len(updated)} {'would update' if dry_run else 'updated'}, {len(errors)} errors")
 
     if errors:
-        print(f"\nErrors:")
+        print("\nErrors:")
         for e in errors:
             print(f"  ❌ {e}")
 

@@ -52,6 +52,7 @@ def create_ssl_context() -> ssl.SSLContext:
     # Try certifi first (most reliable cross-platform)
     try:
         import certifi
+
         ctx = ssl.create_default_context(cafile=certifi.where())
         logger.debug("Created SSL context with certifi certificates")
         return ctx

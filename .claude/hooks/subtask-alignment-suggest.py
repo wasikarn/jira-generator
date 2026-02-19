@@ -6,6 +6,7 @@ Suggests running sprint-subtask-alignment.py for HR8 compliance.
 
 Exit 0 = allow (always), prints additionalContext suggestion.
 """
+
 import json
 import sys
 from pathlib import Path
@@ -48,7 +49,7 @@ _save(session_id, state)
 
 print(f"📐 Sprint {sprint_id} data loaded. Run subtask alignment check:")
 print(f"   python3 scripts/sprint-subtask-alignment.py --sprint {sprint_id}")
-print(f"   Checks: HR8 dates, missing OE, parent range violations")
-print(f"   Add --apply to fix automatically")
+print("   Checks: HR8 dates, missing OE, parent range violations")
+print("   Add --apply to fix automatically")
 
 sys.exit(0)

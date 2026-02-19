@@ -19,10 +19,10 @@ Output JSON:
     services: list of {tag, confidence, reasons} sorted by confidence
     impact_table: Suggested service impact table (markdown)
 """
+
 import json
 import re
 import sys
-
 
 # Service detection rules: tag → (keywords, weight)
 SERVICE_RULES = {
@@ -136,12 +136,14 @@ def analyze_impact(text: str) -> list[dict]:
 
         if score >= rules["threshold"]:
             confidence = min(score / (rules["threshold"] * 3), 1.0)
-            results.append({
-                "tag": tag,
-                "score": score,
-                "confidence": round(confidence, 2),
-                "reasons": reasons[:5],
-            })
+            results.append(
+                {
+                    "tag": tag,
+                    "score": score,
+                    "confidence": round(confidence, 2),
+                    "reasons": reasons[:5],
+                }
+            )
 
     results.sort(key=lambda x: x["score"], reverse=True)
     return results
@@ -172,11 +174,17 @@ def main():
         conf = f"{svc['confidence']:.0%}"
         table_lines.append(f"| [{svc['tag']}] | {conf} | {indicators} |")
 
-    print(json.dumps({
-        "services": services,
-        "suggested_tags": [s["tag"] for s in services],
-        "impact_table": "\n".join(table_lines),
-    }, indent=2, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "services": services,
+                "suggested_tags": [s["tag"] for s in services],
+                "impact_table": "\n".join(table_lines),
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+    )
 
 
 if __name__ == "__main__":

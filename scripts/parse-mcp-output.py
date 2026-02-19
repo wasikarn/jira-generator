@@ -29,8 +29,6 @@ import csv
 import io
 import json
 import sys
-from pathlib import Path
-from typing import Any
 
 # -- Field extractors ----------------------------------------------------------
 
@@ -45,7 +43,9 @@ FIELD_EXTRACTORS: dict[str, callable] = {
     "assignee": lambda i: _nested(i, "assignee", "display_name", fallback="Unassigned"),
     "parent": lambda i: _nested(i, "parent", "key"),
     "issuetype": lambda i: _nested(i, "issuetype", "name"),
-    "labels": lambda i: ",".join(i.get("labels", [])) if isinstance(i.get("labels"), list) else str(i.get("labels", "")),
+    "labels": lambda i: (
+        ",".join(i.get("labels", [])) if isinstance(i.get("labels"), list) else str(i.get("labels", ""))
+    ),
     "start_date": lambda i: _custom_field_value(i, "customfield_10015"),
     "sprint": lambda i: _custom_field_value(i, "customfield_10020"),
     "duedate": lambda i: i.get("duedate", ""),
@@ -79,6 +79,7 @@ def _custom_field_value(issue: dict, field: str) -> str:
 
 # -- JSON parsing --------------------------------------------------------------
 
+
 def parse_mcp_output(file_path: str) -> list[dict]:
     """Parse MCP tool output file → list of issue dicts.
 
@@ -87,7 +88,7 @@ def parse_mcp_output(file_path: str) -> list[dict]:
       2. [{"type":"text","text":"{...}"}] — Cache server (cache_search, cache_sprint_issues)
       3. Plain JSON with issues array
     """
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         raw = json.load(f)
 
     # Format 1: MCP Atlassian — {"result": "JSON_STRING"}
@@ -150,6 +151,7 @@ def _extract_issues(data: dict) -> list[dict]:
 
 # -- Filtering -----------------------------------------------------------------
 
+
 def filter_issues(
     issues: list[dict],
     status: str | None = None,
@@ -166,7 +168,8 @@ def filter_issues(
     if assignee:
         term = assignee.lower()
         result = [
-            i for i in result
+            i
+            for i in result
             if term in _nested(i, "assignee", "display_name", fallback="").lower()
             or term in _nested(i, "assignee", "name", fallback="").lower()
         ]
@@ -179,6 +182,7 @@ def filter_issues(
 
 
 # -- Output formatters ---------------------------------------------------------
+
 
 def format_table(issues: list[dict], fields: list[str]) -> str:
     """Format issues as aligned text table."""
@@ -214,9 +218,7 @@ def format_table(issues: list[dict], fields: list[str]) -> str:
     lines.append("  ".join("-" * widths[i] for i in range(len(headers))))
 
     for row in rows:
-        line = "  ".join(
-            val[:widths[i]].ljust(widths[i]) for i, val in enumerate(row)
-        )
+        line = "  ".join(val[: widths[i]].ljust(widths[i]) for i, val in enumerate(row))
         lines.append(line)
 
     return "\n".join(lines)
@@ -250,6 +252,7 @@ def format_csv_output(issues: list[dict], fields: list[str]) -> str:
 
 # -- Main ----------------------------------------------------------------------
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Parse large MCP tool outputs into readable tables",
@@ -258,10 +261,11 @@ def main():
     )
     parser.add_argument("file", help="Path to MCP tool output file")
     parser.add_argument(
-        "--fields", "-f",
+        "--fields",
+        "-f",
         default=",".join(DEFAULT_FIELDS),
         help=f"Comma-separated fields (default: {','.join(DEFAULT_FIELDS)}). "
-             f"Available: {','.join(sorted(FIELD_EXTRACTORS.keys()))}",
+        f"Available: {','.join(sorted(FIELD_EXTRACTORS.keys()))}",
     )
     parser.add_argument("--status", "-s", help="Filter by status (comma-separated)")
     parser.add_argument("--assignee", "-a", help="Filter by assignee (substring match)")

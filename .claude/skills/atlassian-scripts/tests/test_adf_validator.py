@@ -28,7 +28,6 @@ from lib.adf_validator import (
     walk_adf,
 )
 
-
 # ═══════════════════════════════════════════════════════════
 # Fixtures — reusable ADF building blocks
 # ═══════════════════════════════════════════════════════════
@@ -86,28 +85,26 @@ def _story_adf(num_acs=2, thai=True, narrative=True, scope=True) -> dict:
         content.append(_heading("User Story"))
         content.append(
             # "As a merchant I want to manage coupons So that increase sales"
-            _panel("info", _paragraph(_text(
-                "As a ร้านค้า I want to จัดการคูปอง So that เพิ่มยอดขาย"
-            )))
+            _panel("info", _paragraph(_text("As a ร้านค้า I want to จัดการคูปอง So that เพิ่มยอดขาย")))
         )
 
     content.append(_heading("Acceptance Criteria"))
     for i in range(num_acs):
-        content.append(_ac_panel_gwt(f"AC{i+1}"))
+        content.append(_ac_panel_gwt(f"AC{i + 1}"))
 
     if scope:
         content.append(_heading("Scope"))
         content.append(
-            _panel("note", _paragraph(
-                _text("In-scope: "), _text("src/modules/coupon/", marks=[{"type": "code"}])
-            ))
+            _panel("note", _paragraph(_text("In-scope: "), _text("src/modules/coupon/", marks=[{"type": "code"}])))
         )
 
     content.append(_heading("Reference"))
-    content.append(_paragraph(
-        _text("Parent: "),
-        _text("BEP-1200", marks=[{"type": "link", "attrs": {"href": "https://jira/BEP-1200"}}]),
-    ))
+    content.append(
+        _paragraph(
+            _text("Parent: "),
+            _text("BEP-1200", marks=[{"type": "link", "attrs": {"href": "https://jira/BEP-1200"}}]),
+        )
+    )
 
     if thai:
         content.append(_thai_paragraph())
@@ -122,9 +119,12 @@ def _subtask_adf(tag="[BE]", thai=True) -> dict:
         # "Create API endpoint for coupon management"
         _panel("info", _paragraph(_text("สร้าง API endpoint สำหรับจัดการคูปอง"))),
         _heading("Scope & Files"),
-        _panel("note", _paragraph(
-            _text("src/modules/coupon/coupon.service.ts", marks=[{"type": "code"}]),
-        )),
+        _panel(
+            "note",
+            _paragraph(
+                _text("src/modules/coupon/coupon.service.ts", marks=[{"type": "code"}]),
+            ),
+        ),
         _heading("Acceptance Criteria"),
         # "Given: has coupon / When: call API / Then: get response 200"
         _panel("success", _paragraph(_text("Given: มี coupon\nWhen: เรียก API\nThen: ได้ response 200"))),
@@ -184,9 +184,9 @@ class TestValidationReport:
     def test_mixed_scores(self):
         report = ValidationReport(issue_type="story")
         report.checks = [
-            CheckResult("T1", CheckStatus.PASS, "OK"),   # 1.0
+            CheckResult("T1", CheckStatus.PASS, "OK"),  # 1.0
             CheckResult("T2", CheckStatus.WARN, "Warn"),  # 0.5
-            CheckResult("T3", CheckStatus.FAIL, "Bad"),   # 0.0
+            CheckResult("T3", CheckStatus.FAIL, "Bad"),  # 0.0
         ]
         # (1.0 + 0.5 + 0.0) / 3 * 100 = 50.0
         assert report.score == pytest.approx(50.0)
@@ -204,10 +204,12 @@ class TestValidationReport:
         # 8 pass + 2 fail = (8 + 0) / 10 * 100 = 80%
         report = ValidationReport(issue_type="story")
         report.checks = [CheckResult(f"C{i}", CheckStatus.PASS, "OK") for i in range(8)]
-        report.checks.extend([
-            CheckResult("C8", CheckStatus.FAIL, "Bad"),
-            CheckResult("C9", CheckStatus.FAIL, "Bad"),
-        ])
+        report.checks.extend(
+            [
+                CheckResult("C8", CheckStatus.FAIL, "Bad"),
+                CheckResult("C9", CheckStatus.FAIL, "Bad"),
+            ]
+        )
         assert report.score == pytest.approx(80.0)
         assert report.passed is False
 
@@ -437,9 +439,7 @@ class TestT2Panels:
         assert r.status == CheckStatus.WARN
 
     def test_invalid_panel_type(self):
-        doc = _doc(
-            {"type": "panel", "attrs": {"panelType": "invalid"}, "content": [_paragraph(_text("x"))]}
-        )
+        doc = _doc({"type": "panel", "attrs": {"panelType": "invalid"}, "content": [_paragraph(_text("x"))]})
         r = self.v._check_t2_panels(doc)
         assert r.status == CheckStatus.FAIL
         assert r.auto_fixable is True
@@ -450,10 +450,12 @@ class TestT3InlineCode:
         self.v = AdfValidator()
 
     def test_all_marked(self):
-        doc = _doc(_paragraph(
-            _text("Check "),
-            _text("src/main.ts", marks=[{"type": "code"}]),
-        ))
+        doc = _doc(
+            _paragraph(
+                _text("Check "),
+                _text("src/main.ts", marks=[{"type": "code"}]),
+            )
+        )
         r = self.v._check_t3_inline_code(doc)
         assert r.status == CheckStatus.PASS
 

@@ -194,10 +194,7 @@ class WorkflowState:
 
         now = time.time()
         original_count = len(all_state)
-        cleaned = {
-            k: v for k, v in all_state.items()
-            if now - v.get("updated_at", 0) < STATE_TTL_SECONDS
-        }
+        cleaned = {k: v for k, v in all_state.items() if now - v.get("updated_at", 0) < STATE_TTL_SECONDS}
 
         removed = original_count - len(cleaned)
         if removed > 0:

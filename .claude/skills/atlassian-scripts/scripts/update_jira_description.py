@@ -102,7 +102,7 @@ def process_issue(
     dry_run: bool = False,
 ) -> str:
     """Process a single issue. Returns status string."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Processing: {issue_key}")
     print("=" * 60)
 
@@ -116,7 +116,7 @@ def process_issue(
         return "failed"
 
     if not had_changes:
-        print(f"  No matches found — already correct or text differs")
+        print("  No matches found — already correct or text differs")
         for old, _new in replacements:
             print(f'    Looking for: "{old[:60]}"')
         return "skipped"
@@ -128,7 +128,7 @@ def process_issue(
     if dry_run:
         print("  DRY RUN — no changes applied")
     else:
-        print(f"  Updated successfully")
+        print("  Updated successfully")
 
     return "success"
 
@@ -201,7 +201,7 @@ Config JSON format:
     if args.config:
         fixes = load_config(args.config)
     elif args.issue:
-        fixes = {args.issue: list(zip(args.find, args.replace))}
+        fixes = {args.issue: list(zip(args.find, args.replace, strict=True))}
 
     # Process
     print("=" * 60)
@@ -216,9 +216,11 @@ Config JSON format:
         results[status] += 1
 
     # Summary
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     total = sum(results.values())
-    print(f"Summary: {results['success']} updated, {results['skipped']} skipped, {results['failed']} failed (of {total})")
+    print(
+        f"Summary: {results['success']} updated, {results['skipped']} skipped, {results['failed']} failed (of {total})"
+    )
     print("=" * 60)
 
     return 0 if results["failed"] == 0 else 1

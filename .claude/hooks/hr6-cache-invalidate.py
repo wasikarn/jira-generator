@@ -7,9 +7,10 @@ and injects additionalContext reminder.
 
 Exit codes: 0 (always — PostToolUse cannot block)
 """
+
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -22,7 +23,7 @@ def log_event(level: str, data: dict) -> None:
     """Append JSON log entry."""
     try:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         log_file = LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl"
         entry = {
             "ts": now.isoformat(),
@@ -75,11 +76,14 @@ def main() -> None:
     hr6_add_pending(session_id, issue_key)
 
     tool_name = data.get("tool_name", "unknown")
-    log_event("REMIND", {
-        "issue_key": issue_key,
-        "tool": tool_name,
-        "session_id": data.get("session_id", ""),
-    })
+    log_event(
+        "REMIND",
+        {
+            "issue_key": issue_key,
+            "tool": tool_name,
+            "session_id": data.get("session_id", ""),
+        },
+    )
 
     output = {
         "hookSpecificOutput": {

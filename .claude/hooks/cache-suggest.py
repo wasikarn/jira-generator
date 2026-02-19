@@ -7,6 +7,7 @@ subsequent reads of the same issue.
 
 Also auto-populates cache by suggesting cache_get_issue for warm-up.
 """
+
 import json
 import sys
 from pathlib import Path
@@ -37,12 +38,16 @@ def main() -> None:
         if issue_key and not cache_is_checked(session_id, issue_key):
             cache_mark_checked(session_id, issue_key)
             # Gentle reminder for next time
-            print(json.dumps({
-                "additionalContext": (
-                    f"Cache-first reminder: You used jira_get_issue directly for {issue_key}. "
-                    f"Next time, try cache_get_issue first for faster reads."
+            print(
+                json.dumps(
+                    {
+                        "additionalContext": (
+                            f"Cache-first reminder: You used jira_get_issue directly for {issue_key}. "
+                            f"Next time, try cache_get_issue first for faster reads."
+                        )
+                    }
                 )
-            }))
+            )
             return
 
     # Handle jira_search — suggest cache_search/cache_text_search
@@ -50,12 +55,16 @@ def main() -> None:
         jql = tool_input.get("jql", "")
         # Only suggest for simple key-based or parent-based queries
         if any(kw in jql.lower() for kw in ("key =", "key in", "parent =", "parent in")):
-            print(json.dumps({
-                "additionalContext": (
-                    "Cache-first reminder: For key/parent-based JQL, consider using "
-                    "cache_search(jql=...) first for faster results."
+            print(
+                json.dumps(
+                    {
+                        "additionalContext": (
+                            "Cache-first reminder: For key/parent-based JQL, consider using "
+                            "cache_search(jql=...) first for faster results."
+                        )
+                    }
                 )
-            }))
+            )
             return
 
     # Default: no additional context

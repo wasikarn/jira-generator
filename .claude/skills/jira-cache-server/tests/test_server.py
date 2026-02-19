@@ -3,7 +3,7 @@
 import json
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -14,15 +14,19 @@ from tests.conftest import make_issue
 
 # We need to mock the auth/api imports before importing server
 # since they depend on external credentials
-with patch.dict("sys.modules", {
-    "lib.auth": MagicMock(),
-    "lib.jira_api": MagicMock(),
-}):
+with patch.dict(
+    "sys.modules",
+    {
+        "lib.auth": MagicMock(),
+        "lib.jira_api": MagicMock(),
+    },
+):
     import server
     from server import (
+        MAX_RESPONSE_CHARS,
+        _coerce_args,
         _compact_issue,
         _compact_response,
-        _coerce_args,
         _embedding_text,
         _find_issues_list,
         _format_issue_summary,
@@ -36,11 +40,10 @@ with patch.dict("sys.modules", {
         handle_cache_invalidate,
         handle_cache_refresh,
         handle_cache_search,
+        handle_cache_similar_issues,
         handle_cache_sprint_issues,
         handle_cache_stats,
         handle_cache_text_search,
-        handle_cache_similar_issues,
-        MAX_RESPONSE_CHARS,
     )
 
 
@@ -63,6 +66,7 @@ def mock_jira_api():
 
 
 # --- _format_issue_summary ---
+
 
 class TestFormatIssueSummary:
     def test_basic(self):
@@ -99,6 +103,7 @@ class TestFormatIssueSummary:
 
 
 # --- _compact_issue ---
+
 
 class TestCompactIssue:
     def test_basic(self):
@@ -140,6 +145,7 @@ class TestCompactIssue:
 
 
 # --- Response size management ---
+
 
 class TestStripResponseNoise:
     def test_strips_noise(self):
@@ -229,6 +235,7 @@ class TestCompactResponse:
 
 # --- _timed_upstream ---
 
+
 class TestTimedUpstream:
     def test_success(self):
         result = _timed_upstream("test", lambda x: x + 1, 41)
@@ -237,11 +244,13 @@ class TestTimedUpstream:
     def test_failure(self):
         def fail():
             raise ValueError("boom")
+
         with pytest.raises(ValueError, match="boom"):
             _timed_upstream("test", fail)
 
 
 # --- _coerce_args ---
+
 
 class TestCoerceArgs:
     def test_string_to_int(self):
@@ -294,6 +303,7 @@ class TestCoerceArgs:
 
 
 # --- Handler tests ---
+
 
 class TestHandleCacheGetIssue:
     @pytest.mark.asyncio
@@ -726,6 +736,7 @@ class TestHandleCacheInvalidate:
 
 # --- _init() ---
 
+
 class TestInit:
     def test_success(self, tmp_path):
         """_init() succeeds with mocked credentials."""
@@ -777,6 +788,7 @@ class TestInit:
 
 # --- Paginate safety halving loop ---
 
+
 class TestPaginateSafetyLoop:
     def test_halving_loop(self):
         """L310-313: When paginated result is still too large, halve iteratively.
@@ -801,6 +813,7 @@ class TestPaginateSafetyLoop:
 
 # --- Batch get stale fallback ---
 
+
 class TestBatchGetStaleFallback:
     @pytest.mark.asyncio
     async def test_stale_fallback_on_upstream_error(self, cache, mock_jira_api):
@@ -811,16 +824,21 @@ class TestBatchGetStaleFallback:
         """
         cache.put_issue("BEP-1", make_issue(key="BEP-1"))
         mock_jira_api.get_issue.side_effect = Exception("timeout")
-        result = json.loads(await handle_cache_get_issues({
-            "issue_keys": ["BEP-1"],
-            "max_age_hours": 0,  # Treat cached as expired → goes to upstream
-        }))
+        result = json.loads(
+            await handle_cache_get_issues(
+                {
+                    "issue_keys": ["BEP-1"],
+                    "max_age_hours": 0,  # Treat cached as expired → goes to upstream
+                }
+            )
+        )
         # Upstream failed but stale fallback should have returned the data
         assert result["total"] == 1
         assert result["from_upstream"] == 1  # stale counted as upstream
 
 
 # --- Sprint refresh pagination continuation ---
+
 
 class TestSprintRefreshPagination:
     @pytest.mark.asyncio
@@ -839,6 +857,7 @@ class TestSprintRefreshPagination:
 
 
 # --- New helper functions (H4, H6, M10) ---
+
 
 class TestValidateIssueKey:
     def test_valid_keys(self):
@@ -891,11 +910,15 @@ class TestEmbeddingText:
         assert result == "Test Some text here"
 
     def test_adf_description(self):
-        issue = {"fields": {"summary": "Test", "description": {
-            "type": "doc", "content": [
-                {"type": "paragraph", "content": [{"type": "text", "text": "ADF content"}]}
-            ],
-        }}}
+        issue = {
+            "fields": {
+                "summary": "Test",
+                "description": {
+                    "type": "doc",
+                    "content": [{"type": "paragraph", "content": [{"type": "text", "text": "ADF content"}]}],
+                },
+            }
+        }
         result = _embedding_text(issue)
         assert "ADF content" in result
 
@@ -918,6 +941,7 @@ class TestEmbeddingText:
 
 class TestTextSearchNoData:
     """L7: text_search should not return duplicate 'data' key."""
+
     @pytest.mark.asyncio
     async def test_no_data_key(self, cache):
         issue = make_issue(key="BEP-1", summary="coupon payment")
@@ -929,14 +953,20 @@ class TestTextSearchNoData:
 
 class TestAutoRefreshStripNoise:
     """M9: auto_refresh response should strip noise."""
+
     @pytest.mark.asyncio
     async def test_noise_stripped(self, cache, mock_jira_api):
         cache.put_issue("BEP-1", make_issue())
         noisy = make_issue(key="BEP-1", summary="Refreshed")
         mock_jira_api.get_issue.return_value = noisy
-        result = json.loads(await handle_cache_invalidate({
-            "issue_key": "BEP-1", "auto_refresh": True,
-        }))
+        result = json.loads(
+            await handle_cache_invalidate(
+                {
+                    "issue_key": "BEP-1",
+                    "auto_refresh": True,
+                }
+            )
+        )
         assert result["auto_refreshed"] is True
         # Noise fields should be stripped from the returned issue
         assert "self" not in result["issue"]

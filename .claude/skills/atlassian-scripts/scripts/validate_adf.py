@@ -69,26 +69,32 @@ def print_report(report: ValidationReport, verbose: bool = False) -> None:
         print(f"\nIssues ({len(issues)}):")
         for c in issues:
             icon = "\u26a0\ufe0f" if c.status == CheckStatus.WARN else "\u274c"
-            fix = f" [auto-fixable]" if c.auto_fixable else ""
+            fix = " [auto-fixable]" if c.auto_fixable else ""
             print(f"  {icon} {c.check_id}: {c.message}{fix}")
             if c.fix_hint and verbose:
                 print(f"     \u2192 {c.fix_hint}")
 
     if verbose:
-        print(f"\nAll checks:")
+        print("\nAll checks:")
         for c in report.checks:
-            icon = "\u2705" if c.status == CheckStatus.PASS else "\u26a0\ufe0f" if c.status == CheckStatus.WARN else "\u274c"
+            icon = (
+                "\u2705"
+                if c.status == CheckStatus.PASS
+                else "\u26a0\ufe0f"
+                if c.status == CheckStatus.WARN
+                else "\u274c"
+            )
             print(f"  {icon} {c.check_id}: {c.message}")
 
     print(f"{'=' * 60}")
     if report.passed:
-        print(f"RESULT: PASS \u2014 Quality gate met (>= 90%)")
+        print("RESULT: PASS \u2014 Quality gate met (>= 90%)")
     else:
         fixable = sum(1 for c in issues if c.auto_fixable)
         if fixable:
             print(f"RESULT: FAIL \u2014 {fixable} issue(s) auto-fixable, run with --fix")
         else:
-            print(f"RESULT: FAIL \u2014 Manual fixes required")
+            print("RESULT: FAIL \u2014 Manual fixes required")
     print(f"{'=' * 60}\n")
 
 
@@ -111,7 +117,8 @@ Exit codes: 0=pass, 1=fail, 2=error
 
     parser.add_argument("file", help="Path to ADF JSON file")
     parser.add_argument(
-        "--type", "-t",
+        "--type",
+        "-t",
         required=True,
         choices=["story", "subtask", "epic", "qa"],
         help="Issue type for quality checks",
@@ -169,9 +176,7 @@ Exit codes: 0=pass, 1=fail, 2=error
         fixed_adf, new_report = validator.auto_fix(adf, report)
 
         # Write fixed file
-        if fmt == "create":
-            data["description"] = fixed_adf
-        elif fmt == "edit":
+        if fmt == "create" or fmt == "edit":
             data["description"] = fixed_adf
         else:
             data = fixed_adf

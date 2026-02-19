@@ -6,6 +6,7 @@ Suggests presets from CLAUDE.md field tables.
 
 Exit 2 = block with message, Exit 0 = allow.
 """
+
 import json
 import sys
 

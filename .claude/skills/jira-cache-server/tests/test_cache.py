@@ -1,15 +1,11 @@
 """Tests for jira_cache.cache module — 100% coverage target."""
 
-import json
 import sqlite3
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
-import pytest
-
 from jira_cache.cache import (
     DEFAULT_TTL,
-    MAX_DB_SIZE_MB,
     PURGE_ISSUES_DAYS,
     PURGE_SEARCHES_HOURS,
     SCHEMA_VERSION,
@@ -19,18 +15,14 @@ from jira_cache.cache import (
     strip_noise,
 )
 
-
 # --- extract_adf_text ---
+
 
 class TestExtractAdfText:
     def test_basic_text(self):
         adf = {
             "type": "doc",
-            "content": [
-                {"type": "paragraph", "content": [
-                    {"type": "text", "text": "Hello world"}
-                ]}
-            ],
+            "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Hello world"}]}],
         }
         assert extract_adf_text(adf) == "Hello world"
 
@@ -39,10 +31,13 @@ class TestExtractAdfText:
             "type": "doc",
             "content": [
                 {"type": "heading", "content": [{"type": "text", "text": "Title"}]},
-                {"type": "paragraph", "content": [
-                    {"type": "text", "text": "Body"},
-                    {"type": "text", "text": "more"},
-                ]},
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "text": "Body"},
+                        {"type": "text", "text": "more"},
+                    ],
+                },
             ],
         }
         assert extract_adf_text(adf) == "Title Body more"
@@ -63,13 +58,20 @@ class TestExtractAdfText:
 
     def test_list_walk(self):
         """Test walk handles list nodes (root-level list)."""
-        adf = {"type": "doc", "content": [
-            {"type": "bulletList", "content": [
-                {"type": "listItem", "content": [
-                    {"type": "paragraph", "content": [{"type": "text", "text": "item"}]}
-                ]}
-            ]}
-        ]}
+        adf = {
+            "type": "doc",
+            "content": [
+                {
+                    "type": "bulletList",
+                    "content": [
+                        {
+                            "type": "listItem",
+                            "content": [{"type": "paragraph", "content": [{"type": "text", "text": "item"}]}],
+                        }
+                    ],
+                }
+            ],
+        }
         assert extract_adf_text(adf) == "item"
 
     def test_walk_raw_list(self):
@@ -79,6 +81,7 @@ class TestExtractAdfText:
 
 
 # --- _extract_field ---
+
 
 class TestExtractField:
     def test_simple_path(self):
@@ -95,6 +98,7 @@ class TestExtractField:
 
 
 # --- strip_noise ---
+
 
 class TestStripNoise:
     def test_strips_noise_fields(self):
@@ -144,14 +148,13 @@ class TestStripNoise:
 
 # --- JiraCache schema & migration ---
 
+
 class TestSchema:
     def test_fresh_db_creates_schema(self, tmp_db):
         c = JiraCache(db_path=tmp_db)
         assert c._get_schema_version() == SCHEMA_VERSION
         # Verify tables exist
-        tables = c.conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'"
-        ).fetchall()
+        tables = c.conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
         table_names = {t[0] for t in tables}
         assert "issues" in table_names
         assert "sprints" in table_names
@@ -165,6 +168,7 @@ class TestSchema:
         # Create v1 DB manually
         conn = sqlite3.connect(str(tmp_db))
         from jira_cache.cache import _SCHEMA_V1
+
         conn.executescript(_SCHEMA_V1)
         conn.execute("INSERT OR REPLACE INTO schema_version (version) VALUES (1)")
         conn.commit()
@@ -174,9 +178,7 @@ class TestSchema:
         c = JiraCache(db_path=tmp_db)
         assert c._get_schema_version() == SCHEMA_VERSION
         # purge stats should exist
-        row = c.conn.execute(
-            "SELECT value FROM cache_stats WHERE key = 'purged_issues'"
-        ).fetchone()
+        row = c.conn.execute("SELECT value FROM cache_stats WHERE key = 'purged_issues'").fetchone()
         assert row is not None
         c.close()
 
@@ -201,6 +203,7 @@ class TestSchema:
 
 # --- PRAGMA tuning ---
 
+
 class TestPragmas:
     def test_pragmas_applied(self, cache):
         # Just check one PRAGMA to verify they were set
@@ -212,6 +215,7 @@ class TestPragmas:
 
 
 # --- Issue Operations ---
+
 
 class TestIssueOperations:
     def test_put_and_get(self, cache, sample_issue):
@@ -253,35 +257,47 @@ class TestIssueOperations:
             assert "accountId" not in fields["assignee"]
 
     def test_put_with_sprint_list(self, cache):
-        issue = {"key": "BEP-1", "fields": {
-            "summary": "t", "customfield_10020": [{"id": 42, "name": "S42"}],
-        }}
+        issue = {
+            "key": "BEP-1",
+            "fields": {
+                "summary": "t",
+                "customfield_10020": [{"id": 42, "name": "S42"}],
+            },
+        }
         cache.put_issue("BEP-1", issue)
         row = cache.conn.execute("SELECT sprint_id FROM issues WHERE issue_key='BEP-1'").fetchone()
         assert row[0] == 42
 
     def test_put_with_sprint_dict(self, cache):
-        issue = {"key": "BEP-1", "fields": {
-            "summary": "t", "customfield_10020": {"id": 99},
-        }}
+        issue = {
+            "key": "BEP-1",
+            "fields": {
+                "summary": "t",
+                "customfield_10020": {"id": 99},
+            },
+        }
         cache.put_issue("BEP-1", issue)
         row = cache.conn.execute("SELECT sprint_id FROM issues WHERE issue_key='BEP-1'").fetchone()
         assert row[0] == 99
 
     def test_batch_put_with_sprint_dict(self, cache):
         """L441: put_issues_batch with sprint as dict (not list)."""
-        issues = [{"key": "BEP-1", "fields": {
-            "summary": "t", "customfield_10020": {"id": 88},
-        }}]
+        issues = [
+            {
+                "key": "BEP-1",
+                "fields": {
+                    "summary": "t",
+                    "customfield_10020": {"id": 88},
+                },
+            }
+        ]
         cache.put_issues_batch(issues)
         row = cache.conn.execute("SELECT sprint_id FROM issues WHERE issue_key='BEP-1'").fetchone()
         assert row[0] == 88
 
     def test_put_with_description_adf(self, cache, sample_issue_with_noise):
         cache.put_issue("BEP-200", sample_issue_with_noise)
-        row = cache.conn.execute(
-            "SELECT description_text FROM issues WHERE issue_key='BEP-200'"
-        ).fetchone()
+        row = cache.conn.execute("SELECT description_text FROM issues WHERE issue_key='BEP-200'").fetchone()
         assert row[0] == "Description text here"
 
     def test_no_accessed_at_on_read(self, cache, sample_issue):
@@ -289,14 +305,13 @@ class TestIssueOperations:
         cache.put_issue("BEP-100", sample_issue)
         # Read — should not trigger commit for accessed_at
         cache.get_issue("BEP-100")
-        row = cache.conn.execute(
-            "SELECT accessed_at FROM issues WHERE issue_key='BEP-100'"
-        ).fetchone()
+        row = cache.conn.execute("SELECT accessed_at FROM issues WHERE issue_key='BEP-100'").fetchone()
         # accessed_at should be None (we stopped writing it)
         assert row[0] is None
 
 
 # --- Batch Operations (P1-A, P1-F) ---
+
 
 class TestBatchOperations:
     def test_put_issues_batch(self, cache, multiple_issues):
@@ -334,19 +349,16 @@ class TestBatchOperations:
         cache._stat_flush_threshold = 2  # Low threshold
         cache.put_issues_batch(multiple_issues)
         # 5 hits + 1 miss = 6 buffer → triggers flush
-        found, missing = cache.get_issues_batch(
-            ["BEP-1", "BEP-2", "BEP-3", "BEP-4", "BEP-5", "BEP-999"]
-        )
+        found, missing = cache.get_issues_batch(["BEP-1", "BEP-2", "BEP-3", "BEP-4", "BEP-5", "BEP-999"])
         assert len(found) == 5
         assert missing == ["BEP-999"]
         # Verify flush happened — stats in DB
-        row = cache.conn.execute(
-            "SELECT value FROM cache_stats WHERE key='hits'"
-        ).fetchone()
+        row = cache.conn.execute("SELECT value FROM cache_stats WHERE key='hits'").fetchone()
         assert row is not None and row[0] >= 5
 
 
 # --- Sprint Operations ---
+
 
 class TestSprintOperations:
     def test_put_and_get_sprint(self, cache):
@@ -366,6 +378,7 @@ class TestSprintOperations:
 
 
 # --- Search Cache ---
+
 
 class TestSearchCache:
     def test_put_and_get_search(self, cache, multiple_issues):
@@ -399,6 +412,7 @@ class TestSearchCache:
 
 # --- Search Key Normalization (P1-D) ---
 
+
 class TestSearchKeyNormalization:
     def test_whitespace_normalized(self, cache):
         k1 = cache._search_key("project =  BEP  AND  status = Done", "summary,status", 10)
@@ -423,6 +437,7 @@ class TestSearchKeyNormalization:
 
 # --- Full-Text Search ---
 
+
 class TestTextSearch:
     def test_fts_basic(self, cache, sample_issue_with_noise):
         cache.put_issue("BEP-200", sample_issue_with_noise)
@@ -440,11 +455,12 @@ class TestTextSearch:
 
     def test_fts_sanitized_empty(self, cache):
         """Query that sanitizes to empty string returns [] immediately."""
-        results = cache.text_search('""  \'\'')
+        results = cache.text_search("\"\"  ''")
         assert results == []
 
 
 # --- Invalidation ---
+
 
 class TestInvalidation:
     def test_invalidate_issue(self, cache, sample_issue):
@@ -475,6 +491,7 @@ class TestInvalidation:
 
 
 # --- Stale Data Purge (P1-E) ---
+
 
 class TestPurgeStale:
     def test_purge_old_issues(self, cache):
@@ -512,6 +529,7 @@ class TestPurgeStale:
 
 # --- Statistics (P1-B deferred counting) ---
 
+
 class TestStatistics:
     def test_hit_miss_counting(self, cache, sample_issue):
         cache.put_issue("BEP-100", sample_issue)
@@ -539,9 +557,7 @@ class TestStatistics:
         cache.get_issue("BEP-999")  # miss (buffer=2)
         cache.get_issue("BEP-100")  # hit (buffer=3 → flush)
         # After flush, DB should have updated values
-        row = cache.conn.execute(
-            "SELECT value FROM cache_stats WHERE key='hits'"
-        ).fetchone()
+        row = cache.conn.execute("SELECT value FROM cache_stats WHERE key='hits'").fetchone()
         assert row[0] >= 2
 
     def test_flush_stats_noop_when_empty(self, cache):
@@ -560,21 +576,25 @@ class TestStatistics:
 
 # --- Adaptive TTL ---
 
+
 class TestAdaptiveTTL:
     def test_done_status(self, cache):
         from tests.conftest import make_issue
+
         issue = make_issue(key="BEP-1", status="Done")
         cache.put_issue("BEP-1", issue)
         assert cache.get_adaptive_ttl("BEP-1") == 168.0
 
     def test_active_status(self, cache):
         from tests.conftest import make_issue
+
         issue = make_issue(key="BEP-2", status="In Progress")
         cache.put_issue("BEP-2", issue)
         assert cache.get_adaptive_ttl("BEP-2") == 6.0
 
     def test_unknown_status(self, cache):
         from tests.conftest import make_issue
+
         issue = make_issue(key="BEP-3", status="Custom Status")
         cache.put_issue("BEP-3", issue)
         assert cache.get_adaptive_ttl("BEP-3") == DEFAULT_TTL
@@ -585,10 +605,12 @@ class TestAdaptiveTTL:
 
 # --- Close ---
 
+
 class TestClose:
     def test_close_flushes_stats(self, tmp_db, sample_issue):
         """close() should flush buffered stats."""
         from jira_cache.cache import JiraCache
+
         c = JiraCache(db_path=tmp_db)
         c.put_issue("BEP-100", sample_issue)
         c.get_issue("BEP-100")  # hit buffered
@@ -603,10 +625,12 @@ class TestClose:
 
 # --- _check_db_size (C4) ---
 
+
 class TestCheckDbSize:
     def test_under_limit(self, cache):
         """DB under limit should not warn."""
         import logging
+
         with patch.object(logging.getLogger("jira_cache.cache"), "warning") as mock_warn:
             cache._check_db_size()
             mock_warn.assert_not_called()
@@ -614,20 +638,22 @@ class TestCheckDbSize:
     def test_over_limit(self, tmp_db, sample_issue):
         """DB over limit should log warning."""
         import logging
+
         c = JiraCache(db_path=tmp_db)
         c.put_issue("BEP-1", sample_issue)
         # Temporarily set limit very low to trigger
-        with patch("jira_cache.cache.MAX_DB_SIZE_MB", 0):
-            with patch.object(logging.getLogger("jira_cache.cache"), "warning") as mock_warn:
-                c._check_db_size()
-                mock_warn.assert_called_once()
+        with (
+            patch("jira_cache.cache.MAX_DB_SIZE_MB", 0),
+            patch.object(logging.getLogger("jira_cache.cache"), "warning") as mock_warn,
+        ):
+            c._check_db_size()
+            mock_warn.assert_called_once()
         c.close()
 
     def test_no_file(self, tmp_path):
         """Non-existent DB file should not crash."""
         c = JiraCache(db_path=tmp_path / "test.db")
         # DB exists at this point (created by __init__), so test with a fake path
-        from pathlib import Path
         old_path = c.db_path
         c.db_path = tmp_path / "nonexistent.db"
         c._check_db_size()  # Should not crash
@@ -636,6 +662,7 @@ class TestCheckDbSize:
 
 
 # --- L4: get_stats no db_path ---
+
 
 class TestStatsNoDbPath:
     def test_no_db_path_in_stats(self, cache):

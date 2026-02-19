@@ -238,7 +238,7 @@ def main() -> int:
     print(f"{'=' * 60}")
     print(f"Batch Update: {len(updates)} groups, {total_issues} issues")
     if args.dry_run:
-        print(f"MODE: DRY RUN (no writes)")
+        print("MODE: DRY RUN (no writes)")
     print(f"{'=' * 60}")
 
     if args.dry_run:

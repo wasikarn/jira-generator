@@ -11,6 +11,7 @@ Usage:
     python3 .claude/hooks/target-project-context.py BE           # backend only
     python3 .claude/hooks/target-project-context.py FE-Admin     # admin frontend only
 """
+
 import json
 import sys
 from pathlib import Path
@@ -125,12 +126,14 @@ def scan_service(tag: str, name: str, path_str: str) -> dict:
     for dir_rel, dir_type in fw_config.get("scan_dirs", []):
         items = scan_directory(path, dir_rel, dir_type)
         if items:
-            result["components"].append({
-                "directory": dir_rel,
-                "type": dir_type,
-                "count": len(items),
-                "items": [i["name"] for i in items[:15]],  # Top 15
-            })
+            result["components"].append(
+                {
+                    "directory": dir_rel,
+                    "type": dir_type,
+                    "count": len(items),
+                    "items": [i["name"] for i in items[:15]],  # Top 15
+                }
+            )
 
     # Check key files
     for marker in fw_config.get("key_files", ["package.json"]):

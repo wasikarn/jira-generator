@@ -107,7 +107,7 @@ def get_completed_issues(api: JiraAPI, sprint_id: int) -> list[dict]:
 
     while True:
         result = api.search_issues(
-            jql=f'sprint = {sprint_id} AND status = Done',
+            jql=f"sprint = {sprint_id} AND status = Done",
             fields=f"summary,status,issuetype,assignee,{sp_field}",
             max_results=50,
             start_at=start_at,
@@ -170,13 +170,15 @@ def update_config_velocity(config: dict, sprint: dict, velocity: dict) -> None:
     # Add to throughput history (avoid duplicates)
     existing_ids = {entry["id"] for entry in throughput}
     if sprint_id not in existing_ids:
-        throughput.append({
-            "sprint": sprint_name,
-            "id": sprint_id,
-            "completed_tickets": velocity["total_tickets"],
-            "completed_sp": velocity["total_sp"] if velocity["tickets_with_sp"] > 0 else None,
-            "dates": dates,
-        })
+        throughput.append(
+            {
+                "sprint": sprint_name,
+                "id": sprint_id,
+                "completed_tickets": velocity["total_tickets"],
+                "completed_sp": velocity["total_sp"] if velocity["tickets_with_sp"] > 0 else None,
+                "dates": dates,
+            }
+        )
         # Sort by sprint ID
         throughput.sort(key=lambda x: x["id"])
 
@@ -185,13 +187,15 @@ def update_config_velocity(config: dict, sprint: dict, velocity: dict) -> None:
         sp_history = sp_data.setdefault("history", [])
         existing_sp_ids = {entry["id"] for entry in sp_history}
         if sprint_id not in existing_sp_ids:
-            sp_history.append({
-                "sprint": sprint_name,
-                "id": sprint_id,
-                "completed_sp": velocity["total_sp"],
-                "tickets_with_sp": velocity["tickets_with_sp"],
-                "total_tickets": velocity["total_tickets"],
-            })
+            sp_history.append(
+                {
+                    "sprint": sprint_name,
+                    "id": sprint_id,
+                    "completed_sp": velocity["total_sp"],
+                    "tickets_with_sp": velocity["tickets_with_sp"],
+                    "total_tickets": velocity["total_tickets"],
+                }
+            )
             sp_history.sort(key=lambda x: x["id"])
 
         # Recalculate average velocity from last 5 sprints
@@ -234,7 +238,7 @@ def print_summary(config: dict) -> None:
     if history:
         print("\nSprint History:")
         print(f"  {'Sprint':<20} {'Tickets':>8} {'SP':>6} {'Dates'}")
-        print(f"  {'-'*20} {'-'*8} {'-'*6} {'-'*25}")
+        print(f"  {'-' * 20} {'-' * 8} {'-' * 6} {'-' * 25}")
         for entry in history[-8:]:
             sp_str = str(entry.get("completed_sp", "-")) if entry.get("completed_sp") is not None else "-"
             print(f"  {entry['sprint']:<20} {entry['completed_tickets']:>8} {sp_str:>6} {entry.get('dates', '')}")
@@ -243,7 +247,7 @@ def print_summary(config: dict) -> None:
     members = config.get("team", {}).get("members", [])
     print("\nTeam Members:")
     print(f"  {'Name':<20} {'Role':<12} {'Focus':>6} {'Throughput':>12}")
-    print(f"  {'-'*20} {'-'*12} {'-'*6} {'-'*12}")
+    print(f"  {'-' * 20} {'-' * 12} {'-' * 6} {'-' * 12}")
     for m in members:
         ff = f"{m.get('focus_factor', '-')}" if m.get("focus_factor") else "-"
         tp = f"{m.get('avg_throughput', '-')} t/s" if m.get("avg_throughput") else "-"
@@ -317,29 +321,31 @@ def main() -> int:
     velocity = calculate_velocity(issues, sp_field)
 
     # Display results
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Velocity Report: {sprint_name}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"Completed tickets: {velocity['total_tickets']}")
-    print(f"Story Points: {velocity['total_sp']} SP ({velocity['tickets_with_sp']}/{velocity['total_tickets']} tickets with SP = {velocity['sp_coverage']}%)")
+    print(
+        f"Story Points: {velocity['total_sp']} SP ({velocity['tickets_with_sp']}/{velocity['total_tickets']} tickets with SP = {velocity['sp_coverage']}%)"
+    )
 
     if velocity["per_assignee"]:
-        print(f"\nPer Assignee:")
+        print("\nPer Assignee:")
         print(f"  {'Name':<25} {'Tickets':>8} {'SP':>6}")
-        print(f"  {'-'*25} {'-'*8} {'-'*6}")
+        print(f"  {'-' * 25} {'-' * 8} {'-' * 6}")
         for name, data in sorted(velocity["per_assignee"].items(), key=lambda x: x[1]["tickets"], reverse=True):
             sp_str = str(data["sp"]) if data["sp"] > 0 else "-"
             print(f"  {name:<25} {data['tickets']:>8} {sp_str:>6}")
 
     if args.dry_run:
-        print(f"\nDRY RUN — config not updated")
+        print("\nDRY RUN — config not updated")
         return 0
 
     # Update config
     update_config_velocity(config, sprint, velocity)
     save_config(config)
     print(f"\nUpdated: {CONFIG_PATH}")
-    print(f"HR6 Action: cache_invalidate may be needed if sprint items were modified")
+    print("HR6 Action: cache_invalidate may be needed if sprint items were modified")
 
     return 0
 

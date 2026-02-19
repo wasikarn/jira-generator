@@ -42,7 +42,7 @@ from .exceptions import APIError, IssueNotFoundError
 logger = logging.getLogger(__name__)
 
 # Validate Jira issue key format (e.g., BEP-123, PROJ-1)
-_ISSUE_KEY_RE = re.compile(r'^[A-Z][A-Z0-9]{0,9}-\d{1,6}$')
+_ISSUE_KEY_RE = re.compile(r"^[A-Z][A-Z0-9]{0,9}-\d{1,6}$")
 
 
 def _validate_issue_key(issue_key: str) -> str:
@@ -205,7 +205,7 @@ class JiraAPI:
         try:
             return self._request("GET", f"/rest/api/3/issue/{issue_key}?fields={safe_fields}")
         except IssueNotFoundError:
-            raise IssueNotFoundError(issue_key)
+            raise IssueNotFoundError(issue_key) from None
 
     def search_issues(
         self,
@@ -230,12 +230,14 @@ class JiraAPI:
         """
         logger.info("Searching issues: %s", jql[:80])
 
-        params = urllib.parse.urlencode({
-            "jql": jql,
-            "fields": fields,
-            "maxResults": min(max_results, 50),
-            "startAt": start_at,
-        })
+        params = urllib.parse.urlencode(
+            {
+                "jql": jql,
+                "fields": fields,
+                "maxResults": min(max_results, 50),
+                "startAt": start_at,
+            }
+        )
         return self._request("GET", f"/rest/api/3/search/jql?{params}")
 
     def get_board_sprints(
@@ -283,11 +285,13 @@ class JiraAPI:
         """
         logger.info("Getting issues for sprint %d", sprint_id)
 
-        params = urllib.parse.urlencode({
-            "fields": fields,
-            "maxResults": min(max_results, 50),
-            "startAt": start_at,
-        })
+        params = urllib.parse.urlencode(
+            {
+                "fields": fields,
+                "maxResults": min(max_results, 50),
+                "startAt": start_at,
+            }
+        )
         return self._request("GET", f"/rest/agile/1.0/sprint/{sprint_id}/issue?{params}")
 
     def update_description(

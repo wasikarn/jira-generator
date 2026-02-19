@@ -6,6 +6,7 @@ Triggers once per session (stops suggesting after qmd is used).
 
 Exit 0 = always allow
 """
+
 import json
 import sys
 from pathlib import Path
@@ -37,14 +38,18 @@ collection = qmd_collection_for_path(target_path)
 if not collection:
     sys.exit(0)
 
-print(json.dumps({
-    "hookSpecificOutput": {
-        "hookEventName": "PostToolUse",
-        "additionalContext": (
-            f"💡 [{collection}] is indexed by qmd. "
-            f"Use mcp__qmd__search/vsearch first → ~95% fewer tokens than {tool_name}. "
-            f"Fallback to {tool_name} only if qmd returns nothing."
-        ),
-    }
-}))
+print(
+    json.dumps(
+        {
+            "hookSpecificOutput": {
+                "hookEventName": "PostToolUse",
+                "additionalContext": (
+                    f"💡 [{collection}] is indexed by qmd. "
+                    f"Use mcp__qmd__search/vsearch first → ~95% fewer tokens than {tool_name}. "
+                    f"Fallback to {tool_name} only if qmd returns nothing."
+                ),
+            }
+        }
+    )
+)
 sys.exit(0)

@@ -41,7 +41,7 @@ def load_config() -> dict:
     """Load project-config.json and extract values."""
     if not CONFIG_PATH.exists():
         print(f"Error: {CONFIG_PATH} not found")
-        print(f"  Copy template: cp .claude/project-config.json.template .claude/project-config.json")
+        print("  Copy template: cp .claude/project-config.json.template .claude/project-config.json")
         sys.exit(1)
 
     with open(CONFIG_PATH) as f:
@@ -70,74 +70,80 @@ def get_replacement_patterns(values: dict, revert: bool = False) -> list[tuple[s
         if revert:
             # Replace actual values with placeholders
             if key == "PROJECT_KEY":
-                patterns.extend([
-                    (rf'"projectKey":\s*"{re.escape(actual_value)}"', f'"projectKey": "{placeholder}"'),
-                    (rf'project_key:\s*"{re.escape(actual_value)}"', f'project_key: "{placeholder}"'),
-                    (rf'project_key="{re.escape(actual_value)}"', f'project_key="{placeholder}"'),
-                    (rf'space_key:\s*"{re.escape(actual_value)}"', f'space_key: "{placeholder}"'),
-                    (rf'space_key="{re.escape(actual_value)}"', f'space_key="{placeholder}"'),
-                    # Issue key pattern BEP-XXX (but not in URLs or smart links)
-                    (rf'(?<!/browse/){re.escape(actual_value)}-XXX', f'{placeholder}-XXX'),
-                ])
-            elif key == "JIRA_SITE":
-                patterns.append(
-                    (rf'https://{re.escape(actual_value)}', f'https://{placeholder}')
+                patterns.extend(
+                    [
+                        (rf'"projectKey":\s*"{re.escape(actual_value)}"', f'"projectKey": "{placeholder}"'),
+                        (rf'project_key:\s*"{re.escape(actual_value)}"', f'project_key: "{placeholder}"'),
+                        (rf'project_key="{re.escape(actual_value)}"', f'project_key="{placeholder}"'),
+                        (rf'space_key:\s*"{re.escape(actual_value)}"', f'space_key: "{placeholder}"'),
+                        (rf'space_key="{re.escape(actual_value)}"', f'space_key="{placeholder}"'),
+                        # Issue key pattern BEP-XXX (but not in URLs or smart links)
+                        (rf"(?<!/browse/){re.escape(actual_value)}-XXX", f"{placeholder}-XXX"),
+                    ]
                 )
+            elif key == "JIRA_SITE":
+                patterns.append((rf"https://{re.escape(actual_value)}", f"https://{placeholder}"))
             elif key == "CONFLUENCE_SITE":
                 # Only add if different from JIRA_SITE
                 if actual_value != values.get("JIRA_SITE"):
-                    patterns.append(
-                        (rf'https://{re.escape(actual_value)}', f'https://{placeholder}')
-                    )
+                    patterns.append((rf"https://{re.escape(actual_value)}", f"https://{placeholder}"))
             elif key in ("START_DATE_FIELD", "SPRINT_FIELD"):
-                patterns.append(
-                    (rf'{re.escape(actual_value)}', placeholder)
-                )
+                patterns.append((rf"{re.escape(actual_value)}", placeholder))
             elif key == "COMPANY":
                 # Company name in various contexts
-                patterns.extend([
-                    (rf'{re.escape(actual_value)} Platform', f'{placeholder} Platform'),
-                    (rf'for \*\*{re.escape(actual_value)} Platform\*\*', f'for **{placeholder} Platform**'),
-                    (rf'Agile Documentation System for \*\*{re.escape(actual_value)}', f'Agile Documentation System for **{placeholder}'),
-                ])
+                patterns.extend(
+                    [
+                        (rf"{re.escape(actual_value)} Platform", f"{placeholder} Platform"),
+                        (rf"for \*\*{re.escape(actual_value)} Platform\*\*", f"for **{placeholder} Platform**"),
+                        (
+                            rf"Agile Documentation System for \*\*{re.escape(actual_value)}",
+                            f"Agile Documentation System for **{placeholder}",
+                        ),
+                    ]
+                )
             elif key == "COMPANY_LOWER":
                 # Lowercase company in paths, domains, identifiers
-                patterns.extend([
-                    (rf'~/Codes/Works/{re.escape(actual_value)}/', f'~/Projects/{placeholder}/'),
-                ])
+                patterns.extend(
+                    [
+                        (rf"~/Codes/Works/{re.escape(actual_value)}/", f"~/Projects/{placeholder}/"),
+                    ]
+                )
         else:
             # Replace placeholders with actual values
             if key == "PROJECT_KEY":
-                patterns.extend([
-                    (rf'"projectKey":\s*"\{{\{{PROJECT_KEY\}}\}}"', f'"projectKey": "{actual_value}"'),
-                    (rf'project_key:\s*"\{{\{{PROJECT_KEY\}}\}}"', f'project_key: "{actual_value}"'),
-                    (rf'project_key="\{{\{{PROJECT_KEY\}}\}}"', f'project_key="{actual_value}"'),
-                    (rf'space_key:\s*"\{{\{{SPACE_KEY\}}\}}"', f'space_key: "{actual_value}"'),
-                    (rf'space_key="\{{\{{SPACE_KEY\}}\}}"', f'space_key="{actual_value}"'),
-                    (rf'\{{\{{PROJECT_KEY\}}\}}-XXX', f'{actual_value}-XXX'),
-                ])
+                patterns.extend(
+                    [
+                        (r'"projectKey":\s*"\{\{PROJECT_KEY\}\}"', f'"projectKey": "{actual_value}"'),
+                        (r'project_key:\s*"\{\{PROJECT_KEY\}\}"', f'project_key: "{actual_value}"'),
+                        (r'project_key="\{\{PROJECT_KEY\}\}"', f'project_key="{actual_value}"'),
+                        (r'space_key:\s*"\{\{SPACE_KEY\}\}"', f'space_key: "{actual_value}"'),
+                        (r'space_key="\{\{SPACE_KEY\}\}"', f'space_key="{actual_value}"'),
+                        (r"\{\{PROJECT_KEY\}\}-XXX", f"{actual_value}-XXX"),
+                    ]
+                )
             elif key == "JIRA_SITE":
-                patterns.append(
-                    (rf'https://\{{\{{JIRA_SITE\}}\}}', f'https://{actual_value}')
-                )
+                patterns.append((r"https://\{\{JIRA_SITE\}\}", f"https://{actual_value}"))
             elif key == "CONFLUENCE_SITE":
-                patterns.append(
-                    (rf'https://\{{\{{CONFLUENCE_SITE\}}\}}', f'https://{actual_value}')
-                )
+                patterns.append((r"https://\{\{CONFLUENCE_SITE\}\}", f"https://{actual_value}"))
             elif key in ("START_DATE_FIELD", "SPRINT_FIELD"):
-                patterns.append(
-                    (rf'\{{\{{{key}\}}\}}', actual_value)
-                )
+                patterns.append((rf"\{{\{{{key}\}}\}}", actual_value))
             elif key == "COMPANY":
-                patterns.extend([
-                    (rf'\{{\{{COMPANY\}}\}} Platform', f'{actual_value} Platform'),
-                    (rf'for \*\*\{{\{{COMPANY\}}\}} Platform\*\*', f'for **{actual_value} Platform**'),
-                    (rf'Agile Documentation System for \*\*\{{\{{COMPANY\}}\}}', f'Agile Documentation System for **{actual_value}'),
-                ])
+                patterns.extend(
+                    [
+                        (r"\{\{COMPANY\}\} Platform", f"{actual_value} Platform"),
+                        (r"for \*\*\{\{COMPANY\}\} Platform\*\*", f"for **{actual_value} Platform**"),
+                        (
+                            r"Agile Documentation System for \*\*\{\{COMPANY\}\}",
+                            f"Agile Documentation System for **{actual_value}",
+                        ),
+                    ]
+                )
             elif key == "COMPANY_LOWER":
-                patterns.extend([
-                    (rf'~/Projects/\{{\{{COMPANY_LOWER\}}\}}/', f'~/Codes/Works/{actual_value}/'),
-                ])
+                patterns.extend(
+                    [
+                        (r"~/Projects/\{\{COMPANY_LOWER\}\}/", f"~/Codes/Works/{actual_value}/"),
+                    ]
+                )
 
     return patterns
 
@@ -147,7 +153,7 @@ def process_file(filepath: Path, patterns: list[tuple[str, str]], dry_run: bool 
     changes = []
 
     try:
-        content = filepath.read_text(encoding='utf-8')
+        content = filepath.read_text(encoding="utf-8")
     except Exception as e:
         return [f"  Error reading: {e}"]
 
@@ -159,7 +165,7 @@ def process_file(filepath: Path, patterns: list[tuple[str, str]], dry_run: bool 
             changes.append(f"  {pattern[:50]}... → {replacement[:50]}... ({len(matches)} matches)")
 
     if changes and not dry_run:
-        filepath.write_text(new_content, encoding='utf-8')
+        filepath.write_text(new_content, encoding="utf-8")
 
     return changes
 
@@ -215,7 +221,7 @@ def main():
         print("(DRY RUN — add --apply to write changes)")
     print("=" * 60)
     print(f"\nConfig: {CONFIG_PATH}")
-    print(f"Values:")
+    print("Values:")
     for k, v in config_values.items():
         print(f"  {k}: {v}")
     print()
@@ -249,12 +255,12 @@ def main():
         print(f"Applied {total_changes} changes in {files_changed} files")
     else:
         print(f"Found {total_changes} potential changes in {files_changed} files")
-        print(f"\nRun with --apply to write changes:")
+        print("\nRun with --apply to write changes:")
         if revert_mode:
             print(f"  python {Path(__file__).name} --revert --apply")
         else:
             print(f"  python {Path(__file__).name} --apply")
-            print(f"\nOr revert to placeholders:")
+            print("\nOr revert to placeholders:")
             print(f"  python {Path(__file__).name} --revert --apply")
 
 

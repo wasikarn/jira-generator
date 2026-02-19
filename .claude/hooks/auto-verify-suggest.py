@@ -4,6 +4,7 @@
 Parses the acli output for issue keys and suggests verification.
 Exit 0 = allow (always), prints additionalContext suggestion.
 """
+
 import json
 import re
 import sys

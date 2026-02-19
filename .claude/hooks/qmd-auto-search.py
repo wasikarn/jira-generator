@@ -9,6 +9,7 @@ PreToolUse hook — when Glob/Grep targets an indexed project:
 
 Exit 0 = allow, Exit 2 = block with qmd results
 """
+
 import json
 import re
 import subprocess
@@ -26,9 +27,27 @@ QMD_BIN = "/Users/kobig/.bun/bin/qmd"
 
 # Generic path segments that don't make good search queries
 SKIP_SEGMENTS = {
-    "**", "*", "src", "app", "modules", "components", "pages", "shared",
-    "common", "utils", "lib", "types", "dtos", "services", "hooks",
-    "contexts", "providers", "layouts", "features", "index", "config",
+    "**",
+    "*",
+    "src",
+    "app",
+    "modules",
+    "components",
+    "pages",
+    "shared",
+    "common",
+    "utils",
+    "lib",
+    "types",
+    "dtos",
+    "services",
+    "hooks",
+    "contexts",
+    "providers",
+    "layouts",
+    "features",
+    "index",
+    "config",
 }
 
 
@@ -40,6 +59,7 @@ def split_identifier(s: str) -> str:
     s = re.sub(r"([a-z])([A-Z])", r"\1 \2", s)
     s = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", s)
     return s.lower()
+
 
 raw = sys.stdin.read()
 data = json.loads(raw)
@@ -81,9 +101,9 @@ elif tool_name == "Glob":
     parts = pattern.replace("\\", "/").split("/")
     meaningful = []
     for p in parts:
-        p = re.sub(r"\*+", "", p)       # Remove wildcards
-        p = re.sub(r"\.\w+$", "", p)    # Remove file extensions
-        p = re.sub(r"[{}]", " ", p)     # Remove braces
+        p = re.sub(r"\*+", "", p)  # Remove wildcards
+        p = re.sub(r"\.\w+$", "", p)  # Remove file extensions
+        p = re.sub(r"[{}]", " ", p)  # Remove braces
         p = p.strip()
         if p and p.lower() not in SKIP_SEGMENTS and len(p) > 2:
             meaningful.append(p)
@@ -97,7 +117,9 @@ if not query or len(query.strip()) < 2:
 try:
     result = subprocess.run(
         [QMD_BIN, "search", query, "-n", "8", "--files"],
-        capture_output=True, text=True, timeout=5,
+        capture_output=True,
+        text=True,
+        timeout=5,
     )
     qmd_output = result.stdout.strip()
 except Exception:
@@ -115,7 +137,7 @@ for line in qmd_output.split("\n"):
         # Filter to only this collection
         prefix = f"qmd://{collection}/"
         if qmd_path.startswith(prefix):
-            rel_path = qmd_path[len(prefix):]
+            rel_path = qmd_path[len(prefix) :]
             files.append(rel_path)
 
 if not files:
@@ -126,13 +148,17 @@ qmd_mark_collection_searched(session_id, collection)
 
 # Block with qmd results
 file_list = "\n".join(f"  - {f}" for f in files)
-print(json.dumps({
-    "error": (
-        f"qmd auto-search [{collection}] query=\"{query}\" ({len(files)} results):\n"
-        f"{file_list}\n\n"
-        f"Use mcp__qmd__get(path=\"{collection}/{files[0]}\") to read a file.\n"
-        f"Use mcp__qmd__search(query=\"...\", collection=\"{collection}\") for a different query.\n"
-        f"Re-call {tool_name} if these results are insufficient (now unblocked for [{collection}])."
+print(
+    json.dumps(
+        {
+            "error": (
+                f'qmd auto-search [{collection}] query="{query}" ({len(files)} results):\n'
+                f"{file_list}\n\n"
+                f'Use mcp__qmd__get(path="{collection}/{files[0]}") to read a file.\n'
+                f'Use mcp__qmd__search(query="...", collection="{collection}") for a different query.\n'
+                f"Re-call {tool_name} if these results are insufficient (now unblocked for [{collection}])."
+            )
+        }
     )
-}))
+)
 sys.exit(2)

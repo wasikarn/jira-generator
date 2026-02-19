@@ -6,6 +6,7 @@ Reads session state file and reports any pending cache invalidations.
 
 Output: {"ok": true} or {"ok": false, "reason": "..."}
 """
+
 import json
 import sys
 from pathlib import Path
@@ -27,13 +28,17 @@ def main() -> None:
 
     if pending:
         keys = ", ".join(sorted(pending))
-        print(json.dumps({
-            "ok": False,
-            "reason": (
-                f"HR6: cache_invalidate missing for: {keys}. "
-                f"Run cache_invalidate for each before ending session."
-            ),
-        }))
+        print(
+            json.dumps(
+                {
+                    "ok": False,
+                    "reason": (
+                        f"HR6: cache_invalidate missing for: {keys}. "
+                        f"Run cache_invalidate for each before ending session."
+                    ),
+                }
+            )
+        )
     else:
         print(json.dumps({"ok": True}))
 

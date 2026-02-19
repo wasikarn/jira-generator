@@ -2,21 +2,19 @@
 
 import sqlite3
 import struct
-from unittest.mock import MagicMock, patch, PropertyMock
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 import jira_cache.embeddings as emb_module
+import pytest
 from jira_cache.embeddings import (
-    EMBEDDINGS_SCHEMA,
     EmbeddingStore,
-    _load_sqlite_vec,
     _get_model,
+    _load_sqlite_vec,
     _serialize_f32,
 )
 
-
 # --- _serialize_f32 ---
+
 
 class TestSerializeF32:
     def test_basic(self):
@@ -32,6 +30,7 @@ class TestSerializeF32:
 
 
 # --- _load_sqlite_vec ---
+
 
 class TestLoadSqliteVec:
     def setup_method(self):
@@ -75,6 +74,7 @@ class TestLoadSqliteVec:
 
 # --- _get_model ---
 
+
 class TestGetModel:
     def setup_method(self):
         emb_module._model = None
@@ -97,15 +97,15 @@ class TestGetModel:
             assert emb_module._model is mock_model
 
     def test_import_error(self):
-        with patch.dict("sys.modules", {"sentence_transformers": None}):
-            with pytest.raises(ImportError):
-                _get_model()
+        with patch.dict("sys.modules", {"sentence_transformers": None}), pytest.raises(ImportError):
+            _get_model()
 
     def teardown_method(self):
         emb_module._model = None
 
 
 # --- EmbeddingStore ---
+
 
 class TestEmbeddingStoreInit:
     def test_not_available(self):
@@ -278,16 +278,18 @@ class TestStoreBatch:
 
     def test_success_with_adf(self):
         store, conn = self._make_store()
-        issues = [{
-            "key": "BEP-1",
-            "fields": {
-                "summary": "Test issue",
-                "description": {
-                    "type": "doc",
-                    "content": [{"type": "paragraph", "content": [{"type": "text", "text": "desc"}]}],
+        issues = [
+            {
+                "key": "BEP-1",
+                "fields": {
+                    "summary": "Test issue",
+                    "description": {
+                        "type": "doc",
+                        "content": [{"type": "paragraph", "content": [{"type": "text", "text": "desc"}]}],
+                    },
                 },
-            },
-        }]
+            }
+        ]
         with patch.object(store, "generate_embeddings_batch", return_value=[[0.1] * 384]):
             result = store.store_batch(issues)
             assert result == 1

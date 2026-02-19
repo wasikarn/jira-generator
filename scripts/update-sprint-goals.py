@@ -13,7 +13,7 @@ from pathlib import Path
 scripts_dir = Path(__file__).resolve().parent.parent / ".claude" / "skills" / "atlassian-scripts"
 sys.path.insert(0, str(scripts_dir))
 
-from lib.auth import create_ssl_context, load_credentials, get_auth_header
+from lib.auth import create_ssl_context, get_auth_header, load_credentials
 from lib.jira_api import JiraAPI, derive_jira_url
 
 # Sprint goals to update
@@ -75,7 +75,7 @@ def main():
             status = result.get("_status", 200)
             # Agile API returns the sprint object on success (200)
             if "id" in result or status in (200, 204):
-                print(f"    -> OK")
+                print("    -> OK")
                 success_count += 1
             else:
                 print(f"    -> Unexpected response: {result}")

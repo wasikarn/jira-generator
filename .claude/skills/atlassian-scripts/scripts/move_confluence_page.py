@@ -101,7 +101,7 @@ Examples:
         logger.error("Error getting parent page: %s", e)
         return 1
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Moving {len(page_ids)} page(s) to parent: {parent['title']}")
     print("=" * 60)
 
@@ -143,7 +143,7 @@ Examples:
             print(f"   ❌ Error: {e}")
             fail_count += 1
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Summary: {success_count} succeeded, {fail_count} failed")
     print("=" * 60)
 

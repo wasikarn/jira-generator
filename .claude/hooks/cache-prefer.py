@@ -9,6 +9,7 @@ PreToolUse hook — when Claude calls jira_get_issue:
 
 Exit 0 = allow, Exit 2 = block with cache suggestion
 """
+
 import json
 import sys
 from pathlib import Path

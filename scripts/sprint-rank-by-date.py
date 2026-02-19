@@ -13,14 +13,13 @@ Usage:
     python3 scripts/sprint-rank-by-date.py --apply            # actually re-rank in Jira
 """
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".claude", "skills", "atlassian-scripts"))
 
-from lib.auth import create_ssl_context, load_credentials, get_auth_header
+from lib.auth import create_ssl_context, get_auth_header, load_credentials
 from lib.jira_api import JiraAPI, derive_jira_url
-
 
 # --- Configuration ---
 BOARD_ID = 2  # BEP board
@@ -87,16 +86,18 @@ def main():
         priority_rank = PRIORITY_ORDER.get(priority_name, 3)
         assignee = (f.get("assignee") or {}).get("displayName", "Unassigned")
 
-        parents.append({
-            "key": issue["key"],
-            "summary": f.get("summary", ""),
-            "status": status,
-            "type": itype,
-            "due": due,
-            "priority": priority_name,
-            "priority_rank": priority_rank,
-            "assignee": assignee,
-        })
+        parents.append(
+            {
+                "key": issue["key"],
+                "summary": f.get("summary", ""),
+                "status": status,
+                "type": itype,
+                "due": due,
+                "priority": priority_name,
+                "priority_rank": priority_rank,
+                "assignee": assignee,
+            }
+        )
 
     print(f"\nFound {len(parents)} active parent issues\n")
 

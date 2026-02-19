@@ -12,6 +12,7 @@ Detection layers:
 
 Exit codes: 0 = allow, 2 = block
 """
+
 import json
 import sqlite3
 import sys
@@ -54,9 +55,7 @@ try:
     if row:
         issue_type, parent_key, raw_data = row
         # Layer 1: structured columns
-        if issue_type and "subtask" in issue_type.lower():
-            is_subtask = True
-        elif parent_key:
+        if (issue_type and "subtask" in issue_type.lower()) or parent_key:
             is_subtask = True
         # Layer 2: raw JSON data
         elif raw_data:
@@ -64,11 +63,11 @@ try:
                 jdata = json.loads(raw_data)
                 fields = jdata.get("fields", {})
                 itype = fields.get("issuetype", {})
-                if isinstance(itype, dict) and "subtask" in itype.get("name", "").lower():
-                    is_subtask = True
-                elif itype.get("subtask") is True:
-                    is_subtask = True
-                elif fields.get("parent"):
+                if (
+                    (isinstance(itype, dict) and "subtask" in itype.get("name", "").lower())
+                    or itype.get("subtask") is True
+                    or fields.get("parent")
+                ):
                     is_subtask = True
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -81,6 +80,7 @@ if not is_subtask:
         session_id = data.get("session_id", "")
         sys.path.insert(0, str(Path(__file__).parent))
         from hooks_state import hr5_is_known_subtask
+
         if hr5_is_known_subtask(session_id, issue_key):
             is_subtask = True
     except Exception:

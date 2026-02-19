@@ -9,6 +9,7 @@ Complements HR1 QG scoring with fast structural pre-check.
 
 Exit codes: 0 = allow, 2 = block (structure invalid)
 """
+
 import json
 import re
 import sys
@@ -126,9 +127,6 @@ if missing:
 
 if issue_type != "task" and not has_panel(content):
     # Warning only — print to stdout, exit 0
-    print(
-        f"⚠️ ADF structure ({issue_type}): No panel found. "
-        f"Templates require panels (info/success/warning/error)."
-    )
+    print(f"⚠️ ADF structure ({issue_type}): No panel found. Templates require panels (info/success/warning/error).")
 
 sys.exit(0)

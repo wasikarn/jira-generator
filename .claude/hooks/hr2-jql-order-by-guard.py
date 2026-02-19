@@ -6,10 +6,11 @@ JQL parser errors when ORDER BY is combined with parent= or parent in (...).
 
 Exit codes: 0 = allow, 2 = deny
 """
+
 import json
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 LOG_DIR = Path.home() / ".claude" / "hooks-logs"
@@ -21,7 +22,7 @@ ORDER_BY_RE = re.compile(r"\bORDER\s+BY\b", re.I)
 def log_event(level: str, data: dict) -> None:
     try:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         entry = {"ts": now.isoformat(), "hook": "hr2-jql-order-by-guard", "level": level, **data}
         with open(LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl", "a") as f:
             f.write(json.dumps(entry) + "\n")
@@ -53,10 +54,13 @@ def main() -> None:
             f"Remove ORDER BY when using parent= or parent in (...).\n"
             f"JQL: {jql[:200]}"
         )
-        log_event("BLOCKED", {
-            "jql": jql[:500],
-            "session_id": data.get("session_id", ""),
-        })
+        log_event(
+            "BLOCKED",
+            {
+                "jql": jql[:500],
+                "session_id": data.get("session_id", ""),
+            },
+        )
         print(reason, file=sys.stderr)
         sys.exit(2)
 
