@@ -15,6 +15,8 @@ Usage:
 import hashlib
 import json
 import logging
+import os
+import re
 import sqlite3
 import threading
 from datetime import datetime, timedelta
@@ -26,7 +28,16 @@ logger = logging.getLogger(__name__)
 DEFAULT_DB_PATH = Path.home() / ".cache" / "jira-generator" / "jira.db"
 
 # Current schema version — increment when adding migrations
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
+
+# H3: Whitelist of allowed FTS5 operators (everything else stripped)
+_FTS5_ALLOWED_RE = re.compile(r'[^a-zA-Z0-9\u0E00-\u0E7F\s]')  # Keep alphanumeric + Thai + spaces
+
+# M7: Maximum ADF recursion depth to prevent stack overflow
+MAX_ADF_DEPTH = 50
+
+# C4: Maximum DB size in MB (warn if exceeded)
+MAX_DB_SIZE_MB = int(os.environ.get("JIRA_CACHE_MAX_DB_MB", "500"))
 
 # --- P0: Migration-based schema ---
 
@@ -104,8 +115,15 @@ INSERT OR IGNORE INTO cache_stats (key, value) VALUES ('purged_issues', 0);
 INSERT OR IGNORE INTO cache_stats (key, value) VALUES ('purged_searches', 0);
 """
 
+# M3: Migration to v3: add sprint_id to searches table
+_MIGRATION_V3 = """
+ALTER TABLE searches ADD COLUMN sprint_id INTEGER;
+CREATE INDEX IF NOT EXISTS idx_searches_sprint ON searches(sprint_id);
+"""
+
 _MIGRATIONS = {
     2: _MIGRATION_V2,
+    3: _MIGRATION_V3,
 }
 
 FTS_SCHEMA_SQL = """
@@ -173,6 +191,7 @@ def extract_adf_text(adf: Any) -> str | None:
     """Extract plain text from ADF (Atlassian Document Format) JSON.
 
     Recursively walks the ADF tree, collecting text from text nodes.
+    M7: Limited to MAX_ADF_DEPTH to prevent stack overflow on malicious input.
 
     Args:
         adf: ADF document (dict) or None
@@ -185,17 +204,19 @@ def extract_adf_text(adf: Any) -> str | None:
 
     parts: list[str] = []
 
-    def walk(node: Any) -> None:
+    def walk(node: Any, depth: int = 0) -> None:
+        if depth > MAX_ADF_DEPTH:  # pragma: no cover — defensive depth limit
+            return
         if isinstance(node, dict):
             if node.get("type") == "text" and "text" in node:
                 parts.append(node["text"])
             for key in ("content",):
                 if key in node and isinstance(node[key], list):
                     for child in node[key]:
-                        walk(child)
+                        walk(child, depth + 1)
         elif isinstance(node, list):  # pragma: no cover — defensive
             for item in node:
-                walk(item)
+                walk(item, depth + 1)
 
     walk(adf)
     text = " ".join(parts).strip()
@@ -212,16 +233,21 @@ def _extract_field(data: dict, *path: str, default: Any = None) -> Any:
     return current
 
 
-STATUS_TTL = {
-    "Done": 168.0, "Closed": 168.0, "Won't Do": 168.0,
-    "In Progress": 6.0, "In Review": 6.0, "TO FIX": 6.0,
-    "WAITING TO TEST": 6.0,
-}
-DEFAULT_TTL = 24.0
+# H7: TTL constants with env var overrides
+_DEFAULT_TTL_HOURS = float(os.environ.get("JIRA_CACHE_DEFAULT_TTL_HOURS", "24"))
+_DONE_TTL_HOURS = float(os.environ.get("JIRA_CACHE_DONE_TTL_HOURS", "168"))
+_ACTIVE_TTL_HOURS = float(os.environ.get("JIRA_CACHE_ACTIVE_TTL_HOURS", "6"))
 
-# --- P1-E: Stale data purge thresholds ---
-PURGE_ISSUES_DAYS = 7
-PURGE_SEARCHES_HOURS = 24
+STATUS_TTL = {
+    "Done": _DONE_TTL_HOURS, "Closed": _DONE_TTL_HOURS, "Won't Do": _DONE_TTL_HOURS,
+    "In Progress": _ACTIVE_TTL_HOURS, "In Review": _ACTIVE_TTL_HOURS, "TO FIX": _ACTIVE_TTL_HOURS,
+    "WAITING TO TEST": _ACTIVE_TTL_HOURS,
+}
+DEFAULT_TTL = _DEFAULT_TTL_HOURS
+
+# --- P1-E: Stale data purge thresholds (with env overrides) ---
+PURGE_ISSUES_DAYS = int(os.environ.get("JIRA_CACHE_PURGE_ISSUES_DAYS", "7"))
+PURGE_SEARCHES_HOURS = int(os.environ.get("JIRA_CACHE_PURGE_SEARCHES_HOURS", "24"))
 
 
 class JiraCache:
@@ -238,13 +264,16 @@ class JiraCache:
         self.conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self._lock = threading.Lock()
+        # L2: Separate lock for stat buffer (avoid contention with DB writes)
+        self._stat_lock = threading.Lock()
         # P1-B: In-memory stat buffer (flush every N calls or on get_stats)
         self._stat_buffer: dict[str, int] = {"hits": 0, "misses": 0}
-        self._stat_flush_threshold = 20
+        self._stat_flush_threshold = int(os.environ.get("JIRA_CACHE_STAT_FLUSH_THRESHOLD", "20"))
         self._stat_buffer_count = 0
         self._init_schema()
         self._apply_pragmas()
         self._purge_stale()
+        self._check_db_size()
         logger.debug("JiraCache initialized at %s", self.db_path)
 
     # --- P0: Migration system ---
@@ -496,14 +525,16 @@ class JiraCache:
                 missing_keys.append(key)
                 miss_count += 1
 
-        # Single batch increment (avoids mid-batch flush)
-        if hit_count > 0:
-            self._stat_buffer["hits"] = self._stat_buffer.get("hits", 0) + hit_count
-            self._stat_buffer_count += hit_count
-        if miss_count > 0:
-            self._stat_buffer["misses"] = self._stat_buffer.get("misses", 0) + miss_count
-            self._stat_buffer_count += miss_count
-        if self._stat_buffer_count >= self._stat_flush_threshold:
+        # L2: Single batch increment with _stat_lock (avoids mid-batch flush)
+        with self._stat_lock:
+            if hit_count > 0:
+                self._stat_buffer["hits"] = self._stat_buffer.get("hits", 0) + hit_count
+                self._stat_buffer_count += hit_count
+            if miss_count > 0:
+                self._stat_buffer["misses"] = self._stat_buffer.get("misses", 0) + miss_count
+                self._stat_buffer_count += miss_count
+            should_flush = self._stat_buffer_count >= self._stat_flush_threshold
+        if should_flush:
             self._flush_stats()
 
         return found_issues, missing_keys
@@ -566,17 +597,25 @@ class JiraCache:
         self._incr_stat("hits")
         return json.loads(row["data"])
 
-    def put_search(self, jql: str, fields: str, limit: int, data: dict) -> None:
-        """Store search results and cache individual issues."""
+    def put_search(
+        self, jql: str, fields: str, limit: int, data: dict,
+        sprint_id: int | None = None,
+    ) -> None:
+        """Store search results and cache individual issues.
+
+        M3: Optional sprint_id for sprint-specific search cache entries.
+        H8: Single transaction for search + issues batch.
+        """
         cache_key = self._search_key(jql, fields, limit)
         issues = data.get("issues", [])
         result_keys = [i.get("key", "") for i in issues]
+        now = datetime.now().isoformat()
 
         with self._lock:
             self.conn.execute(
                 """INSERT OR REPLACE INTO searches
-                (cache_key, jql, fields, result_keys, total, data, cached_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (cache_key, jql, fields, result_keys, total, data, cached_at, sprint_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     cache_key,
                     jql,
@@ -584,25 +623,35 @@ class JiraCache:
                     json.dumps(result_keys),
                     data.get("total", len(issues)),
                     json.dumps(data),
-                    datetime.now().isoformat(),
+                    now,
+                    sprint_id,
                 ),
             )
+            # H8: Batch insert issues in same transaction
+            for issue_data in issues:
+                key = issue_data.get("key")
+                if not key:
+                    continue
+                issue_data = strip_noise(issue_data)
+                f = issue_data.get("fields", {})
+                description_text = extract_adf_text(f.get("description"))
+                sid = self._extract_sprint_id(f)
+                self._put_issue_row(key, f, description_text, sid, issue_data, now)
             self.conn.commit()
-
-        # Also cache individual issues (batch)
-        self.put_issues_batch(issues)
+        logger.debug("Cached search + %d issues (single transaction)", len(issues))
 
     # --- Full-Text Search ---
 
     @staticmethod
     def _sanitize_fts_query(query: str) -> str:
-        """Sanitize user input for FTS5 MATCH to prevent injection.
+        """H3: Whitelist-based FTS5 query sanitization.
 
-        Strips characters that have special meaning in FTS5 syntax
-        when they could cause unexpected behavior.
+        Only keeps alphanumeric characters (Latin + Thai) and spaces.
+        Strips ALL special characters to prevent FTS5 injection
+        (column filters, operators, boolean syntax abuse).
         """
-        # Remove characters that can break FTS5 parsing
-        sanitized = query.replace('"', ' ').replace("'", ' ')
+        # Strip everything except alphanumeric + Thai + whitespace
+        sanitized = _FTS5_ALLOWED_RE.sub(' ', query)
         # Collapse whitespace
         return " ".join(sanitized.split()).strip()
 
@@ -756,7 +805,6 @@ class JiraCache:
             "db_size_mb": round(db_size_mb, 2),
             "oldest_entry": oldest,
             "newest_entry": newest,
-            "db_path": str(self.db_path),
             "schema_version": self._get_schema_version(),
         }
 
@@ -779,26 +827,36 @@ class JiraCache:
     # --- P1-B: Deferred stat counting ---
 
     def _incr_stat(self, key: str) -> None:
-        """Buffer stat increments in memory; flush periodically."""
-        self._stat_buffer[key] = self._stat_buffer.get(key, 0) + 1
-        self._stat_buffer_count += 1
-        if self._stat_buffer_count >= self._stat_flush_threshold:
+        """Buffer stat increments in memory; flush periodically.
+
+        L2: Uses _stat_lock for thread-safe buffer access.
+        """
+        with self._stat_lock:
+            self._stat_buffer[key] = self._stat_buffer.get(key, 0) + 1
+            self._stat_buffer_count += 1
+            should_flush = self._stat_buffer_count >= self._stat_flush_threshold
+        if should_flush:
             self._flush_stats()
 
     def _flush_stats(self) -> None:
-        """Flush buffered stats to SQLite."""
+        """Flush buffered stats to SQLite.
+
+        L2: Uses _stat_lock (not _lock) to avoid contention with DB writes.
+        """
         if self._stat_buffer_count == 0:
             return
-        with self._lock:
-            for key, val in self._stat_buffer.items():
-                if val > 0:
+        with self._stat_lock:
+            snapshot = {k: v for k, v in self._stat_buffer.items() if v > 0}
+            self._stat_buffer = {k: 0 for k in self._stat_buffer}
+            self._stat_buffer_count = 0
+        if snapshot:
+            with self._lock:
+                for key, val in snapshot.items():
                     self.conn.execute(
                         "UPDATE cache_stats SET value = value + ? WHERE key = ?",
                         (val, key),
                     )
-            self.conn.commit()
-        self._stat_buffer = {k: 0 for k in self._stat_buffer}
-        self._stat_buffer_count = 0
+                self.conn.commit()
 
     def _get_stat(self, key: str) -> int:
         row = self.conn.execute(
@@ -816,6 +874,19 @@ class JiraCache:
         if not row:
             return DEFAULT_TTL
         return STATUS_TTL.get(row["status"], DEFAULT_TTL)
+
+    # --- C4: DB size monitoring ---
+
+    def _check_db_size(self) -> None:
+        """Warn if database exceeds MAX_DB_SIZE_MB."""
+        if not self.db_path.exists():
+            return
+        size_mb = self.db_path.stat().st_size / (1024 * 1024)
+        if size_mb > MAX_DB_SIZE_MB:
+            logger.warning(
+                "DB size %.1f MB exceeds limit %d MB — consider running vacuum() or purge_stale()",
+                size_mb, MAX_DB_SIZE_MB,
+            )
 
     def close(self) -> None:
         """Close database connection (flush stats first)."""

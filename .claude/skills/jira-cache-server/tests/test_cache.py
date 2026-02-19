@@ -9,6 +9,7 @@ import pytest
 
 from jira_cache.cache import (
     DEFAULT_TTL,
+    MAX_DB_SIZE_MB,
     PURGE_ISSUES_DAYS,
     PURGE_SEARCHES_HOURS,
     SCHEMA_VERSION,
@@ -388,6 +389,13 @@ class TestSearchCache:
         cache.put_search("q", "f", 10, data)
         assert cache.get_issue("BEP-1") is not None
 
+    def test_search_skips_no_key_issues(self, cache):
+        """put_search skips issues without key field."""
+        issues = [{"fields": {"summary": "no key"}}, {"key": "BEP-1", "fields": {"summary": "ok"}}]
+        data = {"issues": issues, "total": 2}
+        cache.put_search("q2", "f", 10, data)
+        assert cache.get_issue("BEP-1") is not None
+
 
 # --- Search Key Normalization (P1-D) ---
 
@@ -591,3 +599,48 @@ class TestClose:
         row = conn.execute("SELECT value FROM cache_stats WHERE key='hits'").fetchone()
         assert row[0] >= 1
         conn.close()
+
+
+# --- _check_db_size (C4) ---
+
+class TestCheckDbSize:
+    def test_under_limit(self, cache):
+        """DB under limit should not warn."""
+        import logging
+        with patch.object(logging.getLogger("jira_cache.cache"), "warning") as mock_warn:
+            cache._check_db_size()
+            mock_warn.assert_not_called()
+
+    def test_over_limit(self, tmp_db, sample_issue):
+        """DB over limit should log warning."""
+        import logging
+        c = JiraCache(db_path=tmp_db)
+        c.put_issue("BEP-1", sample_issue)
+        # Temporarily set limit very low to trigger
+        with patch("jira_cache.cache.MAX_DB_SIZE_MB", 0):
+            with patch.object(logging.getLogger("jira_cache.cache"), "warning") as mock_warn:
+                c._check_db_size()
+                mock_warn.assert_called_once()
+        c.close()
+
+    def test_no_file(self, tmp_path):
+        """Non-existent DB file should not crash."""
+        c = JiraCache(db_path=tmp_path / "test.db")
+        # DB exists at this point (created by __init__), so test with a fake path
+        from pathlib import Path
+        old_path = c.db_path
+        c.db_path = tmp_path / "nonexistent.db"
+        c._check_db_size()  # Should not crash
+        c.db_path = old_path
+        c.close()
+
+
+# --- L4: get_stats no db_path ---
+
+class TestStatsNoDbPath:
+    def test_no_db_path_in_stats(self, cache):
+        """L4: get_stats should not expose db_path."""
+        stats = cache.get_stats()
+        assert "db_path" not in stats
+        # But db_size_mb should still be there
+        assert "db_size_mb" in stats

@@ -29,6 +29,7 @@ Usage:
 
 import json
 import logging
+import re
 import ssl
 import urllib.error
 import urllib.parse
@@ -39,6 +40,26 @@ from typing import Any
 from .exceptions import APIError, IssueNotFoundError
 
 logger = logging.getLogger(__name__)
+
+# Validate Jira issue key format (e.g., BEP-123, PROJ-1)
+_ISSUE_KEY_RE = re.compile(r'^[A-Z][A-Z0-9]{0,9}-\d{1,6}$')
+
+
+def _validate_issue_key(issue_key: str) -> str:
+    """Validate issue key format to prevent URL path injection.
+
+    Args:
+        issue_key: Key to validate (e.g., 'BEP-123')
+
+    Returns:
+        The validated issue key.
+
+    Raises:
+        ValueError: If key format is invalid.
+    """
+    if not isinstance(issue_key, str) or not _ISSUE_KEY_RE.match(issue_key):
+        raise ValueError(f"Invalid issue key format: {issue_key!r}")
+    return issue_key
 
 
 def derive_jira_url(confluence_url: str) -> str:
@@ -148,7 +169,7 @@ class JiraAPI:
 
         except urllib.error.HTTPError as e:
             error_body = e.read().decode("utf-8") if e.fp else ""
-            logger.error("API error: %s %s - %s", e.code, e.reason, error_body[:200])
+            logger.debug("API error body: %s", error_body[:200])
 
             if e.code == 404:
                 raise IssueNotFoundError("unknown", f"Resource not found: {endpoint}") from e
@@ -177,10 +198,12 @@ class JiraAPI:
             IssueNotFoundError: If issue key doesn't exist
             APIError: If API request fails
         """
+        _validate_issue_key(issue_key)
         logger.info("Getting issue %s", issue_key)
+        safe_fields = urllib.parse.quote(fields, safe=",")
 
         try:
-            return self._request("GET", f"/rest/api/3/issue/{issue_key}?fields={fields}")
+            return self._request("GET", f"/rest/api/3/issue/{issue_key}?fields={safe_fields}")
         except IssueNotFoundError:
             raise IssueNotFoundError(issue_key)
 
@@ -285,6 +308,7 @@ class JiraAPI:
             IssueNotFoundError: If issue key doesn't exist
             APIError: If API request fails
         """
+        _validate_issue_key(issue_key)
         logger.info("Updating description for %s", issue_key)
 
         result = self._request(
@@ -351,6 +375,7 @@ class JiraAPI:
             IssueNotFoundError: If issue key doesn't exist
             APIError: If API request fails
         """
+        _validate_issue_key(issue_key)
         logger.info("Updating fields for %s: %s", issue_key, list(fields.keys()))
 
         result = self._request(

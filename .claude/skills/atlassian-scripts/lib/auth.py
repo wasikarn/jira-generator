@@ -1,7 +1,7 @@
 """Authentication utilities for Confluence API.
 
 This module provides authentication and credential management:
-- SSL context creation (with certificate verification bypass for macOS)
+- SSL context creation (certifi-first, system certs fallback, no CERT_NONE)
 - Credentials loading from environment file
 - Basic Auth header generation
 
@@ -41,11 +41,13 @@ class Credentials(TypedDict):
 def create_ssl_context() -> ssl.SSLContext:
     """Create SSL context with proper certificate verification.
 
-    Attempts to use certifi for reliable cross-platform certificate handling.
-    Falls back to system certificates, then to verification disabled as last resort.
+    Attempts certifi first, then system certificates. Never disables verification.
 
     Returns:
-        ssl.SSLContext: Configured SSL context.
+        ssl.SSLContext: Configured SSL context with certificate verification enabled.
+
+    Raises:
+        ssl.SSLError: If no usable certificates are available.
     """
     # Try certifi first (most reliable cross-platform)
     try:
@@ -59,18 +61,16 @@ def create_ssl_context() -> ssl.SSLContext:
     # Try system certificates
     try:
         ctx = ssl.create_default_context()
-        # Quick validation — if this doesn't raise, system certs are usable
         logger.debug("Created SSL context with system certificates")
         return ctx
     except ssl.SSLError:
         pass
 
-    # Last resort: disable verification (macOS cert store issues)
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    logger.warning("Created SSL context with verification DISABLED (install certifi for proper TLS)")
-    return ctx
+    # No usable certificates — fail hard (never disable verification)
+    raise ssl.SSLError(
+        "No usable SSL certificates found. Install certifi: pip install certifi\n"
+        "Or on macOS: /Applications/Python*/Install\\ Certificates.command"
+    )
 
 
 def load_credentials(path: Path | None = None) -> Credentials:

@@ -23,11 +23,14 @@ with patch.dict("sys.modules", {
         _compact_issue,
         _compact_response,
         _coerce_args,
+        _embedding_text,
         _find_issues_list,
         _format_issue_summary,
         _paginate_response,
+        _require_cache,
         _strip_response_noise,
         _timed_upstream,
+        _validate_issue_key,
         handle_cache_get_issue,
         handle_cache_get_issues,
         handle_cache_invalidate,
@@ -643,8 +646,17 @@ class TestHandleCacheInvalidate:
     @pytest.mark.asyncio
     async def test_invalidate_all(self, cache):
         cache.put_issue("BEP-1", make_issue())
-        result = json.loads(await handle_cache_invalidate({"all": True}))
+        result = json.loads(await handle_cache_invalidate({"all": True, "confirm": True}))
         assert result["invalidated"] == "all"
+
+    @pytest.mark.asyncio
+    async def test_invalidate_all_no_confirm(self, cache):
+        """L3: invalidate_all without confirm=true returns error."""
+        cache.put_issue("BEP-1", make_issue())
+        result = json.loads(await handle_cache_invalidate({"all": True}))
+        assert "error" in result
+        # Issue should still exist
+        assert cache.get_issue("BEP-1") is not None
 
     @pytest.mark.asyncio
     async def test_invalidate_issue(self, cache):
@@ -824,3 +836,108 @@ class TestSprintRefreshPagination:
         assert "refreshed" in result, f"Unexpected: {result}"
         assert result["refreshed"] == 75
         assert mock_jira_api.get_sprint_issues.call_count == 2
+
+
+# --- New helper functions (H4, H6, M10) ---
+
+class TestValidateIssueKey:
+    def test_valid_keys(self):
+        assert _validate_issue_key("BEP-1") == "BEP-1"
+        assert _validate_issue_key("BEP-123456") == "BEP-123456"
+        assert _validate_issue_key("PROJ-42") == "PROJ-42"
+
+    def test_invalid_keys(self):
+        with pytest.raises(ValueError, match="Invalid issue key"):
+            _validate_issue_key("invalid")
+        with pytest.raises(ValueError, match="Invalid issue key"):
+            _validate_issue_key("")
+        with pytest.raises(ValueError, match="Invalid issue key"):
+            _validate_issue_key("BEP-")
+        with pytest.raises(ValueError, match="Invalid issue key"):
+            _validate_issue_key("bep-123")  # lowercase
+
+    def test_non_string(self):
+        with pytest.raises(ValueError, match="Invalid issue key"):
+            _validate_issue_key(123)
+        with pytest.raises(ValueError, match="Invalid issue key"):
+            _validate_issue_key(None)
+
+    @pytest.mark.asyncio
+    async def test_invalid_key_in_handler(self, cache):
+        """H4: handler returns error for invalid key."""
+        result = json.loads(await handle_cache_get_issue({"issue_key": "../etc/passwd"}))
+        assert "error" in result
+
+
+class TestRequireCache:
+    def test_with_cache(self, cache):
+        result = _require_cache()
+        assert result is cache
+
+    def test_without_cache(self):
+        old = server.cache
+        server.cache = None
+        try:
+            with pytest.raises(RuntimeError, match="Cache not initialized"):
+                _require_cache()
+        finally:
+            server.cache = old
+
+
+class TestEmbeddingText:
+    def test_string_description(self):
+        issue = {"fields": {"summary": "Test", "description": "Some text here"}}
+        result = _embedding_text(issue)
+        assert result == "Test Some text here"
+
+    def test_adf_description(self):
+        issue = {"fields": {"summary": "Test", "description": {
+            "type": "doc", "content": [
+                {"type": "paragraph", "content": [{"type": "text", "text": "ADF content"}]}
+            ],
+        }}}
+        result = _embedding_text(issue)
+        assert "ADF content" in result
+
+    def test_no_description(self):
+        issue = {"fields": {"summary": "Test"}}
+        result = _embedding_text(issue)
+        assert result == "Test"
+
+    def test_empty_fields(self):
+        issue = {}
+        result = _embedding_text(issue)
+        assert result == ""
+
+    def test_truncation(self):
+        long_desc = "x" * 1000
+        issue = {"fields": {"summary": "Test", "description": long_desc}}
+        result = _embedding_text(issue)
+        assert len(result) <= 500
+
+
+class TestTextSearchNoData:
+    """L7: text_search should not return duplicate 'data' key."""
+    @pytest.mark.asyncio
+    async def test_no_data_key(self, cache):
+        issue = make_issue(key="BEP-1", summary="coupon payment")
+        cache.put_issue("BEP-1", issue)
+        result = json.loads(await handle_cache_text_search({"query": "coupon"}))
+        assert "data" not in result
+        assert "issues" in result
+
+
+class TestAutoRefreshStripNoise:
+    """M9: auto_refresh response should strip noise."""
+    @pytest.mark.asyncio
+    async def test_noise_stripped(self, cache, mock_jira_api):
+        cache.put_issue("BEP-1", make_issue())
+        noisy = make_issue(key="BEP-1", summary="Refreshed")
+        mock_jira_api.get_issue.return_value = noisy
+        result = json.loads(await handle_cache_invalidate({
+            "issue_key": "BEP-1", "auto_refresh": True,
+        }))
+        assert result["auto_refreshed"] is True
+        # Noise fields should be stripped from the returned issue
+        assert "self" not in result["issue"]
+        assert "expand" not in result["issue"]

@@ -1,9 +1,9 @@
 # /// script
-# requires-python = ">=3.14"
+# requires-python = ">=3.11"
 # dependencies = [
-#     "mcp>=1.0.0",
-#     "sqlite-vec>=0.1.1",
-#     "sentence-transformers>=2.2.0",
+#     "mcp>=1.0.0,<2",
+#     "sqlite-vec>=0.1.1,<1",
+#     "sentence-transformers>=2.2.0,<4",
 # ]
 # ///
 """MCP server for Jira data caching with FTS5 and vector search.
@@ -27,6 +27,7 @@ Usage:
 
 import json
 import logging
+import re
 import sys
 import time
 from pathlib import Path
@@ -66,10 +67,44 @@ MAX_TEXT_SEARCH_LIMIT = 50
 MAX_SIMILAR_LIMIT = 20
 MAX_ISSUE_KEYS_BATCH = 100
 
+# H4: Validate issue key format at MCP boundary (prevent injection)
+_ISSUE_KEY_RE = re.compile(r'^[A-Z][A-Z0-9]{0,9}-\d{1,6}$')
+
+
+def _validate_issue_key(key: str) -> str:
+    """Validate issue key format. Returns key if valid, raises ValueError otherwise."""
+    if not isinstance(key, str) or not _ISSUE_KEY_RE.match(key):
+        raise ValueError(f"Invalid issue key: {key!r}")
+    return key
+
+
 # --- Globals (initialized on startup) ---
 cache: JiraCache | None = None
 embeddings: EmbeddingStore | None = None
 jira_api: JiraAPI | None = None
+
+
+# H6: Safe global accessors (prevent NoneType crashes)
+def _require_cache() -> JiraCache:
+    """Get cache or raise RuntimeError."""
+    if cache is None:
+        raise RuntimeError("Cache not initialized")
+    return cache
+
+
+# M10: Centralized embedding text extraction
+def _embedding_text(issue: dict) -> str:
+    """Extract text suitable for embedding from an issue dict."""
+    f = issue.get("fields", {})
+    summary = f.get("summary", "")
+    desc_raw = f.get("description")
+    desc = ""
+    if isinstance(desc_raw, str):
+        desc = desc_raw[:500]
+    elif isinstance(desc_raw, dict):
+        from jira_cache.cache import extract_adf_text
+        desc = (extract_adf_text(desc_raw) or "")[:500]
+    return f"{summary} {desc}".strip()[:500]
 
 TOOLS = [
     Tool(
@@ -198,7 +233,8 @@ TOOLS = [
             "properties": {
                 "issue_key": {"type": "string", "description": "Invalidate a specific issue"},
                 "sprint_id": {"type": "integer", "description": "Invalidate all issues in a sprint"},
-                "all": {"type": "boolean", "description": "Clear entire cache", "default": False},
+                "all": {"type": "boolean", "description": "Clear entire cache (requires confirm=true)", "default": False},
+                "confirm": {"type": "boolean", "description": "Safety guard: must be true when using all=true", "default": False},
                 "auto_refresh": {"type": "boolean", "description": "After invalidating, immediately re-fetch from upstream and cache the result (default: false). Reduces 2 MCP calls to 1.", "default": False},
             },
         },
@@ -368,7 +404,10 @@ def _timed_upstream(label: str, func, *args, **kwargs):
 
 async def handle_cache_get_issue(args: dict) -> str:
     """Get issue: cache-first with upstream fallback + stale fallback."""
-    issue_key = args["issue_key"]
+    try:
+        issue_key = _validate_issue_key(args["issue_key"])
+    except ValueError as e:
+        return json.dumps({"error": str(e)})
     fields = args.get("fields", "summary,status,assignee,issuetype,priority,labels,parent,description")
     max_age_raw = args.get("max_age_hours")
     max_age = max_age_raw if max_age_raw is not None else cache.get_adaptive_ttl(issue_key)
@@ -397,9 +436,7 @@ async def handle_cache_get_issue(args: dict) -> str:
         issue = _timed_upstream(f"get_issue({issue_key})", jira_api.get_issue, issue_key, fields=fields)
         cache.put_issue(issue_key, issue)
         if embeddings and embeddings.available:
-            f = issue.get("fields", {})
-            text = f"{f.get('summary', '')} {f.get('description', '') if isinstance(f.get('description'), str) else ''}"
-            embeddings.store_embedding(issue_key, text[:500])
+            embeddings.store_embedding(issue_key, _embedding_text(issue))
         issue_data = _compact_issue(issue) if compact else issue
         return json.dumps({"source": "upstream", "issue": issue_data}, ensure_ascii=False)
     except Exception as e:
@@ -437,9 +474,7 @@ async def handle_cache_get_issues(args: dict) -> str:
                 issue = _timed_upstream(f"get_issue({key})", jira_api.get_issue, key, fields=fields)
                 cache.put_issue(key, issue)
                 if embeddings and embeddings.available:
-                    f = issue.get("fields", {})
-                    text = f"{f.get('summary', '')}"[:500]
-                    embeddings.store_embedding(key, text)
+                    embeddings.store_embedding(key, _embedding_text(issue))
                 upstream_issues.append(issue)
             except Exception as e:
                 logger.error("Failed to fetch %s: %s", key, e)
@@ -576,7 +611,6 @@ async def handle_cache_text_search(args: dict) -> str:
         "source": "fts5",
         "count": len(results),
         "issues": summaries,
-        "data": results,
     }, ensure_ascii=False)
 
 
@@ -624,9 +658,7 @@ async def handle_cache_refresh(args: dict) -> str:
             issue = _timed_upstream(f"refresh({key})", jira_api.get_issue, key)
             cache.put_issue(key, issue)
             if embeddings and embeddings.available:
-                f = issue.get("fields", {})
-                text = f"{f.get('summary', '')}"[:500]
-                embeddings.store_embedding(key, text)
+                embeddings.store_embedding(key, _embedding_text(issue))
             refreshed.append(key)
         except Exception as e:
             logger.error("Failed to refresh %s: %s", key, e)
@@ -673,6 +705,8 @@ async def handle_cache_invalidate(args: dict) -> str:
     auto_refresh = args.get("auto_refresh", False)
 
     if args.get("all"):
+        if not args.get("confirm"):
+            return json.dumps({"error": "Set confirm=true to invalidate entire cache"})
         cache.invalidate_all()
         return json.dumps({"invalidated": "all"})
 
@@ -691,14 +725,14 @@ async def handle_cache_invalidate(args: dict) -> str:
                 )
                 cache.put_issue(issue_key, issue)
                 if embeddings and embeddings.available:
-                    f = issue.get("fields", {})
-                    text = f"{f.get('summary', '')}"[:500]
-                    embeddings.store_embedding(issue_key, text)
+                    embeddings.store_embedding(issue_key, _embedding_text(issue))
+                # M9: strip_noise on auto_refresh response
+                clean_issue = strip_noise(issue)
                 return json.dumps({
                     "invalidated": issue_key,
                     "found": removed,
                     "auto_refreshed": True,
-                    "issue": issue,
+                    "issue": clean_issue,
                 })
             except Exception as e:
                 logger.error("Auto-refresh failed for %s: %s", issue_key, e)
