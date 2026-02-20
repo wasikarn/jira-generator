@@ -27,8 +27,9 @@ flowchart TD
     AGG_SS --> E_BUILT
     E_BUILT --> POL_PUSH
     POL_PUSH --> C_PUSH
-    C_PUSH --> EXT_PUSHER
+    C_PUSH e1@--> EXT_PUSHER
     EXT_PUSHER --> E_PUSHED
+    e1@{ animation: slow }
 
     %% Events - Orange
     style E_CALCULATED fill:#FF8C00,stroke:#CC7000,color:#fff

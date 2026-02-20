@@ -17,8 +17,9 @@ flowchart TD
 
     A_ADMIN --> C_TRIGGER
     C_TRIGGER --> E_P0
-    E_P0 --> EXT_PUSHER
+    E_P0 e1@--> EXT_PUSHER
     EXT_PUSHER --> E_RECEIVED
+    e1@{ animation: fast }
     E_RECEIVED --> POL_IC
     POL_IC --> E_INTERRUPTED
     E_INTERRUPTED --> C_PLAY

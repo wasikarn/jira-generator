@@ -203,6 +203,74 @@ A["Line 1\nLine 2"]
 
 ---
 
+## Edge Animation
+
+> **Confirmed working** on Confluence Forge Mermaid plugin v11.12.2 (tested Feb 21, 2026).
+> Requires Mermaid 11.x+ (PR [#6136](https://github.com/mermaid-js/mermaid/pull/6136), merged Jan 2025).
+
+### Edge IDs
+
+Assign an ID to an edge by prefixing with `id@`:
+
+```mermaid
+flowchart LR
+    A e1@--> B
+    B e2@==> C
+```
+
+### animate: true (basic)
+
+```mermaid
+flowchart LR
+    A e1@--> B
+    e1@{ animate: true }
+```
+
+### Animation Speed
+
+```mermaid
+flowchart LR
+    A e1@--> B e2@--> C
+    e1@{ animation: fast }
+    e2@{ animation: slow }
+```
+
+### classDef Custom CSS
+
+```mermaid
+flowchart LR
+    A e1@==> B
+    classDef animateEdge stroke-dasharray: 9\,5,stroke-dashoffset: 900,animation: dash 25s linear infinite;
+    class e1 animateEdge
+```
+
+> **Escape commas:** Use `\,` in style values — Mermaid uses `,` as delimiter between styles.
+
+### Mixed (animated + static)
+
+Only edges with IDs + animate metadata will animate. Others remain static:
+
+```mermaid
+flowchart TD
+    A --> B
+    B e1@--> C
+    C --> D
+    e1@{ animation: fast }
+```
+
+### Use Cases
+
+| Pattern | When to Animate |
+| --- | --- |
+| Data flow | Show direction of data movement (Pusher events, API calls) |
+| Critical path | Highlight the hot path in a process flow |
+| Real-time events | Indicate live/streaming connections |
+| Before/After | Animate "new" edges, keep "old" static |
+
+**Test script:** `scripts/test-mermaid-animation.py` — creates test page on Confluence with 4 animation variants.
+
+---
+
 ## Styling
 
 ### Node Styles
@@ -253,6 +321,7 @@ Reference: `scripts/create-player-architecture-page.py`
 | Interactive features (click) | Not supported | Use static labels with links in surrounding text |
 | **Special chars in labels** | **ALL diagram types** | `×` `±` `:` (time format) cause Forge parse error. Use ASCII: `x` `+-` `-`. Confirmed on flowchart + gantt. `()` `_` also problematic in gantt task names |
 | **Gantt diagrams** | **Works (v11.12.2)** | Additionally avoid `()` `_` in task names |
+| **Edge animation** | **Works (v11.12.2)** | `e1@{ animate: true }`, `animation: fast/slow`, classDef CSS — all confirmed working |
 | Architecture diagrams | Untested | `architecture-beta` (v11.1.0+) — test before using |
 | Packet diagrams | Untested | `packet` (v11.0.0+) — test before using |
 

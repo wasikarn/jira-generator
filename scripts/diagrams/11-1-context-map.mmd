@@ -39,10 +39,10 @@ flowchart TD
         RC_HISTORY --> RC_IDEMP
     end
 
-    SC -->|"ScreenScheduleBuilt<br/>via Pusher"| PC
-    IC -->|"TakeoverStart/End<br/>via Pusher"| PC
-    PC -->|"PoPRecorded<br/>via Outbox flush"| RC
-    IC -->|"MakeGoodScheduled<br/>internal"| SC
+    SC e1@-->|"ScreenScheduleBuilt<br/>via Pusher"| PC
+    IC e2@-->|"TakeoverStart/End<br/>via Pusher"| PC
+    PC e3@-->|"PoPRecorded<br/>via Outbox flush"| RC
+    IC e4@-->|"MakeGoodScheduled<br/>internal"| SC
 
     %% Aggregate styles - Yellow
     style SC_PS fill:#FFD700,stroke:#CCB000,color:#333
@@ -64,4 +64,9 @@ flowchart TD
     style SC fill:#e8f4fd,stroke:#2196F3,stroke-width:3px
     style IC fill:#fde8e8,stroke:#f44336,stroke-width:3px
     style PC fill:#e8fde8,stroke:#4CAF50,stroke-width:3px
+    e1@{ animation: slow }
+    e2@{ animation: fast }
+    e3@{ animation: slow }
+    e4@{ animation: slow }
+
     style RC fill:#fdf8e8,stroke:#FF9800,stroke-width:3px

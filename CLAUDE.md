@@ -111,6 +111,7 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 | Prefer `/story-full` | `/search-issues` → `/story-full` → `/verify-issue` |
 | Mermaid diagram not rendering | Need BOTH: code block (`language=mermaid`) + Forge `ac:adf-extension`. Can create programmatically via `mermaid_diagram()` — see `scripts/create-player-architecture-page.py`. `guest-params > index` must count ALL code blocks on page |
 | Mermaid parse error on Confluence | Task names/labels must NOT contain `×` `±` `:` (time) `()` — use ASCII equivalents (`x`, `+-`, `-`, remove parens). Applies to ALL diagram types, not just Gantt |
+| Mermaid edge animation | Flowchart only. Syntax: `e1@-->` (edge ID) + `e1@{ animation: fast/slow }` (metadata). NOT supported on sequenceDiagram, stateDiagram, gantt. Confirmed working on Confluence Forge v11.12.2 |
 | Page font-size too large (16px) | Pages with Forge macros (Mermaid, etc.) always render at 16px. `content-appearance-published` controls width only, NOT font. Cannot force 13px compact mode on complex pages |
 | "Error loading the extension!" on panels | Confluence storage→ADF bug: `ac:structured-macro` for `success`/`error`/`warning`/`note` panels sometimes converts to `bodiedExtension` instead of native `panel` → fails to render. Fix: `_fix_page_panels()` in architecture script auto-fixes via v2 ADF API. Standalone: `fix_confluence_panels.py` |
 

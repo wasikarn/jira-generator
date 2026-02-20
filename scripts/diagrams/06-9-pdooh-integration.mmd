@@ -16,7 +16,8 @@ flowchart TD
     P1 --> P2 --> P3
     P3 -->|"YES"| P3Y
     P3 -->|"NO"| P3N
-    P3Y --> RTB --> WIN
+    P3Y e1@--> RTB --> WIN
+    e1@{ animation: slow }
     WIN -->|"creative"| P4
     WIN -->|"no fill"| P3N
     P3N --> P4 --> SEQ

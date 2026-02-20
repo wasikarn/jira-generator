@@ -8,7 +8,7 @@ flowchart TD
         PB --> Push["Pusher<br/>schedule-updated<br/>takeover-start/end<br/>p0-emergency"]
         TKB["⭐ TK Booking API<br/>overlap validation<br/>+ lead time check"]
     end
-    Push -->|"WebSocket"| INB
+    Push e1@-->|"WebSocket"| INB
     subgraph PL["MEDIA PLAYER (Tauri Desktop App)"]
         INB["⭐ Inbox Handler<br/>dedup + version check"]
         INB -->|"fetch"| CACHE["⭐ 3-Tier Cache<br/>LIVE / BUFFER / FALLBACK"]
@@ -21,8 +21,11 @@ flowchart TD
         API1["⭐ GET /v2/screen-schedule<br/>ordered spots + manifest"]
         API2["POST /v2/proof-of-play<br/>+ Idempotency Key<br/>+ interrupt fields"]
     end
-    INB -->|"GET"| API1
-    OUT -->|"flush 1 min"| API2
+    INB e2@-->|"GET"| API1
+    OUT e3@-->|"flush 1 min"| API2
+    e1@{ animation: slow }
+    e2@{ animation: slow }
+    e3@{ animation: slow }
     style BE fill:#f0f0f0,stroke:#666
     style PL fill:#f0f8ff,stroke:#004085
     style APILAYER fill:#f5f5f5,stroke:#999

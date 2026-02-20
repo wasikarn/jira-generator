@@ -7,8 +7,10 @@ flowchart TD
         T1 -->|"exhausted"| T2
         T2 -->|"expired"| T3
     end
-    BE>"Backend push"] -->|"schedule-updated"| T1
-    T3 -.->|"Reconnect"| BE
+    BE>"Backend push"] e1@-->|"schedule-updated"| T1
+    T3 e2@-.->|"Reconnect"| BE
+    e1@{ animation: slow }
+    e2@{ animation: slow }
     style LOCAL fill:#f8f9fa,stroke:#666
     style T1 fill:#d4edda,stroke:#28a745,stroke-width:2px
     style T2 fill:#fff3cd,stroke:#ffc107,stroke-width:2px

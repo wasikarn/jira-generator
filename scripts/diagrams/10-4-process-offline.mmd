@@ -34,8 +34,9 @@ flowchart TD
 
     E_RETURN --> POL_DEBOUNCE
     POL_DEBOUNCE --> C_SYNC
-    C_SYNC --> EXT_API
+    C_SYNC e1@--> EXT_API
     EXT_API --> AGG_CACHE2
+    e1@{ animation: slow }
     AGG_CACHE2 --> E_SYNCED
     E_SYNCED --> POL_RESUME
 

@@ -79,9 +79,12 @@ flowchart LR
         E_SYNCED --> E_UNPAIRED
     end
 
-    EXT_PUSHER -.-> E_RECEIVED
-    POL_FLUSH -.-> EXT_API[("Backend<br/>API")]
-    POL_INTERRUPT -.-> E_RECEIVED
+    EXT_PUSHER e1@-.-> E_RECEIVED
+    POL_FLUSH e2@-.-> EXT_API[("Backend<br/>API")]
+    POL_INTERRUPT e3@-.-> E_RECEIVED
+    e1@{ animation: slow }
+    e2@{ animation: slow }
+    e3@{ animation: slow }
 
     %% Domain Events - Orange
     style E_CALCULATED fill:#FF8C00,stroke:#CC7000,color:#fff

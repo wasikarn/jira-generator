@@ -22,7 +22,7 @@ flowchart LR
         direction TB
         NEXT["Resume NEXT item<br/>in schedule sequence<br/>(skip interrupted item)"]
     end
-    CHK -->|"YES"| STOP
+    CHK e1@-->|"YES"| STOP
     CHK -->|"NO"| MON
     MG --> P0
     MG --> TK
@@ -30,7 +30,9 @@ flowchart LR
     P0 --> NEXT
     TK -->|"TK_END"| NEXT
     ET --> NEXT
-    NEXT --> MON
+    NEXT e2@--> MON
+    e1@{ animation: fast }
+    e2@{ animation: slow }
     style MONITOR fill:#f0f8ff,stroke:#004085
     style INTERRUPT fill:#f8d7da,stroke:#dc3545
     style PLAY fill:#ffd700,stroke:#333

@@ -20,7 +20,7 @@ flowchart TD
     E_RECEIVED --> POL_DEDUP
     POL_DEDUP -->|"new"| C_FETCH
     POL_DEDUP -->|"duplicate"| SKIP["SKIP"]
-    C_FETCH --> EXT_API
+    C_FETCH e1@--> EXT_API
     EXT_API --> AGG_CACHE
     AGG_CACHE --> E_CACHED
     RM_SCHEDULE -.-> POL_PLAY
@@ -32,7 +32,7 @@ flowchart TD
     AGG_OUTBOX --> E_POP
     E_POP --> POL_FLUSH
     POL_FLUSH --> C_FLUSH
-    C_FLUSH --> EXT_API2
+    C_FLUSH e2@--> EXT_API2
     EXT_API2 --> E_ACKED
 
     %% Events - Orange
@@ -65,6 +65,9 @@ flowchart TD
     %% External - Pink
     style EXT_API fill:#FFB6C1,stroke:#CC929A,color:#333
     style EXT_API2 fill:#FFB6C1,stroke:#CC929A,color:#333
+
+    e1@{ animation: slow }
+    e2@{ animation: slow }
 
     %% Skip
     style SKIP fill:#eee,stroke:#999,color:#666

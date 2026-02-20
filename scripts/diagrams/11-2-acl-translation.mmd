@@ -27,12 +27,16 @@ flowchart LR
         N5["Dumb Renderer"]
     end
 
-    O1 --> T1 --> N1
-    O2 --> T2 --> N2
+    O1 e1@--> T1 --> N1
+    O2 e2@--> T2 --> N2
     O3 --> T2
     O4 --> T3 --> N3
-    O5 --> T4 --> N4
-    O6 --> T5 --> N5
+    O5 e3@--> T4 --> N4
+    O6 e4@--> T5 --> N5
+    e1@{ animation: slow }
+    e2@{ animation: slow }
+    e3@{ animation: slow }
+    e4@{ animation: slow }
 
     %% Old - faded
     style O1 fill:#ddd,stroke:#999,color:#555

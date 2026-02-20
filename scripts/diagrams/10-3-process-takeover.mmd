@@ -27,7 +27,7 @@ flowchart TD
     AGG_TK --> E_APPROVED
     E_APPROVED --> POL_NOTIFY
     POL_NOTIFY --> EXT_PUSHER
-    EXT_PUSHER --> E_TK_START
+    EXT_PUSHER e1@--> E_TK_START
     E_TK_START --> POL_IC
     POL_IC --> E_INTERRUPTED
     E_INTERRUPTED --> C_PLAY_TK
@@ -35,7 +35,9 @@ flowchart TD
     E_TK_PLAYED --> POL_RESUME
     POL_RESUME --> E_RESUMED
 
-    E_INTERRUPTED --> POL_MG
+    E_INTERRUPTED e2@--> POL_MG
+    e1@{ animation: slow }
+    e2@{ animation: fast }
     POL_MG --> AGG_MG
     AGG_MG --> E_MG
     E_MG --> POL_NEXT

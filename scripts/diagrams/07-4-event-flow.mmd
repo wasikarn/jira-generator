@@ -12,8 +12,10 @@ flowchart TD
         CACHE --> SM["State Machine"]
         OUT["PoP Outbox"]
     end
-    PUSH -->|"WebSocket<br/>(typed)"| INB
-    OUT -->|"flush 1 min<br/>+ Idempotency Key"| PH
+    PUSH e1@-->|"WebSocket<br/>(typed)"| INB
+    OUT e2@-->|"flush 1 min<br/>+ Idempotency Key"| PH
+    e1@{ animation: slow }
+    e2@{ animation: slow }
     style BE fill:#f0f0f0,stroke:#666
     style PL fill:#f0f8ff,stroke:#004085
     style PB fill:#ffd700,stroke:#333

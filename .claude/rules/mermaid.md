@@ -10,3 +10,9 @@ When creating or editing Mermaid diagrams, read the relevant official docs BEFOR
 - **Gantt**: `agent_docs/mermaid/gantt.md` — tasks, sections, milestones, excludes, compact mode, date formats
 
 Project-specific patterns and Confluence constraints: `.claude/skills/shared-references/mermaid-guide.md`
+
+### Edge Animation (Flowchart only)
+
+Syntax: `e1@-->` assigns edge ID, `e1@{ animation: fast/slow }` sets speed. Only works on flowchart edges — NOT on sequenceDiagram, stateDiagram, or gantt. Confirmed working on Confluence Forge plugin v11.12.2.
+
+Convention: `slow` for cross-system edges (Pusher, API calls), `fast` for interrupt/critical paths. See `mermaid-guide.md` → "Edge Animation" section for full docs.
