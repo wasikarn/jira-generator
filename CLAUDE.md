@@ -80,6 +80,7 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 | Confluence | MCP (read/simple), Python scripts (code/macros) | `audit_confluence_pages.py` (audit) |
 | Mermaid diagram | Code block (`language=mermaid`) + Forge `ac:adf-extension` | Insert `/mermaid` in editor first, then update code block via script |
 | Explore | Task(Explore) | Always before creating subtasks |
+| Parent (Epic) | `jira_set_parent.py` (REST) | MCP/acli silently ignore parent field on existing issues |
 | Issue Links | MCP `jira_create_issue_link` | Blocks/Relates · `jira_create_remote_issue_link` (web) |
 | Sprint | Agile REST via `JiraAPI._request()` | MCP can't move to backlog |
 | Sprint batch | `scripts/` utilities | `clear-sprint-dates`, `sprint-set-fields`, `sprint-rank-by-date`, `sprint-subtask-alignment` |
@@ -100,6 +101,7 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 | Category | Quick Fix |
 | --- | --- |
 | Subtask parent → error | `additional_fields={"parent": {"key": "{{PROJECT_KEY}}-XXX"}}` |
+| Set parent on existing issue | MCP/acli silently fail → use `jira_set_parent.py --issues KEY --parent EPIC` |
 | `fields` param → error | Use `additional_fields` not `fields` |
 | `project_key_or_id` → error | Use `project_key` |
 | `limit > 50` → error | Max 50, use pagination `start_at` |

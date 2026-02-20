@@ -39,7 +39,8 @@ atlassian-scripts/
     ├── validate_adf.py          # Script 8: ADF validator (HR1)
     ├── verify_write.py          # Script 9: Post-write verifier (HR3/HR5/HR6)
     ├── jira_write.py            # Script 10: Write wrapper (HR1/HR3/HR5/HR6)
-    └── workflow_checkpoint.py   # Script 11: Workflow state CLI
+    ├── workflow_checkpoint.py   # Script 11: Workflow state CLI
+    └── jira_set_parent.py       # Script 12: Set parent (Epic) via REST
 ```
 
 ### Module Responsibilities (SRP)
@@ -71,6 +72,7 @@ atlassian-scripts/
 | `verify_write.py` | Verify Jira writes took effect (HR3/HR5/HR6) | After creating subtasks, assigning |
 | `jira_write.py` | Write wrapper: validate → create → verify → assign | Create subtask, update description |
 | `workflow_checkpoint.py` | Track workflow phases + prerequisite enforcement | Multi-step skill workflows |
+| `jira_set_parent.py` | Set/remove parent (Epic) on existing issues | MCP/acli silently fail on parent field |
 
 ---
 
@@ -124,6 +126,9 @@ What do you need to do?
     ├─ Create subtask (full pipeline)
     │     └─ jira_write.py create-subtask --parent BEP-1200 --adf tasks/sub.json
     │
+    ├─ Set parent (Epic) on existing issues
+    │     └─ jira_set_parent.py --issues BEP-3331,BEP-3332 --parent BEP-3197
+    │
     └─ Track workflow state
           └─ workflow_checkpoint.py start story-full BEP-1200
 ```
@@ -150,6 +155,7 @@ What do you need to do?
 | Fix broken code blocks | **Script** `fix_confluence_code_blocks.py` | Post-step after MCP create/update |
 | Issue linking (Blocks/Relates) | MCP `jira_create_issue_link` | Bidirectional links between issues |
 | Web links (Figma/Confluence) | MCP `jira_create_remote_issue_link` | Add external links to issue Links section |
+| Set parent (Epic) on existing issues | **Script** `jira_set_parent.py` | MCP/acli silently ignore parent field |
 | Move issues to backlog / sprint mgmt | **Script** via `JiraAPI._request()` | MCP not supported — use Agile REST API + **numeric IDs** |
 
 > **⚠️ Known Issue (Code Blocks):** MCP `confluence_create_page` / `confluence_update_page` with `content_format: 'markdown'`
