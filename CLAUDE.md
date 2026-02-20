@@ -119,7 +119,8 @@ Key shared references (loaded by skills on demand):
 - Tools: @.claude/skills/shared-references/tools.md
 - Troubleshooting: @.claude/skills/shared-references/troubleshooting.md
 
-Other refs: `.claude/skills/shared-references/CLAUDE.md` (full index of 19 docs) | **Scripts:** `atlassian-scripts/SKILL.md` | **Tresor:** `~/.claude/subagents/` (133 agents)
+Other refs: `.claude/skills/shared-references/CLAUDE.md` (full index of 20 docs) | **Scripts:** `atlassian-scripts/SKILL.md` | **Tresor:** `~/.claude/subagents/` (133 agents)
+- Mermaid diagrams: @.claude/skills/shared-references/mermaid-guide.md
 
 ## Core Principles
 

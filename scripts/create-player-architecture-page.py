@@ -282,12 +282,12 @@ def build_content(page_id: str = "165019751") -> str:
 
     sections.append(mermaid_diagram(
         "flowchart TD\n"
-        "    A[\"Cron (every 10 min)\"] --> B[\"PlayScheduleCalculate\\njob (BullMQ)\"]\n"
-        "    B --> C[\"PlayScheduleCalculatePerScreen\\n(per billboard)\"]\n"
-        "    C --> D[\"PlayScheduleFrequencyService\\n(owner ads)\"]\n"
-        "    C --> E[\"PlaySchedulePeriodService\\n(paid customer ads)\"]\n"
+        "    A[\"Cron (every 10 min)\"] --> B[\"PlayScheduleCalculate<br/>job (BullMQ)\"]\n"
+        "    B --> C[\"PlayScheduleCalculatePerScreen<br/>(per billboard)\"]\n"
+        "    C --> D[\"PlayScheduleFrequencyService<br/>(owner ads)\"]\n"
+        "    C --> E[\"PlaySchedulePeriodService<br/>(paid customer ads)\"]\n"
         "    D & E --> F[\"Create PlaySchedule rows in DB\"]\n"
-        "    F --> G[\"Pusher 'update-play-schedule'\\n→ Player\"]",
+        "    F --> G[\"Pusher 'update-play-schedule'<br/>→ Player\"]",
         page_id=page_id,
     ))
 
@@ -369,23 +369,26 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append(mermaid_diagram(
         "flowchart TD\n"
         "    subgraph BE[\"BACKEND (AdonisJS + BullMQ + Redis)\"]\n"
-        "        Cron[\"Cron Job\\n(BullMQ) every 10m\"] --> Calc[\"PlayScheduleCalculate\\nNO CHANGE\"]\n"
-        "        Calc --> Per[\"PerScreen calc\\nNO CHANGE\"]\n"
-        "        Per -->|\"PlaySchedule rows\"| PB[\"⭐ PlaylistBuilder Service\\nNEW\\n1. Sort paid\\n2. Interleave owner\\n3. Insert exclusives\\n4. Assign sequence_no\\n5. Version++\"]\n"
-        "        PB --> DB[(\"PostgreSQL NO CHANGE\\nPlaySchedule / Billboard\\nAdvertisement\")]\n"
-        "        PB --> DPL[(\"⭐ DevicePlaylist NEW\\nDevicePlaylistItem\")]\n"
-        "        PB --> Push[\"Pusher +evt\\nplaylist-updated\"]\n"
-        "        API1[\"⭐ GET /v2/device-playlist NEW\\ntier=live, since_version=N\\nordered items + manifest\"]\n"
-        "        API2[\"POST /v2/play-history ENHANCED\\nX-Idempotency-Key\\nRedis dedup\"]\n"
+        "        Cron[\"Cron Job<br/>(BullMQ) every 10m\"] --> Calc[\"PlayScheduleCalculate<br/>NO CHANGE\"]\n"
+        "        Calc --> Per[\"PerScreen calc<br/>NO CHANGE\"]\n"
+        "        Per -->|\"PlaySchedule rows\"| PB[\"⭐ PlaylistBuilder Service<br/>NEW<br/>1. Sort paid<br/>2. Interleave owner<br/>3. Insert exclusives<br/>4. Assign sequence_no<br/>5. Version++\"]\n"
+        "        PB --> DB[(\"PostgreSQL NO CHANGE<br/>PlaySchedule / Billboard<br/>Advertisement\")]\n"
+        "        PB --> DPL[(\"⭐ DevicePlaylist NEW<br/>DevicePlaylistItem\")]\n"
+        "        PB --> Push[\"Pusher +evt<br/>playlist-updated\"]\n"
         "    end\n"
+        "    Push -->|\"WebSocket\"| INB\n"
         "    subgraph PL[\"PLAYER (Tauri Desktop App)\"]\n"
-        "        Push -->|\"WebSocket\"| INB[\"⭐ Inbox Handler NEW\\nevent_id dedup\\nversion gap check\"]\n"
-        "        INB -->|\"fetch playlist\"| CACHE[\"⭐ 3-Tier Local Cache NEW\\nTier 1: LIVE (current round)\\nTier 2: BUFFER (next 2-4h)\\nTier 3: FALLBACK (owner ads)\"]\n"
-        "        CACHE --> SM[\"⭐ State Machine NEW\\nBOOT → CACHED → SYNC\\n→ ONLINE → OFFLINE → FALLBACK\"]\n"
-        "        SM --> REN[\"Dumb Renderer\\nplay sequence[i++]\\nSIMPLIFIED from 3,500+ lines\"]\n"
-        "        OUT[\"⭐ Outbox Store NEW\\n(Tauri Store)\\npending → sent → ack\"]\n"
+        "        INB[\"⭐ Inbox Handler NEW<br/>event_id dedup<br/>version gap check\"]\n"
+        "        INB -->|\"fetch playlist\"| CACHE[\"⭐ 3-Tier Local Cache NEW<br/>Tier 1: LIVE (current round)<br/>Tier 2: BUFFER (next 2-4h)<br/>Tier 3: FALLBACK (owner ads)\"]\n"
+        "        CACHE --> SM[\"⭐ State Machine NEW<br/>BOOT → CACHED → SYNC<br/>→ ONLINE → OFFLINE → FALLBACK\"]\n"
+        "        SM --> REN[\"Dumb Renderer<br/>play sequence[i++]<br/>SIMPLIFIED from 3,500+ lines\"]\n"
+        "        OUT[\"⭐ Outbox Store NEW<br/>(Tauri Store)<br/>pending → sent → ack\"]\n"
         "    end\n"
-        "    PL -->|\"GET\"| API1\n"
+        "    subgraph APILAYER[\"API Endpoints\"]\n"
+        "        API1[\"⭐ GET /v2/device-playlist NEW<br/>tier=live, since_version=N<br/>ordered items + manifest\"]\n"
+        "        API2[\"POST /v2/play-history ENHANCED<br/>X-Idempotency-Key<br/>Redis dedup\"]\n"
+        "    end\n"
+        "    INB -->|\"GET\"| API1\n"
         "    OUT -->|\"flush every 1 min\"| API2\n"
         "    style PB fill:#ffd700,stroke:#333\n"
         "    style DPL fill:#ffd700,stroke:#333\n"
@@ -566,9 +569,9 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append(mermaid_diagram(
         "flowchart TD\n"
         "    subgraph LOCAL[\"Player Local Storage\"]\n"
-        "        T1[\"🟢 Tier 1: LIVE\\n(current round, ordered by backend)\\n① ② ③ ④ ⑤ ⑥\"]\n"
-        "        T2[\"🟡 Tier 2: BUFFER\\n(next 2-4 hours, pre-fetched)\\nPre-generated playlist + media\"]\n"
-        "        T3[\"🔴 Tier 3: FALLBACK\\n(owner ads, always cached)\\nLoop forever\"]\n"
+        "        T1[\"🟢 Tier 1: LIVE<br/>(current round, ordered by backend)<br/>① ② ③ ④ ⑤ ⑥\"]\n"
+        "        T2[\"🟡 Tier 2: BUFFER<br/>(next 2-4 hours, pre-fetched)<br/>Pre-generated playlist + media\"]\n"
+        "        T3[\"🔴 Tier 3: FALLBACK<br/>(owner ads, always cached)<br/>Loop forever\"]\n"
         "        T1 -->|exhausted| T2\n"
         "        T2 -->|expired| T3\n"
         "    end\n"
@@ -712,13 +715,13 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append("<h3>4.1 Player Outbox (Play History)</h3>")
     sections.append(mermaid_diagram(
         "flowchart TD\n"
-        "    EV[\"Event occurs\\n(ad played)\"] --> OB[\"Outbox Store\\n(Tauri Store)\"]\n"
-        "    OB -.->|\"Format\"| FMT[\"id: uuid\\ntype, payload\\nstatus: pending/sent/acked\\nretry: 0, created_at\"]\n"
-        "    OB -->|\"Flush ทุก 1 นาที\"| API[\"POST /v2/play-history\\nX-Idempotency-Key: uuid\"]\n"
-        "    API -->|\"200 OK + ack_id\"| ACK[\"Mark status = acked\\nCleanup acked items >24h\"]\n"
-        "    API -->|\"timeout/error\"| RETRY[\"Keep pending\\nretry_count++\"]\n"
+        "    EV[\"Event occurs<br/>(ad played)\"] --> OB[\"Outbox Store<br/>(Tauri Store)\"]\n"
+        "    OB -.->|\"Format\"| FMT[\"id: uuid<br/>type, payload<br/>status: pending/sent/acked<br/>retry: 0, created_at\"]\n"
+        "    OB -->|\"Flush ทุก 1 นาที\"| API[\"POST /v2/play-history<br/>X-Idempotency-Key: uuid\"]\n"
+        "    API -->|\"200 OK + ack_id\"| ACK[\"Mark status = acked<br/>Cleanup acked items >24h\"]\n"
+        "    API -->|\"timeout/error\"| RETRY[\"Keep pending<br/>retry_count++\"]\n"
         "    RETRY -->|\"retry < 10\"| OB\n"
-        "    RETRY -->|\"retry >= 10\"| FAIL[\"Mark failed\\nLog diagnostic\"]",
+        "    RETRY -->|\"retry >= 10\"| FAIL[\"Mark failed<br/>Log diagnostic\"]",
         page_id=page_id,
     ))
 
@@ -768,11 +771,11 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append("<h3>4.3 Player Inbox (Schedule Commands)</h3>")
     sections.append(mermaid_diagram(
         "flowchart TD\n"
-        "    EV[\"Pusher event arrives\\n{event_id, version, ...}\"] --> CHK{\"Check:\\nevent_id already in inbox?\\nversion ≤ local?\"}\n"
-        "    CHK -->|\"YES\"| SKIP[\"SKIP\\n(duplicate)\"]\n"
-        "    CHK -->|\"NO\"| PROC[\"PROCESS\\nfetch new playlist\\nupdate local cache\\nstore event_id (last 100)\"]\n"
-        "    REC[\"On reconnect\"] --> FETCH[\"GET /v2/device-playlist\\n?since_version=local_ver\"]\n"
-        "    FETCH --> DELTA[\"Delta or full playlist\\n(if gap too large)\"]",
+        "    EV[\"Pusher event arrives<br/>{event_id, version, ...}\"] --> CHK{\"Check:<br/>event_id already in inbox?<br/>version ≤ local?\"}\n"
+        "    CHK -->|\"YES\"| SKIP[\"SKIP<br/>(duplicate)\"]\n"
+        "    CHK -->|\"NO\"| PROC[\"PROCESS<br/>fetch new playlist<br/>update local cache<br/>store event_id (last 100)\"]\n"
+        "    REC[\"On reconnect\"] --> FETCH[\"GET /v2/device-playlist<br/>?since_version=local_ver\"]\n"
+        "    FETCH --> DELTA[\"Delta or full playlist<br/>(if gap too large)\"]",
         page_id=page_id,
     ))
 
@@ -831,31 +834,46 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append("<h2>5. Player State Machine</h2>")
     sections.append(mermaid_diagram(
         "stateDiagram-v2\n"
+        "    direction TB\n"
+        "\n"
         "    [*] --> BOOT\n"
+        "    BOOT : Check localStorage\n"
         "\n"
-        "    BOOT --> SPLASH : No localStorage\n"
         "    BOOT --> CACHED_PLAYBACK : Has localStorage\n"
-        "\n"
+        "    BOOT --> SPLASH : No localStorage\n"
         "    SPLASH --> SYNCING_FIRST : Connected\n"
-        "    SPLASH --> SPLASH : No internet (retry 5s)\n"
+        "    note right of SPLASH : No internet → retry every 5s\n"
         "\n"
-        "    CACHED_PLAYBACK --> OFFLINE_PLAYBACK : Not online\n"
+        "    CACHED_PLAYBACK : ▶ Play from cache\n"
         "    CACHED_PLAYBACK --> SYNCING_DELTA : Online\n"
+        "    CACHED_PLAYBACK --> OFFLINE_PLAYBACK : Not online\n"
         "\n"
+        "    SYNCING_FIRST : Fetch full playlist\n"
+        "    SYNCING_DELTA : Fetch delta since last version\n"
         "    SYNCING_FIRST --> ONLINE_PLAYBACK : Playlist fetched\n"
         "    SYNCING_DELTA --> ONLINE_PLAYBACK : Delta applied\n"
         "\n"
-        "    ONLINE_PLAYBACK --> OFFLINE_PLAYBACK : Network drop\n"
+        "    state Playback {\n"
+        "        direction TB\n"
+        "        ONLINE_PLAYBACK --> OFFLINE_PLAYBACK : Network drop\n"
+        "        OFFLINE_PLAYBACK --> ONLINE_PLAYBACK : Reconnect\n"
+        "        OFFLINE_PLAYBACK --> FALLBACK : Tier 1+2 exhausted\n"
+        "        FALLBACK --> ONLINE_PLAYBACK : Reconnect\n"
+        "        FALLBACK --> SPLASH_LAST : Tier 3 empty\n"
         "\n"
-        "    OFFLINE_PLAYBACK --> ONLINE_PLAYBACK : Reconnect + sync\n"
-        "    OFFLINE_PLAYBACK --> FALLBACK : Tier 1+2 exhausted\n"
+        "        OFFLINE_PLAYBACK : ▶ Tier 1 → 2 → 3\n"
+        "        SPLASH_LAST : ▶ Logo + contact admin\n"
+        "    }\n"
         "\n"
-        "    FALLBACK --> ONLINE_PLAYBACK : Reconnect + sync\n"
-        "    FALLBACK --> SPLASH_LAST : Tier 3 empty\n"
+        "    SPLASH_LAST --> [*]\n"
         "\n"
-        "    note right of CACHED_PLAYBACK : Play from cache immediately\n"
-        "    note right of OFFLINE_PLAYBACK : Tier 1 then 2 then 3\n"
-        "    note right of SPLASH_LAST : Logo + contact admin",
+        "    classDef green fill:#d4edda,stroke:#28a745,stroke-width:2px\n"
+        "    classDef yellow fill:#fff3cd,stroke:#ffc107,stroke-width:2px\n"
+        "    classDef red fill:#f8d7da,stroke:#dc3545,stroke-width:2px\n"
+        "\n"
+        "    class ONLINE_PLAYBACK green\n"
+        "    class OFFLINE_PLAYBACK yellow\n"
+        "    class FALLBACK,SPLASH_LAST red",
         page_id=page_id,
     ))
 
@@ -1175,20 +1193,20 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append(mermaid_diagram(
         "flowchart TD\n"
         "    subgraph BE[\"BACKEND (AdonisJS)\"]\n"
-        "        CRON[\"Cron\\n(BullMQ)\"] --> CALC[\"PlayScheduleCalc\\nPerScreen (BullMQ)\"]\n"
-        "        CALC -->|\"PlayScheduleCalculated\\n(domain event)\"| PB[\"PlaylistBuilder\\nService\"]\n"
-        "        PB --> DB[\"DB Write\\n(PG)\"]\n"
-        "        PB -->|\"DevicePlaylistBuilt\\n(domain event)\"| PUSH[\"Pusher Push\\n(typed event)\"]\n"
-        "        PH[\"Play History Endpoint\\n+ Idempotency Check (Redis)\\nPlayHistoryReceived event\"]\n"
+        "        CRON[\"Cron<br/>(BullMQ)\"] --> CALC[\"PlayScheduleCalc<br/>PerScreen (BullMQ)\"]\n"
+        "        CALC -->|\"PlayScheduleCalculated<br/>(domain event)\"| PB[\"PlaylistBuilder<br/>Service\"]\n"
+        "        PB --> DB[\"DB Write<br/>(PG)\"]\n"
+        "        PB -->|\"DevicePlaylistBuilt<br/>(domain event)\"| PUSH[\"Pusher Push<br/>(typed event)\"]\n"
+        "        PH[\"Play History Endpoint<br/>+ Idempotency Check (Redis)<br/>PlayHistoryReceived event\"]\n"
         "    end\n"
         "    subgraph PL[\"PLAYER (Tauri)\"]\n"
-        "        INB[\"Inbox Handler\\n+ event_id dedup\\n+ version check\"] --> FETCH[\"GET /v2/\\ndevice-playlist\"]\n"
-        "        FETCH --> CACHE[\"3-Tier Cache\\n(local)\"]\n"
-        "        CACHE --> SM[\"State Machine\\nBOOT→SYNC→PLAY\\n→OFFLINE→FALL\"]\n"
-        "        OUT[\"Outbox Store\\n(Tauri Store)\\npending → sent → ack\"]\n"
+        "        INB[\"Inbox Handler<br/>+ event_id dedup<br/>+ version check\"] --> FETCH[\"GET /v2/<br/>device-playlist\"]\n"
+        "        FETCH --> CACHE[\"3-Tier Cache<br/>(local)\"]\n"
+        "        CACHE --> SM[\"State Machine<br/>BOOT→SYNC→PLAY<br/>→OFFLINE→FALL\"]\n"
+        "        OUT[\"Outbox Store<br/>(Tauri Store)<br/>pending → sent → ack\"]\n"
         "    end\n"
-        "    PUSH -->|\"Pusher WebSocket\\n(typed contract)\"| INB\n"
-        "    OUT -->|\"Outbox flush (1 min)\\n+ X-Idempotency-Key\"| PH",
+        "    PUSH -->|\"Pusher WebSocket<br/>(typed contract)\"| INB\n"
+        "    OUT -->|\"Outbox flush (1 min)<br/>+ X-Idempotency-Key\"| PH",
         page_id=page_id,
     ))
 
