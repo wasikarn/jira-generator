@@ -1,0 +1,10 @@
+flowchart TD
+    A["Cron (every 10 min)"] --> B["PlayScheduleCalculate<br/>job (BullMQ)"]
+    B --> C["PlayScheduleCalculatePerScreen<br/>(per billboard)"]
+    C --> D["PlayScheduleFrequencyService<br/>(owner ads)"]
+    C --> E["PlaySchedulePeriodService<br/>(paid customer ads)"]
+    D & E --> F[("Create PlaySchedule<br/>rows in DB")]
+    F --> G>"Pusher 'update-play-schedule'<br/>→ Player"]
+    style A fill:#cce5ff,stroke:#004085
+    style F fill:#d4edda,stroke:#28a745
+    style G fill:#fff3cd,stroke:#ffc107

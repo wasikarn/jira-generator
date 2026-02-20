@@ -1,0 +1,24 @@
+flowchart TD
+    subgraph BE["BACKEND (AdonisJS)"]
+        CRON["Cron<br/>(BullMQ)"] --> CALC["PlayScheduleCalc<br/>PerScreen"]
+        CALC -->|"PlayScheduleCalculated"| PB["PlaylistBuilder"]
+        PB --> DB[("PostgreSQL")]
+        PB -->|"DevicePlaylistBuilt"| PUSH["Pusher Push"]
+        PH["Play History<br/>+ Idempotency (Redis)"]
+    end
+    subgraph PL["PLAYER (Tauri)"]
+        INB["Inbox Handler<br/>dedup + version"] --> FETCH["GET /v2/<br/>device-playlist"]
+        FETCH --> CACHE["3-Tier Cache"]
+        CACHE --> SM["State Machine"]
+        OUT["Outbox Store"]
+    end
+    PUSH -->|"WebSocket<br/>(typed)"| INB
+    OUT -->|"flush 1 min<br/>+ Idempotency Key"| PH
+    style BE fill:#f0f0f0,stroke:#666
+    style PL fill:#f0f8ff,stroke:#004085
+    style PB fill:#ffd700,stroke:#333
+    style INB fill:#ffd700,stroke:#333
+    style CACHE fill:#ffd700,stroke:#333
+    style SM fill:#ffd700,stroke:#333
+    style OUT fill:#ffd700,stroke:#333
+    style PH fill:#cce5ff,stroke:#004085

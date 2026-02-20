@@ -1,0 +1,34 @@
+flowchart TD
+    subgraph BE["BACKEND (AdonisJS + BullMQ + Redis)"]
+        Cron["Cron Job<br/>(BullMQ) every 10m"] --> Calc["PlayScheduleCalculate<br/>NO CHANGE"]
+        Calc --> Per["PerScreen calc<br/>NO CHANGE"]
+        Per -->|"rows"| PB["⭐ PlaylistBuilder<br/>NEW<br/>Sort → Interleave →<br/>Exclusives → Sequence"]
+        PB --> DB[("PostgreSQL<br/>NO CHANGE")]
+        PB --> DPL[("⭐ DevicePlaylist<br/>NEW")]
+        PB --> Push["Pusher<br/>playlist-updated"]
+    end
+    Push -->|"WebSocket"| INB
+    subgraph PL["PLAYER (Tauri Desktop App)"]
+        INB["⭐ Inbox Handler<br/>dedup + version check"]
+        INB -->|"fetch"| CACHE["⭐ 3-Tier Cache<br/>LIVE / BUFFER / FALLBACK"]
+        CACHE --> SM["⭐ State Machine<br/>BOOT→SYNC→PLAY→OFFLINE"]
+        SM --> REN["Dumb Renderer<br/>play sequence[i++]"]
+        OUT["⭐ Outbox Store<br/>pending → sent → ack"]
+    end
+    subgraph APILAYER["API Endpoints"]
+        API1["⭐ GET /v2/device-playlist<br/>ordered items + manifest"]
+        API2["POST /v2/play-history<br/>+ Idempotency Key"]
+    end
+    INB -->|"GET"| API1
+    OUT -->|"flush 1 min"| API2
+    style BE fill:#f0f0f0,stroke:#666
+    style PL fill:#f0f8ff,stroke:#004085
+    style APILAYER fill:#f5f5f5,stroke:#999
+    style PB fill:#ffd700,stroke:#333
+    style DPL fill:#ffd700,stroke:#333
+    style INB fill:#ffd700,stroke:#333
+    style CACHE fill:#ffd700,stroke:#333
+    style SM fill:#ffd700,stroke:#333
+    style OUT fill:#ffd700,stroke:#333
+    style API1 fill:#ffd700,stroke:#333
+    style API2 fill:#cce5ff,stroke:#004085

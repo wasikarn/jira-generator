@@ -1,0 +1,16 @@
+flowchart TD
+    subgraph LOCAL["Player Local Storage"]
+        direction TB
+        T1["🟢 Tier 1: LIVE<br/>current round, ordered by backend<br/>① ② ③ ④ ⑤ ⑥"]
+        T2["🟡 Tier 2: BUFFER<br/>next 2-4 hours, pre-fetched<br/>playlist + media ready"]
+        T3["🔴 Tier 3: FALLBACK<br/>owner ads, always cached<br/>loop forever"]
+        T1 -->|"exhausted"| T2
+        T2 -->|"expired"| T3
+    end
+    BE>"Backend push"] -->|"playlist-updated"| T1
+    T3 -.->|"Reconnect"| BE
+    style LOCAL fill:#f8f9fa,stroke:#666
+    style T1 fill:#d4edda,stroke:#28a745,stroke-width:2px
+    style T2 fill:#fff3cd,stroke:#ffc107,stroke-width:2px
+    style T3 fill:#f8d7da,stroke:#dc3545,stroke-width:2px
+    style BE fill:#cce5ff,stroke:#004085

@@ -1,0 +1,27 @@
+flowchart LR
+    subgraph T1["Track 1: Schedule Ads — paid"]
+        direction TB
+        S1["Round-robin +<br/>exclusive interrupts"]
+        S2["SchedulePlayComponent"]
+        S3["TimeSlotComponent"]
+        S1 --> S2 --> S3
+    end
+    subgraph T2["Track 2: Playlist Ads — owner"]
+        direction TB
+        P1["Sequential playback<br/>(when no schedule ad)"]
+        P2["PlaylistComponent"]
+        P1 --> P2
+    end
+    subgraph DF["Data Flow"]
+        direction TB
+        D1["Pusher events<br/>→ re-fetch schedules"]
+        D2["Poll 10 min<br/>→ re-fetch playlists"]
+        D3[("localStorage<br/>schedules, playlists,<br/>retryQueue")]
+        D4["Tauri plugin<br/>→ download media"]
+        D1 & D2 --> D3
+    end
+    T1 ~~~ T2
+    T2 ~~~ DF
+    style T1 fill:#fff3cd,stroke:#ffc107
+    style T2 fill:#d4edda,stroke:#28a745
+    style DF fill:#cce5ff,stroke:#004085

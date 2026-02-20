@@ -1,0 +1,12 @@
+flowchart TD
+    EV["Pusher event arrives<br/>{event_id, version}"] --> CHK{"Duplicate?<br/>event_id seen?<br/>version ≤ local?"}
+    CHK -->|"YES"| SKIP["SKIP"]
+    CHK -->|"NO"| PROC["PROCESS<br/>fetch playlist<br/>update cache<br/>store event_id"]
+    REC["On reconnect"] --> FETCH["GET /v2/device-playlist<br/>?since_version=N"]
+    FETCH --> DELTA["Delta or full<br/>(if gap > 3)"]
+    style EV fill:#cce5ff,stroke:#004085
+    style CHK fill:#fff3cd,stroke:#ffc107
+    style SKIP fill:#f8d7da,stroke:#dc3545
+    style PROC fill:#d4edda,stroke:#28a745
+    style REC fill:#cce5ff,stroke:#004085
+    style DELTA fill:#d4edda,stroke:#28a745

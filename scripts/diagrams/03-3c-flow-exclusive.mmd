@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant AD as Admin
+    participant BE as Backend
+    participant PL as Player
+    AD->>BE: Approve exclusive ad
+    rect rgb(255, 247, 200)
+        BE->>BE: PlaylistBuilder: inject + version++
+        BE->>PL: approved-advertisement-exclusive
+        Note over PL: {version, ad_code,<br/>play_at, media_url, checksum}
+    end
+    Note over PL: 1. Download media<br/>2. Wait for play_at<br/>3. Pause current → Play exclusive<br/>4. Resume sequence
