@@ -290,10 +290,16 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append("<hr/>")
     sections.append("<h2>2. Problem Statement</h2>")
     sections.append(error_panel(
-        "<p><strong>Smart Player</strong></p>"
+        "<p><strong>Smart Player (Scheduling Complexity)</strong></p>"
         "<ul>"
         "<li>Player round-robin ads locally (SchedulePlay, TimeSlot, Playlist components)</li>"
-        "<li>Exclusive interrupt logic (preempt + resume <code>pausePlayData</code>)</li>"
+        "<li>Exclusive interrupt logic: <code>calculatePlaySchedules</code> polls every <strong>1 second</strong> via <code>useQuery</code>, "
+        "checks <code>dayjs().isBetween(start, end)</code> &mdash; ±2s timing precision</li>"
+        "<li><code>pausePlayData</code> is a <strong>single variable</strong> &mdash; nested exclusive interrupts lose the original paused ad "
+        "(SMIL standard uses a pause <em>queue/stack</em> for this)</li>"
+        "<li>Exclusive media missing &rarr; <strong>silent failure</strong>: interrupted ad stays paused indefinitely, no recovery</li>"
+        "<li>Multiple overlapping exclusives &rarr; <code>find()</code> picks first match, no priority logic between exclusives</li>"
+        "<li>2 separate paths create exclusive PlaySchedules (approval push + round injection) &mdash; duplicated logic</li>"
         "<li>Retry queue (max 3 attempts), frequency count tracking, operating hours gate</li>"
         "<li>Player complexity: <strong>3,500+ lines</strong> scheduling logic in <code>src/components/screen/device/schedule/</code></li>"
         "</ul>"
@@ -303,6 +309,7 @@ def build_content(page_id: str = "165019751") -> str:
         "<li>Play from <code>localStorage</code> cache (schedules + playlists)</li>"
         "<li>No graceful fallback: fresh boot + no internet = <strong>black screen</strong></li>"
         "<li>No checksum validation on downloaded media</li>"
+        "<li>Exclusive ad approved while offline &rarr; Pusher push lost, no buffer mechanism</li>"
         "</ul>"
     ))
 
@@ -328,6 +335,11 @@ def build_content(page_id: str = "165019751") -> str:
         '<tr><td>Player-pull mode</td><td><code>app/Jobs/PlayScheduleRoundCreate.ts</code></td><td>POST /v2/play-schedules/request {amount: N}</td></tr>'
         '<tr><td>Owner frequency</td><td><code>app/Services/PlayScheduleFrequencyService.ts</code></td><td>Owner ads rotation + random jitter</td></tr>'
         '<tr><td>Customer period</td><td><code>app/Services/PlaySchedulePeriodService.ts</code></td><td>Paid ads: PER_HOUR/PER_DAY/custom slots</td></tr>'
+        '<tr><td>Exclusive service</td><td><code>app/Services/v2/PlayScheduleExclusiveService.ts</code></td><td>Round-based: inject exclusive ads overlapping current round window</td></tr>'
+        '<tr><td>Exclusive job</td><td><code>app/Jobs/PlayScheduleCreateByExclusive.ts</code></td><td>On-demand: BullMQ job triggered on owner approval &rarr; create PlaySchedule + Pusher push</td></tr>'
+        '<tr><td>Exclusive model</td><td><code>app/Models/AdvertisementDisplayExclusive.ts</code></td><td>Time-slot reservation per billboard (startDateTime/endDateTime/timePerSlot)</td></tr>'
+        '<tr><td>Exclusive time window</td><td><code>app/Models/AdGroupDisplayTimeExclusive.ts</code></td><td>AdGroup-level exclusive window (start/end/duration) for round injection</td></tr>'
+        '<tr><td>Reservation check</td><td><code>app/Services/ServiceHelpers/checkIsBillboardsReserved.ts</code></td><td>Prevent double-booking: validate time overlap before creating exclusive slots</td></tr>'
         '<tr><td>Pusher service</td><td><code>app/Services/PusherPlayScheduleService.ts</code></td><td>Channel: play-schedule-{deviceCode}</td></tr>'
         '</table>'
     )
@@ -343,7 +355,10 @@ def build_content(page_id: str = "165019751") -> str:
         '<tr><th>Feature</th><th>Implementation</th><th>File</th></tr>'
         '<tr><td>Schedule types</td><td><code>exclusive</code> (time-block interrupt), <code>continuous</code> (date range), <code>frequency</code> (count)</td><td><code>src/constants/schedule.constant.ts</code></td></tr>'
         '<tr><td>Round-robin</td><td><code>(currentIndex + 1) % activeSchedules.length</code></td><td><code>screen.device.schedule.play.timeslot.component.tsx</code></td></tr>'
-        '<tr><td>Exclusive preempt</td><td>CalculatePlaySchedules query (1s interval) checks <code>isBetween(start, end)</code></td><td><code>screen.device.schedule.play.component.tsx</code></td></tr>'
+        '<tr><td>Exclusive preempt</td><td><code>calculatePlaySchedules</code> (1s <code>useQuery</code> interval): '
+        '<code>dayjs().isBetween(start, end)</code> &rarr; <code>setPausePlayData(current)</code> &rarr; play exclusive &rarr; '
+        'on finish: restore <code>pausePlayData</code>. Single variable = no nested interrupt support</td>'
+        '<td><code>screen.device.schedule.play.component.tsx</code></td></tr>'
         '<tr><td>Retry queue</td><td>Max 3 attempts, stored in localStorage</td><td><code>screen.device.schedule.play.timeslot.component.tsx</code></td></tr>'
         '<tr><td>Media download</td><td>Tauri <code>plugin-upload</code> (native HTTP), sequential</td><td><code>screen.device.schedule.setup.schedule-download.tsx</code></td></tr>'
         '<tr><td>File cleanup</td><td>Every 24h during off-hours, LRU-based</td><td><code>src/services/file-cleanup.service.ts</code></td></tr>'
@@ -428,6 +443,19 @@ def build_content(page_id: str = "165019751") -> str:
     ))
 
     sections.append("<h3>5.3 Flow C: Exclusive Ad Interrupt (Online)</h3>")
+    sections.append(warning_panel(
+        "<p><strong>Current system has 2 paths for exclusive ads:</strong></p>"
+        "<ul>"
+        "<li><strong>Path 1 (On approval):</strong> Owner approves &rarr; BullMQ <code>PlayScheduleCreateByExclusive</code> job &rarr; "
+        "creates PlaySchedule rows (type=EXCLUSIVE, createdBy=EXCLUSIVE_APPROVED) &rarr; "
+        "Pusher <code>approved-advertisement-exclusive</code> with full payload &rarr; Player injects immediately</li>"
+        "<li><strong>Path 2 (During round):</strong> <code>PlayScheduleExclusiveService</code> checks <code>AdGroupDisplayTimeExclusive</code> "
+        "overlapping current round window &rarr; creates PlaySchedule rows (createdBy=PLAYER_REQUEST)</li>"
+        "</ul>"
+        "<p><strong>Proposed simplification:</strong> PlaylistBuilder handles both paths &mdash; "
+        "exclusive ads are pre-injected into the ordered sequence at their exact <code>play_at</code> position. "
+        "Player no longer needs exclusive interrupt logic.</p>"
+    ))
     sections.append(mermaid_diagram(
         load_diagram("05-3-flow-exclusive.mmd"),
         page_id=page_id,
@@ -450,51 +478,60 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append(note_panel(
         "<p><strong>Key insight:</strong> PlaylistBuilder runs <em>after</em> existing PlayScheduleCalculatePerScreen. "
         "It takes the PlaySchedule rows (already calculated) and converts them into an <strong>ordered sequence</strong>.</p>"
+        "<p><strong>Exclusive ads:</strong> Currently handled by 2 separate paths "
+        "(<code>PlayScheduleCreateByExclusive</code> on approval + <code>PlayScheduleExclusiveService</code> during rounds). "
+        "PlaylistBuilder <strong>unifies both</strong> &mdash; exclusive ads are injected at their exact <code>play_at</code> "
+        "position in the sequence. Reservation check (<code>checkIsBillboardsReserved</code>) prevents double-booking. "
+        "Billing uses <code>exclusiveMultiplier</code> (env: <code>ADVERTISEMENT_EXCLUSIVE_MULTIPLIER</code>).</p>"
     ))
+    sections.append(
+        '<table>'
+        '<tr><th>Priority</th><th>Type</th><th>Scheduling</th><th>Billing</th></tr>'
+        '<tr><td><strong>P0</strong></td><td>Emergency</td><td>System alerts, unpair, maintenance</td><td>N/A</td></tr>'
+        '<tr><td><strong>P1</strong></td><td>Exclusive</td><td>Time-reserved guaranteed slots (<code>play_at</code> exact)</td><td><code>exclusiveMultiplier</code></td></tr>'
+        '<tr><td><strong>P2</strong></td><td>Continuous</td><td>Date-range paid ads</td><td>Standard rate</td></tr>'
+        '<tr><td><strong>P3</strong></td><td>Frequency</td><td>Count-based paid ads</td><td>Standard rate</td></tr>'
+        '<tr><td><strong>P4</strong></td><td>Owner (fallback)</td><td>Billboard owner default content</td><td>N/A</td></tr>'
+        '</table>'
+    )
+
     sections.append(tracked_code_block(
-        "// PlaylistBuilder Algorithm (simplified)\n\n"
+        "// PlaylistBuilder Algorithm v2 (Timeline-Based)\n"
+        "// Inspired by: SMIL <excl> + DOOH ad server patterns\n\n"
         "Input:\n"
-        "  - playSchedules[]: PlaySchedule rows from current round\n"
-        "    (already has: ad_code, media, duration, type, priority, time_slot)\n"
-        "  - ownerPlaylist[]: Owner's default ads from PlaylistAdvertisement\n"
-        "  - billboard: { ownerTime, platformTime }  // seconds per hour budget\n\n"
-        "Step 1: Separate by type\n"
-        "  exclusive[] = playSchedules.filter(s => s.type === 'exclusive')\n"
-        "  frequency[] = playSchedules.filter(s => s.type === 'frequency')\n"
-        "  continuous[] = playSchedules.filter(s => s.type === 'continuous')\n\n"
-        "Step 2: Calculate interleave ratio\n"
-        "  // Example: ownerTime=1800s, platformTime=1800s → 50/50\n"
+        "  - playSchedules[]: from PerScreen calc (frequency + continuous)\n"
+        "  - exclusiveSchedules[]: from AdGroupDisplayTimeExclusive (overlapping this round)\n"
+        "  - ownerPlaylist[]: from PlaylistAdvertisement\n"
+        "  - billboard: { ownerTime, platformTime }  // seconds/hour budget\n"
+        "  - roundDuration: 600  // seconds (10 min)\n\n"
+        "Step 1: Create timeline & reserve exclusive slots FIRST (P1 guaranteed)\n"
+        "  timeline = createTimeline(roundStart, roundDuration)  // 600s\n"
+        "  for (const ex of exclusiveSchedules.sortBy('startDateTime')) {\n"
+        "    // Validate: media exists? checksum OK? overlaps another exclusive?\n"
+        "    if (!ex.media?.file_url) { alertAdmin(ex); continue }  // skip, don't silent-fail\n"
+        "    timeline.reserve(ex.play_at, ex.duration, { priority: 'P1', ...ex })\n"
+        "  }\n\n"
+        "Step 2: Calculate interleave ratio for remaining slots\n"
         "  ownerRatio = billboard.ownerTime / (ownerTime + platformTime)\n"
-        "  // Every N paid ads, insert 1 owner ad\n"
         "  interleaveEvery = Math.round(1 / ownerRatio)\n\n"
-        "Step 3: Build ordered sequence\n"
-        "  sequence = []\n"
+        "Step 3: Fill unreserved slots with paid + owner ads\n"
+        "  availableSlots = timeline.getUnreservedSlots()\n"
+        "  paidAds = [...continuous, ...frequency]  // P2 before P3\n"
         "  ownerIndex = 0\n\n"
-        "  // 3a. Continuous ads first (they fill time blocks)\n"
-        "  for (const ad of continuous) {\n"
-        "    sequence.push({ ...ad, type: 'paid' })\n"
-        "    if (sequence.length % interleaveEvery === 0) {\n"
-        "      sequence.push(ownerPlaylist[ownerIndex++ % ownerPlaylist.length])\n"
+        "  for (const slot of availableSlots) {\n"
+        "    while (slot.hasCapacity() && paidAds.length > 0) {\n"
+        "      slot.push(paidAds.shift())  // paid ad\n"
+        "      if (slot.count % interleaveEvery === 0) {\n"
+        "        slot.push(ownerPlaylist[ownerIndex++ % ownerPlaylist.length])\n"
+        "      }\n"
         "    }\n"
         "  }\n\n"
-        "  // 3b. Frequency ads (count-based)\n"
-        "  for (const ad of frequency) {\n"
-        "    sequence.push({ ...ad, type: 'paid' })\n"
-        "    if (sequence.length % interleaveEvery === 0) {\n"
-        "      sequence.push(ownerPlaylist[ownerIndex++ % ownerPlaylist.length])\n"
-        "    }\n"
+        "Step 4: Fill remaining gaps with owner ads (P4 fallback)\n"
+        "  for (const emptySlot of timeline.getEmptySlots()) {\n"
+        "    emptySlot.push(ownerPlaylist[ownerIndex++ % ownerPlaylist.length])\n"
         "  }\n\n"
-        "  // 3c. Fill remaining time with owner ads\n"
-        "  while (totalDuration(sequence) < roundDuration) {\n"
-        "    sequence.push(ownerPlaylist[ownerIndex++ % ownerPlaylist.length])\n"
-        "  }\n\n"
-        "Step 4: Inject exclusives at their exact play_at position\n"
-        "  for (const ex of exclusive) {\n"
-        "    // Find position in sequence where play_at falls\n"
-        "    insertAt = findTimePosition(sequence, ex.play_at)\n"
-        "    sequence.splice(insertAt, 0, { ...ex, priority: 'exclusive' })\n"
-        "  }\n\n"
-        "Step 5: Assign sequence_no (1, 2, 3, ...)\n"
+        "Step 5: Flatten timeline → ordered sequence\n"
+        "  sequence = timeline.flatten()  // chronological order\n"
         "  sequence.forEach((item, i) => item.sequence_no = i + 1)\n\n"
         "Step 6: Version + persist\n"
         "  version = (lastVersion for this device) + 1\n"
@@ -502,8 +539,9 @@ def build_content(page_id: str = "165019751") -> str:
         "  Mark previous 'live' playlist as 'replaced'\n\n"
         "Output:\n"
         "  DevicePlaylist v42 with ordered items[]\n"
-        "  Player just plays: items[0] → items[1] → items[2] → ...",
-        "typescript", "PlaylistBuilder Algorithm"
+        "  Player just plays: items[0] → items[1] → items[2] → ...\n"
+        "  // Exclusive ads are just items in the sequence — no interrupt needed",
+        "typescript", "PlaylistBuilder Algorithm v2"
     ))
 
     # 6.2 New Data Models
@@ -983,6 +1021,78 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
+    sections.append("<h3>8.5 Exclusive-Specific Edge Cases</h3>")
+    sections.append(warning_panel(
+        "<p><strong>Edge cases specific to exclusive (time-reserved) ads.</strong> "
+        "These are the hardest scheduling problems &mdash; inspired by SMIL <code>&lt;excl&gt;</code> + <code>priorityClass</code> semantics.</p>"
+    ))
+    sections.append(
+        '<table>'
+        '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น (ปัจจุบัน)</th><th>Proposed Solution</th></tr>'
+        '<tr><td>EX1</td><td><strong>Overlapping exclusives</strong> &mdash; 2 exclusive ads ที่เวลาทับกัน</td>'
+        '<td>ปัจจุบัน: <code>find()</code> picks first match, ไม่มี priority logic ระหว่าง exclusives</td>'
+        '<td><strong>Priority queue:</strong> Exclusive ที่ <code>play_at</code> ตรงกัน &rarr; sort by <code>created_at</code> (FIFO). '
+        'PlaylistBuilder ตรวจ overlap ตอน build &rarr; reject ตัวหลังที่ทับ (SMIL <code>peers=&quot;stop&quot;</code> semantic). '
+        'Admin UI: แสดง warning ก่อน approve ถ้าช่วงเวลาซ้อน</td></tr>'
+        '<tr><td>EX2</td><td><strong>Exclusive media missing/corrupt</strong></td>'
+        '<td>ปัจจุบัน: <strong>silent failure</strong> &mdash; interrupted ad stays paused, ไม่มี recovery</td>'
+        '<td><strong>Media validation at booking:</strong> PlaylistBuilder checks media existence + checksum ตอน build. '
+        'ถ้า media ไม่พร้อม &rarr; mark <code>status=PENDING_MEDIA</code>, alert admin. '
+        'Player-side: ถ้า media download fail &rarr; skip exclusive, resume normal sequence (ไม่ pause ค้าง)</td></tr>'
+        '<tr><td>EX3</td><td><strong>Exclusive approved while player offline</strong></td>'
+        '<td>ปัจจุบัน: Pusher push lost, no buffer mechanism &rarr; exclusive ไม่เล่น</td>'
+        '<td><strong>Tier 2 pre-staging:</strong> Exclusive ที่ approved ล่วงหน้า &rarr; ใส่ใน Tier 2 (buffer) ด้วย <code>play_at</code> exact time. '
+        'Player check Tier 2 locally ทุก sync cycle. Reconnect &rarr; version-based full sync จะ include exclusive</td></tr>'
+        '<tr><td>EX4</td><td><strong>Exclusive cancelled after playlist built</strong></td>'
+        '<td>ปัจจุบัน: ไม่มี cancel mechanism สำหรับ exclusive ที่ถูก push ไปแล้ว</td>'
+        '<td><strong>Cancel event:</strong> Backend push <code>exclusive-cancelled {ad_code, version++}</code>. '
+        'Player receives &rarr; remove from Tier 1/2 + version bump. ถ้า offline &rarr; ยอมรับ tradeoff (เล่นจบแล้ว cancel ตอน sync)</td></tr>'
+        '<tr><td>EX5</td><td><strong>Clock drift + exclusive timing</strong> &mdash; player clock off by &gt;5s</td>'
+        '<td>ปัจจุบัน: <code>dayjs().isBetween(start, end)</code> ±2s precision &mdash; clock drift ทำให้ miss window</td>'
+        '<td><strong>Server-relative timing:</strong> Exclusive <code>play_at</code> stored as <code>sequence_no</code> position (not wall-clock). '
+        'Player plays by sequence order, ไม่ต้องพึ่ง local clock. '
+        'Fallback: NTP sync on reconnect, <code>last_ntp_offset</code> adjustment</td></tr>'
+        '<tr><td>EX6</td><td><strong>Nested exclusive interrupts</strong></td>'
+        '<td>ปัจจุบัน: <code>pausePlayData</code> is <strong>single variable</strong> &mdash; nested interrupt loses original paused ad</td>'
+        '<td><strong>Eliminated by design:</strong> PlaylistBuilder resolves all exclusive positions at build time. '
+        'Player sees flat sequence &mdash; exclusive is just another item at the right position. '
+        'No interrupt/pause mechanism needed (SMIL <code>pauseQueue</code> approach unnecessary)</td></tr>'
+        '<tr><td>EX7</td><td><strong>Exclusive spans round boundary</strong> &mdash; 30s exclusive at minute 9:50 of 10-min round</td>'
+        '<td>ปัจจุบัน: round boundary cuts off exclusive mid-play</td>'
+        '<td><strong>Round extension:</strong> PlaylistBuilder extends round duration to fit exclusive completely. '
+        'Or: exclusive <code>play_at</code> adjusted to start earlier so it fits within round. '
+        'Config: <code>exclusive_round_policy: &quot;extend&quot; | &quot;shift_earlier&quot;</code></td></tr>'
+        '</table>'
+    )
+
+    sections.append("<h4>Combined Flow Edge Cases (Regular + Exclusive)</h4>")
+    sections.append(
+        '<table>'
+        '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
+        '<tr><td>CF1</td><td><strong>Exclusive during Tier 2/3 fallback</strong></td>'
+        '<td>Player offline, playing fallback content &rarr; exclusive <code>play_at</code> time arrives</td>'
+        '<td>Tier 2 pre-staged exclusive: Player checks Tier 2 locally. ถ้า exclusive อยู่ใน Tier 2 + media cached &rarr; play at position. '
+        'ถ้าไม่มี (approved after last sync) &rarr; miss (acceptable &mdash; offline = degraded mode)</td></tr>'
+        '<tr><td>CF2</td><td><strong>Budget exhausted mid-exclusive</strong></td>'
+        '<td>Exclusive ad ราคาสูง, campaign budget หมดขณะ exclusive ยังไม่ถึงเวลา</td>'
+        '<td>Exclusive = <strong>guaranteed delivery</strong> (pre-paid slot). Budget check at booking time, not play time. '
+        'ถ้า budget deplete after booking &rarr; ยังเล่นตาม contract (billing reconcile separately)</td></tr>'
+        '<tr><td>CF3</td><td><strong>Multiple exclusives + regular ads &rarr; time overflow</strong></td>'
+        '<td>Exclusive slots กิน time budget เกือบหมด &rarr; regular ads ไม่มีที่เล่น</td>'
+        '<td>PlaylistBuilder: reserve exclusive FIRST &rarr; remaining time for regular. '
+        'ถ้า remaining &lt; min_slot_duration &rarr; skip lowest-priority regulars. '
+        'Admin UI: show time utilization preview before approve</td></tr>'
+        '<tr><td>CF4</td><td><strong>Hot-swap exclusive</strong> &mdash; owner cancels exclusive A, immediately books exclusive B at same slot</td>'
+        '<td>Race condition: cancel event + new booking event may arrive out of order</td>'
+        '<td><strong>Version monotonic:</strong> Both cancel and new booking increment version. '
+        'Player applies in version order. PlaylistBuilder atomic: cancel A + insert B in single build cycle</td></tr>'
+        '<tr><td>CF5</td><td><strong>Exclusive + owner ad conflict</strong> &mdash; exclusive books time where only owner ads were playing</td>'
+        '<td>Owner fallback loop interrupted by exclusive</td>'
+        '<td><strong>Priority model:</strong> P1 (Exclusive) &gt; P4 (Owner). PlaylistBuilder replaces owner slot with exclusive. '
+        'Owner ad resumes after exclusive completes (next sequence item)</td></tr>'
+        '</table>'
+    )
+
     # ═══════════════════════════════════════════════════════════════
     # Section 9: Migration Plan (moved from old §7)
     # ═══════════════════════════════════════════════════════════════
@@ -1011,6 +1121,56 @@ def build_content(page_id: str = "165019751") -> str:
 
     # 10.1 Industry Reference (moved from old §8)
     sections.append("<h3>10.1 Industry Reference</h3>")
+
+    sections.append("<h4>Priority Scheduling Standards (SMIL + DOOH)</h4>")
+    sections.append(info_panel(
+        "<p>Our proposed <strong>5-level priority model (P0-P4)</strong> is inspired by these industry standards. "
+        "The key insight: exclusive/priority scheduling is a <em>solved problem</em> in digital signage &mdash; "
+        "we adapt proven patterns rather than inventing from scratch.</p>"
+    ))
+    sections.append(
+        '<table>'
+        '<tr><th>Standard/Platform</th><th>Priority Mechanism</th><th>What We Adopt</th></tr>'
+        '<tr><td><strong>W3C SMIL 3.0</strong><br/><code>&lt;excl&gt;</code> + <code>&lt;priorityClass&gt;</code></td>'
+        '<td><ul>'
+        '<li><code>&lt;excl&gt;</code>: only one child plays at a time (mutual exclusion)</li>'
+        '<li><code>&lt;priorityClass&gt;</code>: assigns priority levels with <code>peers</code> + <code>higher</code> + <code>lower</code> policies</li>'
+        '<li>Policies: <code>stop</code> (kill lower), <code>pause</code> (pause queue/stack), <code>defer</code> (queue for later), <code>never</code> (reject)</li>'
+        '<li>Pause queue: nested interrupts push onto stack &rarr; resume in LIFO order</li>'
+        '</ul></td>'
+        '<td><ul>'
+        '<li><strong>P0-P4 levels</strong> = simplified priorityClass</li>'
+        '<li><strong>Exclusive = P1</strong> with guaranteed slot reservation</li>'
+        '<li>No pause queue needed &mdash; PlaylistBuilder resolves at build time (player sees flat sequence)</li>'
+        '<li>SMIL <code>peers=&quot;stop&quot;</code> semantic for overlapping exclusives</li>'
+        '</ul></td></tr>'
+        '<tr><td><strong>Xibo CMS</strong><br/>Interrupt Layout + Priority</td>'
+        '<td><ul>'
+        '<li>Priority number (0 = lowest) per scheduled event</li>'
+        '<li>Interrupt Layout: higher priority event preempts current layout</li>'
+        '<li>Share of Voice: percentage-based time allocation</li>'
+        '<li>Schedule reassessment on criteria change (geo-fence, daypart, priority)</li>'
+        '</ul></td>'
+        '<td><ul>'
+        '<li><strong>Priority number</strong> concept &rarr; our P0-P4 model</li>'
+        '<li><strong>Time allocation</strong> &rarr; PlaylistBuilder timeline reservation</li>'
+        '<li>Share of Voice concept applicable for future frequency-based billing</li>'
+        '</ul></td></tr>'
+        '<tr><td><strong>DOOH Ad Servers</strong><br/>(Broadsign, Vistar, Hivestack)</td>'
+        '<td><ul>'
+        '<li>Intermediary ad server between CMS and SSPs (programmatic)</li>'
+        '<li>Revenue-based priority: guaranteed &gt; programmatic</li>'
+        '<li>Campaign pacing: spread impressions evenly across flight</li>'
+        '<li>Real-time decisioning: bid/no-bid per play opportunity</li>'
+        '</ul></td>'
+        '<td><ul>'
+        '<li><strong>Guaranteed &gt; programmatic</strong> concept &rarr; Exclusive (P1) &gt; Regular (P2-P3)</li>'
+        '<li>Campaign pacing idea applicable for frequency ads (even distribution)</li>'
+        '<li>Future: programmatic layer can plug into P3 level</li>'
+        '</ul></td></tr>'
+        '</table>'
+    )
+
     sections.append("<h4>How Commercial Solutions Handle Offline</h4>")
     sections.append(
         '<table>'

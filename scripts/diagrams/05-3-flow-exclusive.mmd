@@ -1,11 +1,17 @@
 sequenceDiagram
-    participant AD as Admin
+    participant OW as Billboard Owner
     participant BE as Backend
     participant PL as Player
-    AD->>BE: Approve exclusive ad
+    OW->>BE: Approve exclusive ad
     rect rgb(255, 247, 200)
-        BE->>BE: PlaylistBuilder: inject + version++
-        BE->>PL: approved-advertisement-exclusive
-        Note over PL: {version, ad_code,<br/>play_at, media_url, checksum}
+        Note over BE: BullMQ: PlayScheduleCreateByExclusive
+        BE->>BE: Fetch AdvertisementDisplayExclusive slots
+        BE->>BE: Create PlaySchedule (type=EXCLUSIVE)
+        BE->>BE: PlaylistBuilder: re-build playlist<br/>inject at exact play_at position<br/>version++
+        BE->>BE: Save DevicePlaylist (v43)
     end
-    Note over PL: 1. Download media<br/>2. Wait for play_at<br/>3. Pause current → Play exclusive<br/>4. Resume sequence
+    BE->>PL: Pusher: playlist-updated {version:43}
+    Note over PL: Inbox: 43 > 42? YES
+    PL->>BE: GET /v2/device-playlist?since_version=42
+    BE->>PL: {version:43, items:[...with exclusive at position]}
+    Note over PL: Update Tier 1<br/>Download exclusive media<br/>Play sequence normally<br/>(exclusive is just another item<br/>at the right position)
