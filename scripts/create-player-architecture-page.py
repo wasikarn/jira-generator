@@ -266,8 +266,29 @@ def build_content(page_id: str = "165019751") -> str:
         "</p>"
     ))
 
-    # ─── Section 1: Problem Statement ───
-    sections.append("<h2>1. Problem Statement</h2>")
+    # ═══════════════════════════════════════════════════════════════
+    # Section 1: Executive Summary (NEW)
+    # ═══════════════════════════════════════════════════════════════
+    sections.append("<h2>1. Executive Summary</h2>")
+    sections.append(success_panel(
+        "<p><strong>Problem:</strong> Player มี scheduling logic <strong>3,500+ บรรทัด</strong> "
+        "ที่จัดลำดับ ad เอง + ไม่มี offline resilience (fresh boot + no internet = <strong>จอดำ</strong>)</p>"
+        "<p><strong>Solution:</strong> Backend ส่ง <strong>ordered playlist sequence</strong> แทนที่จะส่ง bag of ads + rules. "
+        "Player แค่เล่น <code>sequence[i++]</code></p>"
+        "<p><strong>Impact:</strong> Player complexity <strong>&darr;80%</strong>, "
+        "offline support ผ่าน 3-tier cache (Live &rarr; Buffer &rarr; Fallback), "
+        "idempotent sync ป้องกัน duplicate play history</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("01-proposed-architecture.mmd"),
+        page_id=page_id,
+    ))
+
+    # ═══════════════════════════════════════════════════════════════
+    # Section 2: Problem Statement
+    # ═══════════════════════════════════════════════════════════════
+    sections.append("<hr/>")
+    sections.append("<h2>2. Problem Statement</h2>")
     sections.append(error_panel(
         "<p><strong>Smart Player</strong></p>"
         "<ul>"
@@ -285,12 +306,15 @@ def build_content(page_id: str = "165019751") -> str:
         "</ul>"
     ))
 
-    # ─── Section 2: Current Architecture ───
-    sections.append("<h2>2. Current Architecture</h2>")
-    sections.append("<h3>2.1 Backend (tathep-platform-api)</h3>")
+    # ═══════════════════════════════════════════════════════════════
+    # Section 3: Current Architecture
+    # ═══════════════════════════════════════════════════════════════
+    sections.append("<hr/>")
+    sections.append("<h2>3. Current Architecture</h2>")
+    sections.append("<h3>3.1 Backend (tathep-platform-api)</h3>")
 
     sections.append(mermaid_diagram(
-        load_diagram("02-1-backend-pipeline.mmd"),
+        load_diagram("03-1-backend-pipeline.mmd"),
         page_id=page_id,
     ))
 
@@ -308,9 +332,9 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>2.2 Player (bd-vision-player)</h3>")
+    sections.append("<h3>3.2 Player (bd-vision-player)</h3>")
     sections.append(mermaid_diagram(
-        load_diagram("02-2-player-architecture.mmd"),
+        load_diagram("03-2-player-architecture.mmd"),
         page_id=page_id,
     ))
 
@@ -328,7 +352,7 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>2.3 Pusher Events</h3>")
+    sections.append("<h3>3.3 Pusher Events</h3>")
     sections.append(
         '<table>'
         '<tr><th>Event</th><th>Trigger</th><th>Player Action</th></tr>'
@@ -341,21 +365,34 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    # ─── Section 3: Proposed Architecture ───
+    # ═══════════════════════════════════════════════════════════════
+    # Section 4: Proposed Architecture
+    # ═══════════════════════════════════════════════════════════════
     sections.append("<hr/>")
-    sections.append("<h2>3. Proposed Architecture: Backend-Driven Player</h2>")
+    sections.append("<h2>4. Proposed Architecture: Backend-Driven Player</h2>")
     sections.append(info_panel(
         "<p><strong>Core Idea:</strong> Backend sends <strong>ordered playlist sequence</strong> instead of a bag of ads + rules. "
         "Player just plays <code>sequence[i++]</code>.</p>"
     ))
 
-    sections.append("<h3>3.1 Proposed Architecture Flow (on existing infrastructure)</h3>")
-    sections.append(mermaid_diagram(
-        load_diagram("03-1-proposed-architecture.mmd"),
-        page_id=page_id,
-    ))
+    sections.append("<h3>4.1 What Changes vs What Stays</h3>")
+    sections.append(
+        '<table>'
+        '<tr><th>Component</th><th>Current</th><th>Proposed</th><th>Change Type</th></tr>'
+        '<tr><td>Cron job</td><td>PlayScheduleCalculate every 10 min</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
+        '<tr><td>Per-screen job</td><td>Create PlaySchedule rows</td><td>Create PlaySchedule + <strong>ordered DevicePlaylist</strong></td><td>' + status_macro("ADD STEP", "Yellow") + '</td></tr>'
+        '<tr><td>Pusher</td><td>Channel per device</td><td>Same channel + new event <code>playlist-updated</code></td><td>' + status_macro("ADD EVENT", "Yellow") + '</td></tr>'
+        '<tr><td>Player API</td><td>GET /v2/play-schedules + /playlist-advertisements</td><td><strong>GET /v2/device-playlist</strong> (unified)</td><td>' + status_macro("NEW ENDPOINT", "Blue") + '</td></tr>'
+        '<tr><td>Player scheduling</td><td>Round-robin + exclusive interrupt (complex)</td><td><strong>play sequence[i++]</strong> (simple)</td><td>' + status_macro("SIMPLIFY", "Green") + '</td></tr>'
+        '<tr><td>Player storage</td><td>localStorage (separate schedules + playlists)</td><td>Tauri Store (3-tier playlist)</td><td>' + status_macro("MIGRATE", "Yellow") + '</td></tr>'
+        '<tr><td>Media download</td><td>Tauri plugin-upload</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
+        '<tr><td>BullMQ</td><td>Redis queue</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
+        '<tr><td>Auth</td><td>x-device-code header</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
+        '<tr><td>Play history</td><td>POST /v2/play-history + retry</td><td>Same + <strong>Outbox pattern</strong></td><td>' + status_macro("ENHANCE", "Yellow") + '</td></tr>'
+        '</table>'
+    )
 
-    sections.append("<h3>3.2 Infrastructure Mapping: Existing → Proposed</h3>")
+    sections.append("<h3>4.2 Infrastructure Mapping</h3>")
     sections.append(
         '<table>'
         '<tr><th>Existing Infrastructure</th><th>Role Today</th><th>Role in Proposed</th><th>Change</th></tr>'
@@ -372,33 +409,44 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>3.3 Sequence Diagrams: Key Flows</h3>")
+    # ═══════════════════════════════════════════════════════════════
+    # Section 5: Key Flows (Sequence Diagrams)
+    # ═══════════════════════════════════════════════════════════════
+    sections.append("<hr/>")
+    sections.append("<h2>5. Key Flows</h2>")
 
-    sections.append("<h4>Flow A: Normal Online Play (Happy Path)</h4>")
+    sections.append("<h3>5.1 Flow A: Normal Online Play (Happy Path)</h3>")
     sections.append(mermaid_diagram(
-        load_diagram("03-3a-flow-normal.mmd"),
+        load_diagram("05-1-flow-normal.mmd"),
         page_id=page_id,
     ))
 
-    sections.append("<h4>Flow B: Network Drop → Offline → Reconnect</h4>")
+    sections.append("<h3>5.2 Flow B: Network Drop &rarr; Offline &rarr; Reconnect</h3>")
     sections.append(mermaid_diagram(
-        load_diagram("03-3b-flow-network-drop.mmd"),
+        load_diagram("05-2-flow-network-drop.mmd"),
         page_id=page_id,
     ))
 
-    sections.append("<h4>Flow C: Exclusive Ad Interrupt (Online)</h4>")
+    sections.append("<h3>5.3 Flow C: Exclusive Ad Interrupt (Online)</h3>")
     sections.append(mermaid_diagram(
-        load_diagram("03-3c-flow-exclusive.mmd"),
+        load_diagram("05-3-flow-exclusive.mmd"),
         page_id=page_id,
     ))
 
-    sections.append("<h4>Flow D: Fresh Boot (No Cache)</h4>")
+    sections.append("<h3>5.4 Flow D: Fresh Boot (No Cache)</h3>")
     sections.append(mermaid_diagram(
-        load_diagram("03-3d-flow-fresh-boot.mmd"),
+        load_diagram("05-4-flow-fresh-boot.mmd"),
         page_id=page_id,
     ))
 
-    sections.append("<h3>3.4 Backend Scheduling Logic: How PlaylistBuilder Works</h3>")
+    # ═══════════════════════════════════════════════════════════════
+    # Section 6: Technical Design
+    # ═══════════════════════════════════════════════════════════════
+    sections.append("<hr/>")
+    sections.append("<h2>6. Technical Design</h2>")
+
+    # 6.1 PlaylistBuilder Algorithm
+    sections.append("<h3>6.1 PlaylistBuilder Algorithm</h3>")
     sections.append(note_panel(
         "<p><strong>Key insight:</strong> PlaylistBuilder runs <em>after</em> existing PlayScheduleCalculatePerScreen. "
         "It takes the PlaySchedule rows (already calculated) and converts them into an <strong>ordered sequence</strong>.</p>"
@@ -458,30 +506,8 @@ def build_content(page_id: str = "165019751") -> str:
         "typescript", "PlaylistBuilder Algorithm"
     ))
 
-    sections.append("<h3>3.5 3-Tier Playlist Architecture</h3>")
-    sections.append(mermaid_diagram(
-        load_diagram("03-5-three-tier-cache.mmd"),
-        page_id=page_id,
-    ))
-
-    sections.append("<h3>3.2 What Changes vs What Stays</h3>")
-    sections.append(
-        '<table>'
-        '<tr><th>Component</th><th>Current</th><th>Proposed</th><th>Change Type</th></tr>'
-        '<tr><td>Cron job</td><td>PlayScheduleCalculate every 10 min</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>Per-screen job</td><td>Create PlaySchedule rows</td><td>Create PlaySchedule + <strong>ordered DevicePlaylist</strong></td><td>' + status_macro("ADD STEP", "Yellow") + '</td></tr>'
-        '<tr><td>Pusher</td><td>Channel per device</td><td>Same channel + new event <code>playlist-updated</code></td><td>' + status_macro("ADD EVENT", "Yellow") + '</td></tr>'
-        '<tr><td>Player API</td><td>GET /v2/play-schedules + /playlist-advertisements</td><td><strong>GET /v2/device-playlist</strong> (unified)</td><td>' + status_macro("NEW ENDPOINT", "Blue") + '</td></tr>'
-        '<tr><td>Player scheduling</td><td>Round-robin + exclusive interrupt (complex)</td><td><strong>play sequence[i++]</strong> (simple)</td><td>' + status_macro("SIMPLIFY", "Green") + '</td></tr>'
-        '<tr><td>Player storage</td><td>localStorage (separate schedules + playlists)</td><td>Tauri Store (3-tier playlist)</td><td>' + status_macro("MIGRATE", "Yellow") + '</td></tr>'
-        '<tr><td>Media download</td><td>Tauri plugin-upload</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>BullMQ</td><td>Redis queue</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>Auth</td><td>x-device-code header</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>Play history</td><td>POST /v2/play-history + retry</td><td>Same + <strong>Outbox pattern</strong></td><td>' + status_macro("ENHANCE", "Yellow") + '</td></tr>'
-        '</table>'
-    )
-
-    sections.append("<h3>3.3 New Backend Components</h3>")
+    # 6.2 New Data Models
+    sections.append("<h3>6.2 New Data Models</h3>")
     sections.append(tracked_code_block(
         "// NEW: DevicePlaylist model (app/Models/DevicePlaylist.ts)\n"
         "interface DevicePlaylist {\n"
@@ -544,7 +570,8 @@ def build_content(page_id: str = "165019751") -> str:
         "typescript", "PlaylistBuilder Service"
     ))
 
-    sections.append("<h3>3.4 New API Endpoint</h3>")
+    # 6.3 New API Endpoint
+    sections.append("<h3>6.3 New API Endpoint</h3>")
     sections.append(tracked_code_block(
         "// GET /v2/device-playlist?tier=live&since_version=41\n"
         "// Response:\n"
@@ -574,12 +601,25 @@ def build_content(page_id: str = "165019751") -> str:
         "json", "API Response Format"
     ))
 
-    # ─── Section 4: Outbox/Inbox Pattern ───
-    sections.append("<hr/>")
-    sections.append("<h2>4. Outbox/Inbox Pattern</h2>")
+    # 6.4 3-Tier Playlist Cache
+    sections.append("<h3>6.4 3-Tier Playlist Cache</h3>")
+    sections.append(mermaid_diagram(
+        load_diagram("06-4-three-tier-cache.mmd"),
+        page_id=page_id,
+    ))
 
-    # 4.0 Problems to solve
-    sections.append("<h3>4.0 ปัญหาที่ต้องแก้</h3>")
+    # 6.5 Player State Machine
+    sections.append("<h3>6.5 Player State Machine</h3>")
+    sections.append(mermaid_diagram(
+        load_diagram("06-5-state-machine.mmd"),
+        page_id=page_id,
+    ))
+    sections.append(warning_panel(
+        "<p><strong>Rule:</strong> Every state MUST have something to display. <strong>Black screen is NEVER acceptable.</strong></p>"
+    ))
+
+    # 6.6 Outbox/Inbox Pattern
+    sections.append("<h3>6.6 Outbox/Inbox Pattern</h3>")
     sections.append(error_panel(
         "<p><strong>ปัญหา 1 (Player &rarr; Backend): Play History ซ้ำ</strong><br/>"
         "Player POST <code>/v2/play-history</code> &rarr; timeout &rarr; retry &rarr; backend ได้ 2 รายการ สำหรับ ad เดียวกัน</p>"
@@ -592,13 +632,11 @@ def build_content(page_id: str = "165019751") -> str:
         "<p><strong>Solution:</strong> Outbox (Player&rarr;Backend) + Inbox (Backend&rarr;Player)</p>"
     ))
 
-    # 4.1 Player Outbox
-    sections.append("<h3>4.1 Player Outbox (Play History)</h3>")
+    sections.append("<h4>Player Outbox (Play History)</h4>")
     sections.append(mermaid_diagram(
-        load_diagram("04-1-outbox.mmd"),
+        load_diagram("06-6a-outbox.mmd"),
         page_id=page_id,
     ))
-
     sections.append(tracked_code_block(
         "// TypeScript interface\n"
         "interface OutboxItem {\n"
@@ -619,35 +657,11 @@ def build_content(page_id: str = "165019751") -> str:
         "typescript", "Outbox Interface"
     ))
 
-    # 4.2 Backend Idempotency
-    sections.append("<h3>4.2 Backend Idempotency</h3>")
-    sections.append(tracked_code_block(
-        "// Backend: PlayHistoryController\n"
-        "async store({ request }: HttpContextContract) {\n"
-        "  const idempotencyKey = request.header('X-Idempotency-Key')\n\n"
-        "  if (idempotencyKey) {\n"
-        "    // Check Redis first (fast path, TTL 24h)\n"
-        "    const existing = await Redis.get(`play_history:idem:${idempotencyKey}`)\n"
-        "    if (existing) {\n"
-        "      return { status: 'already_processed', ack_id: existing }\n"
-        "    }\n"
-        "  }\n\n"
-        "  const history = await PlayHistory.create(payload)\n\n"
-        "  if (idempotencyKey) {\n"
-        "    await Redis.setex(`play_history:idem:${idempotencyKey}`, 86400, history.code)\n"
-        "  }\n\n"
-        "  return { status: 'created', ack_id: history.code }\n"
-        "}",
-        "typescript", "Backend Idempotency Check"
-    ))
-
-    # 4.3 Player Inbox
-    sections.append("<h3>4.3 Player Inbox (Schedule Commands)</h3>")
+    sections.append("<h4>Player Inbox (Schedule Commands)</h4>")
     sections.append(mermaid_diagram(
-        load_diagram("04-3-inbox.mmd"),
+        load_diagram("06-6b-inbox.mmd"),
         page_id=page_id,
     ))
-
     sections.append(tracked_code_block(
         "// TypeScript implementation\n"
         "function handlePlaylistUpdated(event: PusherEvent) {\n"
@@ -672,189 +686,47 @@ def build_content(page_id: str = "165019751") -> str:
         "typescript", "Inbox Deduplication Code"
     ))
 
-    # 4.4 Version Protocol
-    sections.append("<h3>4.4 Version Protocol</h3>")
+    # 6.7 Version Protocol
+    sections.append("<h3>6.7 Version Protocol</h3>")
     sections.append(mermaid_diagram(
-        load_diagram("04-4-version-protocol.mmd"),
+        load_diagram("06-7-version-protocol.mmd"),
         page_id=page_id,
     ))
 
-    # ─── Section 5: Player State Machine ───
-    sections.append("<hr/>")
-    sections.append("<h2>5. Player State Machine</h2>")
-    sections.append(mermaid_diagram(
-        load_diagram("05-state-machine.mmd"),
-        page_id=page_id,
+    # 6.8 Backend Idempotency
+    sections.append("<h3>6.8 Backend Idempotency</h3>")
+    sections.append(tracked_code_block(
+        "// Backend: PlayHistoryController\n"
+        "async store({ request }: HttpContextContract) {\n"
+        "  const idempotencyKey = request.header('X-Idempotency-Key')\n\n"
+        "  if (idempotencyKey) {\n"
+        "    // Check Redis first (fast path, TTL 24h)\n"
+        "    const existing = await Redis.get(`play_history:idem:${idempotencyKey}`)\n"
+        "    if (existing) {\n"
+        "      return { status: 'already_processed', ack_id: existing }\n"
+        "    }\n"
+        "  }\n\n"
+        "  const history = await PlayHistory.create(payload)\n\n"
+        "  if (idempotencyKey) {\n"
+        "    await Redis.setex(`play_history:idem:${idempotencyKey}`, 86400, history.code)\n"
+        "  }\n\n"
+        "  return { status: 'created', ack_id: history.code }\n"
+        "}",
+        "typescript", "Backend Idempotency Check"
     ))
 
-    sections.append(warning_panel(
-        "<p><strong>Rule:</strong> Every state MUST have something to display. <strong>Black screen is NEVER acceptable.</strong></p>"
-    ))
-
-    # ─── Section 6: Edge Cases ───
+    # ═══════════════════════════════════════════════════════════════
+    # Section 7: Event-Driven Architecture (moved from old §9)
+    # ═══════════════════════════════════════════════════════════════
     sections.append("<hr/>")
-    sections.append("<h2>6. Edge Cases Analysis (ละเอียด)</h2>")
-
-    sections.append("<h3>Category 1: Network Issues</h3>")
-    sections.append(
-        '<table>'
-        '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
-        '<tr><td>E1</td><td><strong>Network flapping</strong> (on/off ทุก 30 วิ)</td>'
-        '<td>Player fetch ค้าง, Pusher reconnect วนซ้ำ, media download incomplete</td>'
-        '<td><strong>Debounce reconnect:</strong> ต้อง online ต่อเนื่อง 10 วิ ก่อน trigger sync. Media download ต้อง resume-able (Tauri download รองรับอยู่แล้ว)</td></tr>'
-        '<tr><td>E2</td><td><strong>Pusher disconnect 5 นาที</strong> &rarr; missed events</td>'
-        '<td>Player ไม่รู้ว่ามี playlist ใหม่</td>'
-        '<td><strong>Version check on reconnect:</strong> Player เก็บ <code>last_version</code>. Reconnect &rarr; <code>GET /v2/device-playlist?since_version=N</code> &rarr; ได้ delta</td></tr>'
-        '<tr><td>E3</td><td><strong>Pusher duplicate events</strong></td>'
-        '<td>Player process playlist update ซ้ำ 2 ครั้ง</td>'
-        '<td><strong>Inbox dedup:</strong> เก็บ <code>event_id</code> ล่าสุด 100 รายการ. ถ้าซ้ำ &rarr; skip</td></tr>'
-        '<tr><td>E4</td><td><strong>API timeout &rarr; player retry &rarr; duplicate play history</strong></td>'
-        '<td>Backend บันทึก 2 records สำหรับ ad เดียวกัน</td>'
-        '<td><strong>Outbox + Idempotency Key:</strong> Player สร้าง UUID per play event. Backend check Redis <code>idem:{uuid}</code> ก่อน insert</td></tr>'
-        '<tr><td>E5</td><td><strong>Partial media download</strong> (internet หลุดกลาง download)</td>'
-        '<td>ไฟล์ media ไม่สมบูรณ์</td>'
-        '<td>เดิมมีอยู่แล้ว: <code>fileCleanupService.markDownloading()</code> ป้องกัน cleanup. เพิ่ม: <strong>checksum validation</strong> &mdash; backend ส่ง <code>media.checksum</code> &rarr; สน + re-download</td></tr>'
-        '<tr><td>E6</td><td><strong>SSL certificate expired / DNS failure</strong></td>'
-        '<td>fetch fail แต่ internet ยังใช้ได้</td>'
-        '<td>Treat เหมือน offline. Player มี Tier 2/3 รองรับ. เพิ่ม <strong>diagnostic log</strong> แยก SSL error จาก network error</td></tr>'
-        '</table>'
-    )
-
-    sections.append("<h3>Category 2: Schedule/Playlist Issues</h3>")
-    sections.append(
-        '<table>'
-        '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
-        '<tr><td>E7</td><td><strong>Schedule gap</strong> &mdash; ไม่มี ad สำหรับช่วงเวลานี้</td>'
-        '<td>Tier 1 ว่างเปล่า</td>'
-        '<td>Auto-switch Tier 3 (owner fallback). <strong>ห้ามจอดำเด็ดขาด</strong></td></tr>'
-        '<tr><td>E8</td><td><strong>Exclusive ad ขณะ offline</strong></td>'
-        '<td>Backend approve exclusive แต่ push ไม่ถึง player</td>'
-        '<td><strong>Buffer tier:</strong> Exclusive ที่ approved ล่วงหน้า ถูกใส่ใน Tier 2 ด้วย <code>priority: exclusive</code> + <code>play_at: exact_time</code>. Player check Tier 2 ทุก 1 วิ ว่ามี exclusive <code>CalculatePlaySchedules</code> query ทำอยู่แล้ว)</td></tr>'
-        '<tr><td>E9</td><td><strong>Tier 1 หมด แต่ Tier 2 ยังไม่พร้อม</strong> (media กำลัง download)</td>'
-        '<td>ช่วงว่างระหว่าง tier</td>'
-        '<td>Play Tier 3 ขณะรอ. เมื่อ Tier 2 media download ครบ &rarr; switch ขึ้นไป</td></tr>'
-        '<tr><td>E10</td><td><strong>Billboard time budget overflow</strong> &mdash; ads มากกว่า time slots</td>'
-        '<td>PlaylistBuilder สร้าง playlist ยาวเกินรอบ</td>'
-        '<td>Backend cap ที่ <code>roundDuration</code>. ส่วนที่เกิน &rarr; ไม่ใส่ playlist (เหมือนเดิมที่ cron ทำ). Player ไม่ต้องคิด</td></tr>'
-        '<tr><td>E11</td><td><strong>Owner playlist ว่าง</strong> &mdash; billboard owner ไม่ได้ตั้งค่า</td>'
-        '<td>Tier 3 ไม่มี content</td>'
-        '<td><strong>First boot check:</strong> ถ้า Tier 3 ว่าง &rarr; แสดง <strong>system splash</strong> (logo + "กำลังเตรียมระบบ"). Admin UI แจ้งเตือน owner ให้ upload content. บังคับ: Device register สำเร็จต่อเมื่อ billboard มีอย่างน้อย 1 รายการ</td></tr>'
-        '<tr><td>E12</td><td><strong>Stale schedule</strong> &mdash; offline นานจน Tier 2 expired</td>'
-        '<td><code>valid_until</code> ผ่านไปแล้ว</td>'
-        '<td>Player check <code>valid_until</code> ก่อนเล่น. ถ้า expired &rarr; switch Tier 3. <strong>ไม่เล่น ad expired</strong> เพราะอาจเป็น campaign ที่หมดแล้ว (billing issue)</td></tr>'
-        '<tr><td>E13</td><td><strong>Concurrent Pusher events</strong> &mdash; 3 events มาพร้อมกัน</td>'
-        '<td>Race condition ใน playlist update</td>'
-        '<td><strong>Version monotonic:</strong> Player เก็บ <code>current_version</code>. ถ้า <code>event.version</code> &le; current &rarr; skip. ถ้า &gt; current &rarr; process. ถ้า &gt; current+1 (gap) &rarr; full re-fetch</td></tr>'
-        '</table>'
-    )
-
-    sections.append("<h3>Category 3: Device/Storage Issues</h3>")
-    sections.append(
-        '<table>'
-        '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
-        '<tr><td>E14</td><td><strong>Player restart ขณะ offline</strong></td>'
-        '<td>App crash &rarr; relaunch ไม่มี internet</td>'
-        '<td>localStorage persist ข้าม restart (เดิมทำอยู่แล้ว). Boot &rarr; read localStorage &rarr; resume from last <code>sequence_no</code>. ถ้า Tier 1/2 expired &rarr; Tier 3</td></tr>'
-        '<tr><td>E15</td><td><strong>First boot ไม่มี internet</strong></td>'
-        '<td>Device ใหม่ ยังไม่เคย pair</td>'
-        '<td>ไม่สามารถ pair ได้ (ต้องมี internet สำหรับ register). แสดง splash + "กรุณาเชื่อมต่อ internet". Poll ทุก 5 วิ (เดิม)</td></tr>'
-        '<tr><td>E16</td><td><strong>Clock drift</strong> &mdash; offline นาน, NTP ไม่ sync</td>'
-        '<td><code>valid_until</code> check ผิดพลาด</td>'
-        '<td>Tauri บน Windows/macOS/Linux มี RTC ที่แม่นยำกว่า RPi. เก็บ <code>last_ntp_sync</code> timestamp. ถ้า drift &gt; 1 ชม. &rarr; log warning แต่ยังเล่น play (better than black screen). <strong>Exclusive</strong> tradeoff</td></tr>'
-        '<tr><td>E17</td><td><strong>Disk full</strong> &mdash; media เต็ม storage</td>'
-        '<td>Download ใหม่ไม่ได้</td>'
-        '<td>เดิมมี cleanup อยู่แล้ว (file-cleanup.service.ts ทุก 24h). เพิ่ม: check disk ก่อน download. ถ้า &lt; 500MB &rarr; trigger emergency cleanup (ลบ media ที่ไม่อยู่ใน Tier 1+2+3). ถ้ายังไม่พอ &rarr; skip download, เล่น ad ถัดไป (ไม่หยุด)</td></tr>'
-        '<tr><td>E18</td><td><strong>Media file corrupt</strong></td>'
-        '<td>Video file เสีย &rarr; playback error</td>'
-        '<td>เดิมมี <strong>retry queue</strong> (max 3 attempts). เพิ่ม: ถ้า retry ครบ 3 ครั้ง &rarr; mark file dirty &rarr; re-download next sync. Player skip ไป ad ถัดไป (ไม่หยุด)</td></tr>'
-        '<tr><td>E19</td><td><strong>localStorage quota exceeded</strong> (5-10MB limit)</td>'
-        '<td>เก็บ playlist data ไม่พอ</td>'
-        '<td>Migrate heavy data &rarr; <strong>Tauri Store</strong> (JSON file, ไม่มี quota). เก็บเฉพาะ small state ใน localStorage. Playlist data &rarr; Tauri Store</td></tr>'
-        '</table>'
-    )
-
-    sections.append("<h3>Category 4: Business Logic Issues</h3>")
-    sections.append(
-        '<table>'
-        '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
-        '<tr><td>E20</td><td><strong>Ad cancelled ขณะ offline</strong></td>'
-        '<td>Backend cancel ad แต่ player ยังเล่นอยู่</td>'
-        '<td><strong>Acceptable tradeoff:</strong> player จะเล่น ad ต่อจน reconnect. เมื่อ reconnect &rarr; sync playlist ใหม่ &rarr; ad หายไป. Play history records ยังถูกต้อง (ส่งทีหลัง reconnect)</td></tr>'
-        '<tr><td>E21</td><td><strong>Campaign budget exhausted ขณะเล่น</strong></td>'
-        '<td>Player กำลังเล่น ad ของ campaign ที่หมด budget</td>'
-        '<td>Backend ไม่ใส่ ad นี้ใน round ถัดไป. Player round ปัจจุบันเล่นจบปกติ (ยอมรับได้ &mdash; เป็น 1 round = 10 นาที max)</td></tr>'
-        '<tr><td>E22</td><td><strong>Play history ส่งไม่ได้</strong> &rarr; billing คลาดเคลื่อน</td>'
-        '<td>Offline นาน &rarr; play history queue สะสม</td>'
-        '<td><strong>Outbox guarantee:</strong> ไม่มี play event หาย (persisted ใน Tauri Store). เมื่อ reconnect &rarr; flush ทั้งหมดตามลำดับ. Backend reconcile by timestamp</td></tr>'
-        '<tr><td>E23</td><td><strong>Billboard unpair ขณะ offline</strong></td>'
-        '<td>Admin unpair device แต่ player ไม่รู้</td>'
-        '<td>Player ยังเล่นต่อจาก cache. เมื่อ reconnect &rarr; Pusher <code>un-pair-screen</code> &rarr; clear all + back to pair screen. หรือ: API call fail &rarr; 401 &rarr; trigger unpair locally</td></tr>'
-        '<tr><td>E24</td><td><strong>Multiple devices ใช้ device code เดียวกัน</strong></td>'
-        '<td>Clone device &rarr; 2 players same code</td>'
-        '<td>Backend: POST <code>/v2/play-history</code> ส่ง <code>device_fingerprint</code> (MAC + hostname). ถ้าไม่ตรง &rarr; reject + alert</td></tr>'
-        '</table>'
-    )
-
-    # ─── Section 7: Migration Plan ───
-    sections.append("<hr/>")
-    sections.append("<h2>7. Migration Plan (Incremental)</h2>")
-    sections.append(info_panel(
-        "<p><strong>Feature flag:</strong> <code>billboard.player_mode: 'smart' | 'dumb'</code> &mdash; roll out per billboard, no big bang</p>"
-    ))
-    sections.append(
-        '<table>'
-        '<tr><th>Phase</th><th>Backend</th><th>Player</th><th>Risk</th></tr>'
-        '<tr><td><strong>Phase 0</strong></td><td>Add <code>version</code> field to Pusher payload</td><td>Store version (don\'t use yet)</td><td>' + status_macro("Zero risk", "Green") + '</td></tr>'
-        '<tr><td><strong>Phase 1</strong></td><td>Add PlaylistBuilder service + DevicePlaylist models + <code>GET /v2/device-playlist</code></td><td>Read-only testing (no behavior change)</td><td>' + status_macro("Backend only", "Green") + '</td></tr>'
-        '<tr><td><strong>Phase 2</strong></td><td>Add Idempotency Key check in play-history</td><td>Send <code>X-Idempotency-Key</code> header</td><td>' + status_macro("Backward compat", "Green") + '</td></tr>'
-        '<tr><td><strong>Phase 3</strong></td><td>&mdash;</td><td>Player V2: read ordered playlist. <strong>Feature flag per device</strong></td><td>' + status_macro("Gradual rollout", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Phase 4</strong></td><td>&mdash;</td><td>3-Tier cache + state machine + checksum validation</td><td>' + status_macro("Full new behavior", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Phase 5</strong></td><td>Remove old schedule endpoints (v1)</td><td>Remove old scheduling code</td><td>' + status_macro("Cleanup", "Grey") + '</td></tr>'
-        '</table>'
-    )
-
-    # ─── Section 8: Industry Reference ───
-    sections.append("<hr/>")
-    sections.append("<h2>8. Industry Reference</h2>")
-    sections.append("<h3>8.1 How Commercial Solutions Handle Offline</h3>")
-    sections.append(
-        '<table>'
-        '<tr><th>Platform</th><th>Approach</th><th>Buffer</th></tr>'
-        '<tr><td>Xibo</td><td>RequiredFiles manifest + MD5 per file + 50MB chunk download</td><td>48h ahead (configurable)</td></tr>'
-        '<tr><td>piSignage</td><td>Default playlist fallback + local media folder + delta sync</td><td>Full campaign window</td></tr>'
-        '<tr><td>BrightSign BSN.Cloud</td><td>Local-first: all media cached, network = sync only</td><td>Content-dependent</td></tr>'
-        '<tr><td>info-beamer</td><td>3-state degradation (Online/Degraded/Offline) + RTC fallback</td><td>All scheduled content</td></tr>'
-        '</table>'
-    )
-
-    sections.append("<h3>8.2 Open Source References</h3>")
-    sections.append(
-        '<table>'
-        '<tr><th>Project</th><th>Repository</th><th>Relevant Pattern</th></tr>'
-        '<tr><td>Xibo Player SDK</td><td><a href="https://github.com/xibo-players/xiboplayer">xibo-players/xiboplayer</a></td><td>Cache API + IndexedDB, XMR WebSocket, chunk downloads with MD5, 2-layout preload pool</td></tr>'
-        '<tr><td>Xibo .NET Client</td><td><a href="https://github.com/xibosignage/xibo-dotnetclient">xibosignage/xibo-dotnetclient</a></td><td>ScheduleManager.cs: thread polling, priority resolution, disk-resident schedule, Splash fallback</td></tr>'
-        '<tr><td>piSignage</td><td><a href="https://github.com/colloqi/piSignage">colloqi/piSignage</a></td><td>Node.js + WebSocket, default playlist fallback, local filesystem media</td></tr>'
-        '<tr><td>Anthias (Screenly OSE)</td><td><a href="https://github.com/Screenly/Anthias">Screenly/Anthias</a></td><td>Docker microservices, Redis + SQLite, Celery queue, Qt viewer</td></tr>'
-        '</table>'
-    )
-
-    sections.append("<h3>8.3 Protocol Recommendation</h3>")
-    sections.append(note_panel(
-        "<p><strong>Keep Pusher</strong> (existing) for real-time push. Add <strong>version-based checkpoint</strong> on reconnect via REST. "
-        "Never depend on push for playback &mdash; it only triggers early sync.</p>"
-        "<p><strong>Key insight (from RxDB):</strong> Client can miss events during disconnect. "
-        "Solution: checkpoint mode on reconnect (full schedule compare via REST) + event mode once synced (Pusher for incremental).</p>"
-    ))
-
-    # ─── Section 9: Formalized Event-Driven Architecture ───
-    sections.append("<hr/>")
-    sections.append("<h2>9. Formalized Event-Driven Architecture</h2>")
+    sections.append("<h2>7. Event-Driven Architecture</h2>")
     sections.append(info_panel(
         "<p><strong>Decision:</strong> Formalize existing event-driven patterns (Pusher + BullMQ) with typed contracts, "
         "domain events, and clear ownership. <strong>NOT</strong> Event-Sourcing &mdash; scale + team doesn't justify the complexity.</p>"
     ))
 
-    sections.append("<h3>9.1 What We Already Have (De Facto Event-Driven)</h3>")
+    sections.append("<h3>7.1 What We Already Have (De Facto Event-Driven)</h3>")
+
     sections.append(
         '<table>'
         '<tr><th>Component</th><th>Pattern</th><th>Status</th></tr>'
@@ -868,7 +740,7 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>9.2 Typed Pusher Event Contracts</h3>")
+    sections.append("<h3>7.2 Typed Pusher Event Contracts</h3>")
     sections.append(note_panel(
         "<p><strong>Goal:</strong> Every Pusher event has a TypeScript interface shared between backend and player. "
         "No more <code>any</code> types or implicit contracts.</p>"
@@ -943,7 +815,7 @@ def build_content(page_id: str = "165019751") -> str:
         "typescript", "Typed Pusher Event Contracts"
     ))
 
-    sections.append("<h3>9.3 Domain Events (Internal Code-Level)</h3>")
+    sections.append("<h3>7.3 Domain Events (Internal Code-Level)</h3>")
     sections.append(note_panel(
         "<p><strong>Goal:</strong> Named domain events inside backend code for traceability. "
         "NOT persisted as event-sourcing log &mdash; just typed objects passed between services.</p>"
@@ -999,13 +871,178 @@ def build_content(page_id: str = "165019751") -> str:
         "typescript", "Domain Events"
     ))
 
-    sections.append("<h3>9.4 Event Flow Diagram</h3>")
+    sections.append("<h3>7.4 Event Flow Diagram</h3>")
     sections.append(mermaid_diagram(
-        load_diagram("09-4-event-flow.mmd"),
+        load_diagram("07-4-event-flow.mmd"),
         page_id=page_id,
     ))
 
-    sections.append("<h3>9.5 Decision Record: Why NOT Event-Sourcing</h3>")
+    # ═══════════════════════════════════════════════════════════════
+    # Section 8: Edge Cases & Resilience (moved from old §6)
+    # ═══════════════════════════════════════════════════════════════
+    sections.append("<hr/>")
+    sections.append("<h2>8. Edge Cases &amp; Resilience</h2>")
+
+    sections.append("<h3>8.1 Network Issues</h3>")
+    sections.append(
+        '<table>'
+        '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
+        '<tr><td>E1</td><td><strong>Network flapping</strong> (on/off ทุก 30 วิ)</td>'
+        '<td>Player fetch ค้าง, Pusher reconnect วนซ้ำ, media download incomplete</td>'
+        '<td><strong>Debounce reconnect:</strong> ต้อง online ต่อเนื่อง 10 วิ ก่อน trigger sync. Media download ต้อง resume-able (Tauri download รองรับอยู่แล้ว)</td></tr>'
+        '<tr><td>E2</td><td><strong>Pusher disconnect 5 นาที</strong> &rarr; missed events</td>'
+        '<td>Player ไม่รู้ว่ามี playlist ใหม่</td>'
+        '<td><strong>Version check on reconnect:</strong> Player เก็บ <code>last_version</code>. Reconnect &rarr; <code>GET /v2/device-playlist?since_version=N</code> &rarr; ได้ delta</td></tr>'
+        '<tr><td>E3</td><td><strong>Pusher duplicate events</strong></td>'
+        '<td>Player process playlist update ซ้ำ 2 ครั้ง</td>'
+        '<td><strong>Inbox dedup:</strong> เก็บ <code>event_id</code> ล่าสุด 100 รายการ. ถ้าซ้ำ &rarr; skip</td></tr>'
+        '<tr><td>E4</td><td><strong>API timeout &rarr; player retry &rarr; duplicate play history</strong></td>'
+        '<td>Backend บันทึก 2 records สำหรับ ad เดียวกัน</td>'
+        '<td><strong>Outbox + Idempotency Key:</strong> Player สร้าง UUID per play event. Backend check Redis <code>idem:{uuid}</code> ก่อน insert</td></tr>'
+        '<tr><td>E5</td><td><strong>Partial media download</strong> (internet หลุดกลาง download)</td>'
+        '<td>ไฟล์ media ไม่สมบูรณ์</td>'
+        '<td>เดิมมีอยู่แล้ว: <code>fileCleanupService.markDownloading()</code> ป้องกัน cleanup. เพิ่ม: <strong>checksum validation</strong> &mdash; backend ส่ง <code>media.checksum</code> &rarr; สน + re-download</td></tr>'
+        '<tr><td>E6</td><td><strong>SSL certificate expired / DNS failure</strong></td>'
+        '<td>fetch fail แต่ internet ยังใช้ได้</td>'
+        '<td>Treat เหมือน offline. Player มี Tier 2/3 รองรับ. เพิ่ม <strong>diagnostic log</strong> แยก SSL error จาก network error</td></tr>'
+        '</table>'
+    )
+
+    sections.append("<h3>8.2 Schedule/Playlist Issues</h3>")
+    sections.append(
+        '<table>'
+        '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
+        '<tr><td>E7</td><td><strong>Schedule gap</strong> &mdash; ไม่มี ad สำหรับช่วงเวลานี้</td>'
+        '<td>Tier 1 ว่างเปล่า</td>'
+        '<td>Auto-switch Tier 3 (owner fallback). <strong>ห้ามจอดำเด็ดขาด</strong></td></tr>'
+        '<tr><td>E8</td><td><strong>Exclusive ad ขณะ offline</strong></td>'
+        '<td>Backend approve exclusive แต่ push ไม่ถึง player</td>'
+        '<td><strong>Buffer tier:</strong> Exclusive ที่ approved ล่วงหน้า ถูกใส่ใน Tier 2 ด้วย <code>priority: exclusive</code> + <code>play_at: exact_time</code>. Player check Tier 2 ทุก 1 วิ ว่ามี exclusive <code>CalculatePlaySchedules</code> query ทำอยู่แล้ว)</td></tr>'
+        '<tr><td>E9</td><td><strong>Tier 1 หมด แต่ Tier 2 ยังไม่พร้อม</strong> (media กำลัง download)</td>'
+        '<td>ช่วงว่างระหว่าง tier</td>'
+        '<td>Play Tier 3 ขณะรอ. เมื่อ Tier 2 media download ครบ &rarr; switch ขึ้นไป</td></tr>'
+        '<tr><td>E10</td><td><strong>Billboard time budget overflow</strong> &mdash; ads มากกว่า time slots</td>'
+        '<td>PlaylistBuilder สร้าง playlist ยาวเกินรอบ</td>'
+        '<td>Backend cap ที่ <code>roundDuration</code>. ส่วนที่เกิน &rarr; ไม่ใส่ playlist (เหมือนเดิมที่ cron ทำ). Player ไม่ต้องคิด</td></tr>'
+        '<tr><td>E11</td><td><strong>Owner playlist ว่าง</strong> &mdash; billboard owner ไม่ได้ตั้งค่า</td>'
+        '<td>Tier 3 ไม่มี content</td>'
+        '<td><strong>First boot check:</strong> ถ้า Tier 3 ว่าง &rarr; แสดง <strong>system splash</strong> (logo + "กำลังเตรียมระบบ"). Admin UI แจ้งเตือน owner ให้ upload content. บังคับ: Device register สำเร็จต่อเมื่อ billboard มีอย่างน้อย 1 รายการ</td></tr>'
+        '<tr><td>E12</td><td><strong>Stale schedule</strong> &mdash; offline นานจน Tier 2 expired</td>'
+        '<td><code>valid_until</code> ผ่านไปแล้ว</td>'
+        '<td>Player check <code>valid_until</code> ก่อนเล่น. ถ้า expired &rarr; switch Tier 3. <strong>ไม่เล่น ad expired</strong> เพราะอาจเป็น campaign ที่หมดแล้ว (billing issue)</td></tr>'
+        '<tr><td>E13</td><td><strong>Concurrent Pusher events</strong> &mdash; 3 events มาพร้อมกัน</td>'
+        '<td>Race condition ใน playlist update</td>'
+        '<td><strong>Version monotonic:</strong> Player เก็บ <code>current_version</code>. ถ้า <code>event.version</code> &le; current &rarr; skip. ถ้า &gt; current &rarr; process. ถ้า &gt; current+1 (gap) &rarr; full re-fetch</td></tr>'
+        '</table>'
+    )
+
+    sections.append("<h3>8.3 Device/Storage Issues</h3>")
+    sections.append(
+        '<table>'
+        '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
+        '<tr><td>E14</td><td><strong>Player restart ขณะ offline</strong></td>'
+        '<td>App crash &rarr; relaunch ไม่มี internet</td>'
+        '<td>localStorage persist ข้าม restart (เดิมทำอยู่แล้ว). Boot &rarr; read localStorage &rarr; resume from last <code>sequence_no</code>. ถ้า Tier 1/2 expired &rarr; Tier 3</td></tr>'
+        '<tr><td>E15</td><td><strong>First boot ไม่มี internet</strong></td>'
+        '<td>Device ใหม่ ยังไม่เคย pair</td>'
+        '<td>ไม่สามารถ pair ได้ (ต้องมี internet สำหรับ register). แสดง splash + "กรุณาเชื่อมต่อ internet". Poll ทุก 5 วิ (เดิม)</td></tr>'
+        '<tr><td>E16</td><td><strong>Clock drift</strong> &mdash; offline นาน, NTP ไม่ sync</td>'
+        '<td><code>valid_until</code> check ผิดพลาด</td>'
+        '<td>Tauri บน Windows/macOS/Linux มี RTC ที่แม่นยำกว่า RPi. เก็บ <code>last_ntp_sync</code> timestamp. ถ้า drift &gt; 1 ชม. &rarr; log warning แต่ยังเล่น play (better than black screen). <strong>Exclusive</strong> tradeoff</td></tr>'
+        '<tr><td>E17</td><td><strong>Disk full</strong> &mdash; media เต็ม storage</td>'
+        '<td>Download ใหม่ไม่ได้</td>'
+        '<td>เดิมมี cleanup อยู่แล้ว (file-cleanup.service.ts ทุก 24h). เพิ่ม: check disk ก่อน download. ถ้า &lt; 500MB &rarr; trigger emergency cleanup (ลบ media ที่ไม่อยู่ใน Tier 1+2+3). ถ้ายังไม่พอ &rarr; skip download, เล่น ad ถัดไป (ไม่หยุด)</td></tr>'
+        '<tr><td>E18</td><td><strong>Media file corrupt</strong></td>'
+        '<td>Video file เสีย &rarr; playback error</td>'
+        '<td>เดิมมี <strong>retry queue</strong> (max 3 attempts). เพิ่ม: ถ้า retry ครบ 3 ครั้ง &rarr; mark file dirty &rarr; re-download next sync. Player skip ไป ad ถัดไป (ไม่หยุด)</td></tr>'
+        '<tr><td>E19</td><td><strong>localStorage quota exceeded</strong> (5-10MB limit)</td>'
+        '<td>เก็บ playlist data ไม่พอ</td>'
+        '<td>Migrate heavy data &rarr; <strong>Tauri Store</strong> (JSON file, ไม่มี quota). เก็บเฉพาะ small state ใน localStorage. Playlist data &rarr; Tauri Store</td></tr>'
+        '</table>'
+    )
+
+    sections.append("<h3>8.4 Business Logic Issues</h3>")
+    sections.append(
+        '<table>'
+        '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
+        '<tr><td>E20</td><td><strong>Ad cancelled ขณะ offline</strong></td>'
+        '<td>Backend cancel ad แต่ player ยังเล่นอยู่</td>'
+        '<td><strong>Acceptable tradeoff:</strong> player จะเล่น ad ต่อจน reconnect. เมื่อ reconnect &rarr; sync playlist ใหม่ &rarr; ad หายไป. Play history records ยังถูกต้อง (ส่งทีหลัง reconnect)</td></tr>'
+        '<tr><td>E21</td><td><strong>Campaign budget exhausted ขณะเล่น</strong></td>'
+        '<td>Player กำลังเล่น ad ของ campaign ที่หมด budget</td>'
+        '<td>Backend ไม่ใส่ ad นี้ใน round ถัดไป. Player round ปัจจุบันเล่นจบปกติ (ยอมรับได้ &mdash; เป็น 1 round = 10 นาที max)</td></tr>'
+        '<tr><td>E22</td><td><strong>Play history ส่งไม่ได้</strong> &rarr; billing คลาดเคลื่อน</td>'
+        '<td>Offline นาน &rarr; play history queue สะสม</td>'
+        '<td><strong>Outbox guarantee:</strong> ไม่มี play event หาย (persisted ใน Tauri Store). เมื่อ reconnect &rarr; flush ทั้งหมดตามลำดับ. Backend reconcile by timestamp</td></tr>'
+        '<tr><td>E23</td><td><strong>Billboard unpair ขณะ offline</strong></td>'
+        '<td>Admin unpair device แต่ player ไม่รู้</td>'
+        '<td>Player ยังเล่นต่อจาก cache. เมื่อ reconnect &rarr; Pusher <code>un-pair-screen</code> &rarr; clear all + back to pair screen. หรือ: API call fail &rarr; 401 &rarr; trigger unpair locally</td></tr>'
+        '<tr><td>E24</td><td><strong>Multiple devices ใช้ device code เดียวกัน</strong></td>'
+        '<td>Clone device &rarr; 2 players same code</td>'
+        '<td>Backend: POST <code>/v2/play-history</code> ส่ง <code>device_fingerprint</code> (MAC + hostname). ถ้าไม่ตรง &rarr; reject + alert</td></tr>'
+        '</table>'
+    )
+
+    # ═══════════════════════════════════════════════════════════════
+    # Section 9: Migration Plan (moved from old §7)
+    # ═══════════════════════════════════════════════════════════════
+    sections.append("<hr/>")
+    sections.append("<h2>9. Migration Plan (Incremental)</h2>")
+    sections.append(info_panel(
+        "<p><strong>Feature flag:</strong> <code>billboard.player_mode: 'smart' | 'dumb'</code> &mdash; roll out per billboard, no big bang</p>"
+    ))
+    sections.append(
+        '<table>'
+        '<tr><th>Phase</th><th>Backend</th><th>Player</th><th>Risk</th></tr>'
+        '<tr><td><strong>Phase 0</strong></td><td>Add <code>version</code> field to Pusher payload</td><td>Store version (don\'t use yet)</td><td>' + status_macro("Zero risk", "Green") + '</td></tr>'
+        '<tr><td><strong>Phase 1</strong></td><td>Add PlaylistBuilder service + DevicePlaylist models + <code>GET /v2/device-playlist</code></td><td>Read-only testing (no behavior change)</td><td>' + status_macro("Backend only", "Green") + '</td></tr>'
+        '<tr><td><strong>Phase 2</strong></td><td>Add Idempotency Key check in play-history</td><td>Send <code>X-Idempotency-Key</code> header</td><td>' + status_macro("Backward compat", "Green") + '</td></tr>'
+        '<tr><td><strong>Phase 3</strong></td><td>&mdash;</td><td>Player V2: read ordered playlist. <strong>Feature flag per device</strong></td><td>' + status_macro("Gradual rollout", "Yellow") + '</td></tr>'
+        '<tr><td><strong>Phase 4</strong></td><td>&mdash;</td><td>3-Tier cache + state machine + checksum validation</td><td>' + status_macro("Full new behavior", "Yellow") + '</td></tr>'
+        '<tr><td><strong>Phase 5</strong></td><td>Remove old schedule endpoints (v1)</td><td>Remove old scheduling code</td><td>' + status_macro("Cleanup", "Grey") + '</td></tr>'
+        '</table>'
+    )
+
+    # ═══════════════════════════════════════════════════════════════
+    # Section 10: Appendix
+    # ═══════════════════════════════════════════════════════════════
+    sections.append("<hr/>")
+    sections.append("<h2>10. Appendix</h2>")
+
+    # 10.1 Industry Reference (moved from old §8)
+    sections.append("<h3>10.1 Industry Reference</h3>")
+    sections.append("<h4>How Commercial Solutions Handle Offline</h4>")
+    sections.append(
+        '<table>'
+        '<tr><th>Platform</th><th>Approach</th><th>Buffer</th></tr>'
+        '<tr><td>Xibo</td><td>RequiredFiles manifest + MD5 per file + 50MB chunk download</td><td>48h ahead (configurable)</td></tr>'
+        '<tr><td>piSignage</td><td>Default playlist fallback + local media folder + delta sync</td><td>Full campaign window</td></tr>'
+        '<tr><td>BrightSign BSN.Cloud</td><td>Local-first: all media cached, network = sync only</td><td>Content-dependent</td></tr>'
+        '<tr><td>info-beamer</td><td>3-state degradation (Online/Degraded/Offline) + RTC fallback</td><td>All scheduled content</td></tr>'
+        '</table>'
+    )
+
+    sections.append("<h4>Open Source References</h4>")
+    sections.append(
+        '<table>'
+        '<tr><th>Project</th><th>Repository</th><th>Relevant Pattern</th></tr>'
+        '<tr><td>Xibo Player SDK</td><td><a href="https://github.com/xibo-players/xiboplayer">xibo-players/xiboplayer</a></td><td>Cache API + IndexedDB, XMR WebSocket, chunk downloads with MD5, 2-layout preload pool</td></tr>'
+        '<tr><td>Xibo .NET Client</td><td><a href="https://github.com/xibosignage/xibo-dotnetclient">xibosignage/xibo-dotnetclient</a></td><td>ScheduleManager.cs: thread polling, priority resolution, disk-resident schedule, Splash fallback</td></tr>'
+        '<tr><td>piSignage</td><td><a href="https://github.com/colloqi/piSignage">colloqi/piSignage</a></td><td>Node.js + WebSocket, default playlist fallback, local filesystem media</td></tr>'
+        '<tr><td>Anthias (Screenly OSE)</td><td><a href="https://github.com/Screenly/Anthias">Screenly/Anthias</a></td><td>Docker microservices, Redis + SQLite, Celery queue, Qt viewer</td></tr>'
+        '</table>'
+    )
+
+    sections.append("<h4>Protocol Recommendation</h4>")
+    sections.append(note_panel(
+        "<p><strong>Keep Pusher</strong> (existing) for real-time push. Add <strong>version-based checkpoint</strong> on reconnect via REST. "
+        "Never depend on push for playback &mdash; it only triggers early sync.</p>"
+        "<p><strong>Key insight (from RxDB):</strong> Client can miss events during disconnect. "
+        "Solution: checkpoint mode on reconnect (full schedule compare via REST) + event mode once synced (Pusher for incremental).</p>"
+    ))
+
+    # 10.2 Decision Record: Why NOT Event-Sourcing (moved from old §9.5)
+    sections.append("<h3>10.2 Decision Record: Why NOT Event-Sourcing</h3>")
     sections.append(warning_panel(
         "<p><strong>ADR-002:</strong> Event-Driven Architecture (NOT Event-Sourcing)</p>"
     ))
@@ -1040,7 +1077,8 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>9.6 Implementation Checklist</h3>")
+    # 10.3 Implementation Checklist (moved from old §9.6)
+    sections.append("<h3>10.3 Implementation Checklist</h3>")
     sections.append(success_panel(
         "<p><strong>What to formalize (ordered by priority):</strong></p>"
         "<ol>"
