@@ -1,0 +1,15 @@
+flowchart TD
+    INT["Ad interrupted<br/>(P0/P1-TK/P1-ET trigger)"] --> POP["PoP recorded:<br/>interrupted=true<br/>play_duration_seconds<br/>interrupt_reason"]
+    POP --> MGR["MakeGoodRecord created:<br/>device_code, ad_code<br/>compensated=false"]
+    MGR --> WAIT["Wait for next<br/>Ad Decisioning cycle"]
+    WAIT --> CHECK{{"Campaign still valid?<br/>(not expired,<br/>not cancelled)"}}
+    CHECK -->|"YES"| INSERT["Step 5.5: Insert make-good<br/>as first item after<br/>guaranteed/takeover slots"]
+    CHECK -->|"NO"| SKIP["Skip: log for<br/>manual reconcile"]
+    INSERT --> PLAY["Make-good ad plays<br/>full duration"]
+    PLAY --> COMP["MakeGoodRecord:<br/>compensated=true<br/>compensated_at=now"]
+    COMP --> DONE["PoP recorded:<br/>make_good=true"]
+    style INT fill:#f8d7da,stroke:#dc3545
+    style MGR fill:#fff3cd,stroke:#ffc107
+    style INSERT fill:#ffd700,stroke:#333
+    style COMP fill:#d4edda,stroke:#28a745
+    style DONE fill:#d4edda,stroke:#28a745

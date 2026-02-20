@@ -26,6 +26,10 @@ stateDiagram-v2
         FALLBACK --> ONLINE_PLAYBACK : Reconnect
         FALLBACK --> SPLASH_LAST : Tier 3 empty
 
+        ONLINE_PLAYBACK --> INTERRUPTED : P0/P1-TK/P1-ET trigger
+        INTERRUPTED --> ONLINE_PLAYBACK : resume next item
+        note right of INTERRUPTED : Transient state\nStop current → play interrupt → resume
+
         OFFLINE_PLAYBACK : ▶ Tier 1 → 2 → 3
         SPLASH_LAST : ▶ Logo + contact admin
     }
@@ -35,7 +39,9 @@ stateDiagram-v2
     classDef green fill:#d4edda,stroke:#28a745,stroke-width:2px
     classDef yellow fill:#fff3cd,stroke:#ffc107,stroke-width:2px
     classDef red fill:#f8d7da,stroke:#dc3545,stroke-width:2px
+    classDef interrupt fill:#ff6b6b,stroke:#c92a2a,stroke-width:2px
 
     class ONLINE_PLAYBACK green
     class OFFLINE_PLAYBACK yellow
     class FALLBACK,SPLASH_LAST red
+    class INTERRUPTED interrupt

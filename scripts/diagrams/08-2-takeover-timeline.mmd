@@ -1,0 +1,28 @@
+flowchart LR
+    subgraph BEFORE["07:50-08:00<br/>Normal Schedule"]
+        direction TB
+        B1["P2: Campaign Ad A (15s)"]
+        B2["P4: House Ad (10s)"]
+        B3["P2: Campaign Ad B (15s)"]
+        B1 --> B2 --> B3
+    end
+    subgraph TK["08:00-09:00<br/>⭐ TAKEOVER BLOCK"]
+        direction TB
+        T1["P1-TK: TK Creative (30s)"]
+        T2["P1-TK: TK Creative (30s)"]
+        T3["P1-TK: ... loop ×120"]
+        T1 --> T2 --> T3
+    end
+    subgraph AFTER["09:00-09:10<br/>Resume + Make-Good"]
+        direction TB
+        A1["⭐ Make-good: Ad A<br/>(interrupted at 08:00)"]
+        A2["P2: Campaign Ad C (15s)"]
+        A3["P4: House Ad (10s)"]
+        A1 --> A2 --> A3
+    end
+    BEFORE -->|"TK_START<br/>interrupt"| TK
+    TK -->|"TK_END<br/>resume"| AFTER
+    style BEFORE fill:#f0f0f0,stroke:#666
+    style TK fill:#ffd700,stroke:#333
+    style AFTER fill:#d4edda,stroke:#28a745
+    style A1 fill:#fff3cd,stroke:#ffc107

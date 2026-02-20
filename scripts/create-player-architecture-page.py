@@ -272,12 +272,15 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append("<h2>1. Executive Summary</h2>")
     sections.append(success_panel(
         "<p><strong>Problem:</strong> Player มี scheduling logic <strong>3,500+ บรรทัด</strong> "
-        "ที่จัดลำดับ ad เอง + ไม่มี offline resilience (fresh boot + no internet = <strong>จอดำ</strong>)</p>"
+        "ที่จัดลำดับ ad เอง + ไม่มี offline resilience (fresh boot + no internet = <strong>จอดำ</strong>) "
+        "+ ไม่รองรับ premium products (Daypart Takeover, Exact-Time Spot)</p>"
         "<p><strong>Solution:</strong> Backend ส่ง <strong>ordered screen schedule (loop sequence)</strong> แทนที่จะส่ง bag of creatives + rules. "
-        "Player แค่เล่น <code>sequence[i++]</code> (Dumb Renderer)</p>"
+        "Player แค่เล่น <code>sequence[i++]</code> (Dumb Renderer) + <strong>Interrupt Controller</strong> สำหรับ P0/P1 premium เท่านั้น</p>"
         "<p><strong>Impact:</strong> Player complexity <strong>&darr;80%</strong>, "
         "offline support ผ่าน 3-tier cache (Live &rarr; Buffer &rarr; Fallback), "
-        "idempotent sync ป้องกัน duplicate Proof of Play (PoP)</p>"
+        "idempotent sync ป้องกัน duplicate PoP, "
+        "<strong>+ premium products:</strong> Daypart Takeover (เหมา time block) + Exact-Time Spot (เล่นตรงเวลา) "
+        "with make-good compensation</p>"
     ))
     sections.append(mermaid_diagram(
         load_diagram("01-proposed-architecture.mmd"),
@@ -418,7 +421,10 @@ def build_content(page_id: str = "165019751") -> str:
         '<tr><td>Media download</td><td>Tauri plugin-upload</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
         '<tr><td>BullMQ</td><td>Redis queue</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
         '<tr><td>Auth</td><td>x-device-code header</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>Proof of Play (PoP)</td><td>POST /v2/play-history + retry</td><td>Same + <strong>Outbox pattern</strong></td><td>' + status_macro("ENHANCE", "Yellow") + '</td></tr>'
+        '<tr><td>Proof of Play (PoP)</td><td>POST /v2/play-history + retry</td><td>Same + <strong>Outbox pattern</strong> + interrupt fields</td><td>' + status_macro("ENHANCE", "Yellow") + '</td></tr>'
+        '<tr><td><strong>Interrupt Controller</strong></td><td>N/A</td><td><strong>NEW:</strong> Lightweight IC for P0/P1-TK/P1-ET only. P2-P4 wait for creative to finish</td><td>' + status_macro("NEW", "Blue") + '</td></tr>'
+        '<tr><td><strong>TK Booking API</strong></td><td>N/A</td><td><strong>NEW:</strong> Daypart Takeover booking + overlap validation + lead time check</td><td>' + status_macro("NEW", "Blue") + '</td></tr>'
+        '<tr><td><strong>Make-Good System</strong></td><td>N/A</td><td><strong>NEW:</strong> Interrupted ads get compensation slot in next cycle</td><td>' + status_macro("NEW", "Blue") + '</td></tr>'
         '</table>'
     )
 
@@ -429,7 +435,7 @@ def build_content(page_id: str = "165019751") -> str:
         '<tr><td><strong>BullMQ + Redis</strong></td><td>Cron job queue (PlayScheduleCalculate)</td><td>Same + enqueue Ad Decisioning Engine after schedule calc</td><td>' + status_macro("REUSE", "Green") + '</td></tr>'
         '<tr><td><strong>MySQL</strong></td><td>PlaySchedule, Billboard, Advertisement models</td><td>Same + NEW ScreenSchedule, ScreenScheduleItem tables</td><td>' + status_macro("ADD TABLES", "Yellow") + '</td></tr>'
         '<tr><td><strong>Redis (cache)</strong></td><td>GET/SET string cache (Bentocache)</td><td>Same + idempotency keys (SET with TTL 24h)</td><td>' + status_macro("REUSE", "Green") + '</td></tr>'
-        '<tr><td><strong>Pusher (WebSocket)</strong></td><td>6 event types, channel per device</td><td>Same channel + 2 new typed events</td><td>' + status_macro("ADD EVENTS", "Yellow") + '</td></tr>'
+        '<tr><td><strong>Pusher (WebSocket)</strong></td><td>6 event types, channel per device</td><td>Same channel + 5 new typed events (schedule-updated, device-config-updated, takeover-start, takeover-end, p0-emergency)</td><td>' + status_macro("ADD EVENTS", "Yellow") + '</td></tr>'
         '<tr><td><strong>AdonisJS routes</strong></td><td>Player V2 routes (/play-schedules, /playlist-advertisements)</td><td>Keep existing + add GET /v2/screen-schedule</td><td>' + status_macro("ADD ENDPOINT", "Yellow") + '</td></tr>'
         '<tr><td><strong>Tauri plugin-upload</strong></td><td>Native HTTP media download</td><td>Same (sequential download with resume)</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
         '<tr><td><strong>localStorage</strong></td><td>Schedules, playlists, playData</td><td>Migrate heavy data to Tauri Store; localStorage for small state only</td><td>' + status_macro("MIGRATE", "Yellow") + '</td></tr>'
@@ -482,6 +488,31 @@ def build_content(page_id: str = "165019751") -> str:
         page_id=page_id,
     ))
 
+    sections.append("<h3>5.5 Flow E: Daypart Takeover</h3>")
+    sections.append(info_panel(
+        "<p><strong>Daypart Takeover (เหมา time block):</strong> ลูกค้าซื้อช่วงเวลาทั้งหมด (เช่น 08:00-09:00) "
+        "วน ad เดียวไม่หยุด ไม่มี ad อื่นแทรกได้ยกเว้น P0 Emergency. "
+        "Billing: <strong>CPT (Cost Per Time)</strong> — flat rate ต่อ time block. "
+        'ใช้แนวคิดจาก <a href="https://docs.broadsign.com/broadsign-control/latest/en/settings-section.html">'
+        "Broadsign Day Part Switch Behavior</a> (configurable interrupt at boundaries).</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("05-5-flow-takeover.mmd"),
+        page_id=page_id,
+    ))
+
+    sections.append("<h3>5.6 Flow F: Exact-Time Spot</h3>")
+    sections.append(info_panel(
+        "<p><strong>Exact-Time Spot:</strong> Ad ต้องเล่นตรงเวลาที่กำหนด (±5 วินาที). "
+        "Interrupt Controller จะหยุด creative ที่กำลังเล่น (P2-P4 เท่านั้น) แล้วเล่น ET spot ทันที. "
+        "Billing: <strong>Flat per spot</strong>. "
+        "Ad ที่โดน interrupt จะได้ <strong>make-good</strong> compensation ใน cycle ถัดไป.</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("05-6-flow-exact-time.mmd"),
+        page_id=page_id,
+    ))
+
     # ═══════════════════════════════════════════════════════════════
     # Section 6: Technical Design
     # ═══════════════════════════════════════════════════════════════
@@ -501,42 +532,70 @@ def build_content(page_id: str = "165019751") -> str:
     ))
     sections.append(
         '<table>'
-        '<tr><th>Priority</th><th>DOOH Type</th><th>Scheduling</th><th>Billing</th></tr>'
-        '<tr><td><strong>P0</strong></td><td>System / Emergency</td><td>System alerts, unpair, maintenance</td><td>N/A</td></tr>'
-        '<tr><td><strong>P1</strong></td><td>Guaranteed (takeover)</td><td>Time-reserved guaranteed spots (<code>play_at</code> exact)</td><td><code>exclusiveMultiplier</code></td></tr>'
-        '<tr><td><strong>P2</strong></td><td>Direct-Sold ROS</td><td>Date-range campaign creatives (run-of-schedule)</td><td>Standard rate</td></tr>'
-        '<tr><td><strong>P3</strong></td><td>Spot Buy / Programmatic</td><td>Impression-target creatives (future: RTB via SSP)</td><td>Standard / CPM</td></tr>'
-        '<tr><td><strong>P4</strong></td><td>House / Filler</td><td>Screen owner default content (house loop)</td><td>N/A</td></tr>'
+        '<tr><th>Priority</th><th>DOOH Type</th><th>Interrupt?</th><th>Scheduling</th><th>Billing</th></tr>'
+        '<tr><td><strong>P0</strong></td><td>Emergency</td><td>' + status_macro("YES — all", "Red") + '</td><td>System alerts, unpair, maintenance</td><td>N/A</td></tr>'
+        '<tr><td><strong>P1-TK</strong></td><td>Daypart Takeover</td><td>' + status_macro("YES — boundaries", "Red") + '</td><td>เหมา time block วน ad เดียว (TK_START → loop → TK_END)</td><td>CPT (flat/time block)</td></tr>'
+        '<tr><td><strong>P1-ET</strong></td><td>Exact-Time Spot</td><td>' + status_macro("YES — P2-P4", "Red") + '</td><td>เล่นตรงเวลา ±5s tolerance</td><td>Flat per spot</td></tr>'
+        '<tr><td><strong>P1-G</strong></td><td>Guaranteed Spot</td><td>' + status_macro("NO — pre-positioned", "Green") + '</td><td>Time-reserved guaranteed spots (<code>play_at</code> exact position in sequence)</td><td><code>exclusiveMultiplier</code></td></tr>'
+        '<tr><td><strong>P2</strong></td><td>Direct-Sold ROS</td><td>' + status_macro("NO", "Green") + '</td><td>Date-range campaign creatives (run-of-schedule)</td><td>Standard rate</td></tr>'
+        '<tr><td><strong>P3</strong></td><td>Spot Buy / Programmatic</td><td>' + status_macro("NO", "Green") + '</td><td>Impression-target creatives (future: RTB via SSP)</td><td>Standard / CPM</td></tr>'
+        '<tr><td><strong>P4</strong></td><td>House / Filler</td><td>' + status_macro("NO", "Green") + '</td><td>Screen owner default content (house loop)</td><td>N/A</td></tr>'
         '</table>'
     )
+    sections.append(note_panel(
+        "<p><strong>Interrupt Rules:</strong></p>"
+        "<ul>"
+        "<li><strong>P0/P1-TK/P1-ET:</strong> Interrupt current creative ทันที → <strong>stop</strong> (ไม่ pause/resume) "
+        '— แนวคิดจาก <a href="https://xibosignage.com/manual/en/layouts_interrupt">Xibo Interrupt Layout</a></li>'
+        "<li><strong>P1-G/P2/P3/P4:</strong> รอ creative ปัจจุบันจบก่อน (no interrupt)</li>"
+        "<li>After interrupt: resume จาก <strong>next item</strong> ใน schedule (ไม่ restart creative ที่โดน interrupt)</li>"
+        "<li>Interrupted ad ได้ <strong>make-good</strong> compensation ใน cycle ถัดไป (partial play ไม่นับ impression)</li>"
+        "<li>Takeover ซ้อนกันไม่ได้ (1 time block = 1 owner)</li>"
+        "</ul>"
+    ))
 
     sections.append(tracked_code_block(
-        "// Ad Decisioning Algorithm v2 (Timeline-Based)\n"
-        "// Inspired by: SMIL <excl> + DOOH ad server patterns\n"
-        "// Addresses: BEP-2998 under-delivery via campaign pacing\n\n"
+        "// Ad Decisioning Algorithm v3 (Timeline-Based + Interrupt-Capable)\n"
+        "// Inspired by: SMIL <excl> + Broadsign Day Part Switch + Xibo Interrupt Layout\n"
+        "// Addresses: BEP-2998 under-delivery + Daypart Takeover + Exact-Time Spot + Make-Good\n\n"
         "Input:\n"
         "  - playSchedules[]: from PerScreen calc (direct-sold ROS + spot buy)\n"
         "  - guaranteedSchedules[]: from AdGroupDisplayTimeExclusive (overlapping this loop)\n"
+        "  - takeoverSchedules[]: from TakeoverSchedule (overlapping this loop)\n"
+        "  - exactTimeSpots[]: from ExactTimeSpot (overlapping this loop)\n"
+        "  - pendingMakeGoods[]: from MakeGoodRecord where compensated=false\n"
         "  - housePlaylist[]: from PlaylistAdvertisement (owner/filler content)\n"
         "  - screen: { ownerTime, platformTime }  // SOV budget (seconds/hour)\n"
         "  - loopDuration: 600  // seconds (10 min)\n\n"
-        "Step 1: Create timeline & reserve guaranteed slots FIRST (P1)\n"
+        "Step 0 (NEW): Reserve Exact-Time Spots (P1-ET)\n"
+        "  for (const et of exactTimeSpots.sortBy('play_at')) {\n"
+        "    timeline.reserveExact(et.play_at, et.tolerance_seconds, {\n"
+        "      priority: 'P1-ET', interruptIfNeeded: true\n"
+        "    })\n"
+        "  }\n\n"
+        "Step 1: Reserve Guaranteed Slots FIRST (P1-G)\n"
         "  timeline = createTimeline(loopStart, loopDuration)  // 600s\n"
         "  for (const g of guaranteedSchedules.sortBy('startDateTime')) {\n"
-        "    // Validate: creative asset exists? checksum OK? overlaps another guaranteed?\n"
-        "    if (!g.media?.file_url) { alertAdmin(g); continue }  // skip, don't silent-fail\n"
-        "    timeline.reserve(g.play_at, g.duration, { priority: 'P1', ...g })\n"
+        "    if (!g.media?.file_url) { alertAdmin(g); continue }\n"
+        "    timeline.reserve(g.play_at, g.duration, { priority: 'P1-G', ...g })\n"
+        "  }\n\n"
+        "Step 1.5 (NEW): Reserve Takeover Blocks (P1-TK)\n"
+        "  for (const tk of takeoverSchedules.sortBy('start_time')) {\n"
+        "    validate: no overlap with other TK (checkIsBillboardsReserved extended)\n"
+        "    timeline.reserveTakeover(tk.start_time, tk.end_time, {\n"
+        "      priority: 'P1-TK', loop: true, billing: 'CPT',\n"
+        "      creative_code: tk.creative_code\n"
+        "    })\n"
         "  }\n\n"
         "Step 2: Calculate SOV (Share of Voice) ratio for remaining avails\n"
         "  houseSOV = screen.ownerTime / (ownerTime + platformTime)\n"
         "  interleaveEvery = Math.round(1 / houseSOV)\n\n"
         "Step 2.5: Campaign Pacing (addresses BEP-2998 under-delivery)\n"
         "  for (const campaign of [...directSold, ...spotBuy]) {\n"
-        "    target = campaign.impression_target  // เดิมเรียก ad_display_count\n"
+        "    target = campaign.impression_target\n"
         "    delivered = campaign.delivered_today\n"
         "    remaining = target - delivered\n"
         "    pacing_rate = remaining / remaining_loops_today\n"
-        "    // กระจาย impression ให้สม่ำเสมอตลอดวัน ไม่กระจุกต้นวัน\n"
         "  }\n\n"
         "Step 3: Fill unreserved avails with campaign + house creatives\n"
         "  availableAvails = timeline.getUnreservedSlots()\n"
@@ -557,15 +616,24 @@ def build_content(page_id: str = "165019751") -> str:
         "Step 5: Flatten timeline → ordered loop sequence\n"
         "  sequence = timeline.flatten()  // chronological order\n"
         "  sequence.forEach((item, i) => item.sequence_no = i + 1)\n\n"
+        "Step 5.5 (NEW): Insert Make-Good Items\n"
+        "  for (const mg of pendingMakeGoods) {\n"
+        "    if (!mg.campaign.isValid()) { mg.skip(); continue }  // expired → log for reconcile\n"
+        "    // Insert as first item after guaranteed/takeover slots\n"
+        "    sequence.insertAfterReserved(mg.toScheduleItem())\n"
+        "    mg.markCompensated()\n"
+        "  }\n\n"
         "Step 6: Version + persist\n"
         "  version = (lastVersion for this device) + 1\n"
         "  Save ScreenSchedule { version, tier: 'live', items: sequence }\n"
         "  Mark previous 'live' schedule as 'replaced'\n\n"
         "Output:\n"
         "  ScreenSchedule v42 with ordered items[]\n"
-        "  Player just plays: items[0] → items[1] → items[2] → ...\n"
-        "  // Guaranteed spots are just items in the sequence — no interrupt needed",
-        "typescript", "Ad Decisioning Algorithm v2"
+        "  Player plays: items[0] → items[1] → items[2] → ...\n"
+        "  P1-G items are pre-positioned in sequence (no interrupt needed)\n"
+        "  P1-TK/P1-ET items trigger Interrupt Controller (real-time interrupt)\n"
+        "  Make-good items compensate interrupted ads",
+        "typescript", "Ad Decisioning Algorithm v3"
     ))
 
     # 6.2 New Data Models
@@ -593,7 +661,40 @@ def build_content(page_id: str = "165019751") -> str:
         "  duration_seconds: number\n"
         "  type: 'campaign' | 'house'  // campaign = sold inventory, house = filler\n"
         "  priority: 'guaranteed' | 'direct' | 'spot' | 'house'\n"
-        "  play_at: DateTime | null  // for guaranteed: exact time\n"
+        "  play_at: DateTime | null  // for guaranteed/exact-time: exact time\n"
+        "  interrupt_capable: boolean  // P1-TK/P1-ET = true, others = false\n"
+        "}\n\n"
+        "// NEW: TakeoverSchedule model (app/Models/TakeoverSchedule.ts)\n"
+        "interface TakeoverSchedule {\n"
+        "  id: number\n"
+        "  device_code: string\n"
+        "  advertisement_code: string\n"
+        "  creative_code: string\n"
+        "  start_time: DateTime      // e.g. 08:00:00\n"
+        "  end_time: DateTime        // e.g. 09:00:00\n"
+        "  status: 'booked' | 'active' | 'completed' | 'cancelled'\n"
+        "  billing_type: 'CPT'       // Cost Per Time — flat rate per block\n"
+        "  created_at: DateTime\n"
+        "}\n\n"
+        "// NEW: ExactTimeSpot model (app/Models/ExactTimeSpot.ts)\n"
+        "interface ExactTimeSpot {\n"
+        "  id: number\n"
+        "  device_code: string\n"
+        "  play_schedule_code: string\n"
+        "  play_at: DateTime          // exact time to play\n"
+        "  tolerance_seconds: number  // default: 5\n"
+        "  billing_type: 'flat'       // flat per spot\n"
+        "}\n\n"
+        "// NEW: MakeGoodRecord model (app/Models/MakeGoodRecord.ts)\n"
+        "interface MakeGoodRecord {\n"
+        "  id: number\n"
+        "  device_code: string\n"
+        "  advertisement_code: string\n"
+        "  interrupted_at: DateTime\n"
+        "  play_duration_seconds: number  // how much played before interrupt\n"
+        "  interrupt_reason: 'P0_emergency' | 'TK_start' | 'TK_end' | 'P1_exact_time'\n"
+        "  compensated: boolean\n"
+        "  compensated_at: DateTime | null\n"
         "}",
         "typescript", "New Models"
     ))
@@ -653,12 +754,32 @@ def build_content(page_id: str = "165019751") -> str:
         '      "creative_checksum": "a1b2c3d4...",  // MD5 for validation\n'
         '      "duration_seconds": 15,\n'
         '      "type": "campaign",\n'
-        '      "priority": "direct"\n'
+        '      "priority": "direct",\n'
+        '      "interrupt_capable": false\n'
+        "    },\n"
+        "    {\n"
+        '      "sequence_no": 5,\n'
+        '      "advertisement_code": "AD-tk-001",\n'
+        '      "creative_code": "CR-tk-001",\n'
+        '      "creative_url": "https://cdn.../takeover.mp4",\n'
+        '      "duration_seconds": 30,\n'
+        '      "type": "takeover",\n'
+        '      "priority": "P1-TK",\n'
+        '      "interrupt_capable": true,\n'
+        '      "takeover_id": 42,\n'
+        '      "takeover_start": "2026-02-20T08:00:00+07:00",\n'
+        '      "takeover_end": "2026-02-20T09:00:00+07:00"\n'
         "    },\n"
         "    ...\n"
         "  ],\n"
         '  "creative_manifest": [\n'
         '    { "creative_code": "CR-xxx", "url": "...", "checksum": "...", "size_bytes": 12345 }\n'
+        "  ],\n"
+        '  "pending_takeovers": [\n'
+        '    { "takeover_id": 42, "start": "08:00:00", "end": "09:00:00", "creative_code": "CR-tk-001" }\n'
+        "  ],\n"
+        '  "exact_time_spots": [\n'
+        '    { "play_at": "2026-02-20T14:30:00+07:00", "tolerance_seconds": 5, "creative_code": "CR-et-001" }\n'
         "  ]\n"
         "}",
         "json", "API Response Format"
@@ -678,7 +799,12 @@ def build_content(page_id: str = "165019751") -> str:
         page_id=page_id,
     ))
     sections.append(warning_panel(
-        "<p><strong>Rule:</strong> Every state MUST have something to display. <strong>Black screen is NEVER acceptable.</strong></p>"
+        "<p><strong>Rules:</strong></p>"
+        "<ul>"
+        "<li>Every state MUST have something to display. <strong>Black screen is NEVER acceptable.</strong></li>"
+        "<li><strong>INTERRUPTED</strong> is a transient state — stop current → play interrupt content → resume next item. "
+        "Triggers: P0 emergency, P1-TK boundary, P1-ET ±5s. ดู §6.10 Interrupt Controller</li>"
+        "</ul>"
     ))
 
     # 6.6 PoP Reporting (Outbox/Inbox)
@@ -800,6 +926,66 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
+    # 6.10 Interrupt Controller (NEW)
+    sections.append("<h3>6.10 Interrupt Controller</h3>")
+    sections.append(warning_panel(
+        "<p><strong>Design decision: Selective Interrupt.</strong> "
+        "Player ยังเป็น Dumb Renderer สำหรับ P1-G/P2/P3/P4 (รอ creative จบก่อน). "
+        "แต่มี <strong>lightweight Interrupt Controller (IC)</strong> สำหรับ P0/P1-TK/P1-ET เท่านั้น.</p>"
+        "<p><strong>Industry reference:</strong></p>"
+        "<ul>"
+        '<li><a href="https://docs.broadsign.com/broadsign-control/latest/en/settings-section.html">'
+        "Broadsign Day Part Switch</a>: configurable interrupt vs wait-for-completion — "
+        "เรา map priority level เป็นตัวตัดสิน (P0/P1 = interrupt, P2-P4 = wait)</li>"
+        '<li><a href="https://xibosignage.com/manual/en/layouts_interrupt">'
+        "Xibo Interrupt Layout</a>: priority system + Share of Voice — "
+        "เรา adopt priority concept แต่ใช้ timeline reservation แทน SOV %</li>"
+        "</ul>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("06-10-interrupt-controller.mmd"),
+        page_id=page_id,
+    ))
+    sections.append(
+        '<table>'
+        '<tr><th>Trigger</th><th>Action</th><th>Resume</th></tr>'
+        '<tr><td><strong>P0 Emergency</strong><br/>(Pusher: p0-emergency)</td>'
+        '<td>Stop immediately → play emergency creative</td>'
+        '<td>Resume next item after emergency duration. TK time lost (log for manual billing)</td></tr>'
+        '<tr><td><strong>P1-TK Start</strong><br/>(Pusher: takeover-start OR local clock)</td>'
+        '<td>Stop current → switch to TK creative → loop until TK_END</td>'
+        '<td>TK_END → resume next item in normal schedule + make-good for interrupted ad</td></tr>'
+        '<tr><td><strong>P1-ET Trigger</strong><br/>(local clock ±5s)</td>'
+        '<td>Stop current P2-P4 → play ET spot (single play)</td>'
+        '<td>ET done → resume next item + make-good for interrupted ad</td></tr>'
+        '</table>'
+    )
+
+    # 6.11 Make-Good System (NEW)
+    sections.append("<h3>6.11 Make-Good System</h3>")
+    sections.append(info_panel(
+        "<p><strong>Make-Good</strong> คือ industry standard สำหรับชดเชย ad ที่โดน interrupt "
+        '(<a href="https://www.cjadvertising.com/blog/industry-trends/preempts-makegoods-money-move/">'
+        "CJ Advertising: Preempts, Make-Goods, and the Money Move</a>). "
+        "Ad ที่เล่นไม่จบ (partial play) <strong>ไม่นับเป็น impression</strong> — "
+        "ระบบจะชดเชยด้วย slot ฟรีใน cycle ถัดไป.</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("06-11-make-good.mmd"),
+        page_id=page_id,
+    ))
+    sections.append(
+        '<table>'
+        '<tr><th>Field</th><th>Description</th></tr>'
+        '<tr><td><code>interrupted</code></td><td>boolean — PoP flag: ad ถูก interrupt กลางคัน</td></tr>'
+        '<tr><td><code>play_duration_seconds</code></td><td>เวลาที่เล่นจริงก่อนถูก interrupt (เช่น 8s จาก 15s)</td></tr>'
+        '<tr><td><code>interrupt_reason</code></td><td><code>P0_emergency</code> / <code>TK_start</code> / <code>TK_end</code> / <code>P1_exact_time</code></td></tr>'
+        '<tr><td><code>make_good</code></td><td>boolean — PoP flag: ad นี้เป็น make-good compensation (เล่นซ้ำเพื่อชดเชย)</td></tr>'
+        '<tr><td><code>compensated</code></td><td>MakeGoodRecord: ชดเชยแล้วหรือยัง</td></tr>'
+        '<tr><td><code>compensated_at</code></td><td>เวลาที่ชดเชยสำเร็จ</td></tr>'
+        '</table>'
+    )
+
     # ═══════════════════════════════════════════════════════════════
     # Section 7: Event-Driven Architecture (moved from old §9)
     # ═══════════════════════════════════════════════════════════════
@@ -888,6 +1074,26 @@ def build_content(page_id: str = "165019751") -> str:
         "  type: 'device-config-updated'\n"
         "  changes: ('operating_hours' | 'player_mode' | 'fallback_playlist')[]\n"
         "}\n\n"
+        "// ─── New Events: Interrupt/Takeover (v24) ───\n\n"
+        "interface TakeoverStartEvent extends PusherEventBase {\n"
+        "  type: 'takeover-start'\n"
+        "  version: number\n"
+        "  takeover_id: number\n"
+        "  creative_code: string\n"
+        "  end_time: string          // ISO 8601 — when TK ends\n"
+        "}\n\n"
+        "interface TakeoverEndEvent extends PusherEventBase {\n"
+        "  type: 'takeover-end'\n"
+        "  version: number\n"
+        "  takeover_id: number\n"
+        "}\n\n"
+        "interface P0EmergencyEvent extends PusherEventBase {\n"
+        "  type: 'p0-emergency'\n"
+        "  version: number\n"
+        "  message: string\n"
+        "  creative_url: string\n"
+        "  duration_seconds: number\n"
+        "}\n\n"
         "// ─── Union Type ───\n"
         "type PusherEvent =\n"
         "  | UpdatePlayScheduleEvent\n"
@@ -896,7 +1102,10 @@ def build_content(page_id: str = "165019751") -> str:
         "  | StopAdvertisementEvent\n"
         "  | UnPairScreenEvent\n"
         "  | ScheduleUpdatedEvent\n"
-        "  | DeviceConfigUpdatedEvent",
+        "  | DeviceConfigUpdatedEvent\n"
+        "  | TakeoverStartEvent      // v24\n"
+        "  | TakeoverEndEvent         // v24\n"
+        "  | P0EmergencyEvent         // v24",
         "typescript", "Typed Pusher Event Contracts"
     ))
 
@@ -951,6 +1160,33 @@ def build_content(page_id: str = "165019751") -> str:
         "  to_version: number\n"
         "  sync_type: 'delta' | 'full'\n"
         "  gap_duration_seconds: number\n"
+        "  timestamp: DateTime\n"
+        "}\n\n"
+        "// ─── New Domain Events (v24: Interrupt/Takeover) ───\n\n"
+        "/** Emitted: Ad interrupted by P0/P1-TK/P1-ET */\n"
+        "interface AdInterrupted {\n"
+        "  type: 'AdInterrupted'\n"
+        "  device_code: string\n"
+        "  advertisement_code: string\n"
+        "  play_duration_seconds: number\n"
+        "  interrupt_reason: 'P0_emergency' | 'TK_start' | 'TK_end' | 'P1_exact_time'\n"
+        "  timestamp: DateTime\n"
+        "}\n\n"
+        "/** Emitted: Make-good compensation scheduled for next cycle */\n"
+        "interface MakeGoodScheduled {\n"
+        "  type: 'MakeGoodScheduled'\n"
+        "  device_code: string\n"
+        "  advertisement_code: string\n"
+        "  make_good_id: number\n"
+        "  original_interrupt_reason: string\n"
+        "  timestamp: DateTime\n"
+        "}\n\n"
+        "/** Emitted: Takeover block starts/ends */\n"
+        "interface TakeoverStateChanged {\n"
+        "  type: 'TakeoverStateChanged'\n"
+        "  device_code: string\n"
+        "  takeover_id: number\n"
+        "  state: 'active' | 'completed'\n"
         "  timestamp: DateTime\n"
         "}",
         "typescript", "Domain Events"
@@ -1068,10 +1304,11 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>8.5 Guaranteed Spot Edge Cases</h3>")
+    sections.append("<h3>8.5 Guaranteed Spot Edge Cases (P1-G — No Interrupt)</h3>")
     sections.append(warning_panel(
-        "<p><strong>Edge cases specific to guaranteed spots (เดิมเรียก exclusive &mdash; time-reserved takeover).</strong> "
-        "These are the hardest scheduling problems &mdash; inspired by SMIL <code>&lt;excl&gt;</code> + <code>priorityClass</code> semantics.</p>"
+        "<p><strong>Edge cases specific to P1-G guaranteed spots</strong> (เดิมเรียก exclusive). "
+        "P1-G ยังคง <strong>ไม่ interrupt</strong> — pre-positioned ใน sequence โดย Ad Decisioning Engine. "
+        "สำหรับ edge cases ของ P1-TK (Takeover) และ P1-ET (Exact-Time) ที่มี interrupt ดู §8.6</p>"
     ))
     sections.append(
         '<table>'
@@ -1140,13 +1377,45 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
+    # 8.6 Takeover & Exact-Time Edge Cases (NEW)
+    sections.append("<h3>8.6 Takeover &amp; Exact-Time Edge Cases (P1-TK / P1-ET)</h3>")
+    sections.append(mermaid_diagram(
+        load_diagram("08-2-takeover-timeline.mmd"),
+        page_id=page_id,
+    ))
+    sections.append(
+        '<table>'
+        '<tr><th>#</th><th>Edge Case</th><th>Solution</th></tr>'
+        '<tr><td>TK1</td><td><strong>Overlapping TK booking</strong> &mdash; 2 owners want same time block</td>'
+        '<td>Reject at booking time — <code>checkIsBillboardsReserved</code> extended for TK. 1 time block = 1 owner only</td></tr>'
+        '<tr><td>TK2</td><td><strong>TK creative not cached at TK_START</strong></td>'
+        '<td>Skip TK → resume normal schedule → alert admin. Pre-stage creative via <code>device-config-updated</code> event at booking time</td></tr>'
+        '<tr><td>TK3</td><td><strong>P0 Emergency during TK</strong></td>'
+        '<td>P0 wins (always highest priority). TK time lost during emergency — log for manual billing reconciliation</td></tr>'
+        '<tr><td>TK4</td><td><strong>Player offline at TK_START</strong></td>'
+        '<td>Local clock fallback: TK schedule pre-staged in Tier 2 with <code>takeover_id</code>. IC checks local clock against pending TK boundaries</td></tr>'
+        '<tr><td>TK5</td><td><strong>TK booking &lt; lead time</strong></td>'
+        '<td>Reject — same lead time constraint as guaranteed spots (existing exclusive validation)</td></tr>'
+        '<tr><td>TK6</td><td><strong>TK creative changes after booking</strong></td>'
+        '<td>Re-push <code>device-config-updated</code> with new <code>creative_code</code>. Player re-downloads before TK_START</td></tr>'
+        '<tr><td>TK7</td><td><strong>Multiple ET spots at same second</strong></td>'
+        '<td>FIFO by <code>created_at</code> — first wins, second gets <code>+duration</code> offset (sequential, not parallel)</td></tr>'
+        '<tr><td>TK8</td><td><strong>Make-good creative expired</strong></td>'
+        '<td>Skip compensation — log for manual reconcile. Campaign <code>valid_until</code> check prevents playing expired ads</td></tr>'
+        '</table>'
+    )
+
     # ═══════════════════════════════════════════════════════════════
     # Section 9: Migration Plan (moved from old §7)
     # ═══════════════════════════════════════════════════════════════
     sections.append("<hr/>")
     sections.append("<h2>9. Migration Plan (Incremental)</h2>")
     sections.append(info_panel(
-        "<p><strong>Feature flag:</strong> <code>billboard.player_mode: 'smart' | 'dumb'</code> &mdash; roll out per billboard, no big bang</p>"
+        "<p><strong>Feature flags:</strong></p>"
+        "<ul>"
+        "<li><code>billboard.player_mode: 'smart' | 'dumb'</code> &mdash; roll out Dumb Renderer per billboard, no big bang</li>"
+        "<li><code>billboard.interrupt_capable: boolean</code> &mdash; Phase 3.5: enable Interrupt Controller (แยกจาก player_mode)</li>"
+        "</ul>"
     ))
     sections.append(
         '<table>'
@@ -1155,6 +1424,13 @@ def build_content(page_id: str = "165019751") -> str:
         '<tr><td><strong>Phase 1</strong></td><td>Add Ad Decisioning Engine + ScreenSchedule models + <code>GET /v2/screen-schedule</code></td><td>Read-only testing (no behavior change)</td><td>' + status_macro("Backend only", "Green") + '</td></tr>'
         '<tr><td><strong>Phase 2</strong></td><td>Add Idempotency Key check in PoP endpoint</td><td>Send <code>X-Idempotency-Key</code> header</td><td>' + status_macro("Backward compat", "Green") + '</td></tr>'
         '<tr><td><strong>Phase 3</strong></td><td>&mdash;</td><td>Player V2: read ordered screen schedule. <strong>Feature flag per device</strong></td><td>' + status_macro("Gradual rollout", "Yellow") + '</td></tr>'
+        '<tr><td><strong>Phase 3.5</strong></td>'
+        '<td>TakeoverSchedule + ExactTimeSpot models, TK Booking API + overlap validation, '
+        'Pusher: takeover-start/end + p0-emergency, MakeGoodRecord + PoP interrupt fields, '
+        'Ad Decisioning v3 (Step 0 + 1.5 + 5.5)</td>'
+        '<td>Interrupt Controller component, local clock TK boundary detection, '
+        'PoP: interrupted + play_duration + make_good</td>'
+        '<td>' + status_macro("Medium risk", "Yellow") + '</td></tr>'
         '<tr><td><strong>Phase 4</strong></td><td>&mdash;</td><td>3-Tier cache + state machine + checksum validation</td><td>' + status_macro("Full new behavior", "Yellow") + '</td></tr>'
         '<tr><td><strong>Phase 5</strong></td><td>Remove old schedule endpoints (v1)</td><td>Remove old scheduling code</td><td>' + status_macro("Cleanup", "Grey") + '</td></tr>'
         '<tr><td><strong>Phase 6</strong></td><td>SSP integration: ad request for P3 avails, impression tracking (IAB fields), <code>GET /v2/avails</code> API</td><td>No change (backend-only pDOOH)</td><td>' + status_macro("Backend only", "Yellow") + '</td></tr>'
@@ -1205,17 +1481,31 @@ def build_content(page_id: str = "165019751") -> str:
         '<li><strong>Time allocation</strong> &rarr; Ad Decisioning Engine timeline reservation</li>'
         '<li>Share of Voice concept applicable for future frequency-based billing</li>'
         '</ul></td></tr>'
-        '<tr><td><strong>DOOH Ad Servers</strong><br/>(Broadsign, Vistar, Hivestack)</td>'
+        '<tr><td><strong>Broadsign Control</strong><br/>'
+        '<a href="https://docs.broadsign.com/broadsign-control/latest/en/settings-section.html">Day Part Switch (verified)</a></td>'
         '<td><ul>'
-        '<li>Intermediary ad server between CMS and SSPs (programmatic)</li>'
+        '<li><strong>Configurable interrupt:</strong> Day Part Switch can interrupt mid-play or wait for completion</li>'
+        '<li>Trigger system: serial/network/XML/touch triggers interrupt current content</li>'
+        '<li>Default: interrupted content restarts after trigger (<code>--truncate_current</code> to skip)</li>'
         '<li>Revenue-based priority: guaranteed &gt; programmatic</li>'
-        '<li>Campaign pacing: spread impressions evenly across flight</li>'
-        '<li>Real-time decisioning: bid/no-bid per play opportunity</li>'
         '</ul></td>'
         '<td><ul>'
-        '<li><strong>Guaranteed &gt; programmatic</strong> concept &rarr; P1 Guaranteed &gt; P2 Direct-Sold &gt; P3 Spot Buy</li>'
-        '<li>Campaign pacing for BEP-2998 under-delivery fix (even impression distribution)</li>'
-        '<li>Phase 6: programmatic SSP layer plugs into P3 avails</li>'
+        '<li><strong>Configurable interrupt → our P0/P1 interrupt vs P2-P4 wait</strong></li>'
+        '<li>Day Part Switch → P1-TK Takeover boundary handling</li>'
+        '<li>Restart after interrupt → we chose "resume next" (skip interrupted) + make-good</li>'
+        '</ul></td></tr>'
+        '<tr><td><strong>DOOH Billing Models</strong><br/>'
+        '<a href="https://www.themediaant.com/blog/understanding-dooh-pricing-models/">The Media Ant (verified)</a> + '
+        '<a href="https://www.cjadvertising.com/blog/industry-trends/preempts-makegoods-money-move/">CJ Advertising (verified)</a></td>'
+        '<td><ul>'
+        '<li><strong>CPT (Cost Per Time):</strong> flat rate for time block ownership</li>'
+        '<li><strong>Make-Good:</strong> free replacement slot for preempted ads — industry standard</li>'
+        '<li>CPM, Flat per spot, SOV-based pricing models</li>'
+        '</ul></td>'
+        '<td><ul>'
+        '<li><strong>CPT → P1-TK Takeover billing</strong></li>'
+        '<li><strong>Make-Good → MakeGoodRecord compensation system</strong></li>'
+        '<li>Partial play ≠ impression (ไม่นับ billing)</li>'
         '</ul></td></tr>'
         '</table>'
     )
@@ -1230,7 +1520,11 @@ def build_content(page_id: str = "165019751") -> str:
         '<tr><td><strong>Impression tracking</strong></td><td>PoP via Outbox pattern</td><td>Add IAB fields (Phase 6)</td></tr>'
         '<tr><td><strong>Campaign pacing</strong></td><td>BEP-2998 fix + Ad Decisioning Engine</td><td>Basic &mdash; enhance in Phase 6</td></tr>'
         '<tr><td><strong>SOV allocation</strong></td><td>ownerTime/platformTime ratio</td><td>Renamed to SOV, same logic</td></tr>'
-        '<tr><td><strong>Guaranteed delivery</strong></td><td>P1 guaranteed spots with reservation check</td><td>Standard</td></tr>'
+        '<tr><td><strong>Guaranteed delivery</strong></td><td>P1-G guaranteed spots with reservation check (no interrupt)</td><td>Standard</td></tr>'
+        '<tr><td><strong>Daypart Takeover</strong></td><td>P1-TK time block reservation + Interrupt Controller</td><td>Implemented (Phase 3.5)</td></tr>'
+        '<tr><td><strong>Exact-Time Spot</strong></td><td>P1-ET ±5s tolerance + IC trigger</td><td>Implemented (Phase 3.5)</td></tr>'
+        '<tr><td><strong>Make-Good</strong></td><td>MakeGoodRecord: interrupted → compensate next cycle</td><td>Implemented (Phase 3.5)</td></tr>'
+        '<tr><td><strong>Interrupt handling</strong></td><td>Selective: P0/P1-TK/P1-ET interrupt, P2-P4 wait</td><td>Standard (Broadsign-style configurable)</td></tr>'
         '<tr><td><strong>Creative management</strong></td><td>Media upload + CDN + checksum validation</td><td>Standard</td></tr>'
         '<tr><td><strong>Offline resilience</strong></td><td>3-Tier cache (Live/Buffer/Fallback)</td><td>Standard (comparable to Xibo/BrightSign)</td></tr>'
         '<tr><td><strong>Loop scheduling</strong></td><td>10-min loop via Scheduling Engine (BullMQ)</td><td>Standard</td></tr>'

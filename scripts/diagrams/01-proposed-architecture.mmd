@@ -2,22 +2,24 @@ flowchart TD
     subgraph BE["BACKEND (AdonisJS + BullMQ + Redis)"]
         Cron["Scheduling Engine<br/>(BullMQ) every 10m"] --> Calc["PlayScheduleCalculate<br/>NO CHANGE"]
         Calc --> Per["PerScreen calc<br/>NO CHANGE"]
-        Per -->|"rows"| PB["⭐ Ad Decisioning<br/>Engine NEW<br/>Pacing → SOV →<br/>Guaranteed → Sequence"]
+        Per -->|"rows"| PB["⭐ Ad Decisioning<br/>Engine v3<br/>Pacing → SOV →<br/>Guaranteed → TK/ET →<br/>Make-Good → Sequence"]
         PB --> DB[("MySQL<br/>NO CHANGE")]
-        PB --> DPL[("⭐ Screen Schedule<br/>NEW")]
-        PB --> Push["Pusher<br/>schedule-updated"]
+        PB --> DPL[("⭐ Screen Schedule<br/>+ TakeoverSchedule<br/>+ ExactTimeSpot<br/>+ MakeGoodRecord")]
+        PB --> Push["Pusher<br/>schedule-updated<br/>takeover-start/end<br/>p0-emergency"]
+        TKB["⭐ TK Booking API<br/>overlap validation<br/>+ lead time check"]
     end
     Push -->|"WebSocket"| INB
     subgraph PL["MEDIA PLAYER (Tauri Desktop App)"]
         INB["⭐ Inbox Handler<br/>dedup + version check"]
         INB -->|"fetch"| CACHE["⭐ 3-Tier Cache<br/>LIVE / BUFFER / FALLBACK"]
         CACHE --> SM["⭐ State Machine<br/>BOOT→SYNC→PLAY→OFFLINE"]
-        SM --> REN["Dumb Renderer<br/>play sequence[i++]"]
-        OUT["⭐ PoP Outbox<br/>pending → sent → ack"]
+        SM --> IC["⭐ Interrupt Controller<br/>P0/P1-TK/P1-ET: interrupt<br/>P1-G/P2-P4: wait"]
+        IC --> REN["Dumb Renderer<br/>play sequence[i++]"]
+        OUT["⭐ PoP Outbox<br/>pending → sent → ack<br/>+ interrupted + make_good"]
     end
     subgraph APILAYER["API Endpoints"]
         API1["⭐ GET /v2/screen-schedule<br/>ordered spots + manifest"]
-        API2["POST /v2/proof-of-play<br/>+ Idempotency Key"]
+        API2["POST /v2/proof-of-play<br/>+ Idempotency Key<br/>+ interrupt fields"]
     end
     INB -->|"GET"| API1
     OUT -->|"flush 1 min"| API2
@@ -29,6 +31,8 @@ flowchart TD
     style INB fill:#ffd700,stroke:#333
     style CACHE fill:#ffd700,stroke:#333
     style SM fill:#ffd700,stroke:#333
+    style IC fill:#ff6b6b,stroke:#c92a2a
     style OUT fill:#ffd700,stroke:#333
     style API1 fill:#ffd700,stroke:#333
     style API2 fill:#cce5ff,stroke:#004085
+    style TKB fill:#ff6b6b,stroke:#c92a2a

@@ -1,0 +1,37 @@
+flowchart LR
+    subgraph MONITOR["Interrupt Controller"]
+        direction TB
+        MON["MONITORING<br/>Check clock + Pusher events"]
+        CHK{{"Trigger?<br/>P0 emergency /<br/>TK boundary /<br/>ET ±5s"}}
+        MON --> CHK
+    end
+    subgraph INTERRUPT["Interrupt Phase"]
+        direction TB
+        STOP["STOP current creative<br/>(do not pause/resume)"]
+        POP["PoP: interrupted=true<br/>+ play_duration + reason"]
+        MG["Queue MakeGoodRecord<br/>for interrupted ad"]
+        STOP --> POP --> MG
+    end
+    subgraph PLAY["Play Phase"]
+        direction TB
+        P0["P0: Emergency creative"]
+        TK["P1-TK: Takeover loop<br/>(repeat until TK_END)"]
+        ET["P1-ET: Exact-time spot<br/>(single play)"]
+    end
+    subgraph RESUME["Resume"]
+        direction TB
+        NEXT["Resume NEXT item<br/>in schedule sequence<br/>(skip interrupted item)"]
+    end
+    CHK -->|"YES"| STOP
+    CHK -->|"NO"| MON
+    MG --> P0
+    MG --> TK
+    MG --> ET
+    P0 --> NEXT
+    TK -->|"TK_END"| NEXT
+    ET --> NEXT
+    NEXT --> MON
+    style MONITOR fill:#f0f8ff,stroke:#004085
+    style INTERRUPT fill:#f8d7da,stroke:#dc3545
+    style PLAY fill:#ffd700,stroke:#333
+    style RESUME fill:#d4edda,stroke:#28a745
