@@ -15,21 +15,34 @@ flowchart TD
     EXT_PUSHER[("Pusher<br/>WebSocket")]
     E_PUSHED["SchedulePushed"]
 
-    A_CRON --> C_CALC
-    C_CALC --> AGG_PS
-    AGG_PS --> E_CALCULATED
-    RM_CAMPAIGNS -.-> C_BUILD
-    E_CALCULATED --> POL_BUILD
-    POL_BUILD --> C_BUILD
-    C_BUILD --> AGG_ADE
-    RM_PRIORITY -.-> AGG_ADE
-    AGG_ADE --> AGG_SS
-    AGG_SS --> E_BUILT
-    E_BUILT --> POL_PUSH
-    POL_PUSH --> C_PUSH
+    A_CRON e2@--> C_CALC
+    C_CALC e3@--> AGG_PS
+    AGG_PS e4@--> E_CALCULATED
+    RM_CAMPAIGNS e5@-.-> C_BUILD
+    E_CALCULATED e6@--> POL_BUILD
+    POL_BUILD e7@--> C_BUILD
+    C_BUILD e8@--> AGG_ADE
+    RM_PRIORITY e9@-.-> AGG_ADE
+    AGG_ADE e10@--> AGG_SS
+    AGG_SS e11@--> E_BUILT
+    E_BUILT e12@--> POL_PUSH
+    POL_PUSH e13@--> C_PUSH
     C_PUSH e1@--> EXT_PUSHER
-    EXT_PUSHER --> E_PUSHED
+    EXT_PUSHER e14@--> E_PUSHED
     e1@{ animation: slow }
+    e2@{ animation: fast }
+    e3@{ animation: fast }
+    e4@{ animation: fast }
+    e5@{ animation: fast }
+    e6@{ animation: fast }
+    e7@{ animation: fast }
+    e8@{ animation: fast }
+    e9@{ animation: fast }
+    e10@{ animation: fast }
+    e11@{ animation: fast }
+    e12@{ animation: fast }
+    e13@{ animation: fast }
+    e14@{ animation: slow }
 
     %% Events - Orange
     style E_CALCULATED fill:#FF8C00,stroke:#CC7000,color:#fff

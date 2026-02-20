@@ -3,14 +3,14 @@ flowchart LR
         direction TB
         MON["MONITORING<br/>Check clock + Pusher events"]
         CHK{{"Trigger?<br/>P0 emergency /<br/>TK boundary /<br/>ET ±5s"}}
-        MON --> CHK
+        MON e3@--> CHK
     end
     subgraph INTERRUPT["Interrupt Phase"]
         direction TB
         STOP["STOP current creative<br/>(do not pause/resume)"]
         POP["PoP: interrupted=true<br/>+ play_duration + reason"]
         MG["Queue MakeGoodRecord<br/>for interrupted ad"]
-        STOP --> POP --> MG
+        STOP e4@--> POP e5@--> MG
     end
     subgraph PLAY["Play Phase"]
         direction TB
@@ -23,16 +23,26 @@ flowchart LR
         NEXT["Resume NEXT item<br/>in schedule sequence<br/>(skip interrupted item)"]
     end
     CHK e1@-->|"YES"| STOP
-    CHK -->|"NO"| MON
-    MG --> P0
-    MG --> TK
-    MG --> ET
-    P0 --> NEXT
-    TK -->|"TK_END"| NEXT
-    ET --> NEXT
+    CHK e6@-->|"NO"| MON
+    MG e7@--> P0
+    MG e8@--> TK
+    MG e9@--> ET
+    P0 e10@--> NEXT
+    TK e11@-->|"TK_END"| NEXT
+    ET e12@--> NEXT
     NEXT e2@--> MON
     e1@{ animation: fast }
     e2@{ animation: slow }
+    e3@{ animation: fast }
+    e4@{ animation: fast }
+    e5@{ animation: fast }
+    e6@{ animation: fast }
+    e7@{ animation: fast }
+    e8@{ animation: fast }
+    e9@{ animation: fast }
+    e10@{ animation: fast }
+    e11@{ animation: fast }
+    e12@{ animation: fast }
     style MONITOR fill:#f0f8ff,stroke:#004085
     style INTERRUPT fill:#f8d7da,stroke:#dc3545
     style PLAY fill:#ffd700,stroke:#333

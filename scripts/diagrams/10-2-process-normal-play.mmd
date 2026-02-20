@@ -17,23 +17,23 @@ flowchart TD
     EXT_API2[("Backend<br/>API")]
     E_ACKED["PoPAcknowledged"]
 
-    E_RECEIVED --> POL_DEDUP
-    POL_DEDUP -->|"new"| C_FETCH
-    POL_DEDUP -->|"duplicate"| SKIP["SKIP"]
+    E_RECEIVED e3@--> POL_DEDUP
+    POL_DEDUP e4@-->|"new"| C_FETCH
+    POL_DEDUP e5@-->|"duplicate"| SKIP["SKIP"]
     C_FETCH e1@--> EXT_API
-    EXT_API --> AGG_CACHE
-    AGG_CACHE --> E_CACHED
-    RM_SCHEDULE -.-> POL_PLAY
-    E_CACHED --> POL_PLAY
-    A_PLAYER -.-> POL_PLAY
-    POL_PLAY --> E_PLAYED
-    E_PLAYED --> C_RECORD
-    C_RECORD --> AGG_OUTBOX
-    AGG_OUTBOX --> E_POP
-    E_POP --> POL_FLUSH
-    POL_FLUSH --> C_FLUSH
+    EXT_API e6@--> AGG_CACHE
+    AGG_CACHE e7@--> E_CACHED
+    RM_SCHEDULE e8@-.-> POL_PLAY
+    E_CACHED e9@--> POL_PLAY
+    A_PLAYER e10@-.-> POL_PLAY
+    POL_PLAY e11@--> E_PLAYED
+    E_PLAYED e12@--> C_RECORD
+    C_RECORD e13@--> AGG_OUTBOX
+    AGG_OUTBOX e14@--> E_POP
+    E_POP e15@--> POL_FLUSH
+    POL_FLUSH e16@--> C_FLUSH
     C_FLUSH e2@--> EXT_API2
-    EXT_API2 --> E_ACKED
+    EXT_API2 e17@--> E_ACKED
 
     %% Events - Orange
     style E_RECEIVED fill:#FF8C00,stroke:#CC7000,color:#fff
@@ -68,6 +68,21 @@ flowchart TD
 
     e1@{ animation: slow }
     e2@{ animation: slow }
+    e3@{ animation: fast }
+    e4@{ animation: fast }
+    e5@{ animation: fast }
+    e6@{ animation: fast }
+    e7@{ animation: fast }
+    e8@{ animation: fast }
+    e9@{ animation: fast }
+    e10@{ animation: fast }
+    e11@{ animation: fast }
+    e12@{ animation: fast }
+    e13@{ animation: fast }
+    e14@{ animation: fast }
+    e15@{ animation: fast }
+    e16@{ animation: fast }
+    e17@{ animation: slow }
 
     %% Skip
     style SKIP fill:#eee,stroke:#999,color:#666

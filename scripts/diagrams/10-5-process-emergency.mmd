@@ -15,22 +15,35 @@ flowchart TD
     POL_END{{"After duration ends<br/>Resume normal sequence"}}
     E_RESUMED["PlaybackResumed"]
 
-    A_ADMIN --> C_TRIGGER
-    C_TRIGGER --> E_P0
+    A_ADMIN e2@--> C_TRIGGER
+    C_TRIGGER e3@--> E_P0
     E_P0 e1@--> EXT_PUSHER
-    EXT_PUSHER --> E_RECEIVED
+    EXT_PUSHER e4@--> E_RECEIVED
     e1@{ animation: fast }
-    E_RECEIVED --> POL_IC
-    POL_IC --> E_INTERRUPTED
-    E_INTERRUPTED --> C_PLAY
-    RM_CREATIVE -.-> C_PLAY
-    C_PLAY --> E_PLAYED
-    E_PLAYED --> POL_END
-    POL_END --> E_RESUMED
+    e2@{ animation: fast }
+    e3@{ animation: fast }
+    e4@{ animation: slow }
+    e5@{ animation: fast }
+    e6@{ animation: fast }
+    e7@{ animation: fast }
+    e8@{ animation: fast }
+    e9@{ animation: fast }
+    e10@{ animation: fast }
+    e11@{ animation: fast }
+    e12@{ animation: fast }
+    e13@{ animation: fast }
+    e14@{ animation: fast }
+    E_RECEIVED e5@--> POL_IC
+    POL_IC e6@--> E_INTERRUPTED
+    E_INTERRUPTED e7@--> C_PLAY
+    RM_CREATIVE e8@-.-> C_PLAY
+    C_PLAY e9@--> E_PLAYED
+    E_PLAYED e10@--> POL_END
+    POL_END e11@--> E_RESUMED
 
-    E_INTERRUPTED --> POL_MG
-    POL_MG --> AGG_MG
-    AGG_MG --> E_MG
+    E_INTERRUPTED e12@--> POL_MG
+    POL_MG e13@--> AGG_MG
+    AGG_MG e14@--> E_MG
 
     %% Events - Orange
     style E_P0 fill:#FF8C00,stroke:#CC7000,color:#fff

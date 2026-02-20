@@ -11,14 +11,14 @@ flowchart LR
         POL_PUSH{{"Push to<br/>Player"}}
         EXT_PUSHER[("Pusher")]
 
-        A_CRON --> C_CALC
-        C_CALC --> AGG_PS
-        AGG_PS --> E_CALCULATED
-        E_CALCULATED --> POL_BUILD
-        POL_BUILD --> AGG_ADE
-        AGG_ADE --> E_BUILT
-        E_BUILT --> POL_PUSH
-        POL_PUSH --> EXT_PUSHER
+        A_CRON e4@--> C_CALC
+        C_CALC e5@--> AGG_PS
+        AGG_PS e6@--> E_CALCULATED
+        E_CALCULATED e7@--> POL_BUILD
+        POL_BUILD e8@--> AGG_ADE
+        AGG_ADE e9@--> E_BUILT
+        E_BUILT e10@--> POL_PUSH
+        POL_PUSH e11@--> EXT_PUSHER
     end
 
     subgraph PLAY["Playback"]
@@ -34,15 +34,15 @@ flowchart LR
         E_POP["PoP<br/>Recorded"]
         POL_FLUSH{{"Flush to<br/>Backend"}}
 
-        E_RECEIVED --> C_FETCH
-        C_FETCH --> AGG_CACHE
-        AGG_CACHE --> E_CACHED
-        E_CACHED --> POL_PLAY
-        POL_PLAY --> E_PLAYED
-        E_PLAYED --> C_RECORD
-        C_RECORD --> AGG_OUTBOX
-        AGG_OUTBOX --> E_POP
-        E_POP --> POL_FLUSH
+        E_RECEIVED e12@--> C_FETCH
+        C_FETCH e13@--> AGG_CACHE
+        AGG_CACHE e14@--> E_CACHED
+        E_CACHED e15@--> POL_PLAY
+        POL_PLAY e16@--> E_PLAYED
+        E_PLAYED e17@--> C_RECORD
+        C_RECORD e18@--> AGG_OUTBOX
+        AGG_OUTBOX e19@--> E_POP
+        E_POP e20@--> POL_FLUSH
     end
 
     subgraph INTPT["Interrupt"]
@@ -57,14 +57,14 @@ flowchart LR
         AGG_MG["MakeGood<br/>Record"]
         E_MG["Make-Good<br/>Scheduled"]
 
-        A_ADMIN --> C_APPROVE
-        C_APPROVE --> AGG_TK
-        AGG_TK --> E_TK_APPROVED
-        E_TK_APPROVED --> POL_INTERRUPT
-        POL_INTERRUPT --> E_INTERRUPTED
-        E_INTERRUPTED --> POL_MAKEGOOD
-        POL_MAKEGOOD --> AGG_MG
-        AGG_MG --> E_MG
+        A_ADMIN e21@--> C_APPROVE
+        C_APPROVE e22@--> AGG_TK
+        AGG_TK e23@--> E_TK_APPROVED
+        E_TK_APPROVED e24@--> POL_INTERRUPT
+        POL_INTERRUPT e25@--> E_INTERRUPTED
+        E_INTERRUPTED e26@--> POL_MAKEGOOD
+        POL_MAKEGOOD e27@--> AGG_MG
+        AGG_MG e28@--> E_MG
     end
 
     subgraph DEVICE["Device Lifecycle"]
@@ -74,9 +74,9 @@ flowchart LR
         E_SYNCED["Device<br/>Resynced"]
         E_UNPAIRED["Screen<br/>Unpaired"]
 
-        E_PAIRED --> E_BOOTED
-        E_BOOTED --> E_SYNCED
-        E_SYNCED --> E_UNPAIRED
+        E_PAIRED e29@--> E_BOOTED
+        E_BOOTED e30@--> E_SYNCED
+        E_SYNCED e31@--> E_UNPAIRED
     end
 
     EXT_PUSHER e1@-.-> E_RECEIVED
@@ -85,6 +85,34 @@ flowchart LR
     e1@{ animation: slow }
     e2@{ animation: slow }
     e3@{ animation: slow }
+    e4@{ animation: fast }
+    e5@{ animation: fast }
+    e6@{ animation: fast }
+    e7@{ animation: fast }
+    e8@{ animation: fast }
+    e9@{ animation: fast }
+    e10@{ animation: fast }
+    e11@{ animation: slow }
+    e12@{ animation: fast }
+    e13@{ animation: fast }
+    e14@{ animation: fast }
+    e15@{ animation: fast }
+    e16@{ animation: fast }
+    e17@{ animation: fast }
+    e18@{ animation: fast }
+    e19@{ animation: fast }
+    e20@{ animation: fast }
+    e21@{ animation: fast }
+    e22@{ animation: fast }
+    e23@{ animation: fast }
+    e24@{ animation: fast }
+    e25@{ animation: fast }
+    e26@{ animation: fast }
+    e27@{ animation: fast }
+    e28@{ animation: fast }
+    e29@{ animation: fast }
+    e30@{ animation: fast }
+    e31@{ animation: fast }
 
     %% Domain Events - Orange
     style E_CALCULATED fill:#FF8C00,stroke:#CC7000,color:#fff

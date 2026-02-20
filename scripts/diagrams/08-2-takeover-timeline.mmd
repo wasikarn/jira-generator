@@ -4,26 +4,32 @@ flowchart LR
         B1["P2: Campaign Ad A (15s)"]
         B2["P4: House Ad (10s)"]
         B3["P2: Campaign Ad B (15s)"]
-        B1 --> B2 --> B3
+        B1 e3@--> B2 e4@--> B3
     end
     subgraph TK["08:00-09:00<br/>⭐ TAKEOVER BLOCK"]
         direction TB
         T1["P1-TK: TK Creative (30s)"]
         T2["P1-TK: TK Creative (30s)"]
         T3["P1-TK: ... loop x120"]
-        T1 --> T2 --> T3
+        T1 e5@--> T2 e6@--> T3
     end
     subgraph AFTER["09:00-09:10<br/>Resume + Make-Good"]
         direction TB
         A1["⭐ Make-good: Ad A<br/>(interrupted at 08:00)"]
         A2["P2: Campaign Ad C (15s)"]
         A3["P4: House Ad (10s)"]
-        A1 --> A2 --> A3
+        A1 e7@--> A2 e8@--> A3
     end
     BEFORE e1@-->|"TK_START<br/>interrupt"| TK
     TK e2@-->|"TK_END<br/>resume"| AFTER
     e1@{ animation: fast }
     e2@{ animation: fast }
+    e3@{ animation: fast }
+    e4@{ animation: fast }
+    e5@{ animation: fast }
+    e6@{ animation: fast }
+    e7@{ animation: fast }
+    e8@{ animation: fast }
     style BEFORE fill:#f0f0f0,stroke:#666
     style TK fill:#ffd700,stroke:#333
     style AFTER fill:#d4edda,stroke:#28a745

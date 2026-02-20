@@ -20,25 +20,41 @@ flowchart TD
     E_SYNCED["DeviceResynced"]
     POL_RESUME{{"State Machine:<br/>back to ONLINE"}}
 
-    E_DROP --> POL_OFFLINE
-    POL_OFFLINE --> AGG_CACHE
-    AGG_CACHE --> RM_T1
-    RM_T1 -.-> POL_T1
-    POL_T1 --> E_T1_DONE
-    E_T1_DONE --> RM_T2
-    RM_T2 -.-> POL_T2
-    POL_T2 --> E_T2_DONE
-    E_T2_DONE --> RM_T3
-    RM_T3 -.-> POL_T3
-    POL_T3 --> E_FALLBACK
+    E_DROP e2@--> POL_OFFLINE
+    POL_OFFLINE e3@--> AGG_CACHE
+    AGG_CACHE e4@--> RM_T1
+    RM_T1 e5@-.-> POL_T1
+    POL_T1 e6@--> E_T1_DONE
+    E_T1_DONE e7@--> RM_T2
+    RM_T2 e8@-.-> POL_T2
+    POL_T2 e9@--> E_T2_DONE
+    E_T2_DONE e10@--> RM_T3
+    RM_T3 e11@-.-> POL_T3
+    POL_T3 e12@--> E_FALLBACK
 
-    E_RETURN --> POL_DEBOUNCE
-    POL_DEBOUNCE --> C_SYNC
+    E_RETURN e13@--> POL_DEBOUNCE
+    POL_DEBOUNCE e14@--> C_SYNC
     C_SYNC e1@--> EXT_API
-    EXT_API --> AGG_CACHE2
+    EXT_API e15@--> AGG_CACHE2
     e1@{ animation: slow }
-    AGG_CACHE2 --> E_SYNCED
-    E_SYNCED --> POL_RESUME
+    e2@{ animation: fast }
+    e3@{ animation: fast }
+    e4@{ animation: fast }
+    e5@{ animation: fast }
+    e6@{ animation: fast }
+    e7@{ animation: fast }
+    e8@{ animation: fast }
+    e9@{ animation: fast }
+    e10@{ animation: fast }
+    e11@{ animation: fast }
+    e12@{ animation: fast }
+    e13@{ animation: fast }
+    e14@{ animation: fast }
+    e15@{ animation: slow }
+    e16@{ animation: fast }
+    e17@{ animation: fast }
+    AGG_CACHE2 e16@--> E_SYNCED
+    E_SYNCED e17@--> POL_RESUME
 
     %% Events - Orange
     style E_DROP fill:#FF8C00,stroke:#CC7000,color:#fff

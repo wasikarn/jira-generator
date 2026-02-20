@@ -4,8 +4,8 @@ flowchart TD
         SC_PS["PlaySchedule<br/>Aggregate"]
         SC_ADE["AdDecisioningService<br/>Aggregate"]
         SC_SS["ScreenSchedule<br/>Aggregate"]
-        SC_PS --> SC_ADE
-        SC_ADE --> SC_SS
+        SC_PS e5@--> SC_ADE
+        SC_ADE e6@--> SC_SS
     end
 
     subgraph IC["Interrupt Context<br/>(Backend + Player)"]
@@ -14,9 +14,9 @@ flowchart TD
         IC_ET["ExactTimeSpot<br/>Aggregate"]
         IC_CTRL["InterruptController<br/>Aggregate"]
         IC_MG["MakeGoodRecord<br/>Aggregate"]
-        IC_TK --> IC_CTRL
-        IC_ET --> IC_CTRL
-        IC_CTRL --> IC_MG
+        IC_TK e7@--> IC_CTRL
+        IC_ET e8@--> IC_CTRL
+        IC_CTRL e9@--> IC_MG
     end
 
     subgraph PC["Playback Context<br/>(Player)"]
@@ -25,9 +25,9 @@ flowchart TD
         PC_CACHE["3-Tier Cache<br/>Aggregate"]
         PC_SM["StateMachine<br/>Aggregate"]
         PC_RENDER["Renderer<br/>Aggregate"]
-        PC_INBOX --> PC_CACHE
-        PC_CACHE --> PC_SM
-        PC_SM --> PC_RENDER
+        PC_INBOX e10@--> PC_CACHE
+        PC_CACHE e11@--> PC_SM
+        PC_SM e12@--> PC_RENDER
     end
 
     subgraph RC["Reporting Context<br/>(Player to Backend)"]
@@ -35,8 +35,8 @@ flowchart TD
         RC_OUTBOX["PoP Outbox<br/>Aggregate"]
         RC_HISTORY["PlayHistory<br/>Aggregate"]
         RC_IDEMP["Idempotency<br/>Aggregate"]
-        RC_OUTBOX --> RC_HISTORY
-        RC_HISTORY --> RC_IDEMP
+        RC_OUTBOX e13@--> RC_HISTORY
+        RC_HISTORY e14@--> RC_IDEMP
     end
 
     SC e1@-->|"ScreenScheduleBuilt<br/>via Pusher"| PC
@@ -68,5 +68,15 @@ flowchart TD
     e2@{ animation: fast }
     e3@{ animation: slow }
     e4@{ animation: slow }
+    e5@{ animation: fast }
+    e6@{ animation: fast }
+    e7@{ animation: fast }
+    e8@{ animation: fast }
+    e9@{ animation: fast }
+    e10@{ animation: fast }
+    e11@{ animation: fast }
+    e12@{ animation: fast }
+    e13@{ animation: fast }
+    e14@{ animation: fast }
 
     style RC fill:#fdf8e8,stroke:#FF9800,stroke-width:3px

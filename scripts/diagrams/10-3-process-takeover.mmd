@@ -22,25 +22,39 @@ flowchart TD
     E_MG["MakeGoodScheduled"]
     POL_NEXT{{"Include in<br/>next schedule build"}}
 
-    A_ADMIN --> C_APPROVE
-    C_APPROVE --> AGG_TK
-    AGG_TK --> E_APPROVED
-    E_APPROVED --> POL_NOTIFY
-    POL_NOTIFY --> EXT_PUSHER
+    A_ADMIN e3@--> C_APPROVE
+    C_APPROVE e4@--> AGG_TK
+    AGG_TK e5@--> E_APPROVED
+    E_APPROVED e6@--> POL_NOTIFY
+    POL_NOTIFY e7@--> EXT_PUSHER
     EXT_PUSHER e1@--> E_TK_START
-    E_TK_START --> POL_IC
-    POL_IC --> E_INTERRUPTED
-    E_INTERRUPTED --> C_PLAY_TK
-    C_PLAY_TK --> E_TK_PLAYED
-    E_TK_PLAYED --> POL_RESUME
-    POL_RESUME --> E_RESUMED
+    E_TK_START e8@--> POL_IC
+    POL_IC e9@--> E_INTERRUPTED
+    E_INTERRUPTED e10@--> C_PLAY_TK
+    C_PLAY_TK e11@--> E_TK_PLAYED
+    E_TK_PLAYED e12@--> POL_RESUME
+    POL_RESUME e13@--> E_RESUMED
 
     E_INTERRUPTED e2@--> POL_MG
     e1@{ animation: slow }
     e2@{ animation: fast }
-    POL_MG --> AGG_MG
-    AGG_MG --> E_MG
-    E_MG --> POL_NEXT
+    e3@{ animation: fast }
+    e4@{ animation: fast }
+    e5@{ animation: fast }
+    e6@{ animation: fast }
+    e7@{ animation: slow }
+    e8@{ animation: fast }
+    e9@{ animation: fast }
+    e10@{ animation: fast }
+    e11@{ animation: fast }
+    e12@{ animation: fast }
+    e13@{ animation: fast }
+    e14@{ animation: fast }
+    e15@{ animation: fast }
+    e16@{ animation: fast }
+    POL_MG e14@--> AGG_MG
+    AGG_MG e15@--> E_MG
+    E_MG e16@--> POL_NEXT
 
     %% Events - Orange
     style E_APPROVED fill:#FF8C00,stroke:#CC7000,color:#fff
