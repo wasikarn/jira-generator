@@ -300,33 +300,54 @@ For MCP: Use `jira_get_issue(issue_key: "BEP-1")`
 | Code blocks not syntax highlighted | MCP renders as `<pre class="highlight">` | Run `fix_confluence_code_blocks.py --page-id` after MCP create/update |
 | Macros displayed as text | MCP doesn't understand storage format | Use `update_page_storage.py` |
 | Cannot move page | MCP has no move API | Use `move_confluence_page.py` |
-| Mermaid diagram not rendering | Wrong macro name (e.g. `mermaid-cloud`) | Use code block with `language=mermaid` — see below |
+| Mermaid diagram not rendering | Code block alone won't render | Need BOTH: code block (`language=mermaid`) + Forge `ac:adf-extension` macro — see below |
 
 ### Mermaid Diagrams (Confluence)
 
-The Mermaid plugin is a **Forge app** (`com.atlassian.confluence.plugins.mermaid-diagrams-viewer`). It renders diagrams from code blocks with `language=mermaid`.
+The Mermaid plugin is a **Forge app** (`mermaid-diagram`). It requires **two elements** to render:
 
-**Correct storage format:**
+1. **Code block** (`language=mermaid`) — the diagram source text
+2. **Forge `ac:adf-extension` macro** — the renderer (placed after code block)
+
+> **Code block alone does NOT render.** The Forge macro reads the code block via `guest-params > index` (0 = first mermaid block on page).
+
+**Step 1: Code block (source)**
 
 ```xml
 <ac:structured-macro ac:name="code" ac:schema-version="1">
   <ac:parameter ac:name="language">mermaid</ac:parameter>
   <ac:parameter ac:name="title">Diagram Title</ac:parameter>
-  <ac:plain-text-body><![CDATA[graph TD
+  <ac:plain-text-body><![CDATA[flowchart TD
     A --> B
     B --> C]]></ac:plain-text-body>
 </ac:structured-macro>
 ```
 
+**Step 2: Forge extension (renderer)** — too complex to construct programmatically (needs app-id, environment-id, installation-id, cloud-id, etc.)
+
+**Recommended workflow for Mermaid diagrams:**
+
+1. User inserts `/mermaid` macro in Confluence editor with dummy content → Save
+2. Script updates the code block's `CDATA` content with actual diagram text
+3. Forge macro auto-reads updated code block on next page view
+
+**Instance IDs ({{JIRA_SITE}}):**
+
+| Parameter | Value |
+| --- | --- |
+| app-id | `23392b90-4271-4239-98ca-a3e96c663cbb` |
+| environment-id | `63d4d207-ac2f-4273-865c-0240d37f044a` |
+| installation-id | `5c245bad-32e8-4c74-aa1c-6d227f18fa22` |
+| cloud-id | `85ad5bd2-ef9c-477e-b000-062f1421d0c0` |
+
 **Common mistakes:**
 
 | Mistake | Why it fails |
 | --- | --- |
+| Code block only (no Forge macro) | Displays as raw code text, not a rendered diagram |
 | `ac:name="mermaid-cloud"` | Not a valid macro — renders as unknown macro error |
-| `ac:name="mermaid-diagram"` | This is the Forge `ac:adf-extension` key — cannot be constructed as `ac:structured-macro` |
-| Using `ac:adf-extension` directly | Requires app-id, environment-id, installation-id, cloud-id — too complex |
-
-**Key insight:** The Forge app auto-detects code blocks with `language=mermaid` and renders them as diagrams. No need to use the Forge `ac:adf-extension` format.
+| `ac:name="mermaid-diagram"` as `ac:structured-macro` | This is the Forge `ac:adf-extension` key — cannot be constructed as `ac:structured-macro` |
+| Constructing `ac:adf-extension` manually | Requires 6+ instance-specific IDs — use editor `/mermaid` instead |
 
 ### Script Locations
 
