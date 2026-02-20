@@ -95,22 +95,26 @@ def error_panel(content: str) -> str:
     )
 
 
-def code_block(code: str, language: str = "text", title: str = "") -> str:
+def code_block(code: str, language: str = "text", title: str = "",
+               collapse: bool = False) -> str:
     parts = [
         '<ac:structured-macro ac:name="code" ac:schema-version="1">',
         f'<ac:parameter ac:name="language">{language}</ac:parameter>',
     ]
     if title:
         parts.append(f'<ac:parameter ac:name="title">{title}</ac:parameter>')
+    if collapse:
+        parts.append('<ac:parameter ac:name="collapse">true</ac:parameter>')
     parts.append(f"<ac:plain-text-body><![CDATA[{code}]]></ac:plain-text-body>")
     parts.append("</ac:structured-macro>")
     return "".join(parts)
 
 
-def tracked_code_block(code: str, language: str = "text", title: str = "") -> str:
+def tracked_code_block(code: str, language: str = "text", title: str = "",
+                       collapse: bool = False) -> str:
     """code_block() with global counter for Forge index tracking."""
     global _code_block_count
-    result = code_block(code, language, title)
+    result = code_block(code, language, title, collapse=collapse)
     _code_block_count += 1
     return result
 
@@ -284,6 +288,17 @@ def build_content(page_id: str = "165019751") -> str:
     ))
     sections.append(mermaid_diagram(
         load_diagram("01-proposed-architecture.mmd"),
+        page_id=page_id,
+    ))
+
+    sections.append("<h3>Daily Schedule Example</h3>")
+    sections.append(info_panel(
+        "<p>ตัวอย่าง billboard 1 จอ ตลอดวัน — แสดงสัดส่วนเวลาจริงระหว่าง priority levels ต่างๆ. "
+        "<strong>P1-TK</strong> (แดง) กินเวลา 1 ชั่วโมงเต็ม, <strong>P1-ET</strong> (แดง) เป็น pin-point ตรงเวลา, "
+        "<strong>P1-G</strong> (ฟ้า) กระจายตลอดวัน, <strong>P2-P4</strong> เติมช่วงที่เหลือ</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("01-2-daily-schedule.mmd"),
         page_id=page_id,
     ))
 
@@ -633,7 +648,8 @@ def build_content(page_id: str = "165019751") -> str:
         "  P1-G items are pre-positioned in sequence (no interrupt needed)\n"
         "  P1-TK/P1-ET items trigger Interrupt Controller (real-time interrupt)\n"
         "  Make-good items compensate interrupted ads",
-        "typescript", "Ad Decisioning Algorithm v3"
+        "typescript", "Ad Decisioning Algorithm v3",
+        collapse=True,
     ))
 
     # 6.2 New Data Models
@@ -696,7 +712,8 @@ def build_content(page_id: str = "165019751") -> str:
         "  compensated: boolean\n"
         "  compensated_at: DateTime | null\n"
         "}",
-        "typescript", "New Models"
+        "typescript", "New Models",
+        collapse=True,
     ))
 
     sections.append(tracked_code_block(
@@ -731,7 +748,8 @@ def build_content(page_id: str = "165019751") -> str:
         "    // House content only, loopable, rarely changes\n"
         "  }\n"
         "}",
-        "typescript", "Ad Decisioning Engine Service"
+        "typescript", "Ad Decisioning Engine Service",
+        collapse=True,
     ))
 
     # 6.3 New API Endpoint
@@ -782,7 +800,8 @@ def build_content(page_id: str = "165019751") -> str:
         '    { "play_at": "2026-02-20T14:30:00+07:00", "tolerance_seconds": 5, "creative_code": "CR-et-001" }\n'
         "  ]\n"
         "}",
-        "json", "API Response Format"
+        "json", "API Response Format",
+        collapse=True,
     ))
 
     # 6.4 3-Tier Playlist Cache
@@ -843,7 +862,8 @@ def build_content(page_id: str = "165019751") -> str:
         "// 4. On timeout/error → keep 'pending', retry_count++\n"
         "// 5. retry_count > 10 → mark 'failed', log diagnostic\n"
         "// 6. Cleanup: remove 'acked' items older than 24h",
-        "typescript", "Outbox Interface"
+        "typescript", "Outbox Interface",
+        collapse=True,
     ))
 
     sections.append("<h4>Player Inbox (Schedule Sync)</h4>")
@@ -872,7 +892,8 @@ def build_content(page_id: str = "165019751") -> str:
         "  }\n\n"
         "  inbox.add(event_id) // keep last 100\n"
         "}",
-        "typescript", "Inbox Deduplication Code"
+        "typescript", "Inbox Deduplication Code",
+        collapse=True,
     ))
 
     # 6.7 Version Protocol
@@ -901,7 +922,8 @@ def build_content(page_id: str = "165019751") -> str:
         "  }\n\n"
         "  return { status: 'created', ack_id: history.code }\n"
         "}",
-        "typescript", "Backend Idempotency Check"
+        "typescript", "Backend Idempotency Check",
+        collapse=True,
     ))
 
     # 6.9 Programmatic Integration Points (pDOOH future)
@@ -1106,7 +1128,8 @@ def build_content(page_id: str = "165019751") -> str:
         "  | TakeoverStartEvent      // v24\n"
         "  | TakeoverEndEvent         // v24\n"
         "  | P0EmergencyEvent         // v24",
-        "typescript", "Typed Pusher Event Contracts"
+        "typescript", "Typed Pusher Event Contracts",
+        collapse=True,
     ))
 
     sections.append("<h3>7.3 Domain Events (Internal Code-Level)</h3>")
@@ -1189,7 +1212,8 @@ def build_content(page_id: str = "165019751") -> str:
         "  state: 'active' | 'completed'\n"
         "  timestamp: DateTime\n"
         "}",
-        "typescript", "Domain Events"
+        "typescript", "Domain Events",
+        collapse=True,
     ))
 
     sections.append("<h3>7.4 Event Flow Diagram</h3>")
@@ -1381,6 +1405,16 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append("<h3>8.6 Takeover &amp; Exact-Time Edge Cases (P1-TK / P1-ET)</h3>")
     sections.append(mermaid_diagram(
         load_diagram("08-2-takeover-timeline.mmd"),
+        page_id=page_id,
+    ))
+    sections.append("<h4>Takeover Interrupt Timeline (Gantt View)</h4>")
+    sections.append(info_panel(
+        "<p>มุมมองเวลาจริง — เห็นสัดส่วนว่า <strong>TK block 60 นาที</strong> กว้างกว่า normal schedule มาก. "
+        "<strong>Milestone</strong> = TK_START / TK_END boundary. "
+        "<strong>Make-good</strong> (ฟ้า) เล่นชดเชย Ad A ที่โดน interrupt ทันทีหลัง TK จบ</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("08-3-takeover-gantt.mmd"),
         page_id=page_id,
     ))
     sections.append(

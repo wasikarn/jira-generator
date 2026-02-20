@@ -251,6 +251,9 @@ Reference: `scripts/create-player-architecture-page.py`
 | `%%{init: ...}%%` | Partial support | Test before relying on advanced config |
 | Large diagrams (>30 nodes) | May render slowly | Split into multiple smaller diagrams |
 | Interactive features (click) | Not supported | Use static labels with links in surrounding text |
+| **Gantt diagrams** | **Works (v11.12.2)** | Avoid `()` `×` `±` `_` in task names — causes parse error |
+| Architecture diagrams | Untested | `architecture-beta` (v11.1.0+) — test before using |
+| Packet diagrams | Untested | `packet` (v11.0.0+) — test before using |
 
 ---
 
