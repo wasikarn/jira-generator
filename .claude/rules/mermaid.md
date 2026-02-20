@@ -16,3 +16,5 @@ Project-specific patterns and Confluence constraints: `.claude/skills/shared-ref
 Syntax: `e1@-->` assigns edge ID, `e1@{ animation: fast/slow }` sets speed. Only works on flowchart edges — NOT on sequenceDiagram, stateDiagram, or gantt. Confirmed working on Confluence Forge plugin v11.12.2.
 
 Convention: `slow` for cross-system edges (Pusher, API calls), `fast` for interrupt/critical paths. See `mermaid-guide.md` → "Edge Animation" section for full docs.
+
+**Gotcha:** `&` syntax (`D & E e1@--> F`) only assigns edge ID to ONE edge. Must split: `D e1@--> F` + `E e2@--> F`.

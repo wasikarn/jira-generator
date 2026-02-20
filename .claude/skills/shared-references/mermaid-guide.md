@@ -258,6 +258,22 @@ flowchart TD
     e1@{ animation: fast }
 ```
 
+### `&` Syntax Limitation
+
+The `&` shorthand (`D & E e1@--> F`) only assigns the edge ID to **one** of the edges — the other stays static (no animation). Always split into separate edges:
+
+```mermaid
+%% Bad — only E→F animates
+D & E e1@--> F
+e1@{ animation: fast }
+
+%% Good — both animate
+D e1@--> F
+E e2@--> F
+e1@{ animation: fast }
+e2@{ animation: fast }
+```
+
 ### Use Cases
 
 | Pattern | When to Animate |
@@ -380,6 +396,7 @@ Use `sequenceDiagram` instead of flowchart for request/response patterns.
 | Nodes inside wrong subgraph | Cross-subgraph edges create U-turns | Move shared nodes to boundary subgraph |
 | `\n` for line breaks | May render as literal text | Always use `<br/>` |
 | Hardcoded layout with `~~~` everywhere | Fragile, breaks on content change | Use subgraphs for structural grouping first |
+| `&` syntax with edge ID (`D & E e1@--> F`) | Only one edge gets the ID — other stays static | Split into separate edges: `D e1@--> F` + `E e2@--> F` |
 
 ---
 
