@@ -78,6 +78,7 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 | Sub-task | Two-Step: MCP create → acli edit | `parent` doesn't work with acli |
 | Script | `update_jira_description.py` (REST) | `/atlassian-scripts` for format |
 | Confluence | MCP (read/simple), Python scripts (code/macros) | `audit_confluence_pages.py` (audit) |
+| Mermaid diagram | Code block `language=mermaid` in Confluence storage | Forge plugin auto-renders · NEVER use `mermaid-cloud` macro |
 | Explore | Task(Explore) | Always before creating subtasks |
 | Issue Links | MCP `jira_create_issue_link` | Blocks/Relates · `jira_create_remote_issue_link` (web) |
 | Sprint | Agile REST via `JiraAPI._request()` | MCP can't move to backlog |
@@ -104,6 +105,7 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 | `limit > 50` → error | Max 50, use pagination `start_at` |
 | Sibling tool call errored | One parallel MCP call failed → all cancelled. Fix failing call first |
 | Prefer `/story-full` | `/search-issues` → `/story-full` → `/verify-issue` |
+| Mermaid diagram broken | Use `ac:structured-macro ac:name="code"` + `language=mermaid`, NOT `mermaid-cloud` |
 
 ## References
 

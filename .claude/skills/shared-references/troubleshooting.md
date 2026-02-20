@@ -300,6 +300,33 @@ For MCP: Use `jira_get_issue(issue_key: "BEP-1")`
 | Code blocks not syntax highlighted | MCP renders as `<pre class="highlight">` | Run `fix_confluence_code_blocks.py --page-id` after MCP create/update |
 | Macros displayed as text | MCP doesn't understand storage format | Use `update_page_storage.py` |
 | Cannot move page | MCP has no move API | Use `move_confluence_page.py` |
+| Mermaid diagram not rendering | Wrong macro name (e.g. `mermaid-cloud`) | Use code block with `language=mermaid` — see below |
+
+### Mermaid Diagrams (Confluence)
+
+The Mermaid plugin is a **Forge app** (`com.atlassian.confluence.plugins.mermaid-diagrams-viewer`). It renders diagrams from code blocks with `language=mermaid`.
+
+**Correct storage format:**
+
+```xml
+<ac:structured-macro ac:name="code" ac:schema-version="1">
+  <ac:parameter ac:name="language">mermaid</ac:parameter>
+  <ac:parameter ac:name="title">Diagram Title</ac:parameter>
+  <ac:plain-text-body><![CDATA[graph TD
+    A --> B
+    B --> C]]></ac:plain-text-body>
+</ac:structured-macro>
+```
+
+**Common mistakes:**
+
+| Mistake | Why it fails |
+| --- | --- |
+| `ac:name="mermaid-cloud"` | Not a valid macro — renders as unknown macro error |
+| `ac:name="mermaid-diagram"` | This is the Forge `ac:adf-extension` key — cannot be constructed as `ac:structured-macro` |
+| Using `ac:adf-extension` directly | Requires app-id, environment-id, installation-id, cloud-id — too complex |
+
+**Key insight:** The Forge app auto-detects code blocks with `language=mermaid` and renders them as diagrams. No need to use the Forge `ac:adf-extension` format.
 
 ### Script Locations
 
