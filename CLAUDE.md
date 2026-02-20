@@ -78,7 +78,8 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 | Sub-task | Two-Step: MCP create → acli edit | `parent` doesn't work with acli |
 | Script | `update_jira_description.py` (REST) | `/atlassian-scripts` for format |
 | Confluence | MCP (read/simple), Python scripts (code/macros) | `audit_confluence_pages.py` (audit) |
-| Mermaid diagram | Code block (`language=mermaid`) + Forge `ac:adf-extension` | Insert `/mermaid` in editor first, then update code block via script |
+| Page appearance | `content-appearance-published` property (v2 API) | Controls width only. Font-size depends on content complexity — pages with Forge macros render at 16px, simple pages at 13px. Do NOT set for consistency |
+| Mermaid diagram | Code block (`language=mermaid`) + Forge `ac:adf-extension` | Programmatic: `mermaid_diagram()` in `scripts/create-player-architecture-page.py`. Manual: insert `/mermaid` in editor, then update code block via script. **CRITICAL:** `guest-params > index` counts ALL code blocks on page (not just mermaid) — use `tracked_code_block()` for non-mermaid code blocks |
 | Explore | Task(Explore) | Always before creating subtasks |
 | Parent (Epic) | `jira_set_parent.py` (REST) | MCP/acli silently ignore parent field on existing issues |
 | Issue Links | MCP `jira_create_issue_link` | Blocks/Relates · `jira_create_remote_issue_link` (web) |
@@ -107,7 +108,8 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 | `limit > 50` → error | Max 50, use pagination `start_at` |
 | Sibling tool call errored | One parallel MCP call failed → all cancelled. Fix failing call first |
 | Prefer `/story-full` | `/search-issues` → `/story-full` → `/verify-issue` |
-| Mermaid diagram not rendering | Need BOTH: code block (`language=mermaid`) + Forge `ac:adf-extension`. Insert via editor `/mermaid`, then update code block content via script |
+| Mermaid diagram not rendering | Need BOTH: code block (`language=mermaid`) + Forge `ac:adf-extension`. Can create programmatically via `mermaid_diagram()` — see `scripts/create-player-architecture-page.py`. `guest-params > index` must count ALL code blocks on page |
+| Page font-size too large (16px) | Pages with Forge macros (Mermaid, etc.) always render at 16px. `content-appearance-published` controls width only, NOT font. Cannot force 13px compact mode on complex pages |
 
 ## References
 

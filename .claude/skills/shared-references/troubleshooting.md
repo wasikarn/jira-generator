@@ -301,6 +301,34 @@ For MCP: Use `jira_get_issue(issue_key: "BEP-1")`
 | Macros displayed as text | MCP doesn't understand storage format | Use `update_page_storage.py` |
 | Cannot move page | MCP has no move API | Use `move_confluence_page.py` |
 | Mermaid diagram not rendering | Code block alone won't render | Need BOTH: code block (`language=mermaid`) + Forge `ac:adf-extension` macro — see below |
+| Page font-size 16px instead of 13px | Forge macros force standard renderer | Pages with Forge extensions (Mermaid, etc.) render at 16px (`is-full-width`/`is-full-page`). Simple pages render at 13px (`is-max`). Cannot override via API — content complexity determines renderer mode |
+| `content-appearance-published` doesn't change font | Property controls width only | `"full-width"` = wider content area. Font-size is separate: determined by Confluence's internal renderer selection based on page content |
+
+### Page Appearance Properties
+
+**`content-appearance-published`** — controls content width via v2 API.
+
+| Value | Renderer Class | Content Width | Font (body) |
+| --- | --- | --- | --- |
+| not set | `is-full-page` (complex) or `is-max` (simple) | default | 16px or 13px |
+| `"full-width"` | `is-full-width` (complex) or `is-max` (simple) | 100% viewport | 16px or 13px |
+| `"fixed-width"` | same as not set | default | 16px or 13px |
+
+> **Font-size is NOT controlled by this property.** Confluence selects `is-max` (compact, 13px) for simple pages and `is-full-page`/`is-full-width` (standard, 16px) for pages with Forge extensions.
+
+**API:**
+
+```bash
+# Set full-width
+POST /wiki/api/v2/pages/{page_id}/properties
+{"key": "content-appearance-published", "value": "full-width"}
+
+# Remove (revert to default)
+DELETE /wiki/api/v2/pages/{page_id}/properties/{prop_id}
+
+# List properties
+GET /wiki/api/v2/pages/{page_id}/properties
+```
 
 ### Mermaid Diagrams (Confluence)
 
@@ -309,7 +337,7 @@ The Mermaid plugin is a **Forge app** (`mermaid-diagram`). It requires **two ele
 1. **Code block** (`language=mermaid`) — the diagram source text
 2. **Forge `ac:adf-extension` macro** — the renderer (placed after code block)
 
-> **Code block alone does NOT render.** The Forge macro reads the code block via `guest-params > index` (0 = first mermaid block on page).
+> **Code block alone does NOT render.** The Forge macro reads the code block via `guest-params > index`. **CRITICAL:** index counts ALL code blocks on the page (not just mermaid ones).
 
 **Step 1: Code block (source)**
 
@@ -323,9 +351,23 @@ The Mermaid plugin is a **Forge app** (`mermaid-diagram`). It requires **two ele
 </ac:structured-macro>
 ```
 
-**Step 2: Forge extension (renderer)** — too complex to construct programmatically (needs app-id, environment-id, installation-id, cloud-id, etc.)
+**Step 2: Forge extension (renderer)** — can be constructed programmatically using `mermaid_diagram()`.
 
-**Recommended workflow for Mermaid diagrams:**
+**Reference implementation:** `scripts/create-player-architecture-page.py`
+
+- `mermaid_diagram(code, page_id)` — generates code block + Forge `ac:adf-extension` macro
+- `tracked_code_block()` — wrapper for non-mermaid code blocks that increments global counter
+- Global `_code_block_count` tracks position for Forge `guest-params > index`
+
+**Two workflows for Mermaid diagrams:**
+
+**A) Programmatic (preferred for scripts with multiple diagrams):**
+
+1. Use `mermaid_diagram(code, page_id)` — generates code block + Forge macro with correct index
+2. Use `tracked_code_block()` for ALL non-mermaid code blocks (maintains index counter)
+3. Counter resets at start of `build_content()` — indices are sequential across all code blocks
+
+**B) Manual (for one-off edits):**
 
 1. User inserts `/mermaid` macro in Confluence editor with dummy content → Save
 2. Script updates the code block's `CDATA` content with actual diagram text
@@ -347,7 +389,7 @@ The Mermaid plugin is a **Forge app** (`mermaid-diagram`). It requires **two ele
 | Code block only (no Forge macro) | Displays as raw code text, not a rendered diagram |
 | `ac:name="mermaid-cloud"` | Not a valid macro — renders as unknown macro error |
 | `ac:name="mermaid-diagram"` as `ac:structured-macro` | This is the Forge `ac:adf-extension` key — cannot be constructed as `ac:structured-macro` |
-| Constructing `ac:adf-extension` manually | Requires 6+ instance-specific IDs — use editor `/mermaid` instead |
+| Wrong Forge `guest-params > index` | Index must count ALL code blocks on page, not just mermaid — use `tracked_code_block()` counter |
 
 ### Script Locations
 
