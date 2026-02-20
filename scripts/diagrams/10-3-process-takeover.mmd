@@ -36,6 +36,9 @@ flowchart TD
     POL_RESUME e13@--> E_RESUMED
 
     E_INTERRUPTED e2@--> POL_MG
+    POL_MG e14@--> AGG_MG
+    AGG_MG e15@--> E_MG
+    E_MG e16@--> POL_NEXT
     e1@{ animation: slow }
     e2@{ animation: fast }
     e3@{ animation: fast }
@@ -52,9 +55,6 @@ flowchart TD
     e14@{ animation: fast }
     e15@{ animation: fast }
     e16@{ animation: fast }
-    POL_MG e14@--> AGG_MG
-    AGG_MG e15@--> E_MG
-    E_MG e16@--> POL_NEXT
 
     %% Events - Orange
     style E_APPROVED fill:#FF8C00,stroke:#CC7000,color:#fff

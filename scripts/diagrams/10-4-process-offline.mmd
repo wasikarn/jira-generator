@@ -36,6 +36,8 @@ flowchart TD
     POL_DEBOUNCE e14@--> C_SYNC
     C_SYNC e1@--> EXT_API
     EXT_API e15@--> AGG_CACHE2
+    AGG_CACHE2 e16@--> E_SYNCED
+    E_SYNCED e17@--> POL_RESUME
     e1@{ animation: slow }
     e2@{ animation: fast }
     e3@{ animation: fast }
@@ -53,8 +55,6 @@ flowchart TD
     e15@{ animation: slow }
     e16@{ animation: fast }
     e17@{ animation: fast }
-    AGG_CACHE2 e16@--> E_SYNCED
-    E_SYNCED e17@--> POL_RESUME
 
     %% Events - Orange
     style E_DROP fill:#FF8C00,stroke:#CC7000,color:#fff

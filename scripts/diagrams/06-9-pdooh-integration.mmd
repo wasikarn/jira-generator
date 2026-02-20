@@ -17,6 +17,9 @@ flowchart TD
     P3 e4@-->|"YES"| P3Y
     P3 e5@-->|"NO"| P3N
     P3Y e1@--> RTB e6@--> WIN
+    WIN e7@-->|"creative"| P4
+    WIN e8@-->|"no fill"| P3N
+    P3N e9@--> P4 e10@--> SEQ
     e1@{ animation: slow }
     e2@{ animation: fast }
     e3@{ animation: fast }
@@ -27,9 +30,6 @@ flowchart TD
     e8@{ animation: fast }
     e9@{ animation: fast }
     e10@{ animation: fast }
-    WIN e7@-->|"creative"| P4
-    WIN e8@-->|"no fill"| P3N
-    P3N e9@--> P4 e10@--> SEQ
     style ADE fill:#f0f0f0,stroke:#666
     style SSP fill:#fff3cd,stroke:#ffc107
     style P1 fill:#ffd700,stroke:#333
