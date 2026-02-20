@@ -80,6 +80,7 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 | Confluence | MCP (read/simple), Python scripts (code/macros) | `audit_confluence_pages.py` (audit) |
 | Page appearance | `content-appearance-published` property (v2 API) | Controls width only. Font-size depends on content complexity — pages with Forge macros render at 16px, simple pages at 13px. Do NOT set for consistency |
 | Mermaid diagram | Code block (`language=mermaid`) + Forge `ac:adf-extension` | Programmatic: `mermaid_diagram()` in `scripts/create-player-architecture-page.py`. Manual: insert `/mermaid` in editor, then update code block via script. **CRITICAL:** `guest-params > index` counts ALL code blocks on page (not just mermaid) — use `tracked_code_block()` for non-mermaid code blocks |
+| ADF panel fix | `fix_confluence_panels.py` or auto in `_update_page()` | After storage format update, Confluence may convert `success`/`error`/`warning`/`note` macros to broken `bodiedExtension`. Fix reads ADF via v2 API and converts to native `panel` |
 | Explore | Task(Explore) | Always before creating subtasks |
 | Parent (Epic) | `jira_set_parent.py` (REST) | MCP/acli silently ignore parent field on existing issues |
 | Issue Links | MCP `jira_create_issue_link` | Blocks/Relates · `jira_create_remote_issue_link` (web) |
@@ -109,7 +110,9 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 | Sibling tool call errored | One parallel MCP call failed → all cancelled. Fix failing call first |
 | Prefer `/story-full` | `/search-issues` → `/story-full` → `/verify-issue` |
 | Mermaid diagram not rendering | Need BOTH: code block (`language=mermaid`) + Forge `ac:adf-extension`. Can create programmatically via `mermaid_diagram()` — see `scripts/create-player-architecture-page.py`. `guest-params > index` must count ALL code blocks on page |
+| Mermaid parse error on Confluence | Task names/labels must NOT contain `×` `±` `:` (time) `()` — use ASCII equivalents (`x`, `+-`, `-`, remove parens). Applies to ALL diagram types, not just Gantt |
 | Page font-size too large (16px) | Pages with Forge macros (Mermaid, etc.) always render at 16px. `content-appearance-published` controls width only, NOT font. Cannot force 13px compact mode on complex pages |
+| "Error loading the extension!" on panels | Confluence storage→ADF bug: `ac:structured-macro` for `success`/`error`/`warning`/`note` panels sometimes converts to `bodiedExtension` instead of native `panel` → fails to render. Fix: `_fix_page_panels()` in architecture script auto-fixes via v2 ADF API. Standalone: `fix_confluence_panels.py` |
 
 ## References
 

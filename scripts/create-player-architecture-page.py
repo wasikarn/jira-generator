@@ -1776,8 +1776,73 @@ def _update_page(api, page_id: str, content: str, title: str | None = None):
     version = page["version"]["number"]
     t = title or page["title"]
     api.update_page(page_id=page_id, title=t, content=content, version=version)
-    print(f"  Updated: {t} (v{version} -> v{version + 1})")
+    new_ver = version + 1
+    print(f"  Updated: {t} (v{version} -> v{new_ver})")
     print(f"  URL: https://{{JIRA_SITE}}/wiki/spaces/{SPACE_KEY}/pages/{page_id}")
+    # Fix Confluence ADF panel bug: storage→ADF conversion sometimes creates
+    # bodiedExtension instead of native panel for success/error/warning macros.
+    # This causes "Error loading the extension!" in view mode.
+    fixed = _fix_page_panels(api, page_id, t, new_ver)
+    if fixed:
+        print(f"  Fixed {fixed} ADF panel(s) (bodiedExtension → native panel)")
+
+
+# Panel macro keys that Confluence should render as native ADF panels
+_PANEL_TYPES = {"info", "note", "warning", "error", "success", "tip"}
+
+
+def _fix_page_panels(api, page_id: str, title: str, current_ver: int) -> int:
+    """Fix Confluence bug: bodiedExtension with panel-type key → native panel.
+
+    Returns number of nodes fixed (0 if no fix needed).
+    """
+    # Fetch ADF via v2 API
+    v2_data = api._request("GET", f"/api/v2/pages/{page_id}?body-format=atlas_doc_format")
+    adf = json.loads(v2_data["body"]["atlas_doc_format"]["value"])
+    ver = v2_data["version"]["number"]
+
+    fixed_count = 0
+
+    def fix_node(node):
+        nonlocal fixed_count
+        if not isinstance(node, dict):
+            return node
+        if (
+            node.get("type") == "bodiedExtension"
+            and node.get("attrs", {}).get("extensionKey", "") in _PANEL_TYPES
+            and "macro.core" in node.get("attrs", {}).get("extensionType", "")
+        ):
+            fixed_count += 1
+            return {
+                "type": "panel",
+                "attrs": {"panelType": node["attrs"]["extensionKey"]},
+                "content": [fix_node(c) for c in node.get("content", [])],
+            }
+        if "content" in node and isinstance(node["content"], list):
+            node["content"] = [fix_node(c) for c in node["content"]]
+        return node
+
+    adf = fix_node(adf)
+
+    if fixed_count == 0:
+        return 0
+
+    # Update via v2 API with fixed ADF
+    api._request(
+        "PUT",
+        f"/api/v2/pages/{page_id}",
+        data={
+            "id": page_id,
+            "status": "current",
+            "title": title,
+            "body": {
+                "representation": "atlas_doc_format",
+                "value": json.dumps(adf),
+            },
+            "version": {"number": ver + 1},
+        },
+    )
+    return fixed_count
 
 
 def main():

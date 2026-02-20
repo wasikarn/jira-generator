@@ -303,6 +303,63 @@ For MCP: Use `jira_get_issue(issue_key: "BEP-1")`
 | Mermaid diagram not rendering | Code block alone won't render | Need BOTH: code block (`language=mermaid`) + Forge `ac:adf-extension` macro — see below |
 | Page font-size 16px instead of 13px | Forge macros force standard renderer | Pages with Forge extensions (Mermaid, etc.) render at 16px (`is-full-width`/`is-full-page`). Simple pages render at 13px (`is-max`). Cannot override via API — content complexity determines renderer mode |
 | `content-appearance-published` doesn't change font | Property controls width only | `"full-width"` = wider content area. Font-size is separate: determined by Confluence's internal renderer selection based on page content |
+| "Error loading the extension!" on panels | Storage→ADF conversion bug | Confluence converts `ac:structured-macro` for `success`/`error`/`warning`/`note` to `bodiedExtension` instead of native `panel`. Fix: `fix_confluence_panels.py --page-id` or auto-fix in `_update_page()` — see below |
+
+### ADF Panel Conversion Bug
+
+**Problem:** When updating a Confluence page via storage format API (v1), Confluence converts the storage XML to ADF (Atlas Document Format) internally. Some panel macros (`success`, `error`, `warning`, `note`) are **inconsistently** converted:
+
+- `ac:structured-macro ac:name="info"` → ADF `panel` (native, renders correctly)
+- `ac:structured-macro ac:name="success"` → ADF `bodiedExtension` (broken, shows "Error loading the extension!")
+
+This is a **persistent Confluence bug** — happens on every storage format update, not randomly.
+
+**Symptoms:**
+
+- Edit mode: page looks correct (panels visible)
+- View mode: "Error loading the extension!" where panel should be
+- Only affects `success`, `error`, `warning`, `note` macros (not `info`)
+
+**Fix (automatic):** `scripts/create-player-architecture-page.py` includes `_fix_page_panels()` which runs after every `_update_page()`:
+
+1. Fetches page body in `atlas_doc_format` via v2 API
+2. Finds `bodiedExtension` nodes with panel-type `extensionKey`
+3. Converts to native ADF `panel` node with correct `panelType`
+4. Updates page via v2 ADF API
+
+**Fix (standalone):** `fix_confluence_panels.py --page-id PAGE_ID`
+
+**Fix (manual):** Edit the page in Confluence UI, delete the error block, re-insert the panel macro, save.
+
+**API calls used:**
+
+```bash
+# Read ADF
+GET /wiki/api/v2/pages/{page_id}?body-format=atlas_doc_format
+
+# Update with fixed ADF
+PUT /wiki/api/v2/pages/{page_id}
+{
+  "id": "PAGE_ID",
+  "status": "current",
+  "title": "Page Title",
+  "body": {
+    "representation": "atlas_doc_format",
+    "value": "{...ADF JSON...}"
+  },
+  "version": {"number": N+1}
+}
+```
+
+**ADF node transformation:**
+
+```json
+// BEFORE (broken)
+{"type": "bodiedExtension", "attrs": {"extensionType": "com.atlassian.confluence.macro.core", "extensionKey": "success"}, "content": [...]}
+
+// AFTER (fixed)
+{"type": "panel", "attrs": {"panelType": "success"}, "content": [...]}
+```
 
 ### Page Appearance Properties
 
