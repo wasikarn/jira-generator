@@ -1,23 +1,23 @@
 flowchart TD
     subgraph BE["BACKEND (AdonisJS + BullMQ + Redis)"]
-        Cron["Cron Job<br/>(BullMQ) every 10m"] --> Calc["PlayScheduleCalculate<br/>NO CHANGE"]
+        Cron["Scheduling Engine<br/>(BullMQ) every 10m"] --> Calc["PlayScheduleCalculate<br/>NO CHANGE"]
         Calc --> Per["PerScreen calc<br/>NO CHANGE"]
-        Per -->|"rows"| PB["⭐ PlaylistBuilder<br/>NEW<br/>Sort → Interleave →<br/>Exclusives → Sequence"]
+        Per -->|"rows"| PB["⭐ Ad Decisioning<br/>Engine NEW<br/>Pacing → SOV →<br/>Guaranteed → Sequence"]
         PB --> DB[("MySQL<br/>NO CHANGE")]
-        PB --> DPL[("⭐ DevicePlaylist<br/>NEW")]
-        PB --> Push["Pusher<br/>playlist-updated"]
+        PB --> DPL[("⭐ Screen Schedule<br/>NEW")]
+        PB --> Push["Pusher<br/>schedule-updated"]
     end
     Push -->|"WebSocket"| INB
-    subgraph PL["PLAYER (Tauri Desktop App)"]
+    subgraph PL["MEDIA PLAYER (Tauri Desktop App)"]
         INB["⭐ Inbox Handler<br/>dedup + version check"]
         INB -->|"fetch"| CACHE["⭐ 3-Tier Cache<br/>LIVE / BUFFER / FALLBACK"]
         CACHE --> SM["⭐ State Machine<br/>BOOT→SYNC→PLAY→OFFLINE"]
         SM --> REN["Dumb Renderer<br/>play sequence[i++]"]
-        OUT["⭐ Outbox Store<br/>pending → sent → ack"]
+        OUT["⭐ PoP Outbox<br/>pending → sent → ack"]
     end
     subgraph APILAYER["API Endpoints"]
-        API1["⭐ GET /v2/device-playlist<br/>ordered items + manifest"]
-        API2["POST /v2/play-history<br/>+ Idempotency Key"]
+        API1["⭐ GET /v2/screen-schedule<br/>ordered spots + manifest"]
+        API2["POST /v2/proof-of-play<br/>+ Idempotency Key"]
     end
     INB -->|"GET"| API1
     OUT -->|"flush 1 min"| API2
