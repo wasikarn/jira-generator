@@ -1696,6 +1696,154 @@ def build_page_8(page_id: str) -> str:
         "Solution: checkpoint mode on reconnect (full schedule compare via REST) + event mode once synced (Pusher for incremental).</p>"
     ))
 
+    # ─── Terminology Mapping (Old System ↔ DOOH Industry) ───
+    sections.append("<h3>Terminology Mapping: Tathep &harr; DOOH Industry</h3>")
+    sections.append(info_panel(
+        "<p>ตารางด้านล่างเชื่อมโยงคำศัพท์ <strong>เดิมในระบบ</strong> (codebase + Jira) กับ <strong>คำใหม่</strong> "
+        "ที่ใช้ใน architecture proposal นี้ ซึ่ง align กับมาตรฐาน DOOH industry<br/>"
+        "เพื่อให้คนที่ทำระบบเดิมอยู่ กับคนที่จะทำ version ใหม่ เข้าใจตรงกัน</p>"
+    ))
+
+    sections.append("<h4>Core Concepts</h4>")
+    sections.append(
+        '<table>'
+        '<tr><th>หมวด</th><th>คำเดิม (Current System)</th><th>คำใหม่ (DOOH Standard)</th><th>หมายเหตุ</th></tr>'
+        '<tr><td rowspan="3"><strong>Ad Types</strong></td>'
+        '<td><code>exclusive</code></td><td><strong>Guaranteed Spot (P1-G)</strong></td>'
+        '<td>ชื่อใน code: <code>schedule.constant.ts</code> ยังเป็น <code>exclusive</code></td></tr>'
+        '<tr><td><code>continuous</code> (date-range)</td><td><strong>Direct-Sold ROS (P2)</strong></td>'
+        '<td>Run-of-Schedule &mdash; campaign ที่ขายตรง</td></tr>'
+        '<tr><td><code>frequency</code> (count-based)</td><td><strong>Spot Buy (P3)</strong></td>'
+        '<td>อนาคต: Programmatic via SSP/RTB</td></tr>'
+        '<tr><td rowspan="2"><strong>Content</strong></td>'
+        '<td>owner ads / owner playlist</td><td><strong>House Content (P4)</strong></td>'
+        '<td>เจ้าของจอเลือกเอง เล่นตอนว่าง</td></tr>'
+        '<tr><td>ads / media</td><td><strong>Creative (asset)</strong></td>'
+        '<td><code>media_code</code> &rarr; <code>creative_code</code></td></tr>'
+        '<tr><td rowspan="2"><strong>Screen</strong></td>'
+        '<td>billboard</td><td><strong>Screen</strong></td>'
+        '<td>DOOH standard &mdash; model ยังชื่อ <code>Billboard.ts</code></td></tr>'
+        '<tr><td><code>ownerTime</code> / <code>platformTime</code></td><td><strong>SOV (Share of Voice)</strong></td>'
+        '<td>สัดส่วนเวลา owner vs platform &mdash; logic เดิม rename</td></tr>'
+        '<tr><td rowspan="2"><strong>Scheduling</strong></td>'
+        '<td>round (10 min)</td><td><strong>Loop</strong></td>'
+        '<td>DOOH เรียก loop cycle</td></tr>'
+        '<tr><td>round-robin</td><td><strong>Loop Rotation</strong></td>'
+        '<td>การหมุนเวียน creative ใน loop</td></tr>'
+        '<tr><td><strong>Reporting</strong></td>'
+        '<td>play history</td><td><strong>Proof of Play (PoP)</strong></td>'
+        '<td>DOOH standard &mdash; endpoint ยังเป็น <code>/v2/play-history</code></td></tr>'
+        '</table>'
+    )
+
+    sections.append("<h4>Backend Components</h4>")
+    sections.append(
+        '<table>'
+        '<tr><th>คำเดิม (Current Code)</th><th>คำใหม่ (Proposed)</th><th>File Path</th></tr>'
+        '<tr><td><code>PlaylistBuilderService</code></td><td><strong>AdDecisioningService</strong> (Ad Decisioning Engine)</td>'
+        '<td><code>app/Services/AdDecisioningService.ts</code> (NEW)</td></tr>'
+        '<tr><td><code>DevicePlaylist</code> model</td><td><strong>ScreenSchedule</strong></td>'
+        '<td><code>app/Models/ScreenSchedule.ts</code> (NEW)</td></tr>'
+        '<tr><td><code>DevicePlaylistItem</code> model</td><td><strong>ScreenScheduleItem</strong></td>'
+        '<td><code>app/Models/ScreenScheduleItem.ts</code> (NEW)</td></tr>'
+        '<tr><td><code>PlayScheduleExclusiveService</code></td><td>Absorbed into <strong>AdDecisioningService</strong></td>'
+        '<td><code>app/Services/v2/PlayScheduleExclusiveService.ts</code></td></tr>'
+        '<tr><td><code>PlayScheduleCreateByExclusive</code> (job)</td><td>Absorbed into <strong>AdDecisioningService</strong></td>'
+        '<td><code>app/Jobs/PlayScheduleCreateByExclusive.ts</code></td></tr>'
+        '<tr><td><code>PlayScheduleFrequencyService</code></td><td><strong>House content rotation</strong> (input to ADE)</td>'
+        '<td><code>app/Services/PlayScheduleFrequencyService.ts</code></td></tr>'
+        '<tr><td><code>PlaySchedulePeriodService</code></td><td><strong>Campaign period</strong> (input to ADE)</td>'
+        '<td><code>app/Services/PlaySchedulePeriodService.ts</code></td></tr>'
+        '<tr><td><code>GET /v2/play-schedules</code> + <code>/playlist-advertisements</code></td>'
+        '<td><strong><code>GET /v2/screen-schedule</code></strong> (unified)</td>'
+        '<td>NEW endpoint</td></tr>'
+        '<tr><td><code>AdvertisementDisplayExclusive</code></td><td>Remains (data source for <strong>guaranteed spots</strong>)</td>'
+        '<td><code>app/Models/AdvertisementDisplayExclusive.ts</code></td></tr>'
+        '<tr><td><code>AdGroupDisplayTimeExclusive</code></td><td>Remains (data source for <strong>guaranteed time window</strong>)</td>'
+        '<td><code>app/Models/AdGroupDisplayTimeExclusive.ts</code></td></tr>'
+        '<tr><td colspan="3"><em>NO CHANGE:</em> <code>PlayScheduleCalculate.ts</code>, '
+        '<code>PlayScheduleCalculatePerScreen.ts</code>, <code>PlaySchedule.ts</code> model, '
+        '<code>checkIsBillboardsReserved.ts</code></td></tr>'
+        '</table>'
+    )
+
+    sections.append("<h4>Player Components</h4>")
+    sections.append(
+        '<table>'
+        '<tr><th>คำเดิม (Current Code)</th><th>คำใหม่ (Proposed)</th><th>หมายเหตุ</th></tr>'
+        '<tr><td>Smart Player (schedule + render)</td><td><strong>Dumb Renderer</strong> (play <code>sequence[i++]</code>)</td>'
+        '<td>Feature flag: <code>billboard.player_mode</code></td></tr>'
+        '<tr><td><code>SchedulePlayComponent</code><br/><code>TimeSlotComponent</code><br/><code>PlaylistComponent</code></td>'
+        '<td>Absorbed into <strong>Dumb Renderer</strong></td>'
+        '<td>3,500+ lines &rarr; simple sequence player</td></tr>'
+        '<tr><td><code>calculatePlaySchedules</code> (1s poll)</td><td><strong>Eliminated</strong> &mdash; backend pre-positions</td>'
+        '<td>ไม่ต้อง poll ทุก 1 วินาทีอีก</td></tr>'
+        '<tr><td><code>pausePlayData</code> (single var)</td><td><strong>Eliminated</strong> &mdash; no nested interrupt</td>'
+        '<td>ADE resolves ที่ backend แทน</td></tr>'
+        '<tr><td>(no name)</td><td><strong>Interrupt Controller (IC)</strong></td>'
+        '<td>NEW: P0/P1-TK/P1-ET interrupt only</td></tr>'
+        '<tr><td>(no name)</td><td><strong>Inbox Handler</strong></td>'
+        '<td>NEW: event_id dedup + version check</td></tr>'
+        '<tr><td><code>player.history.json</code> (retry)</td><td><strong>PoP Outbox</strong></td>'
+        '<td>pending &rarr; sent &rarr; acked cycle</td></tr>'
+        '<tr><td><code>localStorage</code></td><td><strong>3-Tier Cache</strong> (Tauri Store)</td>'
+        '<td>Tier 1: Live, Tier 2: Buffer, Tier 3: Fallback</td></tr>'
+        '<tr><td>(implicit states)</td><td><strong>State Machine</strong> (10 explicit states)</td>'
+        '<td>BOOT &rarr; SPLASH &rarr; SYNC &rarr; ONLINE/OFFLINE &rarr; FALLBACK</td></tr>'
+        '</table>'
+    )
+
+    sections.append("<h4>Pusher Events</h4>")
+    sections.append(
+        '<table>'
+        '<tr><th>Event เดิม</th><th>Event ใหม่ / เปลี่ยนแปลง</th><th>หมายเหตุ</th></tr>'
+        '<tr><td><code>update-play-schedule</code></td><td><strong><code>schedule-updated</code></strong></td>'
+        '<td>Renamed + typed contract</td></tr>'
+        '<tr><td><code>created-play-schedule</code></td><td>Absorbed into <strong><code>schedule-updated</code></strong></td>'
+        '<td>ไม่แยก create/update อีก</td></tr>'
+        '<tr><td><code>approved-advertisement-exclusive</code></td><td>Absorbed into <strong><code>schedule-updated</code></strong></td>'
+        '<td>ADE pre-positions guaranteed &mdash; ไม่ inject ตรง</td></tr>'
+        '<tr><td><code>stop-advertisement</code></td><td>Unchanged (+ typed contract)</td>'
+        '<td>Creative cancelled</td></tr>'
+        '<tr><td><code>un-pair-screen</code></td><td>Unchanged (+ typed contract)</td>'
+        '<td>Device unpaired</td></tr>'
+        '<tr><td>(ไม่มี)</td><td><strong><code>takeover-start</code></strong></td><td>NEW: P1-TK boundary</td></tr>'
+        '<tr><td>(ไม่มี)</td><td><strong><code>takeover-end</code></strong></td><td>NEW: P1-TK boundary</td></tr>'
+        '<tr><td>(ไม่มี)</td><td><strong><code>p0-emergency</code></strong></td><td>NEW: system alert</td></tr>'
+        '<tr><td>(ไม่มี)</td><td><strong><code>device-config-updated</code></strong></td><td>NEW: pre-stage creative</td></tr>'
+        '</table>'
+    )
+
+    sections.append("<h4>API &amp; Data Fields</h4>")
+    sections.append(
+        '<table>'
+        '<tr><th>Field / API เดิม</th><th>ใหม่</th><th>หมายเหตุ</th></tr>'
+        '<tr><td><code>media_code</code></td><td><strong><code>creative_code</code></strong></td>'
+        '<td>DOOH: creative = ชิ้นงานโฆษณา</td></tr>'
+        '<tr><td><code>media_url</code></td><td><strong><code>creative_url</code></strong></td><td></td></tr>'
+        '<tr><td><code>media_checksum</code></td><td><strong><code>creative_checksum</code></strong></td><td></td></tr>'
+        '<tr><td><code>media_manifest</code></td><td><strong><code>creative_manifest</code></strong></td><td></td></tr>'
+        '<tr><td><code>type: "paid" | "owner"</code></td>'
+        '<td><strong><code>type: "campaign" | "house"</code></strong></td>'
+        '<td>campaign = sold inventory</td></tr>'
+        '<tr><td><code>priority: "normal" | "exclusive"</code></td>'
+        '<td><strong><code>priority: "guaranteed" | "direct" | "spot" | "house"</code></strong></td>'
+        '<td>4-level แทน 2-level</td></tr>'
+        '<tr><td><code>ad_display_count</code></td><td><strong><code>impression_target</code></strong></td>'
+        '<td>DOOH: impression = 1 play ที่นับได้</td></tr>'
+        '<tr><td><code>PlaylistUpdatedEvent</code></td><td><strong><code>ScheduleUpdatedEvent</code></strong></td>'
+        '<td>Interface ใหม่</td></tr>'
+        '</table>'
+    )
+
+    sections.append(note_panel(
+        "<p><strong>Code ยังไม่เปลี่ยน:</strong> Mapping นี้คือ <em>terminology</em> ในเอกสาร architecture. "
+        "Code refactor จะทำเป็น phase ตาม Migration Plan &mdash; "
+        "ไม่ต้อง rename ทุกอย่างพร้อมกัน. "
+        "Model เดิม (<code>PlaySchedule</code>, <code>AdvertisementDisplayExclusive</code>, <code>Billboard</code>) "
+        "ยังใช้ชื่อเดิมใน codebase จนกว่าจะ migrate</p>"
+    ))
+
     sections.append("<h3>Decision Record: Why NOT Event-Sourcing</h3>")
     sections.append(warning_panel(
         "<p><strong>ADR-002:</strong> Event-Driven Architecture (NOT Event-Sourcing)</p>"
