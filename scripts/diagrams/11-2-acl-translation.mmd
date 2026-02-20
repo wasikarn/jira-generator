@@ -1,0 +1,62 @@
+flowchart LR
+    subgraph OLD["Legacy System"]
+        direction TB
+        O1["PlaySchedule"]
+        O2["ScreenDeviceSchedule<br/>PlayComponent"]
+        O3["ScreenDeviceSchedule<br/>PlayTimeSlotComponent"]
+        O4["PlaylistAdvertisement"]
+        O5["ExclusiveService"]
+        O6["calculatePlaySchedules"]
+    end
+
+    subgraph ACL["Anti-Corruption Layer<br/>Translation Boundary"]
+        direction TB
+        T1{{"PlaySchedule<br/>to ScreenScheduleItem"}}
+        T2{{"3 Components<br/>to AdDecisioningService"}}
+        T3{{"PlaylistAd<br/>to ScreenScheduleItem<br/>type: house"}}
+        T4{{"ExclusiveService<br/>absorbed into<br/>InterruptController"}}
+        T5{{"3500 lines<br/>to sequence i++"}}
+    end
+
+    subgraph NEW["New Architecture"]
+        direction TB
+        N1["ScreenSchedule"]
+        N2["AdDecisioningService"]
+        N3["ScreenScheduleItem"]
+        N4["InterruptController"]
+        N5["Dumb Renderer"]
+    end
+
+    O1 --> T1 --> N1
+    O2 --> T2 --> N2
+    O3 --> T2
+    O4 --> T3 --> N3
+    O5 --> T4 --> N4
+    O6 --> T5 --> N5
+
+    %% Old - faded
+    style O1 fill:#ddd,stroke:#999,color:#555
+    style O2 fill:#ddd,stroke:#999,color:#555
+    style O3 fill:#ddd,stroke:#999,color:#555
+    style O4 fill:#ddd,stroke:#999,color:#555
+    style O5 fill:#ddd,stroke:#999,color:#555
+    style O6 fill:#ddd,stroke:#999,color:#555
+
+    %% ACL - Lilac
+    style T1 fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style T2 fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style T3 fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style T4 fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style T5 fill:#C8A2C8,stroke:#9B7A9B,color:#333
+
+    %% New - Yellow
+    style N1 fill:#FFD700,stroke:#CCB000,color:#333
+    style N2 fill:#FFD700,stroke:#CCB000,color:#333
+    style N3 fill:#FFD700,stroke:#CCB000,color:#333
+    style N4 fill:#FFD700,stroke:#CCB000,color:#333
+    style N5 fill:#FFD700,stroke:#CCB000,color:#333
+
+    %% Subgraph styles
+    style OLD fill:#f5f5f5,stroke:#999,stroke-width:2px
+    style ACL fill:#f0e6f0,stroke:#9B7A9B,stroke-width:3px,stroke-dasharray:5 5
+    style NEW fill:#fffff0,stroke:#CCB000,stroke-width:2px

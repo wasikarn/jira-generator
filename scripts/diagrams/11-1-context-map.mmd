@@ -1,0 +1,67 @@
+flowchart TD
+    subgraph SC["Scheduling Context<br/>(Backend)"]
+        direction TB
+        SC_PS["PlaySchedule<br/>Aggregate"]
+        SC_ADE["AdDecisioningService<br/>Aggregate"]
+        SC_SS["ScreenSchedule<br/>Aggregate"]
+        SC_PS --> SC_ADE
+        SC_ADE --> SC_SS
+    end
+
+    subgraph IC["Interrupt Context<br/>(Backend + Player)"]
+        direction TB
+        IC_TK["TakeoverSchedule<br/>Aggregate"]
+        IC_ET["ExactTimeSpot<br/>Aggregate"]
+        IC_CTRL["InterruptController<br/>Aggregate"]
+        IC_MG["MakeGoodRecord<br/>Aggregate"]
+        IC_TK --> IC_CTRL
+        IC_ET --> IC_CTRL
+        IC_CTRL --> IC_MG
+    end
+
+    subgraph PC["Playback Context<br/>(Player)"]
+        direction TB
+        PC_INBOX["InboxHandler<br/>Aggregate"]
+        PC_CACHE["3-Tier Cache<br/>Aggregate"]
+        PC_SM["StateMachine<br/>Aggregate"]
+        PC_RENDER["Renderer<br/>Aggregate"]
+        PC_INBOX --> PC_CACHE
+        PC_CACHE --> PC_SM
+        PC_SM --> PC_RENDER
+    end
+
+    subgraph RC["Reporting Context<br/>(Player to Backend)"]
+        direction TB
+        RC_OUTBOX["PoP Outbox<br/>Aggregate"]
+        RC_HISTORY["PlayHistory<br/>Aggregate"]
+        RC_IDEMP["Idempotency<br/>Aggregate"]
+        RC_OUTBOX --> RC_HISTORY
+        RC_HISTORY --> RC_IDEMP
+    end
+
+    SC -->|"ScreenScheduleBuilt<br/>via Pusher"| PC
+    IC -->|"TakeoverStart/End<br/>via Pusher"| PC
+    PC -->|"PoPRecorded<br/>via Outbox flush"| RC
+    IC -->|"MakeGoodScheduled<br/>internal"| SC
+
+    %% Aggregate styles - Yellow
+    style SC_PS fill:#FFD700,stroke:#CCB000,color:#333
+    style SC_ADE fill:#FFD700,stroke:#CCB000,color:#333
+    style SC_SS fill:#FFD700,stroke:#CCB000,color:#333
+    style IC_TK fill:#FFD700,stroke:#CCB000,color:#333
+    style IC_ET fill:#FFD700,stroke:#CCB000,color:#333
+    style IC_CTRL fill:#FFD700,stroke:#CCB000,color:#333
+    style IC_MG fill:#FFD700,stroke:#CCB000,color:#333
+    style PC_INBOX fill:#FFD700,stroke:#CCB000,color:#333
+    style PC_CACHE fill:#FFD700,stroke:#CCB000,color:#333
+    style PC_SM fill:#FFD700,stroke:#CCB000,color:#333
+    style PC_RENDER fill:#FFD700,stroke:#CCB000,color:#333
+    style RC_OUTBOX fill:#FFD700,stroke:#CCB000,color:#333
+    style RC_HISTORY fill:#FFD700,stroke:#CCB000,color:#333
+    style RC_IDEMP fill:#FFD700,stroke:#CCB000,color:#333
+
+    %% Context styles
+    style SC fill:#e8f4fd,stroke:#2196F3,stroke-width:3px
+    style IC fill:#fde8e8,stroke:#f44336,stroke-width:3px
+    style PC fill:#e8fde8,stroke:#4CAF50,stroke-width:3px
+    style RC fill:#fdf8e8,stroke:#FF9800,stroke-width:3px

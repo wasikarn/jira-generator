@@ -1,0 +1,70 @@
+flowchart TD
+    A_PLAYER(["Player<br/>Device"])
+    E_RECEIVED["ScheduleReceived<br/>via Pusher"]
+    POL_DEDUP{{"Inbox: Check<br/>event_id + version"}}
+    C_FETCH["FetchSchedule<br/>GET /v2/screen-schedule"]
+    EXT_API[("Backend<br/>API")]
+    AGG_CACHE["3-Tier Cache"]
+    E_CACHED["CacheUpdated"]
+    RM_SCHEDULE[/"Current Schedule<br/>sequence 1..N"/]
+    POL_PLAY{{"Play items<br/>in sequence order"}}
+    E_PLAYED["CreativePlayed"]
+    C_RECORD["RecordPoP"]
+    AGG_OUTBOX["PoP Outbox<br/>Tauri Store"]
+    E_POP["PoPRecorded"]
+    POL_FLUSH{{"Flush every 1 min<br/>+ X-Idempotency-Key"}}
+    C_FLUSH["FlushToBackend"]
+    EXT_API2[("Backend<br/>API")]
+    E_ACKED["PoPAcknowledged"]
+
+    E_RECEIVED --> POL_DEDUP
+    POL_DEDUP -->|"new"| C_FETCH
+    POL_DEDUP -->|"duplicate"| SKIP["SKIP"]
+    C_FETCH --> EXT_API
+    EXT_API --> AGG_CACHE
+    AGG_CACHE --> E_CACHED
+    RM_SCHEDULE -.-> POL_PLAY
+    E_CACHED --> POL_PLAY
+    A_PLAYER -.-> POL_PLAY
+    POL_PLAY --> E_PLAYED
+    E_PLAYED --> C_RECORD
+    C_RECORD --> AGG_OUTBOX
+    AGG_OUTBOX --> E_POP
+    E_POP --> POL_FLUSH
+    POL_FLUSH --> C_FLUSH
+    C_FLUSH --> EXT_API2
+    EXT_API2 --> E_ACKED
+
+    %% Events - Orange
+    style E_RECEIVED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_CACHED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_PLAYED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_POP fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_ACKED fill:#FF8C00,stroke:#CC7000,color:#fff
+
+    %% Commands - Blue
+    style C_FETCH fill:#4169E1,stroke:#2850B0,color:#fff
+    style C_RECORD fill:#4169E1,stroke:#2850B0,color:#fff
+    style C_FLUSH fill:#4169E1,stroke:#2850B0,color:#fff
+
+    %% Aggregates - Yellow
+    style AGG_CACHE fill:#FFD700,stroke:#CCB000,color:#333
+    style AGG_OUTBOX fill:#FFD700,stroke:#CCB000,color:#333
+
+    %% Policies - Lilac
+    style POL_DEDUP fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style POL_PLAY fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style POL_FLUSH fill:#C8A2C8,stroke:#9B7A9B,color:#333
+
+    %% Actor - Light Yellow
+    style A_PLAYER fill:#FFFACD,stroke:#CCC88A,color:#333
+
+    %% Read Model - Green
+    style RM_SCHEDULE fill:#90EE90,stroke:#6BBE6B,color:#333
+
+    %% External - Pink
+    style EXT_API fill:#FFB6C1,stroke:#CC929A,color:#333
+    style EXT_API2 fill:#FFB6C1,stroke:#CC929A,color:#333
+
+    %% Skip
+    style SKIP fill:#eee,stroke:#999,color:#666

@@ -1,0 +1,135 @@
+flowchart LR
+    subgraph SCHED["Scheduling"]
+        direction LR
+        A_CRON(["Cron<br/>System"])
+        C_CALC["Calculate<br/>Schedule"]
+        AGG_PS["PlaySchedule"]
+        E_CALCULATED["Schedule<br/>Calculated"]
+        POL_BUILD{{"Build Screen<br/>Schedule"}}
+        AGG_ADE["Ad Decisioning<br/>Engine"]
+        E_BUILT["Screen Schedule<br/>Built"]
+        POL_PUSH{{"Push to<br/>Player"}}
+        EXT_PUSHER[("Pusher")]
+
+        A_CRON --> C_CALC
+        C_CALC --> AGG_PS
+        AGG_PS --> E_CALCULATED
+        E_CALCULATED --> POL_BUILD
+        POL_BUILD --> AGG_ADE
+        AGG_ADE --> E_BUILT
+        E_BUILT --> POL_PUSH
+        POL_PUSH --> EXT_PUSHER
+    end
+
+    subgraph PLAY["Playback"]
+        direction LR
+        E_RECEIVED["Schedule<br/>Received"]
+        C_FETCH["Fetch<br/>Schedule"]
+        AGG_CACHE["3-Tier<br/>Cache"]
+        E_CACHED["Cache<br/>Updated"]
+        POL_PLAY{{"Play<br/>Sequence"}}
+        E_PLAYED["Creative<br/>Played"]
+        C_RECORD["Record<br/>PoP"]
+        AGG_OUTBOX["PoP<br/>Outbox"]
+        E_POP["PoP<br/>Recorded"]
+        POL_FLUSH{{"Flush to<br/>Backend"}}
+
+        E_RECEIVED --> C_FETCH
+        C_FETCH --> AGG_CACHE
+        AGG_CACHE --> E_CACHED
+        E_CACHED --> POL_PLAY
+        POL_PLAY --> E_PLAYED
+        E_PLAYED --> C_RECORD
+        C_RECORD --> AGG_OUTBOX
+        AGG_OUTBOX --> E_POP
+        E_POP --> POL_FLUSH
+    end
+
+    subgraph INTPT["Interrupt"]
+        direction LR
+        A_ADMIN(["Admin<br/>Human"])
+        C_APPROVE["Approve<br/>Takeover"]
+        AGG_TK["Takeover<br/>Schedule"]
+        E_TK_APPROVED["Takeover<br/>Approved"]
+        POL_INTERRUPT{{"Interrupt<br/>Current Ad"}}
+        E_INTERRUPTED["Ad<br/>Interrupted"]
+        POL_MAKEGOOD{{"Schedule<br/>Make-Good"}}
+        AGG_MG["MakeGood<br/>Record"]
+        E_MG["Make-Good<br/>Scheduled"]
+
+        A_ADMIN --> C_APPROVE
+        C_APPROVE --> AGG_TK
+        AGG_TK --> E_TK_APPROVED
+        E_TK_APPROVED --> POL_INTERRUPT
+        POL_INTERRUPT --> E_INTERRUPTED
+        E_INTERRUPTED --> POL_MAKEGOOD
+        POL_MAKEGOOD --> AGG_MG
+        AGG_MG --> E_MG
+    end
+
+    subgraph DEVICE["Device Lifecycle"]
+        direction LR
+        E_PAIRED["Screen<br/>Paired"]
+        E_BOOTED["Device<br/>Booted"]
+        E_SYNCED["Device<br/>Resynced"]
+        E_UNPAIRED["Screen<br/>Unpaired"]
+
+        E_PAIRED --> E_BOOTED
+        E_BOOTED --> E_SYNCED
+        E_SYNCED --> E_UNPAIRED
+    end
+
+    EXT_PUSHER -.-> E_RECEIVED
+    POL_FLUSH -.-> EXT_API[("Backend<br/>API")]
+    POL_INTERRUPT -.-> E_RECEIVED
+
+    %% Domain Events - Orange
+    style E_CALCULATED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_BUILT fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_RECEIVED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_CACHED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_PLAYED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_POP fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_TK_APPROVED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_INTERRUPTED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_MG fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_PAIRED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_BOOTED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_SYNCED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_UNPAIRED fill:#FF8C00,stroke:#CC7000,color:#fff
+
+    %% Commands - Blue
+    style C_CALC fill:#4169E1,stroke:#2850B0,color:#fff
+    style C_FETCH fill:#4169E1,stroke:#2850B0,color:#fff
+    style C_RECORD fill:#4169E1,stroke:#2850B0,color:#fff
+    style C_APPROVE fill:#4169E1,stroke:#2850B0,color:#fff
+
+    %% Aggregates - Yellow
+    style AGG_PS fill:#FFD700,stroke:#CCB000,color:#333
+    style AGG_ADE fill:#FFD700,stroke:#CCB000,color:#333
+    style AGG_CACHE fill:#FFD700,stroke:#CCB000,color:#333
+    style AGG_OUTBOX fill:#FFD700,stroke:#CCB000,color:#333
+    style AGG_TK fill:#FFD700,stroke:#CCB000,color:#333
+    style AGG_MG fill:#FFD700,stroke:#CCB000,color:#333
+
+    %% Policies - Lilac
+    style POL_BUILD fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style POL_PUSH fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style POL_PLAY fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style POL_FLUSH fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style POL_INTERRUPT fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style POL_MAKEGOOD fill:#C8A2C8,stroke:#9B7A9B,color:#333
+
+    %% Actors - Light Yellow
+    style A_CRON fill:#FFFACD,stroke:#CCC88A,color:#333
+    style A_ADMIN fill:#FFFACD,stroke:#CCC88A,color:#333
+
+    %% External Systems - Pink
+    style EXT_PUSHER fill:#FFB6C1,stroke:#CC929A,color:#333
+    style EXT_API fill:#FFB6C1,stroke:#CC929A,color:#333
+
+    %% Swimlane styles
+    style SCHED fill:#f9f9f9,stroke:#999,stroke-width:2px
+    style PLAY fill:#f0f8ff,stroke:#999,stroke-width:2px
+    style INTPT fill:#fff5f5,stroke:#999,stroke-width:2px
+    style DEVICE fill:#f5fff5,stroke:#999,stroke-width:2px

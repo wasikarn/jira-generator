@@ -1,0 +1,73 @@
+flowchart TD
+    A_ADMIN(["Admin<br/>Human"])
+    C_APPROVE["ApproveTakeover"]
+    AGG_TK["TakeoverSchedule"]
+    E_APPROVED["TakeoverApproved"]
+    POL_NOTIFY{{"Push TK_START<br/>to Player"}}
+    EXT_PUSHER[("Pusher")]
+    E_TK_START["TakeoverStartReceived"]
+
+    subgraph PLAYER["Player Side"]
+        direction TB
+        POL_IC{{"InterruptController:<br/>Pause current ad"}}
+        E_INTERRUPTED["AdInterrupted"]
+        C_PLAY_TK["PlayTakeoverCreative"]
+        E_TK_PLAYED["TakeoverPlayed"]
+        POL_RESUME{{"Whenever TK ends<br/>Resume normal sequence"}}
+        E_RESUMED["PlaybackResumed"]
+    end
+
+    POL_MG{{"Whenever AdInterrupted<br/>Schedule Make-Good"}}
+    AGG_MG["MakeGoodRecord"]
+    E_MG["MakeGoodScheduled"]
+    POL_NEXT{{"Include in<br/>next schedule build"}}
+
+    A_ADMIN --> C_APPROVE
+    C_APPROVE --> AGG_TK
+    AGG_TK --> E_APPROVED
+    E_APPROVED --> POL_NOTIFY
+    POL_NOTIFY --> EXT_PUSHER
+    EXT_PUSHER --> E_TK_START
+    E_TK_START --> POL_IC
+    POL_IC --> E_INTERRUPTED
+    E_INTERRUPTED --> C_PLAY_TK
+    C_PLAY_TK --> E_TK_PLAYED
+    E_TK_PLAYED --> POL_RESUME
+    POL_RESUME --> E_RESUMED
+
+    E_INTERRUPTED --> POL_MG
+    POL_MG --> AGG_MG
+    AGG_MG --> E_MG
+    E_MG --> POL_NEXT
+
+    %% Events - Orange
+    style E_APPROVED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_TK_START fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_INTERRUPTED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_TK_PLAYED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_RESUMED fill:#FF8C00,stroke:#CC7000,color:#fff
+    style E_MG fill:#FF8C00,stroke:#CC7000,color:#fff
+
+    %% Commands - Blue
+    style C_APPROVE fill:#4169E1,stroke:#2850B0,color:#fff
+    style C_PLAY_TK fill:#4169E1,stroke:#2850B0,color:#fff
+
+    %% Aggregates - Yellow
+    style AGG_TK fill:#FFD700,stroke:#CCB000,color:#333
+    style AGG_MG fill:#FFD700,stroke:#CCB000,color:#333
+
+    %% Policies - Lilac
+    style POL_NOTIFY fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style POL_IC fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style POL_RESUME fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style POL_MG fill:#C8A2C8,stroke:#9B7A9B,color:#333
+    style POL_NEXT fill:#C8A2C8,stroke:#9B7A9B,color:#333
+
+    %% Actor - Light Yellow
+    style A_ADMIN fill:#FFFACD,stroke:#CCC88A,color:#333
+
+    %% External - Pink
+    style EXT_PUSHER fill:#FFB6C1,stroke:#CC929A,color:#333
+
+    %% Player subgraph
+    style PLAYER fill:#f0f8ff,stroke:#4169E1,stroke-width:2px

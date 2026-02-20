@@ -33,6 +33,9 @@ SUB_PAGE_TITLES = {
     "6_interrupt_makegood": "6. Interrupt Controller & Make-Good",
     "7_events": "7. Event-Driven Architecture",
     "8_edge_migration": "8. Edge Cases, Migration & Appendix",
+    "9_es_big_picture": "9. Event Storming: Big Picture",
+    "10_es_process": "10. Event Storming: Process Modelling",
+    "11_es_design": "11. Event Storming: Software Design",
 }
 
 
@@ -1895,6 +1898,360 @@ def build_page_8(page_id: str) -> str:
     return "\n".join(sections)
 
 
+# ─── Event Storming Legend (shared across pages 9-11) ───
+
+
+def _es_legend() -> str:
+    """Event Storming color legend table (sticky note notation)."""
+    return (
+        '<table>'
+        '<tr><th>Element</th><th>ES Color</th><th>Meaning</th></tr>'
+        '<tr><td style="background:#FF8C00;color:#fff;font-weight:bold;text-align:center">Domain Event</td>'
+        '<td>Orange</td><td>Something that happened (past tense) &mdash; state change in the domain</td></tr>'
+        '<tr><td style="background:#4169E1;color:#fff;font-weight:bold;text-align:center">Command</td>'
+        '<td>Blue</td><td>Action that triggers an event (imperative verb)</td></tr>'
+        '<tr><td style="background:#FFD700;color:#333;font-weight:bold;text-align:center">Aggregate</td>'
+        '<td>Yellow</td><td>Entity/service that processes commands and produces events</td></tr>'
+        '<tr><td style="background:#C8A2C8;color:#333;font-weight:bold;text-align:center">Policy</td>'
+        '<td>Lilac</td><td>Business rule: &ldquo;Whenever X happens, then do Y&rdquo;</td></tr>'
+        '<tr><td style="background:#FFFACD;color:#333;font-weight:bold;text-align:center">Actor</td>'
+        '<td>Light Yellow</td><td>Person or system role that initiates a command</td></tr>'
+        '<tr><td style="background:#FFB6C1;color:#333;font-weight:bold;text-align:center">External System</td>'
+        '<td>Pink</td><td>System outside our control (Pusher, CDN, etc.)</td></tr>'
+        '<tr><td style="background:#90EE90;color:#333;font-weight:bold;text-align:center">Read Model</td>'
+        '<td>Green</td><td>Information needed to make a decision before issuing a command</td></tr>'
+        '<tr><td style="background:#FF6B6B;color:#fff;font-weight:bold;text-align:center">Hot Spot</td>'
+        '<td>Red</td><td>Risk, question, or unresolved problem</td></tr>'
+        '</table>'
+    )
+
+
+def build_page_9(page_id: str) -> str:
+    """Page 9: Event Storming — Big Picture (1 mermaid, 0 code blocks)."""
+    global _code_block_count
+    _code_block_count = 0
+    sections = []
+
+    sections.append(toc())
+    sections.append("<h2>Event Storming: Big Picture</h2>")
+    sections.append(info_panel(
+        "<p><strong>Event Storming Level 1 &mdash; Big Picture</strong><br/>"
+        "ภาพรวม domain events ทั้งระบบ Backend-Driven Player &mdash; "
+        "จัดตาม swimlane (Scheduling, Playback, Interrupt, Device Lifecycle)<br/>"
+        "อ้างอิง methodology ของ Alberto Brandolini &mdash; "
+        "ใช้ color-coded nodes แทน sticky notes</p>"
+    ))
+
+    # Legend
+    sections.append("<h3>Notation Legend</h3>")
+    sections.append(_es_legend())
+
+    # Big Picture Timeline
+    sections.append("<h3>Domain Events Timeline</h3>")
+    sections.append(note_panel(
+        "<p>อ่านจาก <strong>ซ้ายไปขวา</strong> ตาม timeline &mdash; "
+        "แต่ละ swimlane แสดง flow ของ domain events ที่เกี่ยวข้องกัน<br/>"
+        "<strong>เส้นประ</strong> = cross-swimlane event flow (Pusher/API)</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("09-1-big-picture.mmd"),
+        page_id=page_id,
+    ))
+
+    # Actors
+    sections.append("<h3>Actors</h3>")
+    sections.append(
+        '<table>'
+        '<tr><th>Actor</th><th>Type</th><th>Description</th></tr>'
+        '<tr><td><strong>Cron</strong></td><td>System</td>'
+        '<td>BullMQ scheduled job &mdash; triggers schedule calculation every 10 min</td></tr>'
+        '<tr><td><strong>Admin</strong></td><td>Human</td>'
+        '<td>Platform admin &mdash; approves takeover, triggers emergency, manages screens</td></tr>'
+        '<tr><td><strong>Player</strong></td><td>Device</td>'
+        '<td>Tauri desktop app on billboard &mdash; receives schedule, plays creatives, reports PoP</td></tr>'
+        '</table>'
+    )
+
+    # External Systems
+    sections.append("<h3>External Systems</h3>")
+    sections.append(
+        '<table>'
+        '<tr><th>System</th><th>Role</th><th>Protocol</th></tr>'
+        '<tr><td><strong>Pusher</strong></td><td>Real-time event delivery</td><td>WebSocket</td></tr>'
+        '<tr><td><strong>BullMQ</strong></td><td>Job queue / cron scheduler</td><td>Redis-backed queue</td></tr>'
+        '<tr><td><strong>Redis</strong></td><td>Caching + idempotency dedup</td><td>In-memory store</td></tr>'
+        '<tr><td><strong>CDN</strong></td><td>Creative asset delivery</td><td>HTTPS</td></tr>'
+        '<tr><td><strong>Tauri Store</strong></td><td>Player local persistence</td><td>File-based (device)</td></tr>'
+        '</table>'
+    )
+
+    # Hot Spots
+    sections.append("<h3>Hot Spots</h3>")
+    sections.append(warning_panel(
+        "<p><strong>Known risks and unresolved areas:</strong></p>"
+        "<ul>"
+        "<li><strong>Version gap threshold</strong> &mdash; "
+        "how many versions gap before sending full playlist instead of delta? (currently: 3)</li>"
+        "<li><strong>Offline duration limit</strong> &mdash; "
+        "how long can player run on Tier 3 fallback before content becomes stale? (days? weeks?)</li>"
+        "<li><strong>Takeover overlap</strong> &mdash; "
+        "what happens if 2 takeovers overlap on the same screen? (currently: block at booking)</li>"
+        "<li><strong>Make-good fairness</strong> &mdash; "
+        "how to prioritize make-good when multiple ads were interrupted in one TK block?</li>"
+        "<li><strong>Pusher reliability</strong> &mdash; "
+        "Pusher is best-effort delivery &mdash; version protocol handles gaps, but latency varies</li>"
+        "</ul>"
+    ))
+
+    return "\n".join(sections)
+
+
+def build_page_10(page_id: str) -> str:
+    """Page 10: Event Storming — Process Modelling (5 mermaid, 0 code blocks)."""
+    global _code_block_count
+    _code_block_count = 0
+    sections = []
+
+    sections.append(toc())
+    sections.append("<h2>Event Storming: Process Modelling</h2>")
+    sections.append(info_panel(
+        "<p><strong>Event Storming Level 2 &mdash; Process Modelling</strong><br/>"
+        "แต่ละ process แสดง flow ตาม grammar: "
+        "<strong>Actor &rarr; Command &rarr; Aggregate &rarr; Event &rarr; Policy &rarr; ...</strong><br/>"
+        "Read Models (green) แสดงข้อมูลที่ต้องใช้ก่อนตัดสินใจ</p>"
+    ))
+
+    # Legend
+    sections.append("<h3>Notation Legend</h3>")
+    sections.append(_es_legend())
+
+    # Process A: Schedule Calculation
+    sections.append("<hr/>")
+    sections.append("<h3>Process A: Schedule Calculation</h3>")
+    sections.append(note_panel(
+        "<p><strong>Trigger:</strong> Cron fires every 10 minutes<br/>"
+        "<strong>Outcome:</strong> Ordered screen schedule pushed to player via Pusher<br/>"
+        "<strong>Grammar:</strong> Cron &rarr; CalculateSchedule &rarr; PlaySchedule &rarr; "
+        "ScheduleCalculated &rarr; <em>BuildScreenSchedule</em> &rarr; AdDecisioningService &rarr; "
+        "ScreenScheduleBuilt &rarr; <em>PushToPlayer</em> &rarr; Pusher</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("10-1-process-schedule-calc.mmd"),
+        page_id=page_id,
+    ))
+
+    # Process B: Normal Playback
+    sections.append("<hr/>")
+    sections.append("<h3>Process B: Normal Playback</h3>")
+    sections.append(note_panel(
+        "<p><strong>Trigger:</strong> Player receives schedule-updated event from Pusher<br/>"
+        "<strong>Outcome:</strong> Creative played on screen + PoP (Proof of Play) reported to backend<br/>"
+        "<strong>Key Policy:</strong> Inbox deduplicates by event_id + version check before fetching</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("10-2-process-normal-play.mmd"),
+        page_id=page_id,
+    ))
+
+    # Process C: Takeover Interrupt
+    sections.append("<hr/>")
+    sections.append("<h3>Process C: Takeover Interrupt (P1-TK)</h3>")
+    sections.append(note_panel(
+        "<p><strong>Trigger:</strong> Admin approves daypart takeover (e.g. brand buys 08:00-09:00)<br/>"
+        "<strong>Outcome:</strong> Current ad interrupted, takeover creative plays for entire block, "
+        "interrupted ad gets make-good compensation<br/>"
+        "<strong>Cross-boundary:</strong> Backend (approve + schedule) &rarr; Pusher &rarr; Player (interrupt + play)</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("10-3-process-takeover.mmd"),
+        page_id=page_id,
+    ))
+
+    # Process D: Offline & Reconnect
+    sections.append("<hr/>")
+    sections.append("<h3>Process D: Offline and Reconnect</h3>")
+    sections.append(note_panel(
+        "<p><strong>Trigger:</strong> Network drops (Pusher disconnects)<br/>"
+        "<strong>Outcome:</strong> Graceful degradation through 3-tier cache, then delta sync on reconnect<br/>"
+        "<strong>Key Policy:</strong> State Machine transitions: ONLINE &rarr; OFFLINE &rarr; FALLBACK &rarr; ONLINE</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("10-4-process-offline.mmd"),
+        page_id=page_id,
+    ))
+
+    # Process E: Emergency (P0)
+    sections.append("<hr/>")
+    sections.append("<h3>Process E: Emergency Override (P0)</h3>")
+    sections.append(note_panel(
+        "<p><strong>Trigger:</strong> Admin triggers P0 emergency (government alert, crisis, etc.)<br/>"
+        "<strong>Outcome:</strong> Immediate interruption of any content, emergency creative plays, make-good scheduled<br/>"
+        "<strong>Priority:</strong> P0 overrides everything &mdash; including active takeovers</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("10-5-process-emergency.mmd"),
+        page_id=page_id,
+    ))
+
+    return "\n".join(sections)
+
+
+def build_page_11(page_id: str) -> str:
+    """Page 11: Event Storming — Software Design (2 mermaid, 0 code blocks)."""
+    global _code_block_count
+    _code_block_count = 0
+    sections = []
+
+    sections.append(toc())
+    sections.append("<h2>Event Storming: Software Design</h2>")
+    sections.append(info_panel(
+        "<p><strong>Event Storming Level 3 &mdash; Software Design</strong><br/>"
+        "Bounded Contexts, Aggregates, and Context Mapping &mdash; "
+        "จาก Process Modelling (Level 2) มาจัดกลุ่มเป็น architectural boundaries</p>"
+    ))
+
+    # Legend
+    sections.append("<h3>Notation Legend</h3>")
+    sections.append(_es_legend())
+
+    # Bounded Context Map
+    sections.append("<hr/>")
+    sections.append("<h3>Bounded Context Map</h3>")
+    sections.append(note_panel(
+        "<p>4 Bounded Contexts &mdash; แต่ละ context มี aggregates ที่ทำงานร่วมกัน<br/>"
+        "ลูกศรระหว่าง context = event ที่ส่งข้ามขอบเขต (via Pusher หรือ API call)</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("11-1-context-map.mmd"),
+        page_id=page_id,
+    ))
+
+    # Aggregates per Context
+    sections.append("<h3>Aggregates per Context</h3>")
+
+    # Scheduling Context
+    sections.append("<h4>Scheduling Context (Backend)</h4>")
+    sections.append(
+        '<table>'
+        '<tr><th>Aggregate</th><th>Responsibility</th><th>Key Invariants</th><th>Events Owned</th></tr>'
+        '<tr><td><strong>PlaySchedule</strong></td>'
+        '<td>Raw schedule calculation output (per screen, per cron cycle)</td>'
+        '<td>One active schedule per screen per round</td>'
+        '<td>ScheduleCalculated</td></tr>'
+        '<tr><td><strong>AdDecisioningService</strong></td>'
+        '<td>Sort by priority, interleave house content, assign sequence_no, version++</td>'
+        '<td>P1-G pre-positioned, P2/P3 by SOV ratio, P4 fills gaps</td>'
+        '<td>ScreenScheduleBuilt</td></tr>'
+        '<tr><td><strong>ScreenSchedule</strong></td>'
+        '<td>Ordered playlist with versioning (monotonic per device)</td>'
+        '<td>version always increases, previous schedule marked &ldquo;replaced&rdquo;</td>'
+        '<td>(persisted state)</td></tr>'
+        '</table>'
+    )
+
+    # Interrupt Context
+    sections.append("<h4>Interrupt Context (Backend + Player)</h4>")
+    sections.append(
+        '<table>'
+        '<tr><th>Aggregate</th><th>Responsibility</th><th>Key Invariants</th><th>Events Owned</th></tr>'
+        '<tr><td><strong>TakeoverSchedule</strong></td>'
+        '<td>Daypart takeover booking (P1-TK: brand buys time block)</td>'
+        '<td>No overlapping TK on same screen, status lifecycle: booked &rarr; active &rarr; completed</td>'
+        '<td>TakeoverApproved, TakeoverStateChanged</td></tr>'
+        '<tr><td><strong>ExactTimeSpot</strong></td>'
+        '<td>P1-ET: play at exact time with tolerance window</td>'
+        '<td>tolerance default 5s, one spot per play_at per screen</td>'
+        '<td>(triggers InterruptController)</td></tr>'
+        '<tr><td><strong>InterruptController</strong></td>'
+        '<td>Pause current ad, play interrupt creative, resume after</td>'
+        '<td>Priority order: P0 > P1-TK > P1-ET, nested interrupts queued</td>'
+        '<td>AdInterrupted</td></tr>'
+        '<tr><td><strong>MakeGoodRecord</strong></td>'
+        '<td>Compensation for interrupted ads &mdash; re-insert in next cycle</td>'
+        '<td>One make-good per interruption, skip if campaign expired</td>'
+        '<td>MakeGoodScheduled</td></tr>'
+        '</table>'
+    )
+
+    # Playback Context
+    sections.append("<h4>Playback Context (Player)</h4>")
+    sections.append(
+        '<table>'
+        '<tr><th>Aggregate</th><th>Responsibility</th><th>Key Invariants</th><th>Events Owned</th></tr>'
+        '<tr><td><strong>InboxHandler</strong></td>'
+        '<td>Receive Pusher events, dedup by event_id, version check</td>'
+        '<td>Only process if version > local_version and event_id is new</td>'
+        '<td>ScheduleReceived</td></tr>'
+        '<tr><td><strong>3-Tier Cache</strong></td>'
+        '<td>Local storage: Tier 1 (live) &rarr; Tier 2 (buffer) &rarr; Tier 3 (fallback/house)</td>'
+        '<td>Tier 1 always latest version, Tier 3 always available (house loop)</td>'
+        '<td>CacheUpdated</td></tr>'
+        '<tr><td><strong>StateMachine</strong></td>'
+        '<td>BOOT &rarr; CACHED &rarr; SYNC &rarr; ONLINE &rarr; OFFLINE &rarr; FALLBACK</td>'
+        '<td>One state at a time, transitions logged, recovery path defined</td>'
+        '<td>DeviceResynced</td></tr>'
+        '<tr><td><strong>Renderer</strong></td>'
+        '<td>Dumb Renderer: play sequence[i++], no scheduling logic</td>'
+        '<td>Plays whatever cache provides, never skips, never reorders</td>'
+        '<td>CreativePlayed</td></tr>'
+        '</table>'
+    )
+
+    # Reporting Context
+    sections.append("<h4>Reporting Context (Player &rarr; Backend)</h4>")
+    sections.append(
+        '<table>'
+        '<tr><th>Aggregate</th><th>Responsibility</th><th>Key Invariants</th><th>Events Owned</th></tr>'
+        '<tr><td><strong>PoP Outbox</strong></td>'
+        '<td>Store play events locally, flush to backend every 1 min</td>'
+        '<td>pending &rarr; sent &rarr; acked lifecycle, retry &lt; 10 times</td>'
+        '<td>PoPRecorded</td></tr>'
+        '<tr><td><strong>PlayHistory</strong></td>'
+        '<td>Backend persistence of PoP records</td>'
+        '<td>Deduplicated by X-Idempotency-Key (UUID)</td>'
+        '<td>PoPReceived</td></tr>'
+        '<tr><td><strong>Idempotency</strong></td>'
+        '<td>Redis-based dedup for PoP endpoint</td>'
+        '<td>TTL-based key expiry (24h), prevents duplicate entries</td>'
+        '<td>(guard, no events)</td></tr>'
+        '</table>'
+    )
+
+    # Context Relationships
+    sections.append("<hr/>")
+    sections.append("<h3>Context Relationships</h3>")
+    sections.append(
+        '<table>'
+        '<tr><th>From</th><th>To</th><th>Event</th><th>Mechanism</th><th>Relationship Type</th></tr>'
+        '<tr><td>Scheduling</td><td>Playback</td>'
+        '<td>ScreenScheduleBuilt</td><td>Pusher WebSocket</td><td>Published Language</td></tr>'
+        '<tr><td>Interrupt</td><td>Playback</td>'
+        '<td>TakeoverStart / TakeoverEnd</td><td>Pusher WebSocket</td><td>Published Language</td></tr>'
+        '<tr><td>Playback</td><td>Reporting</td>'
+        '<td>PoPRecorded</td><td>HTTP (Outbox flush)</td><td>Conformist</td></tr>'
+        '<tr><td>Interrupt</td><td>Scheduling</td>'
+        '<td>MakeGoodScheduled</td><td>Internal (same backend)</td><td>Shared Kernel</td></tr>'
+        '<tr><td>Reporting</td><td>Scheduling</td>'
+        '<td>(future: analytics feedback)</td><td>TBD</td><td>TBD</td></tr>'
+        '</table>'
+    )
+
+    # ACL Diagram
+    sections.append("<hr/>")
+    sections.append("<h3>Anti-Corruption Layer: Legacy to New</h3>")
+    sections.append(note_panel(
+        "<p>ACL (Anti-Corruption Layer) &mdash; translation boundary ระหว่างระบบเดิมกับ architecture ใหม่<br/>"
+        "Legacy code จะยังทำงานเหมือนเดิม แต่ output ถูก translate เป็น new domain model ผ่าน ACL<br/>"
+        "เมื่อ migration เสร็จ ACL จะถูกถอดออก</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("11-2-acl-translation.mmd"),
+        page_id=page_id,
+    ))
+
+    return "\n".join(sections)
+
+
 SECTION_BUILDERS = {
     "parent": ("parent", build_parent_content),
     "1": ("1_problem_current", build_page_1),
@@ -1905,6 +2262,9 @@ SECTION_BUILDERS = {
     "6": ("6_interrupt_makegood", build_page_6),
     "7": ("7_events", build_page_7),
     "8": ("8_edge_migration", build_page_8),
+    "9": ("9_es_big_picture", build_page_9),
+    "10": ("10_es_process", build_page_10),
+    "11": ("11_es_design", build_page_11),
 }
 
 
@@ -2004,7 +2364,7 @@ def main():
         if idx + 1 < len(sys.argv):
             section = sys.argv[idx + 1]
         else:
-            print("Error: --section requires argument (parent, 1-8)")
+            print("Error: --section requires argument (parent, 1-11)")
             sys.exit(1)
 
     # Parse --update PAGE_ID (legacy)
@@ -2054,7 +2414,7 @@ def main():
         _update_page(api, parent_id, content)
 
         # Create sub-pages
-        for sec in ["1", "2", "3", "4", "5", "6", "7", "8"]:
+        for sec in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"]:
             key, builder = SECTION_BUILDERS[sec]
             title = SUB_PAGE_TITLES[key]
             existing_id = page_ids["pages"].get(key)
@@ -2095,8 +2455,19 @@ def main():
         else:
             pid = page_ids["pages"].get(key)
             if not pid:
-                print(f"Error: no page ID for section {section}. Run --create-all first.")
-                sys.exit(1)
+                # Create new sub-page (page ID is null)
+                title = SUB_PAGE_TITLES[key]
+                print(f"=== Creating section {section}: {title} ===")
+                result = api.create_page(
+                    space_key=SPACE_KEY,
+                    title=title,
+                    content="<p>Loading...</p>",
+                    parent_id=parent_id,
+                )
+                pid = result.get("id", "unknown")
+                page_ids["pages"][key] = pid
+                save_page_ids(page_ids)
+                print(f"  Created: {pid}")
         content = builder(page_id=pid)
         print(f"=== Updating section {section} ===")
         _update_page(api, pid, content)
@@ -2111,8 +2482,8 @@ def main():
 
     print("Usage:")
     print("  --dry-run [--section N]     Preview HTML output")
-    print("  --create-all                Create/update parent + 8 sub-pages")
-    print("  --section N                 Update single section (parent, 1-8)")
+    print("  --create-all                Create/update parent + all sub-pages")
+    print("  --section N                 Update single section (parent, 1-11)")
     print("  --update PAGE_ID            Legacy: update specific page")
 
 
