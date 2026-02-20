@@ -147,7 +147,7 @@
         ]
       },
       {
-        "matcher": "mcp__mcp-atlassian__jira_create_issue|mcp__mcp-atlassian__jira_update_issue|mcp__mcp-atlassian__jira_transition_issue",
+        "matcher": "mcp__mcp-atlassian__jira_create_issue|mcp__mcp-atlassian__jira_update_issue|mcp__mcp-atlassian__jira_transition_issue|mcp__mcp-atlassian__jira_create_issue_link|mcp__mcp-atlassian__jira_remove_issue_link|mcp__mcp-atlassian__jira_create_remote_issue_link|mcp__mcp-atlassian__jira_add_comment|mcp__mcp-atlassian__jira_add_worklog|mcp__mcp-atlassian__jira_delete_issue|mcp__mcp-atlassian__jira_link_to_epic",
         "hooks": [
           {
             "type": "command",
@@ -262,6 +262,11 @@
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/auto-verify-suggest.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr6-acli-cache-invalidate.py",
             "timeout": 5
           }
         ]
