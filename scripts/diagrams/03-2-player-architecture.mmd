@@ -1,12 +1,12 @@
 flowchart LR
-    subgraph T1["Track 1: Schedule Ads — paid"]
+    subgraph T1["Track 1: Campaign Creatives"]
         direction TB
-        S1["Round-robin +<br/>exclusive interrupts"]
+        S1["Loop rotation +<br/>guaranteed interrupts"]
         S2["SchedulePlayComponent"]
         S3["TimeSlotComponent"]
         S1 --> S2 --> S3
     end
-    subgraph T2["Track 2: Playlist Ads — owner"]
+    subgraph T2["Track 2: House Content"]
         direction TB
         P1["Sequential playback<br/>(when no schedule ad)"]
         P2["PlaylistComponent"]

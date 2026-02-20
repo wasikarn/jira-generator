@@ -273,11 +273,11 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append(success_panel(
         "<p><strong>Problem:</strong> Player มี scheduling logic <strong>3,500+ บรรทัด</strong> "
         "ที่จัดลำดับ ad เอง + ไม่มี offline resilience (fresh boot + no internet = <strong>จอดำ</strong>)</p>"
-        "<p><strong>Solution:</strong> Backend ส่ง <strong>ordered playlist sequence</strong> แทนที่จะส่ง bag of ads + rules. "
-        "Player แค่เล่น <code>sequence[i++]</code></p>"
+        "<p><strong>Solution:</strong> Backend ส่ง <strong>ordered screen schedule (loop sequence)</strong> แทนที่จะส่ง bag of creatives + rules. "
+        "Player แค่เล่น <code>sequence[i++]</code> (Dumb Renderer)</p>"
         "<p><strong>Impact:</strong> Player complexity <strong>&darr;80%</strong>, "
         "offline support ผ่าน 3-tier cache (Live &rarr; Buffer &rarr; Fallback), "
-        "idempotent sync ป้องกัน duplicate play history</p>"
+        "idempotent sync ป้องกัน duplicate Proof of Play (PoP)</p>"
     ))
     sections.append(mermaid_diagram(
         load_diagram("01-proposed-architecture.mmd"),
@@ -292,15 +292,15 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append(error_panel(
         "<p><strong>Smart Player (Scheduling Complexity)</strong></p>"
         "<ul>"
-        "<li>Player round-robin ads locally (SchedulePlay, TimeSlot, Playlist components)</li>"
-        "<li>Exclusive interrupt logic: <code>calculatePlaySchedules</code> polls every <strong>1 second</strong> via <code>useQuery</code>, "
+        "<li>Player loop-rotates creatives locally (SchedulePlay, TimeSlot, Playlist components)</li>"
+        "<li>Guaranteed spot interrupt logic: <code>calculatePlaySchedules</code> polls every <strong>1 second</strong> via <code>useQuery</code>, "
         "checks <code>dayjs().isBetween(start, end)</code> &mdash; ±2s timing precision</li>"
-        "<li><code>pausePlayData</code> is a <strong>single variable</strong> &mdash; nested exclusive interrupts lose the original paused ad "
+        "<li><code>pausePlayData</code> is a <strong>single variable</strong> &mdash; nested guaranteed interrupts lose the original paused creative "
         "(SMIL standard uses a pause <em>queue/stack</em> for this)</li>"
-        "<li>Exclusive media missing &rarr; <strong>silent failure</strong>: interrupted ad stays paused indefinitely, no recovery</li>"
-        "<li>Multiple overlapping exclusives &rarr; <code>find()</code> picks first match, no priority logic between exclusives</li>"
-        "<li>2 separate paths create exclusive PlaySchedules (approval push + round injection) &mdash; duplicated logic</li>"
-        "<li>Retry queue (max 3 attempts), frequency count tracking, operating hours gate</li>"
+        "<li>Guaranteed spot media missing &rarr; <strong>silent failure</strong>: interrupted creative stays paused indefinitely, no recovery</li>"
+        "<li>Multiple overlapping guaranteed spots &rarr; <code>find()</code> picks first match, no priority logic between them</li>"
+        "<li>2 separate paths create guaranteed PlaySchedules (approval push + loop injection) &mdash; duplicated logic</li>"
+        "<li>Retry queue (max 3 attempts), spot rotation tracking, daypart gate</li>"
         "<li>Player complexity: <strong>3,500+ lines</strong> scheduling logic in <code>src/components/screen/device/schedule/</code></li>"
         "</ul>"
         "<p><strong>Offline Handling (Current)</strong></p>"
@@ -308,8 +308,23 @@ def build_content(page_id: str = "165019751") -> str:
         "<li>Detect offline: <code>fetch</code> error where <code>err?.message === 'Load failed'</code></li>"
         "<li>Play from <code>localStorage</code> cache (schedules + playlists)</li>"
         "<li>No graceful fallback: fresh boot + no internet = <strong>black screen</strong></li>"
-        "<li>No checksum validation on downloaded media</li>"
-        "<li>Exclusive ad approved while offline &rarr; Pusher push lost, no buffer mechanism</li>"
+        "<li>No checksum validation on downloaded creative assets</li>"
+        "<li>Guaranteed spot approved while offline &rarr; Pusher push lost, no buffer mechanism</li>"
+        "</ul>"
+    ))
+
+    # BEP-2998: Impression Delivery Accuracy
+    sections.append(warning_panel(
+        "<p><strong>Impression Delivery Accuracy (Under-Delivery Problem)</strong> "
+        '&mdash; <a href="https://{{JIRA_SITE}}/browse/BEP-2998">BEP-2998</a> '
+        '(Epic: <a href="https://{{JIRA_SITE}}/browse/BEP-2134">BEP-2134</a>)</p>'
+        "<ul>"
+        "<li>กำหนด impression target 15 plays/hr &rarr; ระบบเล่น ~13-15 (<strong>under-delivery up to 13%</strong>)</li>"
+        "<li>กำหนด 100 plays/day &rarr; ระบบเล่น ~90-100 (<strong>under-delivery up to 10%</strong>)</li>"
+        "<li>สาเหตุ: <code>calculateAdDisplayCount</code> rounding + proportional allocation (<code>Math.ceil(adsAmount * ratio)</code>) ไม่สม่ำเสมอ</li>"
+        "<li>Player-side: <code>decrementSchedulePlayCount</code> ใช้ mutex lock + PlayKey idempotency แต่ยัง race condition ได้</li>"
+        "<li>DOOH industry เรียกปัญหานี้ว่า <strong>impression shortfall</strong> &mdash; "
+        "แก้ด้วย <strong>campaign pacing algorithm</strong> + <strong>SOV (Share of Voice) allocation</strong></li>"
         "</ul>"
     ))
 
@@ -328,18 +343,18 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append(
         '<table>'
         '<tr><th>Component</th><th>File</th><th>Purpose</th></tr>'
-        '<tr><td>PlaySchedule model</td><td><code>app/Models/PlaySchedule.ts</code></td><td>Status: WAITING&rarr;PLAYING&rarr;PLAYED, Types: exclusive/continuous/frequency</td></tr>'
-        '<tr><td>Billboard model</td><td><code>app/Models/Billboard.ts</code></td><td>ownerTime/platformTime budget (seconds/hour)</td></tr>'
-        '<tr><td>Cron orchestrator</td><td><code>app/Jobs/PlayScheduleCalculate.ts</code></td><td>Enqueue per-screen jobs every N minutes</td></tr>'
-        '<tr><td>Per-screen calc</td><td><code>app/Jobs/PlayScheduleCalculatePerScreen.ts</code></td><td>Generate PlaySchedule rows for 1 billboard</td></tr>'
+        '<tr><td>PlaySchedule model</td><td><code>app/Models/PlaySchedule.ts</code></td><td>Status: WAITING&rarr;PLAYING&rarr;PLAYED, Types: guaranteed/ROS/spot-rotation</td></tr>'
+        '<tr><td>Screen model</td><td><code>app/Models/Billboard.ts</code></td><td>ownerTime/platformTime = SOV (Share of Voice) budget (seconds/hour)</td></tr>'
+        '<tr><td>Scheduling Engine</td><td><code>app/Jobs/PlayScheduleCalculate.ts</code></td><td>Enqueue per-screen jobs every N minutes</td></tr>'
+        '<tr><td>Per-screen calc</td><td><code>app/Jobs/PlayScheduleCalculatePerScreen.ts</code></td><td>Generate PlaySchedule rows for 1 screen</td></tr>'
         '<tr><td>Player-pull mode</td><td><code>app/Jobs/PlayScheduleRoundCreate.ts</code></td><td>POST /v2/play-schedules/request {amount: N}</td></tr>'
-        '<tr><td>Owner frequency</td><td><code>app/Services/PlayScheduleFrequencyService.ts</code></td><td>Owner ads rotation + random jitter</td></tr>'
-        '<tr><td>Customer period</td><td><code>app/Services/PlaySchedulePeriodService.ts</code></td><td>Paid ads: PER_HOUR/PER_DAY/custom slots</td></tr>'
-        '<tr><td>Exclusive service</td><td><code>app/Services/v2/PlayScheduleExclusiveService.ts</code></td><td>Round-based: inject exclusive ads overlapping current round window</td></tr>'
-        '<tr><td>Exclusive job</td><td><code>app/Jobs/PlayScheduleCreateByExclusive.ts</code></td><td>On-demand: BullMQ job triggered on owner approval &rarr; create PlaySchedule + Pusher push</td></tr>'
-        '<tr><td>Exclusive model</td><td><code>app/Models/AdvertisementDisplayExclusive.ts</code></td><td>Time-slot reservation per billboard (startDateTime/endDateTime/timePerSlot)</td></tr>'
-        '<tr><td>Exclusive time window</td><td><code>app/Models/AdGroupDisplayTimeExclusive.ts</code></td><td>AdGroup-level exclusive window (start/end/duration) for round injection</td></tr>'
-        '<tr><td>Reservation check</td><td><code>app/Services/ServiceHelpers/checkIsBillboardsReserved.ts</code></td><td>Prevent double-booking: validate time overlap before creating exclusive slots</td></tr>'
+        '<tr><td>House content rotation</td><td><code>app/Services/PlayScheduleFrequencyService.ts</code></td><td>House (owner) creative rotation + random jitter</td></tr>'
+        '<tr><td>Campaign period</td><td><code>app/Services/PlaySchedulePeriodService.ts</code></td><td>Direct-sold campaigns: PER_HOUR/PER_DAY/custom avails</td></tr>'
+        '<tr><td>Guaranteed service</td><td><code>app/Services/v2/PlayScheduleExclusiveService.ts</code></td><td>Loop-based: inject guaranteed spots overlapping current loop window</td></tr>'
+        '<tr><td>Guaranteed job</td><td><code>app/Jobs/PlayScheduleCreateByExclusive.ts</code></td><td>On-demand: BullMQ job triggered on owner approval &rarr; create PlaySchedule + Pusher push</td></tr>'
+        '<tr><td>Guaranteed model</td><td><code>app/Models/AdvertisementDisplayExclusive.ts</code></td><td>Avail reservation per screen (startDateTime/endDateTime/timePerSlot)</td></tr>'
+        '<tr><td>Guaranteed time window</td><td><code>app/Models/AdGroupDisplayTimeExclusive.ts</code></td><td>AdGroup-level guaranteed window (start/end/duration) for loop injection</td></tr>'
+        '<tr><td>Reservation check</td><td><code>app/Services/ServiceHelpers/checkIsBillboardsReserved.ts</code></td><td>Prevent double-booking: validate time overlap before creating guaranteed avails</td></tr>'
         '<tr><td>Pusher service</td><td><code>app/Services/PusherPlayScheduleService.ts</code></td><td>Channel: play-schedule-{deviceCode}</td></tr>'
         '</table>'
     )
@@ -353,17 +368,17 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append(
         '<table>'
         '<tr><th>Feature</th><th>Implementation</th><th>File</th></tr>'
-        '<tr><td>Schedule types</td><td><code>exclusive</code> (time-block interrupt), <code>continuous</code> (date range), <code>frequency</code> (count)</td><td><code>src/constants/schedule.constant.ts</code></td></tr>'
-        '<tr><td>Round-robin</td><td><code>(currentIndex + 1) % activeSchedules.length</code></td><td><code>screen.device.schedule.play.timeslot.component.tsx</code></td></tr>'
-        '<tr><td>Exclusive preempt</td><td><code>calculatePlaySchedules</code> (1s <code>useQuery</code> interval): '
-        '<code>dayjs().isBetween(start, end)</code> &rarr; <code>setPausePlayData(current)</code> &rarr; play exclusive &rarr; '
+        '<tr><td>Schedule types</td><td><code>exclusive</code> (guaranteed spot), <code>continuous</code> (direct-sold ROS), <code>frequency</code> (spot rotation)</td><td><code>src/constants/schedule.constant.ts</code></td></tr>'
+        '<tr><td>Loop rotation</td><td><code>(currentIndex + 1) % activeSchedules.length</code></td><td><code>screen.device.schedule.play.timeslot.component.tsx</code></td></tr>'
+        '<tr><td>Guaranteed preempt</td><td><code>calculatePlaySchedules</code> (1s <code>useQuery</code> interval): '
+        '<code>dayjs().isBetween(start, end)</code> &rarr; <code>setPausePlayData(current)</code> &rarr; play guaranteed spot &rarr; '
         'on finish: restore <code>pausePlayData</code>. Single variable = no nested interrupt support</td>'
         '<td><code>screen.device.schedule.play.component.tsx</code></td></tr>'
         '<tr><td>Retry queue</td><td>Max 3 attempts, stored in localStorage</td><td><code>screen.device.schedule.play.timeslot.component.tsx</code></td></tr>'
         '<tr><td>Media download</td><td>Tauri <code>plugin-upload</code> (native HTTP), sequential</td><td><code>screen.device.schedule.setup.schedule-download.tsx</code></td></tr>'
         '<tr><td>File cleanup</td><td>Every 24h during off-hours, LRU-based</td><td><code>src/services/file-cleanup.service.ts</code></td></tr>'
         '<tr><td>Offline detect</td><td><code>err?.message === "Load failed"</code></td><td><code>screen.device.schedule.component.tsx</code></td></tr>'
-        '<tr><td>Play history retry</td><td>Tauri Store (<code>player.history.json</code>), batch 10, every 1 min</td><td><code>player-history.store.ts</code></td></tr>'
+        '<tr><td>PoP (Proof of Play) retry</td><td>Tauri Store (<code>player.history.json</code>), batch 10, every 1 min</td><td><code>player-history.store.ts</code></td></tr>'
         '</table>'
     )
 
@@ -371,10 +386,10 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append(
         '<table>'
         '<tr><th>Event</th><th>Trigger</th><th>Player Action</th></tr>'
-        '<tr><td><code>update-play-schedule</code></td><td>Cron round complete</td><td>Re-fetch <code>GET /v2/play-schedules</code></td></tr>'
+        '<tr><td><code>update-play-schedule</code></td><td>Scheduling engine loop complete</td><td>Re-fetch <code>GET /v2/play-schedules</code></td></tr>'
         '<tr><td><code>created-play-schedule</code></td><td>Player-pull job complete</td><td>Re-fetch schedules</td></tr>'
-        '<tr><td><code>approved-advertisement-exclusive</code></td><td>Exclusive ad approved</td><td>Inject immediately (no re-fetch)</td></tr>'
-        '<tr><td><code>stop-advertisement</code></td><td>Ad cancelled</td><td>Remove from local schedule</td></tr>'
+        '<tr><td><code>approved-advertisement-exclusive</code></td><td>Guaranteed spot approved</td><td>Inject immediately (no re-fetch)</td></tr>'
+        '<tr><td><code>stop-advertisement</code></td><td>Creative cancelled</td><td>Remove from local schedule</td></tr>'
         '<tr><td><code>new/update/delete-play-schedule</code></td><td>Schedule CRUD</td><td>Re-fetch schedules</td></tr>'
         '<tr><td><code>un-pair-screen</code></td><td>Device unpaired</td><td>Clear all, back to pair screen</td></tr>'
         '</table>'
@@ -386,8 +401,8 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append("<hr/>")
     sections.append("<h2>4. Proposed Architecture: Backend-Driven Player</h2>")
     sections.append(info_panel(
-        "<p><strong>Core Idea:</strong> Backend sends <strong>ordered playlist sequence</strong> instead of a bag of ads + rules. "
-        "Player just plays <code>sequence[i++]</code>.</p>"
+        "<p><strong>Core Idea:</strong> Backend sends <strong>ordered screen schedule (loop sequence)</strong> instead of a bag of creatives + rules. "
+        "Player just plays <code>sequence[i++]</code> (Dumb Renderer pattern &mdash; standard in DOOH).</p>"
     ))
 
     sections.append("<h3>4.1 What Changes vs What Stays</h3>")
@@ -395,15 +410,15 @@ def build_content(page_id: str = "165019751") -> str:
         '<table>'
         '<tr><th>Component</th><th>Current</th><th>Proposed</th><th>Change Type</th></tr>'
         '<tr><td>Cron job</td><td>PlayScheduleCalculate every 10 min</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>Per-screen job</td><td>Create PlaySchedule rows</td><td>Create PlaySchedule + <strong>ordered DevicePlaylist</strong></td><td>' + status_macro("ADD STEP", "Yellow") + '</td></tr>'
-        '<tr><td>Pusher</td><td>Channel per device</td><td>Same channel + new event <code>playlist-updated</code></td><td>' + status_macro("ADD EVENT", "Yellow") + '</td></tr>'
-        '<tr><td>Player API</td><td>GET /v2/play-schedules + /playlist-advertisements</td><td><strong>GET /v2/device-playlist</strong> (unified)</td><td>' + status_macro("NEW ENDPOINT", "Blue") + '</td></tr>'
-        '<tr><td>Player scheduling</td><td>Round-robin + exclusive interrupt (complex)</td><td><strong>play sequence[i++]</strong> (simple)</td><td>' + status_macro("SIMPLIFY", "Green") + '</td></tr>'
+        '<tr><td>Per-screen job</td><td>Create PlaySchedule rows</td><td>Create PlaySchedule + <strong>ordered ScreenSchedule</strong></td><td>' + status_macro("ADD STEP", "Yellow") + '</td></tr>'
+        '<tr><td>Pusher</td><td>Channel per device</td><td>Same channel + new event <code>schedule-updated</code></td><td>' + status_macro("ADD EVENT", "Yellow") + '</td></tr>'
+        '<tr><td>Player API</td><td>GET /v2/play-schedules + /playlist-advertisements</td><td><strong>GET /v2/screen-schedule</strong> (unified)</td><td>' + status_macro("NEW ENDPOINT", "Blue") + '</td></tr>'
+        '<tr><td>Player scheduling</td><td>Loop rotation + guaranteed interrupt (complex)</td><td><strong>play sequence[i++]</strong> (Dumb Renderer)</td><td>' + status_macro("SIMPLIFY", "Green") + '</td></tr>'
         '<tr><td>Player storage</td><td>localStorage (separate schedules + playlists)</td><td>Tauri Store (3-tier playlist)</td><td>' + status_macro("MIGRATE", "Yellow") + '</td></tr>'
         '<tr><td>Media download</td><td>Tauri plugin-upload</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
         '<tr><td>BullMQ</td><td>Redis queue</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
         '<tr><td>Auth</td><td>x-device-code header</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>Play history</td><td>POST /v2/play-history + retry</td><td>Same + <strong>Outbox pattern</strong></td><td>' + status_macro("ENHANCE", "Yellow") + '</td></tr>'
+        '<tr><td>Proof of Play (PoP)</td><td>POST /v2/play-history + retry</td><td>Same + <strong>Outbox pattern</strong></td><td>' + status_macro("ENHANCE", "Yellow") + '</td></tr>'
         '</table>'
     )
 
@@ -411,11 +426,11 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append(
         '<table>'
         '<tr><th>Existing Infrastructure</th><th>Role Today</th><th>Role in Proposed</th><th>Change</th></tr>'
-        '<tr><td><strong>BullMQ + Redis</strong></td><td>Cron job queue (PlayScheduleCalculate)</td><td>Same + enqueue PlaylistBuilder after schedule calc</td><td>' + status_macro("REUSE", "Green") + '</td></tr>'
-        '<tr><td><strong>MySQL</strong></td><td>PlaySchedule, Billboard, Advertisement models</td><td>Same + NEW DevicePlaylist, DevicePlaylistItem tables</td><td>' + status_macro("ADD TABLES", "Yellow") + '</td></tr>'
+        '<tr><td><strong>BullMQ + Redis</strong></td><td>Cron job queue (PlayScheduleCalculate)</td><td>Same + enqueue Ad Decisioning Engine after schedule calc</td><td>' + status_macro("REUSE", "Green") + '</td></tr>'
+        '<tr><td><strong>MySQL</strong></td><td>PlaySchedule, Billboard, Advertisement models</td><td>Same + NEW ScreenSchedule, ScreenScheduleItem tables</td><td>' + status_macro("ADD TABLES", "Yellow") + '</td></tr>'
         '<tr><td><strong>Redis (cache)</strong></td><td>GET/SET string cache (Bentocache)</td><td>Same + idempotency keys (SET with TTL 24h)</td><td>' + status_macro("REUSE", "Green") + '</td></tr>'
         '<tr><td><strong>Pusher (WebSocket)</strong></td><td>6 event types, channel per device</td><td>Same channel + 2 new typed events</td><td>' + status_macro("ADD EVENTS", "Yellow") + '</td></tr>'
-        '<tr><td><strong>AdonisJS routes</strong></td><td>Player V2 routes (/play-schedules, /playlist-advertisements)</td><td>Keep existing + add GET /v2/device-playlist</td><td>' + status_macro("ADD ENDPOINT", "Yellow") + '</td></tr>'
+        '<tr><td><strong>AdonisJS routes</strong></td><td>Player V2 routes (/play-schedules, /playlist-advertisements)</td><td>Keep existing + add GET /v2/screen-schedule</td><td>' + status_macro("ADD ENDPOINT", "Yellow") + '</td></tr>'
         '<tr><td><strong>Tauri plugin-upload</strong></td><td>Native HTTP media download</td><td>Same (sequential download with resume)</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
         '<tr><td><strong>localStorage</strong></td><td>Schedules, playlists, playData</td><td>Migrate heavy data to Tauri Store; localStorage for small state only</td><td>' + status_macro("MIGRATE", "Yellow") + '</td></tr>'
         '<tr><td><strong>Tauri Store</strong></td><td>player.history.json (play history retry)</td><td>+ outbox.json, playlist-cache.json, inbox-state.json</td><td>' + status_macro("EXPAND", "Yellow") + '</td></tr>'
@@ -442,19 +457,19 @@ def build_content(page_id: str = "165019751") -> str:
         page_id=page_id,
     ))
 
-    sections.append("<h3>5.3 Flow C: Exclusive Ad Interrupt (Online)</h3>")
+    sections.append("<h3>5.3 Flow C: Guaranteed Spot Interrupt (Online)</h3>")
     sections.append(warning_panel(
-        "<p><strong>Current system has 2 paths for exclusive ads:</strong></p>"
+        "<p><strong>Current system has 2 paths for guaranteed spots (เดิมเรียก exclusive):</strong></p>"
         "<ul>"
         "<li><strong>Path 1 (On approval):</strong> Owner approves &rarr; BullMQ <code>PlayScheduleCreateByExclusive</code> job &rarr; "
         "creates PlaySchedule rows (type=EXCLUSIVE, createdBy=EXCLUSIVE_APPROVED) &rarr; "
         "Pusher <code>approved-advertisement-exclusive</code> with full payload &rarr; Player injects immediately</li>"
-        "<li><strong>Path 2 (During round):</strong> <code>PlayScheduleExclusiveService</code> checks <code>AdGroupDisplayTimeExclusive</code> "
-        "overlapping current round window &rarr; creates PlaySchedule rows (createdBy=PLAYER_REQUEST)</li>"
+        "<li><strong>Path 2 (During loop):</strong> <code>PlayScheduleExclusiveService</code> checks <code>AdGroupDisplayTimeExclusive</code> "
+        "overlapping current loop window &rarr; creates PlaySchedule rows (createdBy=PLAYER_REQUEST)</li>"
         "</ul>"
-        "<p><strong>Proposed simplification:</strong> PlaylistBuilder handles both paths &mdash; "
-        "exclusive ads are pre-injected into the ordered sequence at their exact <code>play_at</code> position. "
-        "Player no longer needs exclusive interrupt logic.</p>"
+        "<p><strong>Proposed simplification:</strong> Ad Decisioning Engine handles both paths &mdash; "
+        "guaranteed spots are pre-injected into the ordered sequence at their exact <code>play_at</code> position. "
+        "Player no longer needs guaranteed interrupt logic.</p>"
     ))
     sections.append(mermaid_diagram(
         load_diagram("05-3-flow-exclusive.mmd"),
@@ -473,82 +488,91 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append("<hr/>")
     sections.append("<h2>6. Technical Design</h2>")
 
-    # 6.1 PlaylistBuilder Algorithm
-    sections.append("<h3>6.1 PlaylistBuilder Algorithm</h3>")
+    # 6.1 Ad Decisioning Algorithm
+    sections.append("<h3>6.1 Ad Decisioning Algorithm</h3>")
     sections.append(note_panel(
-        "<p><strong>Key insight:</strong> PlaylistBuilder runs <em>after</em> existing PlayScheduleCalculatePerScreen. "
-        "It takes the PlaySchedule rows (already calculated) and converts them into an <strong>ordered sequence</strong>.</p>"
-        "<p><strong>Exclusive ads:</strong> Currently handled by 2 separate paths "
-        "(<code>PlayScheduleCreateByExclusive</code> on approval + <code>PlayScheduleExclusiveService</code> during rounds). "
-        "PlaylistBuilder <strong>unifies both</strong> &mdash; exclusive ads are injected at their exact <code>play_at</code> "
+        "<p><strong>Key insight:</strong> Ad Decisioning Engine runs <em>after</em> existing PlayScheduleCalculatePerScreen. "
+        "It takes the PlaySchedule rows (already calculated) and converts them into an <strong>ordered loop sequence</strong>.</p>"
+        "<p><strong>Guaranteed spots (เดิมเรียก exclusive):</strong> Currently handled by 2 separate paths "
+        "(<code>PlayScheduleCreateByExclusive</code> on approval + <code>PlayScheduleExclusiveService</code> during loops). "
+        "Ad Decisioning Engine <strong>unifies both</strong> &mdash; guaranteed spots are injected at their exact <code>play_at</code> "
         "position in the sequence. Reservation check (<code>checkIsBillboardsReserved</code>) prevents double-booking. "
         "Billing uses <code>exclusiveMultiplier</code> (env: <code>ADVERTISEMENT_EXCLUSIVE_MULTIPLIER</code>).</p>"
     ))
     sections.append(
         '<table>'
-        '<tr><th>Priority</th><th>Type</th><th>Scheduling</th><th>Billing</th></tr>'
-        '<tr><td><strong>P0</strong></td><td>Emergency</td><td>System alerts, unpair, maintenance</td><td>N/A</td></tr>'
-        '<tr><td><strong>P1</strong></td><td>Exclusive</td><td>Time-reserved guaranteed slots (<code>play_at</code> exact)</td><td><code>exclusiveMultiplier</code></td></tr>'
-        '<tr><td><strong>P2</strong></td><td>Continuous</td><td>Date-range paid ads</td><td>Standard rate</td></tr>'
-        '<tr><td><strong>P3</strong></td><td>Frequency</td><td>Count-based paid ads</td><td>Standard rate</td></tr>'
-        '<tr><td><strong>P4</strong></td><td>Owner (fallback)</td><td>Billboard owner default content</td><td>N/A</td></tr>'
+        '<tr><th>Priority</th><th>DOOH Type</th><th>Scheduling</th><th>Billing</th></tr>'
+        '<tr><td><strong>P0</strong></td><td>System / Emergency</td><td>System alerts, unpair, maintenance</td><td>N/A</td></tr>'
+        '<tr><td><strong>P1</strong></td><td>Guaranteed (takeover)</td><td>Time-reserved guaranteed spots (<code>play_at</code> exact)</td><td><code>exclusiveMultiplier</code></td></tr>'
+        '<tr><td><strong>P2</strong></td><td>Direct-Sold ROS</td><td>Date-range campaign creatives (run-of-schedule)</td><td>Standard rate</td></tr>'
+        '<tr><td><strong>P3</strong></td><td>Spot Buy / Programmatic</td><td>Impression-target creatives (future: RTB via SSP)</td><td>Standard / CPM</td></tr>'
+        '<tr><td><strong>P4</strong></td><td>House / Filler</td><td>Screen owner default content (house loop)</td><td>N/A</td></tr>'
         '</table>'
     )
 
     sections.append(tracked_code_block(
-        "// PlaylistBuilder Algorithm v2 (Timeline-Based)\n"
-        "// Inspired by: SMIL <excl> + DOOH ad server patterns\n\n"
+        "// Ad Decisioning Algorithm v2 (Timeline-Based)\n"
+        "// Inspired by: SMIL <excl> + DOOH ad server patterns\n"
+        "// Addresses: BEP-2998 under-delivery via campaign pacing\n\n"
         "Input:\n"
-        "  - playSchedules[]: from PerScreen calc (frequency + continuous)\n"
-        "  - exclusiveSchedules[]: from AdGroupDisplayTimeExclusive (overlapping this round)\n"
-        "  - ownerPlaylist[]: from PlaylistAdvertisement\n"
-        "  - billboard: { ownerTime, platformTime }  // seconds/hour budget\n"
-        "  - roundDuration: 600  // seconds (10 min)\n\n"
-        "Step 1: Create timeline & reserve exclusive slots FIRST (P1 guaranteed)\n"
-        "  timeline = createTimeline(roundStart, roundDuration)  // 600s\n"
-        "  for (const ex of exclusiveSchedules.sortBy('startDateTime')) {\n"
-        "    // Validate: media exists? checksum OK? overlaps another exclusive?\n"
-        "    if (!ex.media?.file_url) { alertAdmin(ex); continue }  // skip, don't silent-fail\n"
-        "    timeline.reserve(ex.play_at, ex.duration, { priority: 'P1', ...ex })\n"
+        "  - playSchedules[]: from PerScreen calc (direct-sold ROS + spot buy)\n"
+        "  - guaranteedSchedules[]: from AdGroupDisplayTimeExclusive (overlapping this loop)\n"
+        "  - housePlaylist[]: from PlaylistAdvertisement (owner/filler content)\n"
+        "  - screen: { ownerTime, platformTime }  // SOV budget (seconds/hour)\n"
+        "  - loopDuration: 600  // seconds (10 min)\n\n"
+        "Step 1: Create timeline & reserve guaranteed slots FIRST (P1)\n"
+        "  timeline = createTimeline(loopStart, loopDuration)  // 600s\n"
+        "  for (const g of guaranteedSchedules.sortBy('startDateTime')) {\n"
+        "    // Validate: creative asset exists? checksum OK? overlaps another guaranteed?\n"
+        "    if (!g.media?.file_url) { alertAdmin(g); continue }  // skip, don't silent-fail\n"
+        "    timeline.reserve(g.play_at, g.duration, { priority: 'P1', ...g })\n"
         "  }\n\n"
-        "Step 2: Calculate interleave ratio for remaining slots\n"
-        "  ownerRatio = billboard.ownerTime / (ownerTime + platformTime)\n"
-        "  interleaveEvery = Math.round(1 / ownerRatio)\n\n"
-        "Step 3: Fill unreserved slots with paid + owner ads\n"
-        "  availableSlots = timeline.getUnreservedSlots()\n"
-        "  paidAds = [...continuous, ...frequency]  // P2 before P3\n"
-        "  ownerIndex = 0\n\n"
-        "  for (const slot of availableSlots) {\n"
-        "    while (slot.hasCapacity() && paidAds.length > 0) {\n"
-        "      slot.push(paidAds.shift())  // paid ad\n"
-        "      if (slot.count % interleaveEvery === 0) {\n"
-        "        slot.push(ownerPlaylist[ownerIndex++ % ownerPlaylist.length])\n"
+        "Step 2: Calculate SOV (Share of Voice) ratio for remaining avails\n"
+        "  houseSOV = screen.ownerTime / (ownerTime + platformTime)\n"
+        "  interleaveEvery = Math.round(1 / houseSOV)\n\n"
+        "Step 2.5: Campaign Pacing (addresses BEP-2998 under-delivery)\n"
+        "  for (const campaign of [...directSold, ...spotBuy]) {\n"
+        "    target = campaign.impression_target  // เดิมเรียก ad_display_count\n"
+        "    delivered = campaign.delivered_today\n"
+        "    remaining = target - delivered\n"
+        "    pacing_rate = remaining / remaining_loops_today\n"
+        "    // กระจาย impression ให้สม่ำเสมอตลอดวัน ไม่กระจุกต้นวัน\n"
+        "  }\n\n"
+        "Step 3: Fill unreserved avails with campaign + house creatives\n"
+        "  availableAvails = timeline.getUnreservedSlots()\n"
+        "  campaignAds = [...directSold, ...spotBuy]  // P2 before P3\n"
+        "  houseIndex = 0\n\n"
+        "  for (const avail of availableAvails) {\n"
+        "    while (avail.hasCapacity() && campaignAds.length > 0) {\n"
+        "      avail.push(campaignAds.shift())  // campaign creative\n"
+        "      if (avail.count % interleaveEvery === 0) {\n"
+        "        avail.push(housePlaylist[houseIndex++ % housePlaylist.length])\n"
         "      }\n"
         "    }\n"
         "  }\n\n"
-        "Step 4: Fill remaining gaps with owner ads (P4 fallback)\n"
-        "  for (const emptySlot of timeline.getEmptySlots()) {\n"
-        "    emptySlot.push(ownerPlaylist[ownerIndex++ % ownerPlaylist.length])\n"
+        "Step 4: Fill remaining gaps with house content (P4 filler)\n"
+        "  for (const emptyAvail of timeline.getEmptySlots()) {\n"
+        "    emptyAvail.push(housePlaylist[houseIndex++ % housePlaylist.length])\n"
         "  }\n\n"
-        "Step 5: Flatten timeline → ordered sequence\n"
+        "Step 5: Flatten timeline → ordered loop sequence\n"
         "  sequence = timeline.flatten()  // chronological order\n"
         "  sequence.forEach((item, i) => item.sequence_no = i + 1)\n\n"
         "Step 6: Version + persist\n"
         "  version = (lastVersion for this device) + 1\n"
-        "  Save DevicePlaylist { version, tier: 'live', items: sequence }\n"
-        "  Mark previous 'live' playlist as 'replaced'\n\n"
+        "  Save ScreenSchedule { version, tier: 'live', items: sequence }\n"
+        "  Mark previous 'live' schedule as 'replaced'\n\n"
         "Output:\n"
-        "  DevicePlaylist v42 with ordered items[]\n"
+        "  ScreenSchedule v42 with ordered items[]\n"
         "  Player just plays: items[0] → items[1] → items[2] → ...\n"
-        "  // Exclusive ads are just items in the sequence — no interrupt needed",
-        "typescript", "PlaylistBuilder Algorithm v2"
+        "  // Guaranteed spots are just items in the sequence — no interrupt needed",
+        "typescript", "Ad Decisioning Algorithm v2"
     ))
 
     # 6.2 New Data Models
     sections.append("<h3>6.2 New Data Models</h3>")
     sections.append(tracked_code_block(
-        "// NEW: DevicePlaylist model (app/Models/DevicePlaylist.ts)\n"
-        "interface DevicePlaylist {\n"
+        "// NEW: ScreenSchedule model (app/Models/ScreenSchedule.ts)\n"
+        "interface ScreenSchedule {\n"
         "  id: number\n"
         "  device_code: string\n"
         "  tier: 'live' | 'buffer' | 'fallback'\n"
@@ -558,60 +582,61 @@ def build_content(page_id: str = "165019751") -> str:
         "  status: 'active' | 'expired' | 'replaced'\n"
         "  created_at: DateTime\n"
         "}\n\n"
-        "// NEW: DevicePlaylistItem model (app/Models/DevicePlaylistItem.ts)\n"
-        "interface DevicePlaylistItem {\n"
+        "// NEW: ScreenScheduleItem model (app/Models/ScreenScheduleItem.ts)\n"
+        "interface ScreenScheduleItem {\n"
         "  id: number\n"
-        "  device_playlist_id: number\n"
+        "  screen_schedule_id: number\n"
         "  sequence_no: number      // ordered by backend\n"
         "  play_schedule_code: string | null  // link to existing PlaySchedule\n"
         "  advertisement_code: string\n"
-        "  media_code: string\n"
+        "  creative_code: string    // creative asset identifier\n"
         "  duration_seconds: number\n"
-        "  type: 'paid' | 'owner'\n"
-        "  priority: 'normal' | 'exclusive'\n"
-        "  play_at: DateTime | null  // for exclusive: exact time\n"
+        "  type: 'campaign' | 'house'  // campaign = sold inventory, house = filler\n"
+        "  priority: 'guaranteed' | 'direct' | 'spot' | 'house'\n"
+        "  play_at: DateTime | null  // for guaranteed: exact time\n"
         "}",
         "typescript", "New Models"
     ))
 
     sections.append(tracked_code_block(
-        "// NEW: PlaylistBuilder service (app/Services/PlaylistBuilderService.ts)\n"
+        "// NEW: Ad Decisioning Engine (app/Services/AdDecisioningService.ts)\n"
         "// Called AFTER PlayScheduleCalculatePerScreen generates PlaySchedule rows\n\n"
-        "class PlaylistBuilderService {\n"
-        "  async buildPlaylist(\n"
+        "class AdDecisioningService {\n"
+        "  async buildSchedule(\n"
         "    screenCode: string,\n"
         "    playSchedules: PlaySchedule[],   // from cron calculation\n"
-        "    ownerPlaylist: PlaylistAdvertisement[],\n"
-        "    billboard: Billboard\n"
-        "  ): Promise<DevicePlaylist> {\n"
-        "    // 1. Sort paid ads by priority/time\n"
-        "    // 2. Interleave owner ads based on ownerTime/platformTime ratio\n"
-        "    // 3. Insert exclusive ads at their exact play_at position\n"
-        "    // 4. Assign sequence_no (1, 2, 3, ...)\n"
-        "    // 5. Set valid_from/valid_until from round window\n"
-        "    // 6. Increment version (per device)\n"
-        "    // 7. Create DevicePlaylist + DevicePlaylistItem rows\n"
-        "    // 8. Mark previous 'live' playlist as 'replaced'\n"
+        "    housePlaylist: PlaylistAdvertisement[],  // house/filler content\n"
+        "    screen: Billboard\n"
+        "  ): Promise<ScreenSchedule> {\n"
+        "    // 1. Sort campaign creatives by priority/time (P1 > P2 > P3)\n"
+        "    // 2. Interleave house content based on SOV ratio (ownerTime/platformTime)\n"
+        "    // 3. Insert guaranteed spots at their exact play_at position\n"
+        "    // 4. Apply campaign pacing (BEP-2998: even impression distribution)\n"
+        "    // 5. Assign sequence_no (1, 2, 3, ...)\n"
+        "    // 6. Set valid_from/valid_until from loop window\n"
+        "    // 7. Increment version (per device)\n"
+        "    // 8. Create ScreenSchedule + ScreenScheduleItem rows\n"
+        "    // 9. Mark previous 'live' schedule as 'replaced'\n"
         "  }\n\n"
-        "  async buildBufferPlaylist(\n"
+        "  async buildBufferSchedule(\n"
         "    screenCode: string,\n"
         "    hoursAhead: number = 4\n"
-        "  ): Promise<DevicePlaylist> {\n"
-        "    // Pre-generate next N hours of playlist for offline buffer\n"
+        "  ): Promise<ScreenSchedule> {\n"
+        "    // Pre-generate next N hours of schedule for offline buffer\n"
         "  }\n\n"
-        "  async buildFallbackPlaylist(\n"
-        "    billboardCode: string\n"
-        "  ): Promise<DevicePlaylist> {\n"
-        "    // Owner ads only, loopable, rarely changes\n"
+        "  async buildFallbackSchedule(\n"
+        "    screenCode: string\n"
+        "  ): Promise<ScreenSchedule> {\n"
+        "    // House content only, loopable, rarely changes\n"
         "  }\n"
         "}",
-        "typescript", "PlaylistBuilder Service"
+        "typescript", "Ad Decisioning Engine Service"
     ))
 
     # 6.3 New API Endpoint
     sections.append("<h3>6.3 New API Endpoint</h3>")
     sections.append(tracked_code_block(
-        "// GET /v2/device-playlist?tier=live&since_version=41\n"
+        "// GET /v2/screen-schedule?tier=live&since_version=41\n"
         "// Response:\n"
         "{\n"
         '  "version": 42,\n'
@@ -623,17 +648,17 @@ def build_content(page_id: str = "165019751") -> str:
         "    {\n"
         '      "sequence_no": 1,\n'
         '      "advertisement_code": "AD-xxx",\n'
-        '      "media_code": "MD-xxx",\n'
-        '      "media_url": "https://cdn.../video.mp4",\n'
-        '      "media_checksum": "a1b2c3d4...",  // MD5 for validation\n'
+        '      "creative_code": "CR-xxx",\n'
+        '      "creative_url": "https://cdn.../video.mp4",\n'
+        '      "creative_checksum": "a1b2c3d4...",  // MD5 for validation\n'
         '      "duration_seconds": 15,\n'
-        '      "type": "paid",\n'
-        '      "priority": "normal"\n'
+        '      "type": "campaign",\n'
+        '      "priority": "direct"\n'
         "    },\n"
         "    ...\n"
         "  ],\n"
-        '  "media_manifest": [\n'
-        '    { "media_code": "MD-xxx", "url": "...", "checksum": "...", "size_bytes": 12345 }\n'
+        '  "creative_manifest": [\n'
+        '    { "creative_code": "CR-xxx", "url": "...", "checksum": "...", "size_bytes": 12345 }\n'
         "  ]\n"
         "}",
         "json", "API Response Format"
@@ -656,13 +681,13 @@ def build_content(page_id: str = "165019751") -> str:
         "<p><strong>Rule:</strong> Every state MUST have something to display. <strong>Black screen is NEVER acceptable.</strong></p>"
     ))
 
-    # 6.6 Outbox/Inbox Pattern
-    sections.append("<h3>6.6 Outbox/Inbox Pattern</h3>")
+    # 6.6 PoP Reporting (Outbox/Inbox)
+    sections.append("<h3>6.6 PoP Reporting (Outbox/Inbox)</h3>")
     sections.append(error_panel(
-        "<p><strong>ปัญหา 1 (Player &rarr; Backend): Play History ซ้ำ</strong><br/>"
-        "Player POST <code>/v2/play-history</code> &rarr; timeout &rarr; retry &rarr; backend ได้ 2 รายการ สำหรับ ad เดียวกัน</p>"
+        "<p><strong>ปัญหา 1 (Player &rarr; Backend): Duplicate PoP (Proof of Play)</strong><br/>"
+        "Player POST <code>/v2/play-history</code> &rarr; timeout &rarr; retry &rarr; backend ได้ 2 รายการ สำหรับ creative เดียวกัน</p>"
         "<p><strong>ปัญหา 2 (Backend &rarr; Player): Missed Pusher Events</strong><br/>"
-        "Pusher disconnect 30 วิ &rarr; reconnect &rarr; events ระหว่างนั้นหายไป &rarr; Player ไม่รู้ว่ามี playlist ใหม่</p>"
+        "Pusher disconnect 30 วิ &rarr; reconnect &rarr; events ระหว่างนั้นหายไป &rarr; Player ไม่รู้ว่ามี schedule ใหม่</p>"
         "<p><strong>ปัญหา 3 (Backend &rarr; Player): Duplicate Pusher Events</strong><br/>"
         "Pusher ส่ง event ซ้ำ (at-least-once) &rarr; player process ซ้ำ &rarr; fetch ซ้ำ &rarr; เสีย bandwidth</p>"
     ))
@@ -670,7 +695,7 @@ def build_content(page_id: str = "165019751") -> str:
         "<p><strong>Solution:</strong> Outbox (Player&rarr;Backend) + Inbox (Backend&rarr;Player)</p>"
     ))
 
-    sections.append("<h4>Player Outbox (Play History)</h4>")
+    sections.append("<h4>Player Outbox (PoP Reporting)</h4>")
     sections.append(mermaid_diagram(
         load_diagram("06-6a-outbox.mmd"),
         page_id=page_id,
@@ -695,7 +720,7 @@ def build_content(page_id: str = "165019751") -> str:
         "typescript", "Outbox Interface"
     ))
 
-    sections.append("<h4>Player Inbox (Schedule Commands)</h4>")
+    sections.append("<h4>Player Inbox (Schedule Sync)</h4>")
     sections.append(mermaid_diagram(
         load_diagram("06-6b-inbox.mmd"),
         page_id=page_id,
@@ -731,8 +756,8 @@ def build_content(page_id: str = "165019751") -> str:
         page_id=page_id,
     ))
 
-    # 6.8 Backend Idempotency
-    sections.append("<h3>6.8 Backend Idempotency</h3>")
+    # 6.8 PoP Deduplication
+    sections.append("<h3>6.8 PoP Deduplication (Backend Idempotency)</h3>")
     sections.append(tracked_code_block(
         "// Backend: PlayHistoryController\n"
         "async store({ request }: HttpContextContract) {\n"
@@ -753,6 +778,28 @@ def build_content(page_id: str = "165019751") -> str:
         "typescript", "Backend Idempotency Check"
     ))
 
+    # 6.9 Programmatic Integration Points (pDOOH future)
+    sections.append("<h3>6.9 Programmatic Integration Points (pDOOH Roadmap)</h3>")
+    sections.append(info_panel(
+        "<p><strong>Scale 100-500 screens:</strong> ยังไม่ต้อง SSP/DSP เต็มรูปแบบ แต่วาง integration points ไว้ "
+        "เพื่อให้ pluggable เมื่อ scale ถึง. ไม่เพิ่ม tech stack ใหม่ &mdash; ใช้ AdonisJS + Redis + BullMQ เดิม.</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("06-9-pdooh-integration.mmd"),
+        page_id=page_id,
+    ))
+    sections.append(
+        '<table>'
+        '<tr><th>Integration Point</th><th>Current</th><th>pDOOH Extension (Future)</th></tr>'
+        '<tr><td><strong>P3 slot fill</strong></td><td>Internal spot rotation (count-based)</td><td>SSP ad request &rarr; RTB auction &rarr; winning creative or fallback</td></tr>'
+        '<tr><td><strong>PoP reporting</strong></td><td>POST /v2/play-history</td><td>Add: <code>impression_id</code>, <code>campaign_id</code>, <code>creative_id</code>, <code>viewability_score</code></td></tr>'
+        '<tr><td><strong>Inventory avails</strong></td><td>N/A</td><td><code>GET /v2/avails?screen_id=X&amp;daypart=Y</code> &mdash; expose available slots to SSP</td></tr>'
+        '<tr><td><strong>Campaign pacing</strong></td><td>BEP-2998 fix (basic proportional)</td><td>Even distribution across flight + SOV-based allocation</td></tr>'
+        '<tr><td><strong>Fill rate tracking</strong></td><td>N/A</td><td>% of P3 avails filled programmatic vs house content</td></tr>'
+        '<tr><td><strong>Audience estimation</strong></td><td>N/A</td><td>Pass <code>audience_est</code> (foot traffic / time-of-day) in ad request</td></tr>'
+        '</table>'
+    )
+
     # ═══════════════════════════════════════════════════════════════
     # Section 7: Event-Driven Architecture (moved from old §9)
     # ═══════════════════════════════════════════════════════════════
@@ -770,7 +817,7 @@ def build_content(page_id: str = "165019751") -> str:
         '<tr><th>Component</th><th>Pattern</th><th>Status</th></tr>'
         '<tr><td>BullMQ cron &rarr; per-screen jobs</td><td>Job queue as event bus</td><td>' + status_macro("EXISTS", "Green") + '</td></tr>'
         '<tr><td>Pusher events &rarr; Player</td><td>Real-time event delivery</td><td>' + status_macro("EXISTS", "Green") + '</td></tr>'
-        '<tr><td>Play history retry queue</td><td>Outbox-like (player.history.json)</td><td>' + status_macro("EXISTS", "Green") + '</td></tr>'
+        '<tr><td>PoP retry queue</td><td>Outbox-like (player.history.json)</td><td>' + status_macro("EXISTS", "Green") + '</td></tr>'
         '<tr><td>Typed event contracts</td><td>Explicit interface per event</td><td>' + status_macro("MISSING", "Red") + '</td></tr>'
         '<tr><td>Domain events in code</td><td>Named events for traceability</td><td>' + status_macro("MISSING", "Red") + '</td></tr>'
         '<tr><td>Idempotency keys</td><td>Dedup on retry</td><td>' + status_macro("MISSING", "Red") + '</td></tr>'
@@ -827,8 +874,8 @@ def build_content(page_id: str = "165019751") -> str:
         "  reason: 'admin' | 'replaced'\n"
         "}\n\n"
         "// ─── New Events (Proposed) ───\n\n"
-        "interface PlaylistUpdatedEvent extends PusherEventBase {\n"
-        "  type: 'playlist-updated'\n"
+        "interface ScheduleUpdatedEvent extends PusherEventBase {\n"
+        "  type: 'schedule-updated'\n"
         "  version: number\n"
         "  tier: 'live' | 'buffer' | 'fallback'\n"
         "  item_count: number\n"
@@ -848,7 +895,7 @@ def build_content(page_id: str = "165019751") -> str:
         "  | ApprovedExclusiveEvent\n"
         "  | StopAdvertisementEvent\n"
         "  | UnPairScreenEvent\n"
-        "  | PlaylistUpdatedEvent\n"
+        "  | ScheduleUpdatedEvent\n"
         "  | DeviceConfigUpdatedEvent",
         "typescript", "Typed Pusher Event Contracts"
     ))
@@ -869,27 +916,27 @@ def build_content(page_id: str = "165019751") -> str:
         "  schedule_codes: string[]\n"
         "  timestamp: DateTime\n"
         "}\n\n"
-        "/** Emitted: PlaylistBuilderService completes */\n"
-        "interface DevicePlaylistBuilt {\n"
-        "  type: 'DevicePlaylistBuilt'\n"
+        "/** Emitted: AdDecisioningService completes */\n"
+        "interface ScreenScheduleBuilt {\n"
+        "  type: 'ScreenScheduleBuilt'\n"
         "  device_code: string\n"
-        "  playlist_id: number\n"
+        "  schedule_id: number\n"
         "  version: number\n"
         "  tier: 'live' | 'buffer' | 'fallback'\n"
         "  item_count: number\n"
         "  timestamp: DateTime\n"
         "}\n\n"
-        "/** Emitted: Player confirms media downloaded */\n"
-        "interface MediaDownloadConfirmed {\n"
-        "  type: 'MediaDownloadConfirmed'\n"
+        "/** Emitted: Player confirms creative assets downloaded */\n"
+        "interface CreativeDownloadConfirmed {\n"
+        "  type: 'CreativeDownloadConfirmed'\n"
         "  device_code: string\n"
-        "  media_codes: string[]\n"
+        "  creative_codes: string[]\n"
         "  total_bytes: number\n"
         "  timestamp: DateTime\n"
         "}\n\n"
-        "/** Emitted: Player sends play history batch */\n"
-        "interface PlayHistoryReceived {\n"
-        "  type: 'PlayHistoryReceived'\n"
+        "/** Emitted: Player sends PoP (Proof of Play) batch */\n"
+        "interface PoPReceived {\n"
+        "  type: 'PoPReceived'\n"
         "  device_code: string\n"
         "  batch_size: number\n"
         "  idempotency_keys: string[]\n"
@@ -930,7 +977,7 @@ def build_content(page_id: str = "165019751") -> str:
         '<td><strong>Debounce reconnect:</strong> ต้อง online ต่อเนื่อง 10 วิ ก่อน trigger sync. Media download ต้อง resume-able (Tauri download รองรับอยู่แล้ว)</td></tr>'
         '<tr><td>E2</td><td><strong>Pusher disconnect 5 นาที</strong> &rarr; missed events</td>'
         '<td>Player ไม่รู้ว่ามี playlist ใหม่</td>'
-        '<td><strong>Version check on reconnect:</strong> Player เก็บ <code>last_version</code>. Reconnect &rarr; <code>GET /v2/device-playlist?since_version=N</code> &rarr; ได้ delta</td></tr>'
+        '<td><strong>Version check on reconnect:</strong> Player เก็บ <code>last_version</code>. Reconnect &rarr; <code>GET /v2/screen-schedule?since_version=N</code> &rarr; ได้ delta</td></tr>'
         '<tr><td>E3</td><td><strong>Pusher duplicate events</strong></td>'
         '<td>Player process playlist update ซ้ำ 2 ครั้ง</td>'
         '<td><strong>Inbox dedup:</strong> เก็บ <code>event_id</code> ล่าสุด 100 รายการ. ถ้าซ้ำ &rarr; skip</td></tr>'
@@ -953,18 +1000,18 @@ def build_content(page_id: str = "165019751") -> str:
         '<tr><td>E7</td><td><strong>Schedule gap</strong> &mdash; ไม่มี ad สำหรับช่วงเวลานี้</td>'
         '<td>Tier 1 ว่างเปล่า</td>'
         '<td>Auto-switch Tier 3 (owner fallback). <strong>ห้ามจอดำเด็ดขาด</strong></td></tr>'
-        '<tr><td>E8</td><td><strong>Exclusive ad ขณะ offline</strong></td>'
-        '<td>Backend approve exclusive แต่ push ไม่ถึง player</td>'
-        '<td><strong>Buffer tier:</strong> Exclusive ที่ approved ล่วงหน้า ถูกใส่ใน Tier 2 ด้วย <code>priority: exclusive</code> + <code>play_at: exact_time</code>. Player check Tier 2 ทุก 1 วิ ว่ามี exclusive <code>CalculatePlaySchedules</code> query ทำอยู่แล้ว)</td></tr>'
+        '<tr><td>E8</td><td><strong>Guaranteed spot ขณะ offline</strong></td>'
+        '<td>Backend approve guaranteed แต่ push ไม่ถึง player</td>'
+        '<td><strong>Buffer tier:</strong> Guaranteed ที่ approved ล่วงหน้า ถูกใส่ใน Tier 2 ด้วย <code>priority: guaranteed</code> + <code>play_at: exact_time</code>. Player check Tier 2 ทุก 1 วิ ว่ามี guaranteed <code>CalculatePlaySchedules</code> query ทำอยู่แล้ว)</td></tr>'
         '<tr><td>E9</td><td><strong>Tier 1 หมด แต่ Tier 2 ยังไม่พร้อม</strong> (media กำลัง download)</td>'
         '<td>ช่วงว่างระหว่าง tier</td>'
         '<td>Play Tier 3 ขณะรอ. เมื่อ Tier 2 media download ครบ &rarr; switch ขึ้นไป</td></tr>'
-        '<tr><td>E10</td><td><strong>Billboard time budget overflow</strong> &mdash; ads มากกว่า time slots</td>'
-        '<td>PlaylistBuilder สร้าง playlist ยาวเกินรอบ</td>'
-        '<td>Backend cap ที่ <code>roundDuration</code>. ส่วนที่เกิน &rarr; ไม่ใส่ playlist (เหมือนเดิมที่ cron ทำ). Player ไม่ต้องคิด</td></tr>'
-        '<tr><td>E11</td><td><strong>Owner playlist ว่าง</strong> &mdash; billboard owner ไม่ได้ตั้งค่า</td>'
+        '<tr><td>E10</td><td><strong>Screen time budget overflow</strong> &mdash; creatives มากกว่า avails</td>'
+        '<td>Ad Decisioning Engine สร้าง schedule ยาวเกิน loop</td>'
+        '<td>Backend cap ที่ <code>loopDuration</code>. ส่วนที่เกิน &rarr; ไม่ใส่ schedule (เหมือนเดิมที่ cron ทำ). Player ไม่ต้องคิด</td></tr>'
+        '<tr><td>E11</td><td><strong>House content ว่าง</strong> &mdash; screen owner ไม่ได้ตั้งค่า</td>'
         '<td>Tier 3 ไม่มี content</td>'
-        '<td><strong>First boot check:</strong> ถ้า Tier 3 ว่าง &rarr; แสดง <strong>system splash</strong> (logo + "กำลังเตรียมระบบ"). Admin UI แจ้งเตือน owner ให้ upload content. บังคับ: Device register สำเร็จต่อเมื่อ billboard มีอย่างน้อย 1 รายการ</td></tr>'
+        '<td><strong>First boot check:</strong> ถ้า Tier 3 ว่าง &rarr; แสดง <strong>system splash</strong> (logo + "กำลังเตรียมระบบ"). Admin UI แจ้งเตือน owner ให้ upload content. บังคับ: Device register สำเร็จต่อเมื่อ screen มีอย่างน้อย 1 house creative</td></tr>'
         '<tr><td>E12</td><td><strong>Stale schedule</strong> &mdash; offline นานจน Tier 2 expired</td>'
         '<td><code>valid_until</code> ผ่านไปแล้ว</td>'
         '<td>Player check <code>valid_until</code> ก่อนเล่น. ถ้า expired &rarr; switch Tier 3. <strong>ไม่เล่น ad expired</strong> เพราะอาจเป็น campaign ที่หมดแล้ว (billing issue)</td></tr>'
@@ -1005,13 +1052,13 @@ def build_content(page_id: str = "165019751") -> str:
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
         '<tr><td>E20</td><td><strong>Ad cancelled ขณะ offline</strong></td>'
         '<td>Backend cancel ad แต่ player ยังเล่นอยู่</td>'
-        '<td><strong>Acceptable tradeoff:</strong> player จะเล่น ad ต่อจน reconnect. เมื่อ reconnect &rarr; sync playlist ใหม่ &rarr; ad หายไป. Play history records ยังถูกต้อง (ส่งทีหลัง reconnect)</td></tr>'
+        '<td><strong>Acceptable tradeoff:</strong> player จะเล่น creative ต่อจน reconnect. เมื่อ reconnect &rarr; sync schedule ใหม่ &rarr; creative หายไป. PoP records ยังถูกต้อง (ส่งทีหลัง reconnect)</td></tr>'
         '<tr><td>E21</td><td><strong>Campaign budget exhausted ขณะเล่น</strong></td>'
         '<td>Player กำลังเล่น ad ของ campaign ที่หมด budget</td>'
         '<td>Backend ไม่ใส่ ad นี้ใน round ถัดไป. Player round ปัจจุบันเล่นจบปกติ (ยอมรับได้ &mdash; เป็น 1 round = 10 นาที max)</td></tr>'
-        '<tr><td>E22</td><td><strong>Play history ส่งไม่ได้</strong> &rarr; billing คลาดเคลื่อน</td>'
-        '<td>Offline นาน &rarr; play history queue สะสม</td>'
-        '<td><strong>Outbox guarantee:</strong> ไม่มี play event หาย (persisted ใน Tauri Store). เมื่อ reconnect &rarr; flush ทั้งหมดตามลำดับ. Backend reconcile by timestamp</td></tr>'
+        '<tr><td>E22</td><td><strong>PoP ส่งไม่ได้</strong> &rarr; billing คลาดเคลื่อน</td>'
+        '<td>Offline นาน &rarr; PoP outbox queue สะสม</td>'
+        '<td><strong>Outbox guarantee:</strong> ไม่มี PoP event หาย (persisted ใน Tauri Store). เมื่อ reconnect &rarr; flush ทั้งหมดตามลำดับ. Backend reconcile by timestamp</td></tr>'
         '<tr><td>E23</td><td><strong>Billboard unpair ขณะ offline</strong></td>'
         '<td>Admin unpair device แต่ player ไม่รู้</td>'
         '<td>Player ยังเล่นต่อจาก cache. เมื่อ reconnect &rarr; Pusher <code>un-pair-screen</code> &rarr; clear all + back to pair screen. หรือ: API call fail &rarr; 401 &rarr; trigger unpair locally</td></tr>'
@@ -1021,47 +1068,47 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>8.5 Exclusive-Specific Edge Cases</h3>")
+    sections.append("<h3>8.5 Guaranteed Spot Edge Cases</h3>")
     sections.append(warning_panel(
-        "<p><strong>Edge cases specific to exclusive (time-reserved) ads.</strong> "
+        "<p><strong>Edge cases specific to guaranteed spots (เดิมเรียก exclusive &mdash; time-reserved takeover).</strong> "
         "These are the hardest scheduling problems &mdash; inspired by SMIL <code>&lt;excl&gt;</code> + <code>priorityClass</code> semantics.</p>"
     ))
     sections.append(
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น (ปัจจุบัน)</th><th>Proposed Solution</th></tr>'
-        '<tr><td>EX1</td><td><strong>Overlapping exclusives</strong> &mdash; 2 exclusive ads ที่เวลาทับกัน</td>'
-        '<td>ปัจจุบัน: <code>find()</code> picks first match, ไม่มี priority logic ระหว่าง exclusives</td>'
-        '<td><strong>Priority queue:</strong> Exclusive ที่ <code>play_at</code> ตรงกัน &rarr; sort by <code>created_at</code> (FIFO). '
-        'PlaylistBuilder ตรวจ overlap ตอน build &rarr; reject ตัวหลังที่ทับ (SMIL <code>peers=&quot;stop&quot;</code> semantic). '
+        '<tr><td>EX1</td><td><strong>Overlapping guaranteed spots</strong> &mdash; 2 guaranteed spots ที่เวลาทับกัน</td>'
+        '<td>ปัจจุบัน: <code>find()</code> picks first match, ไม่มี priority logic ระหว่าง guaranteed spots</td>'
+        '<td><strong>Priority queue:</strong> Guaranteed ที่ <code>play_at</code> ตรงกัน &rarr; sort by <code>created_at</code> (FIFO). '
+        'Ad Decisioning Engine ตรวจ overlap ตอน build &rarr; reject ตัวหลังที่ทับ (SMIL <code>peers=&quot;stop&quot;</code> semantic). '
         'Admin UI: แสดง warning ก่อน approve ถ้าช่วงเวลาซ้อน</td></tr>'
-        '<tr><td>EX2</td><td><strong>Exclusive media missing/corrupt</strong></td>'
-        '<td>ปัจจุบัน: <strong>silent failure</strong> &mdash; interrupted ad stays paused, ไม่มี recovery</td>'
-        '<td><strong>Media validation at booking:</strong> PlaylistBuilder checks media existence + checksum ตอน build. '
-        'ถ้า media ไม่พร้อม &rarr; mark <code>status=PENDING_MEDIA</code>, alert admin. '
-        'Player-side: ถ้า media download fail &rarr; skip exclusive, resume normal sequence (ไม่ pause ค้าง)</td></tr>'
-        '<tr><td>EX3</td><td><strong>Exclusive approved while player offline</strong></td>'
-        '<td>ปัจจุบัน: Pusher push lost, no buffer mechanism &rarr; exclusive ไม่เล่น</td>'
-        '<td><strong>Tier 2 pre-staging:</strong> Exclusive ที่ approved ล่วงหน้า &rarr; ใส่ใน Tier 2 (buffer) ด้วย <code>play_at</code> exact time. '
-        'Player check Tier 2 locally ทุก sync cycle. Reconnect &rarr; version-based full sync จะ include exclusive</td></tr>'
-        '<tr><td>EX4</td><td><strong>Exclusive cancelled after playlist built</strong></td>'
-        '<td>ปัจจุบัน: ไม่มี cancel mechanism สำหรับ exclusive ที่ถูก push ไปแล้ว</td>'
-        '<td><strong>Cancel event:</strong> Backend push <code>exclusive-cancelled {ad_code, version++}</code>. '
+        '<tr><td>EX2</td><td><strong>Guaranteed creative asset missing/corrupt</strong></td>'
+        '<td>ปัจจุบัน: <strong>silent failure</strong> &mdash; interrupted creative stays paused, ไม่มี recovery</td>'
+        '<td><strong>Creative validation at booking:</strong> Ad Decisioning Engine checks creative existence + checksum ตอน build. '
+        'ถ้า creative ไม่พร้อม &rarr; mark <code>status=PENDING_CREATIVE</code>, alert admin. '
+        'Player-side: ถ้า creative download fail &rarr; skip guaranteed, resume normal sequence (ไม่ pause ค้าง)</td></tr>'
+        '<tr><td>EX3</td><td><strong>Guaranteed spot approved while player offline</strong></td>'
+        '<td>ปัจจุบัน: Pusher push lost, no buffer mechanism &rarr; guaranteed spot ไม่เล่น</td>'
+        '<td><strong>Tier 2 pre-staging:</strong> Guaranteed ที่ approved ล่วงหน้า &rarr; ใส่ใน Tier 2 (buffer) ด้วย <code>play_at</code> exact time. '
+        'Player check Tier 2 locally ทุก sync cycle. Reconnect &rarr; version-based full sync จะ include guaranteed</td></tr>'
+        '<tr><td>EX4</td><td><strong>Guaranteed spot cancelled after schedule built</strong></td>'
+        '<td>ปัจจุบัน: ไม่มี cancel mechanism สำหรับ guaranteed ที่ถูก push ไปแล้ว</td>'
+        '<td><strong>Cancel event:</strong> Backend push <code>guaranteed-cancelled {ad_code, version++}</code>. '
         'Player receives &rarr; remove from Tier 1/2 + version bump. ถ้า offline &rarr; ยอมรับ tradeoff (เล่นจบแล้ว cancel ตอน sync)</td></tr>'
-        '<tr><td>EX5</td><td><strong>Clock drift + exclusive timing</strong> &mdash; player clock off by &gt;5s</td>'
+        '<tr><td>EX5</td><td><strong>Clock drift + guaranteed timing</strong> &mdash; player clock off by &gt;5s</td>'
         '<td>ปัจจุบัน: <code>dayjs().isBetween(start, end)</code> ±2s precision &mdash; clock drift ทำให้ miss window</td>'
-        '<td><strong>Server-relative timing:</strong> Exclusive <code>play_at</code> stored as <code>sequence_no</code> position (not wall-clock). '
+        '<td><strong>Server-relative timing:</strong> Guaranteed <code>play_at</code> stored as <code>sequence_no</code> position (not wall-clock). '
         'Player plays by sequence order, ไม่ต้องพึ่ง local clock. '
         'Fallback: NTP sync on reconnect, <code>last_ntp_offset</code> adjustment</td></tr>'
-        '<tr><td>EX6</td><td><strong>Nested exclusive interrupts</strong></td>'
-        '<td>ปัจจุบัน: <code>pausePlayData</code> is <strong>single variable</strong> &mdash; nested interrupt loses original paused ad</td>'
-        '<td><strong>Eliminated by design:</strong> PlaylistBuilder resolves all exclusive positions at build time. '
-        'Player sees flat sequence &mdash; exclusive is just another item at the right position. '
+        '<tr><td>EX6</td><td><strong>Nested guaranteed interrupts</strong></td>'
+        '<td>ปัจจุบัน: <code>pausePlayData</code> is <strong>single variable</strong> &mdash; nested interrupt loses original paused creative</td>'
+        '<td><strong>Eliminated by design:</strong> Ad Decisioning Engine resolves all guaranteed positions at build time. '
+        'Player sees flat sequence &mdash; guaranteed spot is just another item at the right position. '
         'No interrupt/pause mechanism needed (SMIL <code>pauseQueue</code> approach unnecessary)</td></tr>'
-        '<tr><td>EX7</td><td><strong>Exclusive spans round boundary</strong> &mdash; 30s exclusive at minute 9:50 of 10-min round</td>'
-        '<td>ปัจจุบัน: round boundary cuts off exclusive mid-play</td>'
-        '<td><strong>Round extension:</strong> PlaylistBuilder extends round duration to fit exclusive completely. '
-        'Or: exclusive <code>play_at</code> adjusted to start earlier so it fits within round. '
-        'Config: <code>exclusive_round_policy: &quot;extend&quot; | &quot;shift_earlier&quot;</code></td></tr>'
+        '<tr><td>EX7</td><td><strong>Guaranteed spans loop boundary</strong> &mdash; 30s guaranteed at minute 9:50 of 10-min loop</td>'
+        '<td>ปัจจุบัน: loop boundary cuts off guaranteed mid-play</td>'
+        '<td><strong>Loop extension:</strong> Ad Decisioning Engine extends loop duration to fit guaranteed completely. '
+        'Or: guaranteed <code>play_at</code> adjusted to start earlier so it fits within loop. '
+        'Config: <code>guaranteed_loop_policy: &quot;extend&quot; | &quot;shift_earlier&quot;</code></td></tr>'
         '</table>'
     )
 
@@ -1069,27 +1116,27 @@ def build_content(page_id: str = "165019751") -> str:
     sections.append(
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
-        '<tr><td>CF1</td><td><strong>Exclusive during Tier 2/3 fallback</strong></td>'
-        '<td>Player offline, playing fallback content &rarr; exclusive <code>play_at</code> time arrives</td>'
-        '<td>Tier 2 pre-staged exclusive: Player checks Tier 2 locally. ถ้า exclusive อยู่ใน Tier 2 + media cached &rarr; play at position. '
+        '<tr><td>CF1</td><td><strong>Guaranteed during Tier 2/3 fallback</strong></td>'
+        '<td>Player offline, playing house content &rarr; guaranteed <code>play_at</code> time arrives</td>'
+        '<td>Tier 2 pre-staged guaranteed: Player checks Tier 2 locally. ถ้า guaranteed อยู่ใน Tier 2 + creative cached &rarr; play at position. '
         'ถ้าไม่มี (approved after last sync) &rarr; miss (acceptable &mdash; offline = degraded mode)</td></tr>'
-        '<tr><td>CF2</td><td><strong>Budget exhausted mid-exclusive</strong></td>'
-        '<td>Exclusive ad ราคาสูง, campaign budget หมดขณะ exclusive ยังไม่ถึงเวลา</td>'
-        '<td>Exclusive = <strong>guaranteed delivery</strong> (pre-paid slot). Budget check at booking time, not play time. '
+        '<tr><td>CF2</td><td><strong>Budget exhausted mid-guaranteed</strong></td>'
+        '<td>Guaranteed spot ราคาสูง, campaign budget หมดขณะ guaranteed ยังไม่ถึงเวลา</td>'
+        '<td>Guaranteed = <strong>pre-paid delivery commitment</strong>. Budget check at booking time, not play time. '
         'ถ้า budget deplete after booking &rarr; ยังเล่นตาม contract (billing reconcile separately)</td></tr>'
-        '<tr><td>CF3</td><td><strong>Multiple exclusives + regular ads &rarr; time overflow</strong></td>'
-        '<td>Exclusive slots กิน time budget เกือบหมด &rarr; regular ads ไม่มีที่เล่น</td>'
-        '<td>PlaylistBuilder: reserve exclusive FIRST &rarr; remaining time for regular. '
-        'ถ้า remaining &lt; min_slot_duration &rarr; skip lowest-priority regulars. '
+        '<tr><td>CF3</td><td><strong>Multiple guaranteed + campaign creatives &rarr; time overflow</strong></td>'
+        '<td>Guaranteed avails กิน time budget เกือบหมด &rarr; campaign creatives ไม่มีที่เล่น</td>'
+        '<td>Ad Decisioning Engine: reserve guaranteed FIRST &rarr; remaining time for campaigns. '
+        'ถ้า remaining &lt; min_avail_duration &rarr; skip lowest-priority campaigns. '
         'Admin UI: show time utilization preview before approve</td></tr>'
-        '<tr><td>CF4</td><td><strong>Hot-swap exclusive</strong> &mdash; owner cancels exclusive A, immediately books exclusive B at same slot</td>'
+        '<tr><td>CF4</td><td><strong>Hot-swap guaranteed</strong> &mdash; owner cancels guaranteed A, immediately books guaranteed B at same avail</td>'
         '<td>Race condition: cancel event + new booking event may arrive out of order</td>'
         '<td><strong>Version monotonic:</strong> Both cancel and new booking increment version. '
-        'Player applies in version order. PlaylistBuilder atomic: cancel A + insert B in single build cycle</td></tr>'
-        '<tr><td>CF5</td><td><strong>Exclusive + owner ad conflict</strong> &mdash; exclusive books time where only owner ads were playing</td>'
-        '<td>Owner fallback loop interrupted by exclusive</td>'
-        '<td><strong>Priority model:</strong> P1 (Exclusive) &gt; P4 (Owner). PlaylistBuilder replaces owner slot with exclusive. '
-        'Owner ad resumes after exclusive completes (next sequence item)</td></tr>'
+        'Player applies in version order. Ad Decisioning Engine atomic: cancel A + insert B in single build cycle</td></tr>'
+        '<tr><td>CF5</td><td><strong>Guaranteed + house content conflict</strong> &mdash; guaranteed books time where only house content was playing</td>'
+        '<td>House loop interrupted by guaranteed</td>'
+        '<td><strong>Priority model:</strong> P1 (Guaranteed) &gt; P4 (House). Ad Decisioning Engine replaces house avail with guaranteed. '
+        'House content resumes after guaranteed completes (next sequence item)</td></tr>'
         '</table>'
     )
 
@@ -1105,11 +1152,13 @@ def build_content(page_id: str = "165019751") -> str:
         '<table>'
         '<tr><th>Phase</th><th>Backend</th><th>Player</th><th>Risk</th></tr>'
         '<tr><td><strong>Phase 0</strong></td><td>Add <code>version</code> field to Pusher payload</td><td>Store version (don\'t use yet)</td><td>' + status_macro("Zero risk", "Green") + '</td></tr>'
-        '<tr><td><strong>Phase 1</strong></td><td>Add PlaylistBuilder service + DevicePlaylist models + <code>GET /v2/device-playlist</code></td><td>Read-only testing (no behavior change)</td><td>' + status_macro("Backend only", "Green") + '</td></tr>'
-        '<tr><td><strong>Phase 2</strong></td><td>Add Idempotency Key check in play-history</td><td>Send <code>X-Idempotency-Key</code> header</td><td>' + status_macro("Backward compat", "Green") + '</td></tr>'
-        '<tr><td><strong>Phase 3</strong></td><td>&mdash;</td><td>Player V2: read ordered playlist. <strong>Feature flag per device</strong></td><td>' + status_macro("Gradual rollout", "Yellow") + '</td></tr>'
+        '<tr><td><strong>Phase 1</strong></td><td>Add Ad Decisioning Engine + ScreenSchedule models + <code>GET /v2/screen-schedule</code></td><td>Read-only testing (no behavior change)</td><td>' + status_macro("Backend only", "Green") + '</td></tr>'
+        '<tr><td><strong>Phase 2</strong></td><td>Add Idempotency Key check in PoP endpoint</td><td>Send <code>X-Idempotency-Key</code> header</td><td>' + status_macro("Backward compat", "Green") + '</td></tr>'
+        '<tr><td><strong>Phase 3</strong></td><td>&mdash;</td><td>Player V2: read ordered screen schedule. <strong>Feature flag per device</strong></td><td>' + status_macro("Gradual rollout", "Yellow") + '</td></tr>'
         '<tr><td><strong>Phase 4</strong></td><td>&mdash;</td><td>3-Tier cache + state machine + checksum validation</td><td>' + status_macro("Full new behavior", "Yellow") + '</td></tr>'
         '<tr><td><strong>Phase 5</strong></td><td>Remove old schedule endpoints (v1)</td><td>Remove old scheduling code</td><td>' + status_macro("Cleanup", "Grey") + '</td></tr>'
+        '<tr><td><strong>Phase 6</strong></td><td>SSP integration: ad request for P3 avails, impression tracking (IAB fields), <code>GET /v2/avails</code> API</td><td>No change (backend-only pDOOH)</td><td>' + status_macro("Backend only", "Yellow") + '</td></tr>'
+        '<tr><td><strong>Phase 7</strong></td><td>Mediation layer: multi-SSP, floor price, preferred deals</td><td>PoP format upgrade (IAB DOOH standard)</td><td>' + status_macro("Revenue impact", "Red") + '</td></tr>'
         '</table>'
     )
 
@@ -1141,7 +1190,7 @@ def build_content(page_id: str = "165019751") -> str:
         '<td><ul>'
         '<li><strong>P0-P4 levels</strong> = simplified priorityClass</li>'
         '<li><strong>Exclusive = P1</strong> with guaranteed slot reservation</li>'
-        '<li>No pause queue needed &mdash; PlaylistBuilder resolves at build time (player sees flat sequence)</li>'
+        '<li>No pause queue needed &mdash; Ad Decisioning Engine resolves at build time (player sees flat sequence)</li>'
         '<li>SMIL <code>peers=&quot;stop&quot;</code> semantic for overlapping exclusives</li>'
         '</ul></td></tr>'
         '<tr><td><strong>Xibo CMS</strong><br/>Interrupt Layout + Priority</td>'
@@ -1153,7 +1202,7 @@ def build_content(page_id: str = "165019751") -> str:
         '</ul></td>'
         '<td><ul>'
         '<li><strong>Priority number</strong> concept &rarr; our P0-P4 model</li>'
-        '<li><strong>Time allocation</strong> &rarr; PlaylistBuilder timeline reservation</li>'
+        '<li><strong>Time allocation</strong> &rarr; Ad Decisioning Engine timeline reservation</li>'
         '<li>Share of Voice concept applicable for future frequency-based billing</li>'
         '</ul></td></tr>'
         '<tr><td><strong>DOOH Ad Servers</strong><br/>(Broadsign, Vistar, Hivestack)</td>'
@@ -1164,10 +1213,27 @@ def build_content(page_id: str = "165019751") -> str:
         '<li>Real-time decisioning: bid/no-bid per play opportunity</li>'
         '</ul></td>'
         '<td><ul>'
-        '<li><strong>Guaranteed &gt; programmatic</strong> concept &rarr; Exclusive (P1) &gt; Regular (P2-P3)</li>'
-        '<li>Campaign pacing idea applicable for frequency ads (even distribution)</li>'
-        '<li>Future: programmatic layer can plug into P3 level</li>'
+        '<li><strong>Guaranteed &gt; programmatic</strong> concept &rarr; P1 Guaranteed &gt; P2 Direct-Sold &gt; P3 Spot Buy</li>'
+        '<li>Campaign pacing for BEP-2998 under-delivery fix (even impression distribution)</li>'
+        '<li>Phase 6: programmatic SSP layer plugs into P3 avails</li>'
         '</ul></td></tr>'
+        '</table>'
+    )
+
+    sections.append("<h4>Our Architecture vs DOOH Standard</h4>")
+    sections.append(
+        '<table>'
+        '<tr><th>DOOH Concept</th><th>Our Implementation</th><th>Gap</th></tr>'
+        '<tr><td><strong>Ad Server</strong></td><td>Ad Decisioning Engine within Backend (AdonisJS)</td><td>Not separated &mdash; OK for 100-500 screens</td></tr>'
+        '<tr><td><strong>CMS</strong></td><td>Admin panel + owner dashboard</td><td>Standard</td></tr>'
+        '<tr><td><strong>SSP (Supply-Side Platform)</strong></td><td>Not yet &mdash; P3 = future SSP avail</td><td>Phase 6 roadmap</td></tr>'
+        '<tr><td><strong>Impression tracking</strong></td><td>PoP via Outbox pattern</td><td>Add IAB fields (Phase 6)</td></tr>'
+        '<tr><td><strong>Campaign pacing</strong></td><td>BEP-2998 fix + Ad Decisioning Engine</td><td>Basic &mdash; enhance in Phase 6</td></tr>'
+        '<tr><td><strong>SOV allocation</strong></td><td>ownerTime/platformTime ratio</td><td>Renamed to SOV, same logic</td></tr>'
+        '<tr><td><strong>Guaranteed delivery</strong></td><td>P1 guaranteed spots with reservation check</td><td>Standard</td></tr>'
+        '<tr><td><strong>Creative management</strong></td><td>Media upload + CDN + checksum validation</td><td>Standard</td></tr>'
+        '<tr><td><strong>Offline resilience</strong></td><td>3-Tier cache (Live/Buffer/Fallback)</td><td>Standard (comparable to Xibo/BrightSign)</td></tr>'
+        '<tr><td><strong>Loop scheduling</strong></td><td>10-min loop via Scheduling Engine (BullMQ)</td><td>Standard</td></tr>'
         '</table>'
     )
 
@@ -1244,9 +1310,9 @@ def build_content(page_id: str = "165019751") -> str:
         "<ol>"
         "<li><strong>Typed Pusher event contracts</strong> &mdash; shared interfaces (backend + player)</li>"
         "<li><strong>Version protocol</strong> &mdash; monotonic <code>version</code> per device on every Pusher event</li>"
-        "<li><strong>Outbox pattern</strong> &mdash; Tauri Store with UUID idempotency key + flush cycle</li>"
+        "<li><strong>PoP Outbox pattern</strong> &mdash; Tauri Store with UUID idempotency key + flush cycle</li>"
         "<li><strong>Inbox dedup</strong> &mdash; <code>event_id</code> tracking (last 100) + version gap detection</li>"
-        "<li><strong>Backend idempotency</strong> &mdash; Redis <code>idem:{uuid}</code> check on play-history endpoint</li>"
+        "<li><strong>PoP deduplication</strong> &mdash; Redis <code>idem:{uuid}</code> check on PoP endpoint</li>"
         "<li><strong>Domain events (in-code)</strong> &mdash; named typed objects, passed between services, logged for observability</li>"
         "</ol>"
     ))

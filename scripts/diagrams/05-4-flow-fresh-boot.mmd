@@ -3,7 +3,7 @@ sequenceDiagram
     participant BE as Backend
     Note over PL: BOOT → no cache<br/>→ SPLASH (logo)
     Note over PL: Internet OK → SYNCING
-    PL->>BE: GET /v2/device-playlist (full)
+    PL->>BE: GET /v2/screen-schedule (full)
     BE->>PL: Tier 1 + 2 + 3 + manifest
     Note over PL: Download ALL media<br/>Save Tauri Store<br/>local_version = latest
     rect rgb(200, 255, 200)

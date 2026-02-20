@@ -14,8 +14,8 @@ sequenceDiagram
         PU->>PL: Pusher reconnect
         Note over PL: Debounce 10s
     end
-    PL->>BE: GET /device-playlist?since=42
-    Note over BE: gap=3 → FULL playlist
+    PL->>BE: GET /screen-schedule?since=42
+    Note over BE: gap=3 → FULL schedule
     BE->>PL: {version:45, full:true}
     Note over PL: Replace Tier 1+2<br/>local_version=45<br/>→ ONLINE_PLAYBACK
     PL->>BE: POST /play-history (flush backlog)
