@@ -5,6 +5,7 @@ Creates under BEP space as a child of 'Player Doc' (page 81592324).
 Idempotent: checks if page already exists by title.
 """
 
+import json
 import sys
 import uuid
 from pathlib import Path
@@ -18,6 +19,31 @@ from lib import ConfluenceAPI
 SPACE_KEY = "BEP"
 PARENT_PAGE_ID = "81592324"  # Player Doc
 PAGE_TITLE = "Architecture Proposal: Backend-Driven Player — Dumb Renderer + Offline Resilience"
+ARCH_PAGE_ID = "165019751"  # The architecture page itself
+
+# ─── Sub-Page Config ───
+PAGE_IDS_FILE = Path(__file__).parent / "architecture-page-ids.json"
+
+SUB_PAGE_TITLES = {
+    "1_problem_current": "1. Problem Statement & Current Architecture",
+    "2_proposed": "2. Proposed Architecture",
+    "3_key_flows": "3. Key Flows",
+    "4_tech_algorithm": "4. Technical Design: Algorithm & Models",
+    "5_tech_player": "5. Technical Design: Player Components",
+    "6_interrupt_makegood": "6. Interrupt Controller & Make-Good",
+    "7_events": "7. Event-Driven Architecture",
+    "8_edge_migration": "8. Edge Cases, Migration & Appendix",
+}
+
+
+def load_page_ids() -> dict:
+    if PAGE_IDS_FILE.exists():
+        return json.loads(PAGE_IDS_FILE.read_text(encoding="utf-8"))
+    return {"parent": ARCH_PAGE_ID, "pages": {k: None for k in SUB_PAGE_TITLES}}
+
+
+def save_page_ids(data: dict):
+    PAGE_IDS_FILE.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 # ─── Mermaid Forge App Constants ───
 MERMAID_APP_ID = "23392b90-4271-4239-98ca-a3e96c663cbb"
@@ -249,13 +275,19 @@ def status_macro(text: str, colour: str = "Grey") -> str:
     )
 
 
-def build_content(page_id: str = "165019751") -> str:
-    global _code_block_count
-    _code_block_count = 0
-    sections = []
+def children_macro() -> str:
+    """Confluence Children macro — lists child pages automatically."""
+    return (
+        '<ac:structured-macro ac:name="children" ac:schema-version="2">'
+        '<ac:parameter ac:name="all">true</ac:parameter>'
+        '<ac:parameter ac:name="sort">creation</ac:parameter>'
+        "</ac:structured-macro>"
+    )
 
-    # ToC
-    sections.append(toc())
+
+def build_parent_content(page_id: str = ARCH_PAGE_ID) -> str:
+    """Parent page: Executive Summary text + Children macro (0 mermaid, 0 code blocks)."""
+    sections = []
 
     # Header metadata
     sections.append(info_panel(
@@ -270,10 +302,8 @@ def build_content(page_id: str = "165019751") -> str:
         "</p>"
     ))
 
-    # ═══════════════════════════════════════════════════════════════
-    # Section 1: Executive Summary (NEW)
-    # ═══════════════════════════════════════════════════════════════
-    sections.append("<h2>1. Executive Summary</h2>")
+    # Executive Summary (TEXT ONLY — diagrams moved to page 2)
+    sections.append("<h2>Executive Summary</h2>")
     sections.append(success_panel(
         "<p><strong>Problem:</strong> Player มี scheduling logic <strong>3,500+ บรรทัด</strong> "
         "ที่จัดลำดับ ad เอง + ไม่มี offline resilience (fresh boot + no internet = <strong>จอดำ</strong>) "
@@ -286,27 +316,34 @@ def build_content(page_id: str = "165019751") -> str:
         "<strong>+ premium products:</strong> Daypart Takeover (เหมา time block) + Exact-Time Spot (เล่นตรงเวลา) "
         "with make-good compensation</p>"
     ))
-    sections.append(mermaid_diagram(
-        load_diagram("01-proposed-architecture.mmd"),
-        page_id=page_id,
-    ))
 
-    sections.append("<h3>Daily Schedule Example</h3>")
-    sections.append(info_panel(
-        "<p>ตัวอย่าง billboard 1 จอ ตลอดวัน — แสดงสัดส่วนเวลาจริงระหว่าง priority levels ต่างๆ. "
-        "<strong>P1-TK</strong> (แดง) กินเวลา 1 ชั่วโมงเต็ม, <strong>P1-ET</strong> (แดง) เป็น pin-point ตรงเวลา, "
-        "<strong>P1-G</strong> (ฟ้า) กระจายตลอดวัน, <strong>P2-P4</strong> เติมช่วงที่เหลือ</p>"
-    ))
-    sections.append(mermaid_diagram(
-        load_diagram("01-2-daily-schedule.mmd"),
-        page_id=page_id,
-    ))
+    # Children macro — auto-lists sub-pages
+    sections.append("<h2>Contents</h2>")
+    sections.append(children_macro())
 
-    # ═══════════════════════════════════════════════════════════════
-    # Section 2: Problem Statement
-    # ═══════════════════════════════════════════════════════════════
-    sections.append("<hr/>")
-    sections.append("<h2>2. Problem Statement</h2>")
+    return "\n".join(sections)
+
+
+def build_content(page_id: str = ARCH_PAGE_ID) -> str:
+    """LEGACY — original monolithic build. Kept for reference."""
+    return build_parent_content(page_id)
+
+
+# ═══════════════════════════════════════════════════════════════
+# Sub-Page Builders
+# ═══════════════════════════════════════════════════════════════
+
+
+def build_page_1(page_id: str) -> str:
+    """Page 1: Problem Statement & Current Architecture (2 mermaid, 0 code blocks)."""
+    global _code_block_count
+    _code_block_count = 0
+    sections = []
+
+    sections.append(toc())
+
+    # ── Problem Statement ──
+    sections.append("<h2>1. Problem Statement</h2>")
     sections.append(error_panel(
         "<p><strong>Smart Player (Scheduling Complexity)</strong></p>"
         "<ul>"
@@ -346,12 +383,10 @@ def build_content(page_id: str = "165019751") -> str:
         "</ul>"
     ))
 
-    # ═══════════════════════════════════════════════════════════════
-    # Section 3: Current Architecture
-    # ═══════════════════════════════════════════════════════════════
+    # ── Current Architecture ──
     sections.append("<hr/>")
-    sections.append("<h2>3. Current Architecture</h2>")
-    sections.append("<h3>3.1 Backend (tathep-platform-api)</h3>")
+    sections.append("<h2>2. Current Architecture</h2>")
+    sections.append("<h3>2.1 Backend (tathep-platform-api)</h3>")
 
     sections.append(mermaid_diagram(
         load_diagram("03-1-backend-pipeline.mmd"),
@@ -377,7 +412,7 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>3.2 Player (bd-vision-player)</h3>")
+    sections.append("<h3>2.2 Player (bd-vision-player)</h3>")
     sections.append(mermaid_diagram(
         load_diagram("03-2-player-architecture.mmd"),
         page_id=page_id,
@@ -400,7 +435,7 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>3.3 Pusher Events</h3>")
+    sections.append("<h3>2.3 Pusher Events</h3>")
     sections.append(
         '<table>'
         '<tr><th>Event</th><th>Trigger</th><th>Player Action</th></tr>'
@@ -413,17 +448,43 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    # ═══════════════════════════════════════════════════════════════
-    # Section 4: Proposed Architecture
-    # ═══════════════════════════════════════════════════════════════
+    return "\n".join(sections)
+
+
+def build_page_2(page_id: str) -> str:
+    """Page 2: Proposed Architecture (3 mermaid — overview + daily schedule + proposed flow)."""
+    global _code_block_count
+    _code_block_count = 0
+    sections = []
+
+    sections.append(toc())
+
+    # Architecture overview diagram (moved from Executive Summary)
+    sections.append("<h2>Architecture Overview</h2>")
+    sections.append(mermaid_diagram(
+        load_diagram("01-proposed-architecture.mmd"),
+        page_id=page_id,
+    ))
+
+    sections.append("<h3>Daily Schedule Example</h3>")
+    sections.append(info_panel(
+        "<p>ตัวอย่าง billboard 1 จอ ตลอดวัน — แสดงสัดส่วนเวลาจริงระหว่าง priority levels ต่างๆ. "
+        "<strong>P1-TK</strong> (แดง) กินเวลา 1 ชั่วโมงเต็ม, <strong>P1-ET</strong> (แดง) เป็น pin-point ตรงเวลา, "
+        "<strong>P1-G</strong> (ฟ้า) กระจายตลอดวัน, <strong>P2-P4</strong> เติมช่วงที่เหลือ</p>"
+    ))
+    sections.append(mermaid_diagram(
+        load_diagram("01-2-daily-schedule.mmd"),
+        page_id=page_id,
+    ))
+
     sections.append("<hr/>")
-    sections.append("<h2>4. Proposed Architecture: Backend-Driven Player</h2>")
+    sections.append("<h2>Proposed Architecture: Backend-Driven Player</h2>")
     sections.append(info_panel(
         "<p><strong>Core Idea:</strong> Backend sends <strong>ordered screen schedule (loop sequence)</strong> instead of a bag of creatives + rules. "
         "Player just plays <code>sequence[i++]</code> (Dumb Renderer pattern &mdash; standard in DOOH).</p>"
     ))
 
-    sections.append("<h3>4.1 What Changes vs What Stays</h3>")
+    sections.append("<h3>What Changes vs What Stays</h3>")
     sections.append(
         '<table>'
         '<tr><th>Component</th><th>Current</th><th>Proposed</th><th>Change Type</th></tr>'
@@ -443,7 +504,7 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>4.2 Infrastructure Mapping</h3>")
+    sections.append("<h3>Infrastructure Mapping</h3>")
     sections.append(
         '<table>'
         '<tr><th>Existing Infrastructure</th><th>Role Today</th><th>Role in Proposed</th><th>Change</th></tr>'
@@ -460,25 +521,31 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    # ═══════════════════════════════════════════════════════════════
-    # Section 5: Key Flows (Sequence Diagrams)
-    # ═══════════════════════════════════════════════════════════════
-    sections.append("<hr/>")
-    sections.append("<h2>5. Key Flows</h2>")
+    return "\n".join(sections)
 
-    sections.append("<h3>5.1 Flow A: Normal Online Play (Happy Path)</h3>")
+
+def build_page_3(page_id: str) -> str:
+    """Page 3: Key Flows (6 mermaid, 0 code blocks)."""
+    global _code_block_count
+    _code_block_count = 0
+    sections = []
+
+    sections.append(toc())
+    sections.append("<h2>Key Flows</h2>")
+
+    sections.append("<h3>Flow A: Normal Online Play (Happy Path)</h3>")
     sections.append(mermaid_diagram(
         load_diagram("05-1-flow-normal.mmd"),
         page_id=page_id,
     ))
 
-    sections.append("<h3>5.2 Flow B: Network Drop &rarr; Offline &rarr; Reconnect</h3>")
+    sections.append("<h3>Flow B: Network Drop &rarr; Offline &rarr; Reconnect</h3>")
     sections.append(mermaid_diagram(
         load_diagram("05-2-flow-network-drop.mmd"),
         page_id=page_id,
     ))
 
-    sections.append("<h3>5.3 Flow C: Guaranteed Spot Interrupt (Online)</h3>")
+    sections.append("<h3>Flow C: Guaranteed Spot Interrupt (Online)</h3>")
     sections.append(warning_panel(
         "<p><strong>Current system has 2 paths for guaranteed spots (เดิมเรียก exclusive):</strong></p>"
         "<ul>"
@@ -497,13 +564,13 @@ def build_content(page_id: str = "165019751") -> str:
         page_id=page_id,
     ))
 
-    sections.append("<h3>5.4 Flow D: Fresh Boot (No Cache)</h3>")
+    sections.append("<h3>Flow D: Fresh Boot (No Cache)</h3>")
     sections.append(mermaid_diagram(
         load_diagram("05-4-flow-fresh-boot.mmd"),
         page_id=page_id,
     ))
 
-    sections.append("<h3>5.5 Flow E: Daypart Takeover</h3>")
+    sections.append("<h3>Flow E: Daypart Takeover</h3>")
     sections.append(info_panel(
         "<p><strong>Daypart Takeover (เหมา time block):</strong> ลูกค้าซื้อช่วงเวลาทั้งหมด (เช่น 08:00-09:00) "
         "วน ad เดียวไม่หยุด ไม่มี ad อื่นแทรกได้ยกเว้น P0 Emergency. "
@@ -516,7 +583,7 @@ def build_content(page_id: str = "165019751") -> str:
         page_id=page_id,
     ))
 
-    sections.append("<h3>5.6 Flow F: Exact-Time Spot</h3>")
+    sections.append("<h3>Flow F: Exact-Time Spot</h3>")
     sections.append(info_panel(
         "<p><strong>Exact-Time Spot:</strong> Ad ต้องเล่นตรงเวลาที่กำหนด (±5 วินาที). "
         "Interrupt Controller จะหยุด creative ที่กำลังเล่น (P2-P4 เท่านั้น) แล้วเล่น ET spot ทันที. "
@@ -528,14 +595,20 @@ def build_content(page_id: str = "165019751") -> str:
         page_id=page_id,
     ))
 
-    # ═══════════════════════════════════════════════════════════════
-    # Section 6: Technical Design
-    # ═══════════════════════════════════════════════════════════════
-    sections.append("<hr/>")
-    sections.append("<h2>6. Technical Design</h2>")
+    return "\n".join(sections)
 
-    # 6.1 Ad Decisioning Algorithm
-    sections.append("<h3>6.1 Ad Decisioning Algorithm</h3>")
+
+def build_page_4(page_id: str) -> str:
+    """Page 4: Technical Design — Algorithm & Models (0 mermaid, 4 code blocks)."""
+    global _code_block_count
+    _code_block_count = 0
+    sections = []
+
+    sections.append(toc())
+    sections.append("<h2>Technical Design: Algorithm &amp; Models</h2>")
+
+    # Ad Decisioning Algorithm
+    sections.append("<h3>Ad Decisioning Algorithm</h3>")
     sections.append(note_panel(
         "<p><strong>Key insight:</strong> Ad Decisioning Engine runs <em>after</em> existing PlayScheduleCalculatePerScreen. "
         "It takes the PlaySchedule rows (already calculated) and converts them into an <strong>ordered loop sequence</strong>.</p>"
@@ -652,8 +725,8 @@ def build_content(page_id: str = "165019751") -> str:
         collapse=True,
     ))
 
-    # 6.2 New Data Models
-    sections.append("<h3>6.2 New Data Models</h3>")
+    # New Data Models
+    sections.append("<h3>New Data Models</h3>")
     sections.append(tracked_code_block(
         "// NEW: ScreenSchedule model (app/Models/ScreenSchedule.ts)\n"
         "interface ScreenSchedule {\n"
@@ -752,8 +825,8 @@ def build_content(page_id: str = "165019751") -> str:
         collapse=True,
     ))
 
-    # 6.3 New API Endpoint
-    sections.append("<h3>6.3 New API Endpoint</h3>")
+    # New API Endpoint
+    sections.append("<h3>New API Endpoint</h3>")
     sections.append(tracked_code_block(
         "// GET /v2/screen-schedule?tier=live&since_version=41\n"
         "// Response:\n"
@@ -804,15 +877,27 @@ def build_content(page_id: str = "165019751") -> str:
         collapse=True,
     ))
 
-    # 6.4 3-Tier Playlist Cache
-    sections.append("<h3>6.4 3-Tier Playlist Cache</h3>")
+    return "\n".join(sections)
+
+
+def build_page_5(page_id: str) -> str:
+    """Page 5: Technical Design — Player Components (5 mermaid, 4 code blocks)."""
+    global _code_block_count
+    _code_block_count = 0
+    sections = []
+
+    sections.append(toc())
+    sections.append("<h2>Technical Design: Player Components</h2>")
+
+    # 3-Tier Playlist Cache
+    sections.append("<h3>3-Tier Playlist Cache</h3>")
     sections.append(mermaid_diagram(
         load_diagram("06-4-three-tier-cache.mmd"),
         page_id=page_id,
     ))
 
-    # 6.5 Player State Machine
-    sections.append("<h3>6.5 Player State Machine</h3>")
+    # Player State Machine
+    sections.append("<h3>Player State Machine</h3>")
     sections.append(mermaid_diagram(
         load_diagram("06-5-state-machine.mmd"),
         page_id=page_id,
@@ -826,8 +911,8 @@ def build_content(page_id: str = "165019751") -> str:
         "</ul>"
     ))
 
-    # 6.6 PoP Reporting (Outbox/Inbox)
-    sections.append("<h3>6.6 PoP Reporting (Outbox/Inbox)</h3>")
+    # PoP Reporting (Outbox/Inbox)
+    sections.append("<h3>PoP Reporting (Outbox/Inbox)</h3>")
     sections.append(error_panel(
         "<p><strong>ปัญหา 1 (Player &rarr; Backend): Duplicate PoP (Proof of Play)</strong><br/>"
         "Player POST <code>/v2/play-history</code> &rarr; timeout &rarr; retry &rarr; backend ได้ 2 รายการ สำหรับ creative เดียวกัน</p>"
@@ -896,15 +981,15 @@ def build_content(page_id: str = "165019751") -> str:
         collapse=True,
     ))
 
-    # 6.7 Version Protocol
-    sections.append("<h3>6.7 Version Protocol</h3>")
+    # Version Protocol
+    sections.append("<h3>Version Protocol</h3>")
     sections.append(mermaid_diagram(
         load_diagram("06-7-version-protocol.mmd"),
         page_id=page_id,
     ))
 
-    # 6.8 PoP Deduplication
-    sections.append("<h3>6.8 PoP Deduplication (Backend Idempotency)</h3>")
+    # PoP Deduplication
+    sections.append("<h3>PoP Deduplication (Backend Idempotency)</h3>")
     sections.append(tracked_code_block(
         "// Backend: PlayHistoryController\n"
         "async store({ request }: HttpContextContract) {\n"
@@ -926,8 +1011,8 @@ def build_content(page_id: str = "165019751") -> str:
         collapse=True,
     ))
 
-    # 6.9 Programmatic Integration Points (pDOOH future)
-    sections.append("<h3>6.9 Programmatic Integration Points (pDOOH Roadmap)</h3>")
+    # Programmatic Integration Points
+    sections.append("<h3>Programmatic Integration Points (pDOOH Roadmap)</h3>")
     sections.append(info_panel(
         "<p><strong>Scale 100-500 screens:</strong> ยังไม่ต้อง SSP/DSP เต็มรูปแบบ แต่วาง integration points ไว้ "
         "เพื่อให้ pluggable เมื่อ scale ถึง. ไม่เพิ่ม tech stack ใหม่ &mdash; ใช้ AdonisJS + Redis + BullMQ เดิม.</p>"
@@ -948,8 +1033,20 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    # 6.10 Interrupt Controller (NEW)
-    sections.append("<h3>6.10 Interrupt Controller</h3>")
+    return "\n".join(sections)
+
+
+def build_page_6(page_id: str) -> str:
+    """Page 6: Interrupt Controller & Make-Good (2 mermaid, 0 code blocks)."""
+    global _code_block_count
+    _code_block_count = 0
+    sections = []
+
+    sections.append(toc())
+    sections.append("<h2>Interrupt Controller &amp; Make-Good</h2>")
+
+    # Interrupt Controller
+    sections.append("<h3>Interrupt Controller</h3>")
     sections.append(warning_panel(
         "<p><strong>Design decision: Selective Interrupt.</strong> "
         "Player ยังเป็น Dumb Renderer สำหรับ P1-G/P2/P3/P4 (รอ creative จบก่อน). "
@@ -983,8 +1080,8 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    # 6.11 Make-Good System (NEW)
-    sections.append("<h3>6.11 Make-Good System</h3>")
+    # Make-Good System
+    sections.append("<h3>Make-Good System</h3>")
     sections.append(info_panel(
         "<p><strong>Make-Good</strong> คือ industry standard สำหรับชดเชย ad ที่โดน interrupt "
         '(<a href="https://www.cjadvertising.com/blog/industry-trends/preempts-makegoods-money-move/">'
@@ -1008,17 +1105,23 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    # ═══════════════════════════════════════════════════════════════
-    # Section 7: Event-Driven Architecture (moved from old §9)
-    # ═══════════════════════════════════════════════════════════════
-    sections.append("<hr/>")
-    sections.append("<h2>7. Event-Driven Architecture</h2>")
+    return "\n".join(sections)
+
+
+def build_page_7(page_id: str) -> str:
+    """Page 7: Event-Driven Architecture (1 mermaid, 2 code blocks)."""
+    global _code_block_count
+    _code_block_count = 0
+    sections = []
+
+    sections.append(toc())
+    sections.append("<h2>Event-Driven Architecture</h2>")
     sections.append(info_panel(
         "<p><strong>Decision:</strong> Formalize existing event-driven patterns (Pusher + BullMQ) with typed contracts, "
         "domain events, and clear ownership. <strong>NOT</strong> Event-Sourcing &mdash; scale + team doesn't justify the complexity.</p>"
     ))
 
-    sections.append("<h3>7.1 What We Already Have (De Facto Event-Driven)</h3>")
+    sections.append("<h3>What We Already Have (De Facto Event-Driven)</h3>")
 
     sections.append(
         '<table>'
@@ -1033,7 +1136,7 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>7.2 Typed Pusher Event Contracts</h3>")
+    sections.append("<h3>Typed Pusher Event Contracts</h3>")
     sections.append(note_panel(
         "<p><strong>Goal:</strong> Every Pusher event has a TypeScript interface shared between backend and player. "
         "No more <code>any</code> types or implicit contracts.</p>"
@@ -1132,7 +1235,7 @@ def build_content(page_id: str = "165019751") -> str:
         collapse=True,
     ))
 
-    sections.append("<h3>7.3 Domain Events (Internal Code-Level)</h3>")
+    sections.append("<h3>Domain Events (Internal Code-Level)</h3>")
     sections.append(note_panel(
         "<p><strong>Goal:</strong> Named domain events inside backend code for traceability. "
         "NOT persisted as event-sourcing log &mdash; just typed objects passed between services.</p>"
@@ -1216,19 +1319,25 @@ def build_content(page_id: str = "165019751") -> str:
         collapse=True,
     ))
 
-    sections.append("<h3>7.4 Event Flow Diagram</h3>")
+    sections.append("<h3>Event Flow Diagram</h3>")
     sections.append(mermaid_diagram(
         load_diagram("07-4-event-flow.mmd"),
         page_id=page_id,
     ))
 
-    # ═══════════════════════════════════════════════════════════════
-    # Section 8: Edge Cases & Resilience (moved from old §6)
-    # ═══════════════════════════════════════════════════════════════
-    sections.append("<hr/>")
-    sections.append("<h2>8. Edge Cases &amp; Resilience</h2>")
+    return "\n".join(sections)
 
-    sections.append("<h3>8.1 Network Issues</h3>")
+
+def build_page_8(page_id: str) -> str:
+    """Page 8: Edge Cases, Migration & Appendix (2 mermaid, 0 code blocks)."""
+    global _code_block_count
+    _code_block_count = 0
+    sections = []
+
+    sections.append(toc())
+    sections.append("<h2>Edge Cases &amp; Resilience</h2>")
+
+    sections.append("<h3>Network Issues</h3>")
     sections.append(
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
@@ -1253,7 +1362,7 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>8.2 Schedule/Playlist Issues</h3>")
+    sections.append("<h3>Schedule/Playlist Issues</h3>")
     sections.append(
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
@@ -1281,7 +1390,7 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>8.3 Device/Storage Issues</h3>")
+    sections.append("<h3>Device/Storage Issues</h3>")
     sections.append(
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
@@ -1306,7 +1415,7 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>8.4 Business Logic Issues</h3>")
+    sections.append("<h3>Business Logic Issues</h3>")
     sections.append(
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
@@ -1328,7 +1437,7 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    sections.append("<h3>8.5 Guaranteed Spot Edge Cases (P1-G — No Interrupt)</h3>")
+    sections.append("<h3>Guaranteed Spot Edge Cases (P1-G — No Interrupt)</h3>")
     sections.append(warning_panel(
         "<p><strong>Edge cases specific to P1-G guaranteed spots</strong> (เดิมเรียก exclusive). "
         "P1-G ยังคง <strong>ไม่ interrupt</strong> — pre-positioned ใน sequence โดย Ad Decisioning Engine. "
@@ -1401,8 +1510,7 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    # 8.6 Takeover & Exact-Time Edge Cases (NEW)
-    sections.append("<h3>8.6 Takeover &amp; Exact-Time Edge Cases (P1-TK / P1-ET)</h3>")
+    sections.append("<h3>Takeover &amp; Exact-Time Edge Cases (P1-TK / P1-ET)</h3>")
     sections.append(mermaid_diagram(
         load_diagram("08-2-takeover-timeline.mmd"),
         page_id=page_id,
@@ -1439,11 +1547,8 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    # ═══════════════════════════════════════════════════════════════
-    # Section 9: Migration Plan (moved from old §7)
-    # ═══════════════════════════════════════════════════════════════
     sections.append("<hr/>")
-    sections.append("<h2>9. Migration Plan (Incremental)</h2>")
+    sections.append("<h2>Migration Plan (Incremental)</h2>")
     sections.append(info_panel(
         "<p><strong>Feature flags:</strong></p>"
         "<ul>"
@@ -1472,14 +1577,10 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    # ═══════════════════════════════════════════════════════════════
-    # Section 10: Appendix
-    # ═══════════════════════════════════════════════════════════════
     sections.append("<hr/>")
-    sections.append("<h2>10. Appendix</h2>")
+    sections.append("<h2>Appendix</h2>")
 
-    # 10.1 Industry Reference (moved from old §8)
-    sections.append("<h3>10.1 Industry Reference</h3>")
+    sections.append("<h3>Industry Reference</h3>")
 
     sections.append("<h4>Priority Scheduling Standards (SMIL + DOOH)</h4>")
     sections.append(info_panel(
@@ -1595,8 +1696,7 @@ def build_content(page_id: str = "165019751") -> str:
         "Solution: checkpoint mode on reconnect (full schedule compare via REST) + event mode once synced (Pusher for incremental).</p>"
     ))
 
-    # 10.2 Decision Record: Why NOT Event-Sourcing (moved from old §9.5)
-    sections.append("<h3>10.2 Decision Record: Why NOT Event-Sourcing</h3>")
+    sections.append("<h3>Decision Record: Why NOT Event-Sourcing</h3>")
     sections.append(warning_panel(
         "<p><strong>ADR-002:</strong> Event-Driven Architecture (NOT Event-Sourcing)</p>"
     ))
@@ -1631,8 +1731,7 @@ def build_content(page_id: str = "165019751") -> str:
         '</table>'
     )
 
-    # 10.3 Implementation Checklist (moved from old §9.6)
-    sections.append("<h3>10.3 Implementation Checklist</h3>")
+    sections.append("<h3>Implementation Checklist</h3>")
     sections.append(success_panel(
         "<p><strong>What to formalize (ordered by priority):</strong></p>"
         "<ol>"
@@ -1648,21 +1747,22 @@ def build_content(page_id: str = "165019751") -> str:
     return "\n".join(sections)
 
 
-def main():
-    dry_run = "--dry-run" in sys.argv
+SECTION_BUILDERS = {
+    "parent": ("parent", build_parent_content),
+    "1": ("1_problem_current", build_page_1),
+    "2": ("2_proposed", build_page_2),
+    "3": ("3_key_flows", build_page_3),
+    "4": ("4_tech_algorithm", build_page_4),
+    "5": ("5_tech_player", build_page_5),
+    "6": ("6_interrupt_makegood", build_page_6),
+    "7": ("7_events", build_page_7),
+    "8": ("8_edge_migration", build_page_8),
+}
 
-    # Parse --update PAGE_ID
-    update_page_id = None
-    if "--update" in sys.argv:
-        idx = sys.argv.index("--update")
-        if idx + 1 < len(sys.argv):
-            update_page_id = sys.argv[idx + 1]
-        else:
-            print("Error: --update requires PAGE_ID argument")
-            sys.exit(1)
 
+def _get_api():
     creds = load_credentials()
-    api = ConfluenceAPI(
+    return ConfluenceAPI(
         base_url=creds["CONFLUENCE_URL"],
         auth_header=get_auth_header(
             creds["CONFLUENCE_USERNAME"], creds["CONFLUENCE_API_TOKEN"]
@@ -1670,41 +1770,137 @@ def main():
         ssl_context=create_ssl_context(),
     )
 
-    pid = update_page_id or "165019751"
-    content = build_content(page_id=pid)
 
-    if dry_run:
-        out = Path(__file__).parent.parent / "tasks" / "player-architecture-preview.html"
+def _update_page(api, page_id: str, content: str, title: str | None = None):
+    page = api.get_page(page_id)
+    version = page["version"]["number"]
+    t = title or page["title"]
+    api.update_page(page_id=page_id, title=t, content=content, version=version)
+    print(f"  Updated: {t} (v{version} -> v{version + 1})")
+    print(f"  URL: https://{{JIRA_SITE}}/wiki/spaces/{SPACE_KEY}/pages/{page_id}")
+
+
+def main():
+    dry_run = "--dry-run" in sys.argv
+    create_all = "--create-all" in sys.argv
+
+    # Parse --section N
+    section = None
+    if "--section" in sys.argv:
+        idx = sys.argv.index("--section")
+        if idx + 1 < len(sys.argv):
+            section = sys.argv[idx + 1]
+        else:
+            print("Error: --section requires argument (parent, 1-8)")
+            sys.exit(1)
+
+    # Parse --update PAGE_ID (legacy)
+    update_page_id = None
+    if "--update" in sys.argv:
+        idx = sys.argv.index("--update")
+        if idx + 1 < len(sys.argv):
+            update_page_id = sys.argv[idx + 1]
+
+    page_ids = load_page_ids()
+    parent_id = page_ids["parent"]
+
+    # ── Dry-run single section ──
+    if dry_run and section:
+        if section not in SECTION_BUILDERS:
+            print(f"Error: unknown section '{section}'. Valid: {list(SECTION_BUILDERS.keys())}")
+            sys.exit(1)
+        key, builder = SECTION_BUILDERS[section]
+        pid = parent_id if section == "parent" else (page_ids["pages"].get(key) or "DRAFT")
+        content = builder(page_id=pid)
+        out = Path(__file__).parent.parent / "tasks" / f"arch-page-{section}-preview.html"
         out.parent.mkdir(exist_ok=True)
         out.write_text(content, encoding="utf-8")
-        print(f"  DRY RUN — Preview saved to {out}")
-        print(f"  Content length: {len(content)} chars")
+        print(f"  DRY RUN section {section} — {out}")
+        print(f"  Content length: {len(content)} chars, code blocks: {_code_block_count}")
         return
 
+    # ── Dry-run all sections ──
+    if dry_run and not section:
+        out_dir = Path(__file__).parent.parent / "tasks"
+        out_dir.mkdir(exist_ok=True)
+        for sec, (key, builder) in SECTION_BUILDERS.items():
+            pid = parent_id if sec == "parent" else (page_ids["pages"].get(key) or "DRAFT")
+            content = builder(page_id=pid)
+            out = out_dir / f"arch-page-{sec}-preview.html"
+            out.write_text(content, encoding="utf-8")
+            print(f"  [{sec:>6}] {len(content):>6} chars, {_code_block_count} code blocks → {out.name}")
+        return
+
+    api = _get_api()
+
+    # ── Create all sub-pages ──
+    if create_all:
+        # Update parent first
+        print("=== Updating parent page ===")
+        content = build_parent_content(page_id=parent_id)
+        _update_page(api, parent_id, content)
+
+        # Create sub-pages
+        for sec in ["1", "2", "3", "4", "5", "6", "7", "8"]:
+            key, builder = SECTION_BUILDERS[sec]
+            title = SUB_PAGE_TITLES[key]
+            existing_id = page_ids["pages"].get(key)
+
+            if existing_id:
+                print(f"\n=== Updating sub-page {sec}: {title} ===")
+                content = builder(page_id=existing_id)
+                _update_page(api, existing_id, content, title)
+            else:
+                print(f"\n=== Creating sub-page {sec}: {title} ===")
+                # Create with placeholder, then update with real content
+                result = api.create_page(
+                    space_key=SPACE_KEY,
+                    title=title,
+                    content="<p>Loading...</p>",
+                    parent_id=parent_id,
+                )
+                new_id = result.get("id", "unknown")
+                page_ids["pages"][key] = new_id
+                save_page_ids(page_ids)
+                print(f"  Created: {new_id}")
+
+                # Now update with real content (needs page_id for Forge macros)
+                content = builder(page_id=new_id)
+                _update_page(api, new_id, content, title)
+
+        print(f"\n=== Done! Page IDs saved to {PAGE_IDS_FILE} ===")
+        return
+
+    # ── Update single section ──
+    if section:
+        if section not in SECTION_BUILDERS:
+            print(f"Error: unknown section '{section}'. Valid: {list(SECTION_BUILDERS.keys())}")
+            sys.exit(1)
+        key, builder = SECTION_BUILDERS[section]
+        if section == "parent":
+            pid = parent_id
+        else:
+            pid = page_ids["pages"].get(key)
+            if not pid:
+                print(f"Error: no page ID for section {section}. Run --create-all first.")
+                sys.exit(1)
+        content = builder(page_id=pid)
+        print(f"=== Updating section {section} ===")
+        _update_page(api, pid, content)
+        return
+
+    # ── Legacy: update specific page ──
     if update_page_id:
-        print(f"=== Updating Confluence page: {update_page_id} ===")
-        page = api.get_page(update_page_id)
-        version = page["version"]["number"]
-        title = page["title"]
-        api.update_page(
-            page_id=update_page_id,
-            title=title,
-            content=content,
-            version=version,
-        )
-        print(f"  Updated: {title} (v{version} -> v{version + 1})")
-        print(f"  URL: https://{{JIRA_SITE}}/wiki/spaces/{SPACE_KEY}/pages/{update_page_id}")
-    else:
-        print(f"=== Creating Confluence page: {PAGE_TITLE} ===")
-        result = api.create_page(
-            space_key=SPACE_KEY,
-            title=PAGE_TITLE,
-            content=content,
-            parent_id=PARENT_PAGE_ID,
-        )
-        page_id = result.get("id", "unknown")
-        print(f"  Created page: {page_id}")
-        print(f"  URL: https://{{JIRA_SITE}}/wiki/spaces/{SPACE_KEY}/pages/{page_id}")
+        content = build_parent_content(page_id=update_page_id)
+        print(f"=== Updating page {update_page_id} ===")
+        _update_page(api, update_page_id, content)
+        return
+
+    print("Usage:")
+    print("  --dry-run [--section N]     Preview HTML output")
+    print("  --create-all                Create/update parent + 8 sub-pages")
+    print("  --section N                 Update single section (parent, 1-8)")
+    print("  --update PAGE_ID            Legacy: update specific page")
 
 
 if __name__ == "__main__":
