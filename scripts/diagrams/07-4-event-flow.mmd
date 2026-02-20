@@ -2,7 +2,7 @@ flowchart TD
     subgraph BE["BACKEND (AdonisJS)"]
         CRON["Cron<br/>(BullMQ)"] --> CALC["PlayScheduleCalc<br/>PerScreen"]
         CALC -->|"PlayScheduleCalculated"| PB["PlaylistBuilder"]
-        PB --> DB[("PostgreSQL")]
+        PB --> DB[("MySQL")]
         PB -->|"DevicePlaylistBuilt"| PUSH["Pusher Push"]
         PH["Play History<br/>+ Idempotency (Redis)"]
     end

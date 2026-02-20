@@ -3,7 +3,7 @@ flowchart TD
         Cron["Cron Job<br/>(BullMQ) every 10m"] --> Calc["PlayScheduleCalculate<br/>NO CHANGE"]
         Calc --> Per["PerScreen calc<br/>NO CHANGE"]
         Per -->|"rows"| PB["⭐ PlaylistBuilder<br/>NEW<br/>Sort → Interleave →<br/>Exclusives → Sequence"]
-        PB --> DB[("PostgreSQL<br/>NO CHANGE")]
+        PB --> DB[("MySQL<br/>NO CHANGE")]
         PB --> DPL[("⭐ DevicePlaylist<br/>NEW")]
         PB --> Push["Pusher<br/>playlist-updated"]
     end

@@ -397,7 +397,7 @@ def build_content(page_id: str = "165019751") -> str:
         '<table>'
         '<tr><th>Existing Infrastructure</th><th>Role Today</th><th>Role in Proposed</th><th>Change</th></tr>'
         '<tr><td><strong>BullMQ + Redis</strong></td><td>Cron job queue (PlayScheduleCalculate)</td><td>Same + enqueue PlaylistBuilder after schedule calc</td><td>' + status_macro("REUSE", "Green") + '</td></tr>'
-        '<tr><td><strong>PostgreSQL</strong></td><td>PlaySchedule, Billboard, Advertisement models</td><td>Same + NEW DevicePlaylist, DevicePlaylistItem tables</td><td>' + status_macro("ADD TABLES", "Yellow") + '</td></tr>'
+        '<tr><td><strong>MySQL</strong></td><td>PlaySchedule, Billboard, Advertisement models</td><td>Same + NEW DevicePlaylist, DevicePlaylistItem tables</td><td>' + status_macro("ADD TABLES", "Yellow") + '</td></tr>'
         '<tr><td><strong>Redis (cache)</strong></td><td>GET/SET string cache (Bentocache)</td><td>Same + idempotency keys (SET with TTL 24h)</td><td>' + status_macro("REUSE", "Green") + '</td></tr>'
         '<tr><td><strong>Pusher (WebSocket)</strong></td><td>6 event types, channel per device</td><td>Same channel + 2 new typed events</td><td>' + status_macro("ADD EVENTS", "Yellow") + '</td></tr>'
         '<tr><td><strong>AdonisJS routes</strong></td><td>Player V2 routes (/play-schedules, /playlist-advertisements)</td><td>Keep existing + add GET /v2/device-playlist</td><td>' + status_macro("ADD ENDPOINT", "Yellow") + '</td></tr>'
