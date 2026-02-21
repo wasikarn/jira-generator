@@ -1,4 +1,5 @@
 flowchart LR
+
     subgraph SCHED["Scheduling"]
         direction LR
         A_CRON(["Cron<br/>System"])
@@ -113,54 +114,3 @@ flowchart LR
     e29@{ animation: fast }
     e30@{ animation: fast }
     e31@{ animation: fast }
-
-    %% Domain Events - Orange
-    style E_CALCULATED fill:#FF8C00,stroke:#CC7000,color:#fff
-    style E_BUILT fill:#FF8C00,stroke:#CC7000,color:#fff
-    style E_RECEIVED fill:#FF8C00,stroke:#CC7000,color:#fff
-    style E_CACHED fill:#FF8C00,stroke:#CC7000,color:#fff
-    style E_PLAYED fill:#FF8C00,stroke:#CC7000,color:#fff
-    style E_POP fill:#FF8C00,stroke:#CC7000,color:#fff
-    style E_TK_APPROVED fill:#FF8C00,stroke:#CC7000,color:#fff
-    style E_INTERRUPTED fill:#FF8C00,stroke:#CC7000,color:#fff
-    style E_MG fill:#FF8C00,stroke:#CC7000,color:#fff
-    style E_PAIRED fill:#FF8C00,stroke:#CC7000,color:#fff
-    style E_BOOTED fill:#FF8C00,stroke:#CC7000,color:#fff
-    style E_SYNCED fill:#FF8C00,stroke:#CC7000,color:#fff
-    style E_UNPAIRED fill:#FF8C00,stroke:#CC7000,color:#fff
-
-    %% Commands - Blue
-    style C_CALC fill:#4169E1,stroke:#2850B0,color:#fff
-    style C_FETCH fill:#4169E1,stroke:#2850B0,color:#fff
-    style C_RECORD fill:#4169E1,stroke:#2850B0,color:#fff
-    style C_APPROVE fill:#4169E1,stroke:#2850B0,color:#fff
-
-    %% Aggregates - Yellow
-    style AGG_PS fill:#FFD700,stroke:#CCB000,color:#333
-    style AGG_ADE fill:#FFD700,stroke:#CCB000,color:#333
-    style AGG_CACHE fill:#FFD700,stroke:#CCB000,color:#333
-    style AGG_OUTBOX fill:#FFD700,stroke:#CCB000,color:#333
-    style AGG_TK fill:#FFD700,stroke:#CCB000,color:#333
-    style AGG_MG fill:#FFD700,stroke:#CCB000,color:#333
-
-    %% Policies - Lilac
-    style POL_BUILD fill:#C8A2C8,stroke:#9B7A9B,color:#333
-    style POL_PUSH fill:#C8A2C8,stroke:#9B7A9B,color:#333
-    style POL_PLAY fill:#C8A2C8,stroke:#9B7A9B,color:#333
-    style POL_FLUSH fill:#C8A2C8,stroke:#9B7A9B,color:#333
-    style POL_INTERRUPT fill:#C8A2C8,stroke:#9B7A9B,color:#333
-    style POL_MAKEGOOD fill:#C8A2C8,stroke:#9B7A9B,color:#333
-
-    %% Actors - Light Yellow
-    style A_CRON fill:#FFFACD,stroke:#CCC88A,color:#333
-    style A_ADMIN fill:#FFFACD,stroke:#CCC88A,color:#333
-
-    %% External Systems - Pink
-    style EXT_PUSHER fill:#FFB6C1,stroke:#CC929A,color:#333
-    style EXT_API fill:#FFB6C1,stroke:#CC929A,color:#333
-
-    %% Swimlane styles
-    style SCHED fill:#f9f9f9,stroke:#999,stroke-width:2px
-    style PLAY fill:#f0f8ff,stroke:#999,stroke-width:2px
-    style INTPT fill:#fff5f5,stroke:#999,stroke-width:2px
-    style DEVICE fill:#f5fff5,stroke:#999,stroke-width:2px

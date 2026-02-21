@@ -1937,26 +1937,24 @@ def build_page_8(page_id: str) -> str:
 
 
 def _es_legend() -> str:
-    """Event Storming color legend table (sticky note notation)."""
+    """Event Storming notation legend table (shape-based)."""
     return (
         '<table>'
-        '<tr><th>Element</th><th>ES Color</th><th>Meaning</th></tr>'
-        '<tr><td style="background:#FF8C00;color:#fff;font-weight:bold;text-align:center">Domain Event</td>'
-        '<td>Orange</td><td>Something that happened (past tense) &mdash; state change in the domain</td></tr>'
-        '<tr><td style="background:#4169E1;color:#fff;font-weight:bold;text-align:center">Command</td>'
-        '<td>Blue</td><td>Action that triggers an event (imperative verb)</td></tr>'
-        '<tr><td style="background:#FFD700;color:#333;font-weight:bold;text-align:center">Aggregate</td>'
-        '<td>Yellow</td><td>Entity/service that processes commands and produces events</td></tr>'
-        '<tr><td style="background:#C8A2C8;color:#333;font-weight:bold;text-align:center">Policy</td>'
-        '<td>Lilac</td><td>Business rule: &ldquo;Whenever X happens, then do Y&rdquo;</td></tr>'
-        '<tr><td style="background:#FFFACD;color:#333;font-weight:bold;text-align:center">Actor</td>'
-        '<td>Light Yellow</td><td>Person or system role that initiates a command</td></tr>'
-        '<tr><td style="background:#FFB6C1;color:#333;font-weight:bold;text-align:center">External System</td>'
-        '<td>Pink</td><td>System outside our control (Pusher, CDN, etc.)</td></tr>'
-        '<tr><td style="background:#90EE90;color:#333;font-weight:bold;text-align:center">Read Model</td>'
-        '<td>Green</td><td>Information needed to make a decision before issuing a command</td></tr>'
-        '<tr><td style="background:#FF6B6B;color:#fff;font-weight:bold;text-align:center">Hot Spot</td>'
-        '<td>Red</td><td>Risk, question, or unresolved problem</td></tr>'
+        '<tr><th>Element</th><th>Shape</th><th>Meaning</th></tr>'
+        '<tr><td><strong>Domain Event</strong></td>'
+        '<td><code>[text]</code> rectangle</td><td>Something that happened (past tense) &mdash; state change in the domain</td></tr>'
+        '<tr><td><strong>Command</strong></td>'
+        '<td><code>[text]</code> rectangle</td><td>Action that triggers an event (imperative verb)</td></tr>'
+        '<tr><td><strong>Aggregate</strong></td>'
+        '<td><code>[text]</code> rectangle</td><td>Entity/service that processes commands and produces events</td></tr>'
+        '<tr><td><strong>Policy</strong></td>'
+        '<td><code>{{text}}</code> hexagon</td><td>Business rule: &ldquo;Whenever X happens, then do Y&rdquo;</td></tr>'
+        '<tr><td><strong>Actor</strong></td>'
+        '<td><code>([text])</code> stadium</td><td>Person or system role that initiates a command</td></tr>'
+        '<tr><td><strong>External System</strong></td>'
+        '<td><code>[(text)]</code> cylinder</td><td>System outside our control (Pusher, CDN, etc.)</td></tr>'
+        '<tr><td><strong>Read Model</strong></td>'
+        '<td><code>[/text/]</code> parallelogram</td><td>Information needed to make a decision before issuing a command</td></tr>'
         '</table>'
     )
 
@@ -1974,7 +1972,7 @@ def build_page_9(page_id: str) -> str:
         "ภาพรวม domain events ทั้งระบบ Backend-Driven Player &mdash; "
         "จัดตาม swimlane (Scheduling, Playback, Interrupt, Device Lifecycle)<br/>"
         "อ้างอิง methodology ของ Alberto Brandolini &mdash; "
-        "ใช้ color-coded nodes แทน sticky notes</p>"
+        "ใช้ shape-coded nodes แทน sticky notes</p>"
     ))
 
     # Legend
