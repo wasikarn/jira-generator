@@ -279,6 +279,18 @@ def mermaid_diagram(code: str, page_id: str) -> str:
     return expand_html + forge_html
 
 
+def expand_section(title: str, content: str) -> str:
+    """Wrap content in an Expand macro (collapsed by default)."""
+    local_id = str(uuid.uuid4())
+    return (
+        f'<ac:structured-macro ac:local-id="{local_id}" '
+        f'ac:name="expand" ac:schema-version="1">'
+        f'<ac:parameter ac:name="title">{title}</ac:parameter>'
+        f'<ac:rich-text-body>{content}</ac:rich-text-body>'
+        f'</ac:structured-macro>'
+    )
+
+
 def status_macro(text: str, colour: str = "Grey") -> str:
     return (
         f'<ac:structured-macro ac:name="status" ac:schema-version="1">'
@@ -406,7 +418,7 @@ def build_page_1(page_id: str) -> str:
         page_id=page_id,
     ))
 
-    sections.append(
+    sections.append(expand_section("Backend Components (13 files)",
         '<table>'
         '<tr><th>Component</th><th>File</th><th>Purpose</th></tr>'
         '<tr><td>PlaySchedule model</td><td><code>app/Models/PlaySchedule.ts</code></td><td>Status: WAITING&rarr;PLAYING&rarr;PLAYED, Types: guaranteed/ROS/spot-rotation</td></tr>'
@@ -423,7 +435,7 @@ def build_page_1(page_id: str) -> str:
         '<tr><td>Reservation check</td><td><code>app/Services/ServiceHelpers/checkIsBillboardsReserved.ts</code></td><td>Prevent double-booking: validate time overlap before creating guaranteed avails</td></tr>'
         '<tr><td>Pusher service</td><td><code>app/Services/PusherPlayScheduleService.ts</code></td><td>Channel: play-schedule-{deviceCode}</td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<h3>2.2 Player (bd-vision-player)</h3>")
     sections.append(mermaid_diagram(
@@ -431,7 +443,7 @@ def build_page_1(page_id: str) -> str:
         page_id=page_id,
     ))
 
-    sections.append(
+    sections.append(expand_section("Player Features (8 items)",
         '<table>'
         '<tr><th>Feature</th><th>Implementation</th><th>File</th></tr>'
         '<tr><td>Schedule types</td><td><code>exclusive</code> (guaranteed spot), <code>continuous</code> (direct-sold ROS), <code>frequency</code> (spot rotation)</td><td><code>src/constants/schedule.constant.ts</code></td></tr>'
@@ -446,10 +458,10 @@ def build_page_1(page_id: str) -> str:
         '<tr><td>Offline detect</td><td><code>err?.message === "Load failed"</code></td><td><code>screen.device.schedule.component.tsx</code></td></tr>'
         '<tr><td>PoP (Proof of Play) retry</td><td>Tauri Store (<code>player.history.json</code>), batch 10, every 1 min</td><td><code>player-history.store.ts</code></td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<h3>2.3 Pusher Events</h3>")
-    sections.append(
+    sections.append(expand_section("Pusher Events (6 events)",
         '<table>'
         '<tr><th>Event</th><th>Trigger</th><th>Player Action</th></tr>'
         '<tr><td><code>update-play-schedule</code></td><td>Scheduling engine loop complete</td><td>Re-fetch <code>GET /v2/play-schedules</code></td></tr>'
@@ -459,7 +471,7 @@ def build_page_1(page_id: str) -> str:
         '<tr><td><code>new/update/delete-play-schedule</code></td><td>Schedule CRUD</td><td>Re-fetch schedules</td></tr>'
         '<tr><td><code>un-pair-screen</code></td><td>Device unpaired</td><td>Clear all, back to pair screen</td></tr>'
         '</table>'
-    )
+    ))
 
     return "\n".join(sections)
 
@@ -958,7 +970,7 @@ def build_page_5(page_id: str) -> str:
         "// 2. Batch POST /v2/play-history with X-Idempotency-Key header\n"
         "// 3. On 200 OK → mark 'acked', store ack_id\n"
         "// 4. On timeout/error → keep 'pending', retry_count++\n"
-        "// 5. retry_count > 10 → mark 'failed', log diagnostic\n"
+        "// 5. retry_count > 10 → mark 'failed', log diagnostic (increased from current 3)\n"
         "// 6. Cleanup: remove 'acked' items older than 24h",
         "typescript", "Outbox Interface",
         collapse=True,
@@ -1178,6 +1190,10 @@ def build_page_7(page_id: str) -> str:
         "  round_id: string\n"
         "  source: 'cron' | 'player-pull'\n"
         "}\n\n"
+        "/** @deprecated Phase 1+ — absorbed into schedule-updated\n"
+        " *  ADE pre-positions guaranteed spots in ordered sequence,\n"
+        " *  so direct inject via this event is no longer needed.\n"
+        " *  Kept during migration (Phase 0-3) for backward compat. */\n"
         "interface ApprovedExclusiveEvent extends PusherEventBase {\n"
         "  type: 'approved-advertisement-exclusive'\n"
         "  version: number\n"
@@ -1236,7 +1252,7 @@ def build_page_7(page_id: str) -> str:
         "type PusherEvent =\n"
         "  | UpdatePlayScheduleEvent\n"
         "  | CreatedPlayScheduleEvent\n"
-        "  | ApprovedExclusiveEvent\n"
+        "  | ApprovedExclusiveEvent   // @deprecated — migration only\n"
         "  | StopAdvertisementEvent\n"
         "  | UnPairScreenEvent\n"
         "  | ScheduleUpdatedEvent\n"
@@ -1351,7 +1367,7 @@ def build_page_8(page_id: str) -> str:
     sections.append("<h2>Edge Cases &amp; Resilience</h2>")
 
     sections.append("<h3>Network Issues</h3>")
-    sections.append(
+    sections.append(expand_section("E1-E6: Network Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
         '<tr><td>E1</td><td><strong>Network flapping</strong> (on/off ทุก 30 วิ)</td>'
@@ -1373,10 +1389,10 @@ def build_page_8(page_id: str) -> str:
         '<td>fetch fail แต่ internet ยังใช้ได้</td>'
         '<td>Treat เหมือน offline. Player มี Tier 2/3 รองรับ. เพิ่ม <strong>diagnostic log</strong> แยก SSL error จาก network error</td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<h3>Schedule/Playlist Issues</h3>")
-    sections.append(
+    sections.append(expand_section("E7-E13: Schedule/Playlist Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
         '<tr><td>E7</td><td><strong>Schedule gap</strong> &mdash; ไม่มี ad สำหรับช่วงเวลานี้</td>'
@@ -1401,10 +1417,10 @@ def build_page_8(page_id: str) -> str:
         '<td>Race condition ใน playlist update</td>'
         '<td><strong>Version monotonic:</strong> Player เก็บ <code>current_version</code>. ถ้า <code>event.version</code> &le; current &rarr; skip. ถ้า &gt; current &rarr; process. ถ้า &gt; current+1 (gap) &rarr; full re-fetch</td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<h3>Device/Storage Issues</h3>")
-    sections.append(
+    sections.append(expand_section("E14-E19: Device/Storage Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
         '<tr><td>E14</td><td><strong>Player restart ขณะ offline</strong></td>'
@@ -1426,10 +1442,10 @@ def build_page_8(page_id: str) -> str:
         '<td>เก็บ playlist data ไม่พอ</td>'
         '<td>Migrate heavy data &rarr; <strong>Tauri Store</strong> (JSON file, ไม่มี quota). เก็บเฉพาะ small state ใน localStorage. Playlist data &rarr; Tauri Store</td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<h3>Business Logic Issues</h3>")
-    sections.append(
+    sections.append(expand_section("E20-E24: Business Logic Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
         '<tr><td>E20</td><td><strong>Ad cancelled ขณะ offline</strong></td>'
@@ -1448,7 +1464,7 @@ def build_page_8(page_id: str) -> str:
         '<td>Clone device &rarr; 2 players same code</td>'
         '<td>Backend: POST <code>/v2/play-history</code> ส่ง <code>device_fingerprint</code> (MAC + hostname). ถ้าไม่ตรง &rarr; reject + alert</td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<h3>Guaranteed Spot Edge Cases (P1-G — No Interrupt)</h3>")
     sections.append(warning_panel(
@@ -1456,7 +1472,7 @@ def build_page_8(page_id: str) -> str:
         "P1-G ยังคง <strong>ไม่ interrupt</strong> — pre-positioned ใน sequence โดย Ad Decisioning Engine. "
         "สำหรับ edge cases ของ P1-TK (Takeover) และ P1-ET (Exact-Time) ที่มี interrupt ดู §8.6</p>"
     ))
-    sections.append(
+    sections.append(expand_section("EX1-EX7: Guaranteed Spot Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น (ปัจจุบัน)</th><th>Proposed Solution</th></tr>'
         '<tr><td>EX1</td><td><strong>Overlapping guaranteed spots</strong> &mdash; 2 guaranteed spots ที่เวลาทับกัน</td>'
@@ -1493,10 +1509,10 @@ def build_page_8(page_id: str) -> str:
         'Or: guaranteed <code>play_at</code> adjusted to start earlier so it fits within loop. '
         'Config: <code>guaranteed_loop_policy: &quot;extend&quot; | &quot;shift_earlier&quot;</code></td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<h4>Combined Flow Edge Cases (Regular + Exclusive)</h4>")
-    sections.append(
+    sections.append(expand_section("CF1-CF5: Combined Flow Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
         '<tr><td>CF1</td><td><strong>Guaranteed during Tier 2/3 fallback</strong></td>'
@@ -1521,7 +1537,7 @@ def build_page_8(page_id: str) -> str:
         '<td><strong>Priority model:</strong> P1 (Guaranteed) &gt; P4 (House). Ad Decisioning Engine replaces house avail with guaranteed. '
         'House content resumes after guaranteed completes (next sequence item)</td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<h3>Takeover &amp; Exact-Time Edge Cases (P1-TK / P1-ET)</h3>")
     sections.append(mermaid_diagram(
@@ -1538,7 +1554,7 @@ def build_page_8(page_id: str) -> str:
         load_diagram("08-3-takeover-gantt.mmd"),
         page_id=page_id,
     ))
-    sections.append(
+    sections.append(expand_section("TK1-TK8: Takeover & Exact-Time Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>Solution</th></tr>'
         '<tr><td>TK1</td><td><strong>Overlapping TK booking</strong> &mdash; 2 owners want same time block</td>'
@@ -1558,7 +1574,7 @@ def build_page_8(page_id: str) -> str:
         '<tr><td>TK8</td><td><strong>Make-good creative expired</strong></td>'
         '<td>Skip compensation — log for manual reconcile. Campaign <code>valid_until</code> check prevents playing expired ads</td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<hr/>")
     sections.append("<h2>Migration Plan (Incremental)</h2>")
@@ -1596,12 +1612,12 @@ def build_page_8(page_id: str) -> str:
     sections.append("<h3>Industry Reference</h3>")
 
     sections.append("<h4>Priority Scheduling Standards (SMIL + DOOH)</h4>")
-    sections.append(info_panel(
-        "<p>Our proposed <strong>5-level priority model (P0-P4)</strong> is inspired by these industry standards. "
-        "The key insight: exclusive/priority scheduling is a <em>solved problem</em> in digital signage &mdash; "
-        "we adapt proven patterns rather than inventing from scratch.</p>"
-    ))
-    sections.append(
+    sections.append(expand_section("SMIL, Xibo, Broadsign, DOOH Billing — Priority Standards",
+        info_panel(
+            "<p>Our proposed <strong>5-level priority model (P0-P4)</strong> is inspired by these industry standards. "
+            "The key insight: exclusive/priority scheduling is a <em>solved problem</em> in digital signage &mdash; "
+            "we adapt proven patterns rather than inventing from scratch.</p>"
+        ) +
         '<table>'
         '<tr><th>Standard/Platform</th><th>Priority Mechanism</th><th>What We Adopt</th></tr>'
         '<tr><td><strong>W3C SMIL 3.0</strong><br/><code>&lt;excl&gt;</code> + <code>&lt;priorityClass&gt;</code></td>'
@@ -1656,10 +1672,10 @@ def build_page_8(page_id: str) -> str:
         '<li>Partial play ≠ impression (ไม่นับ billing)</li>'
         '</ul></td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<h4>Our Architecture vs DOOH Standard</h4>")
-    sections.append(
+    sections.append(expand_section("DOOH Standard Comparison (14 concepts)",
         '<table>'
         '<tr><th>DOOH Concept</th><th>Our Implementation</th><th>Gap</th></tr>'
         '<tr><td><strong>Ad Server</strong></td><td>Ad Decisioning Engine within Backend (AdonisJS)</td><td>Not separated &mdash; OK for 100-500 screens</td></tr>'
@@ -1677,10 +1693,10 @@ def build_page_8(page_id: str) -> str:
         '<tr><td><strong>Offline resilience</strong></td><td>3-Tier cache (Live/Buffer/Fallback)</td><td>Standard (comparable to Xibo/BrightSign)</td></tr>'
         '<tr><td><strong>Loop scheduling</strong></td><td>10-min loop via Scheduling Engine (BullMQ)</td><td>Standard</td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<h4>How Commercial Solutions Handle Offline</h4>")
-    sections.append(
+    sections.append(expand_section("Xibo, piSignage, BrightSign, info-beamer — Offline Approaches",
         '<table>'
         '<tr><th>Platform</th><th>Approach</th><th>Buffer</th></tr>'
         '<tr><td>Xibo</td><td>RequiredFiles manifest + MD5 per file + 50MB chunk download</td><td>48h ahead (configurable)</td></tr>'
@@ -1688,10 +1704,10 @@ def build_page_8(page_id: str) -> str:
         '<tr><td>BrightSign BSN.Cloud</td><td>Local-first: all media cached, network = sync only</td><td>Content-dependent</td></tr>'
         '<tr><td>info-beamer</td><td>3-state degradation (Online/Degraded/Offline) + RTC fallback</td><td>All scheduled content</td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<h4>Open Source References</h4>")
-    sections.append(
+    sections.append(expand_section("Xibo, piSignage, Anthias — Open Source References",
         '<table>'
         '<tr><th>Project</th><th>Repository</th><th>Relevant Pattern</th></tr>'
         '<tr><td>Xibo Player SDK</td><td><a href="https://github.com/xibo-players/xiboplayer">xibo-players/xiboplayer</a></td><td>Cache API + IndexedDB, XMR WebSocket, chunk downloads with MD5, 2-layout preload pool</td></tr>'
@@ -1699,7 +1715,7 @@ def build_page_8(page_id: str) -> str:
         '<tr><td>piSignage</td><td><a href="https://github.com/colloqi/piSignage">colloqi/piSignage</a></td><td>Node.js + WebSocket, default playlist fallback, local filesystem media</td></tr>'
         '<tr><td>Anthias (Screenly OSE)</td><td><a href="https://github.com/Screenly/Anthias">Screenly/Anthias</a></td><td>Docker microservices, Redis + SQLite, Celery queue, Qt viewer</td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<h4>Protocol Recommendation</h4>")
     sections.append(note_panel(
@@ -1711,14 +1727,18 @@ def build_page_8(page_id: str) -> str:
 
     # ─── Terminology Mapping (Old System ↔ DOOH Industry) ───
     sections.append("<h3>Terminology Mapping: Tathep &harr; DOOH Industry</h3>")
-    sections.append(info_panel(
-        "<p>ตารางด้านล่างเชื่อมโยงคำศัพท์ <strong>เดิมในระบบ</strong> (codebase + Jira) กับ <strong>คำใหม่</strong> "
-        "ที่ใช้ใน architecture proposal นี้ ซึ่ง align กับมาตรฐาน DOOH industry<br/>"
-        "เพื่อให้คนที่ทำระบบเดิมอยู่ กับคนที่จะทำ version ใหม่ เข้าใจตรงกัน</p>"
-    ))
 
-    sections.append("<h4>Core Concepts</h4>")
-    sections.append(
+    # Build all terminology content, then wrap in a single Expand
+    _term_content = (
+        info_panel(
+            "<p>ตารางด้านล่างเชื่อมโยงคำศัพท์ <strong>เดิมในระบบ</strong> (codebase + Jira) กับ <strong>คำใหม่</strong> "
+            "ที่ใช้ใน architecture proposal นี้ ซึ่ง align กับมาตรฐาน DOOH industry<br/>"
+            "เพื่อให้คนที่ทำระบบเดิมอยู่ กับคนที่จะทำ version ใหม่ เข้าใจตรงกัน</p>"
+        )
+    )
+
+    _term_content += "<h4>Core Concepts</h4>"
+    _term_content += (
         '<table>'
         '<tr><th>หมวด</th><th>คำเดิม (Current System)</th><th>คำใหม่ (DOOH Standard)</th><th>หมายเหตุ</th></tr>'
         '<tr><td rowspan="3"><strong>Ad Types</strong></td>'
@@ -1749,8 +1769,8 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     )
 
-    sections.append("<h4>Backend Components</h4>")
-    sections.append(
+    _term_content += "<h4>Backend Components</h4>"
+    _term_content += (
         '<table>'
         '<tr><th>คำเดิม (Current Code)</th><th>คำใหม่ (Proposed)</th><th>File Path</th></tr>'
         '<tr><td><code>PlaylistBuilderService</code></td><td><strong>AdDecisioningService</strong> (Ad Decisioning Engine)</td>'
@@ -1780,8 +1800,8 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     )
 
-    sections.append("<h4>Player Components</h4>")
-    sections.append(
+    _term_content += "<h4>Player Components</h4>"
+    _term_content += (
         '<table>'
         '<tr><th>คำเดิม (Current Code)</th><th>คำใหม่ (Proposed)</th><th>หมายเหตุ</th></tr>'
         '<tr><td>Smart Player (schedule + render)</td><td><strong>Dumb Renderer</strong> (play <code>sequence[i++]</code>)</td>'
@@ -1806,8 +1826,8 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     )
 
-    sections.append("<h4>Pusher Events</h4>")
-    sections.append(
+    _term_content += "<h4>Pusher Events</h4>"
+    _term_content += (
         '<table>'
         '<tr><th>Event เดิม</th><th>Event ใหม่ / เปลี่ยนแปลง</th><th>หมายเหตุ</th></tr>'
         '<tr><td><code>update-play-schedule</code></td><td><strong><code>schedule-updated</code></strong></td>'
@@ -1827,8 +1847,8 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     )
 
-    sections.append("<h4>API &amp; Data Fields</h4>")
-    sections.append(
+    _term_content += "<h4>API &amp; Data Fields</h4>"
+    _term_content += (
         '<table>'
         '<tr><th>Field / API เดิม</th><th>ใหม่</th><th>หมายเหตุ</th></tr>'
         '<tr><td><code>media_code</code></td><td><strong><code>creative_code</code></strong></td>'
@@ -1849,19 +1869,24 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     )
 
-    sections.append(note_panel(
+    _term_content += note_panel(
         "<p><strong>Code ยังไม่เปลี่ยน:</strong> Mapping นี้คือ <em>terminology</em> ในเอกสาร architecture. "
         "Code refactor จะทำเป็น phase ตาม Migration Plan &mdash; "
         "ไม่ต้อง rename ทุกอย่างพร้อมกัน. "
         "Model เดิม (<code>PlaySchedule</code>, <code>AdvertisementDisplayExclusive</code>, <code>Billboard</code>) "
         "ยังใช้ชื่อเดิมใน codebase จนกว่าจะ migrate</p>"
+    )
+
+    sections.append(expand_section(
+        "Terminology Mapping: 5 tables (Core, Backend, Player, Pusher, API)",
+        _term_content
     ))
 
     sections.append("<h3>Decision Record: Why NOT Event-Sourcing</h3>")
-    sections.append(warning_panel(
-        "<p><strong>ADR-002:</strong> Event-Driven Architecture (NOT Event-Sourcing)</p>"
-    ))
-    sections.append(
+    sections.append(expand_section("ADR-002: Why Event-Driven, NOT Event-Sourcing",
+        warning_panel(
+            "<p><strong>ADR-002:</strong> Event-Driven Architecture (NOT Event-Sourcing)</p>"
+        ) +
         '<table>'
         '<tr><th>Aspect</th><th>Details</th></tr>'
         '<tr><td><strong>Context</strong></td><td>'
@@ -1890,7 +1915,7 @@ def build_page_8(page_id: str) -> str:
         '</ul></td></tr>'
         '<tr><td><strong>Review Date</strong></td><td>Revisit เมื่อ scale &ge; 2,000 billboards หรือ team &ge; 8 devs</td></tr>'
         '</table>'
-    )
+    ))
 
     sections.append("<h3>Implementation Checklist</h3>")
     sections.append(success_panel(
@@ -1954,7 +1979,7 @@ def build_page_9(page_id: str) -> str:
 
     # Legend
     sections.append("<h3>Notation Legend</h3>")
-    sections.append(_es_legend())
+    sections.append(expand_section("ES Notation Legend (8 elements)", _es_legend()))
 
     # Big Picture Timeline
     sections.append("<h3>Domain Events Timeline</h3>")
@@ -2000,8 +2025,9 @@ def build_page_9(page_id: str) -> str:
     sections.append(warning_panel(
         "<p><strong>Known risks and unresolved areas:</strong></p>"
         "<ul>"
-        "<li><strong>Version gap threshold</strong> &mdash; "
-        "how many versions gap before sending full playlist instead of delta? (currently: 3)</li>"
+        "<li><s><strong>Version gap threshold</strong> &mdash; "
+        "how many versions gap before sending full playlist instead of delta?</s> "
+        "<strong>Resolved:</strong> gap &gt; 3 versions &rarr; full replace (see Section 4: Algorithm)</li>"
         "<li><strong>Offline duration limit</strong> &mdash; "
         "how long can player run on Tier 3 fallback before content becomes stale? (days? weeks?)</li>"
         "<li><strong>Takeover overlap</strong> &mdash; "
@@ -2033,7 +2059,7 @@ def build_page_10(page_id: str) -> str:
 
     # Legend
     sections.append("<h3>Notation Legend</h3>")
-    sections.append(_es_legend())
+    sections.append(expand_section("ES Notation Legend (8 elements)", _es_legend()))
 
     # Process A: Schedule Calculation
     sections.append("<hr/>")
@@ -2122,7 +2148,7 @@ def build_page_11(page_id: str) -> str:
 
     # Legend
     sections.append("<h3>Notation Legend</h3>")
-    sections.append(_es_legend())
+    sections.append(expand_section("ES Notation Legend (8 elements)", _es_legend()))
 
     # Bounded Context Map
     sections.append("<hr/>")
