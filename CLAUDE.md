@@ -79,7 +79,7 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 | Script | `update_jira_description.py` (REST) | `/atlassian-scripts` for format |
 | Confluence | MCP (read/simple), Python scripts (code/macros) | `audit_confluence_pages.py` (audit) |
 | Page appearance | `content-appearance-published` property (v2 API) | Controls width only. Font-size depends on content complexity — pages with Forge macros render at 16px, simple pages at 13px. Do NOT set for consistency |
-| Mermaid diagram | Code block (`language=mermaid`) + Forge `ac:adf-extension` | Programmatic: `mermaid_diagram()` in `scripts/create-player-architecture-page.py`. Manual: insert `/mermaid` in editor, then update code block via script. **CRITICAL:** `guest-params > index` counts ALL code blocks on page (not just mermaid) — use `tracked_code_block()` for non-mermaid code blocks |
+| Mermaid diagram | Code block (`language=mermaid`) + Forge `ac:adf-extension` | Programmatic: `mermaid_diagram()` in `scripts/create-player-architecture-page.py` — wraps code block in Expand macro (source hidden), Forge renderer outside (diagram visible). Manual: `/expand` + `/mermaid` in editor. **CRITICAL:** `guest-params > index` counts ALL code blocks on page (including inside Expand) — use `tracked_code_block()` for non-mermaid code blocks |
 | ADF panel fix | `fix_confluence_panels.py` or auto in `_update_page()` | After storage format update, Confluence may convert `success`/`error`/`warning`/`note` macros to broken `bodiedExtension`. Fix reads ADF via v2 API and converts to native `panel` |
 | Explore | Task(Explore) | Always before creating subtasks |
 | Parent (Epic) | `jira_set_parent.py` (REST) | MCP/acli silently ignore parent field on existing issues |
@@ -109,7 +109,8 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 | `limit > 50` → error | Max 50, use pagination `start_at` |
 | Sibling tool call errored | One parallel MCP call failed → all cancelled. Fix failing call first |
 | Prefer `/story-full` | `/search-issues` → `/story-full` → `/verify-issue` |
-| Mermaid diagram not rendering | Need BOTH: code block (`language=mermaid`) + Forge `ac:adf-extension`. Can create programmatically via `mermaid_diagram()` — see `scripts/create-player-architecture-page.py`. `guest-params > index` must count ALL code blocks on page |
+| Mermaid diagram not rendering | Need BOTH: code block (`language=mermaid`) + Forge `ac:adf-extension`. `mermaid_diagram()` wraps code block in Expand macro + Forge renderer outside. `guest-params > index` counts ALL code blocks on page (including inside Expand macros) |
+| Mermaid source code visible | `collapse=true` does NOT work on Mermaid code blocks — use Expand macro (`ac:name="expand"`) to wrap code block. `mermaid_diagram()` does this automatically |
 | Mermaid parse error on Confluence | Task names/labels must NOT contain `×` `±` `:` (time) `()` — use ASCII equivalents (`x`, `+-`, `-`, remove parens). Applies to ALL diagram types, not just Gantt |
 | Mermaid edge animation | Flowchart only. Syntax: `e1@-->` (edge ID) + `e1@{ animation: fast/slow }` (metadata). NOT supported on sequenceDiagram, stateDiagram, gantt. `&` syntax (`D & E e1@-->`) only animates ONE edge — must split into separate edges. Confirmed working on Confluence Forge v11.12.2 |
 | Page font-size too large (16px) | Pages with Forge macros (Mermaid, etc.) always render at 16px. `content-appearance-published` controls width only, NOT font. Cannot force 13px compact mode on complex pages |

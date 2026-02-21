@@ -326,6 +326,34 @@ Reference: `scripts/create-player-architecture-page.py`
 # _code_block_count — global counter, reset per page build
 ```
 
+### Hiding Mermaid Source Code
+
+**`collapse=true` does NOT work on Mermaid code blocks** — the parameter is ignored and source code remains fully visible. Use the **Expand macro** instead.
+
+**Expand macro wraps only the code block** — Forge renderer stays outside so the diagram is always visible:
+
+```xml
+<!-- Expand macro (collapsed by default) — hides source code -->
+<ac:structured-macro ac:name="expand" ac:schema-version="1">
+  <ac:parameter ac:name="title">Mermaid Source</ac:parameter>
+  <ac:rich-text-body>
+    <ac:structured-macro ac:name="code" ac:schema-version="1">
+      <ac:parameter ac:name="language">mermaid</ac:parameter>
+      <ac:plain-text-body><![CDATA[flowchart TD ...]]></ac:plain-text-body>
+    </ac:structured-macro>
+  </ac:rich-text-body>
+</ac:structured-macro>
+<!-- Forge ac:adf-extension here — OUTSIDE expand, always visible -->
+```
+
+**Result:** "▶ Mermaid Source" (collapsed) + rendered diagram always shown below.
+
+**Forge index:** Code blocks inside Expand macros are still counted by `guest-params > index` — tested and confirmed.
+
+**Current convention** (architecture pages): `mermaid_diagram()` automatically wraps code block in Expand macro. TypeScript/JSON pseudocode blocks use `collapse=True` via `tracked_code_block()`.
+
+> Full details: `troubleshooting.md` → "Expand/Collapse Mechanisms in Confluence"
+
 ### Known Limitations on Confluence
 
 | Feature | Status | Workaround |

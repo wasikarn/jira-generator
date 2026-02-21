@@ -253,11 +253,20 @@ def mermaid_diagram(code: str, page_id: str) -> str:
             f'</ac:adf-node>'
         )
 
+    expand_local_id = str(uuid.uuid4())
     code_html = (
         f'<ac:structured-macro ac:local-id="{code_local_id}" '
         f'ac:name="code" ac:schema-version="1">'
         f'<ac:parameter ac:name="language">mermaid</ac:parameter>'
         f'<ac:plain-text-body><![CDATA[{code}]]></ac:plain-text-body>'
+        f'</ac:structured-macro>'
+    )
+    # Wrap code block in Expand macro — hides source code by default
+    expand_html = (
+        f'<ac:structured-macro ac:local-id="{expand_local_id}" '
+        f'ac:name="expand" ac:schema-version="1">'
+        f'<ac:parameter ac:name="title">Mermaid Source</ac:parameter>'
+        f'<ac:rich-text-body>{code_html}</ac:rich-text-body>'
         f'</ac:structured-macro>'
     )
     forge_html = (
@@ -266,7 +275,8 @@ def mermaid_diagram(code: str, page_id: str) -> str:
         f'<ac:adf-fallback>{adf_node()}</ac:adf-fallback>'
         f'</ac:adf-extension>'
     )
-    return code_html + forge_html
+    # Expand (collapsed source) + Forge renderer (always visible diagram)
+    return expand_html + forge_html
 
 
 def status_macro(text: str, colour: str = "Grey") -> str:

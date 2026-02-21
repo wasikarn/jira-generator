@@ -305,6 +305,54 @@ For MCP: Use `jira_get_issue(issue_key: "BEP-1")`
 | `content-appearance-published` doesn't change font | Property controls width only | `"full-width"` = wider content area. Font-size is separate: determined by Confluence's internal renderer selection based on page content |
 | "Error loading the extension!" on panels | Storage→ADF conversion bug | Confluence converts `ac:structured-macro` for `success`/`error`/`warning`/`note` to `bodiedExtension` instead of native `panel`. Fix: `fix_confluence_panels.py --page-id` or auto-fix in `_update_page()` — see below |
 
+### Expand/Collapse Mechanisms in Confluence
+
+There are **3 distinct** expand/collapse mechanisms in Confluence Cloud. Do NOT confuse them:
+
+| Mechanism | Storage Format | Default State | Use For |
+| --- | --- | --- | --- |
+| **Expand macro** | `ac:structured-macro ac:name="expand"` | Collapsed | Wrapping arbitrary content (text, tables, images) in a collapsible section |
+| **Code block collapse** | `<ac:parameter ac:name="collapse">true</ac:parameter>` on `ac:name="code"` | Expanded (unless `collapse=true`) | Hiding long code blocks, showing only the header |
+| **Manual toggle** | Built-in Confluence Cloud UI | Expanded | Users can click any code block header to toggle |
+
+**Expand macro syntax:**
+
+```xml
+<ac:structured-macro ac:name="expand" ac:schema-version="1">
+  <ac:parameter ac:name="title">Click to expand</ac:parameter>
+  <ac:rich-text-body>
+    <p>Hidden content here</p>
+  </ac:rich-text-body>
+</ac:structured-macro>
+```
+
+**Code block collapse syntax:**
+
+```xml
+<ac:structured-macro ac:name="code" ac:schema-version="1">
+  <ac:parameter ac:name="language">typescript</ac:parameter>
+  <ac:parameter ac:name="title">My Code</ac:parameter>
+  <ac:parameter ac:name="collapse">true</ac:parameter>
+  <ac:plain-text-body><![CDATA[...code...]]></ac:plain-text-body>
+</ac:structured-macro>
+```
+
+**Code block collapse header format:** Shows `[Language] [Title or first line]` with a toggle triangle (▶/▼).
+
+**Important:** `collapse=true` does **NOT** work on Mermaid code blocks — parameter is ignored, source code remains visible. Use Expand macro instead.
+
+**Current usage in architecture pages (165019751):**
+
+- `mermaid_diagram()` — wraps code block in **Expand macro** (source hidden by default, "▶ Mermaid Source"), Forge renderer outside (diagram always visible)
+- `tracked_code_block(collapse=True)` — used for TypeScript/JSON blocks in Sections 4-8 (long pseudocode, models, API responses)
+- Forge `guest-params > index` still counts code blocks inside Expand macros correctly
+
+**Script reference:** `scripts/create-player-architecture-page.py`
+
+- `code_block(code, language, title, collapse)` — line 127
+- `tracked_code_block(code, language, title, collapse)` — line 142 (with Forge index tracking)
+- `mermaid_diagram(code, page_id)` — line 151 (Expand macro + Forge renderer)
+
 ### ADF Panel Conversion Bug
 
 **Problem:** When updating a Confluence page via storage format API (v1), Confluence converts the storage XML to ADF (Atlas Document Format) internally. Some panel macros (`success`, `error`, `warning`, `note`) are **inconsistently** converted:
