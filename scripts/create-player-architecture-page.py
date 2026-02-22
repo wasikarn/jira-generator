@@ -372,7 +372,7 @@ def build_page_1(page_id: str) -> str:
     sections.append(error_panel(
         "<p><strong>Smart Player (ความซับซ้อนของ Scheduling)</strong></p>"
         "<ul>"
-        "<li>Player หมุน creatives เองใน local (SchedulePlay, TimeSlot, Playlist components)</li>"
+        "<li>Player จัดลำดับ creatives เองใน local (SchedulePlay, TimeSlot, Playlist components)</li>"
         "<li>Guaranteed spot interrupt logic: <code>calculatePlaySchedules</code> poll ทุก <strong>1 วินาที</strong> ผ่าน <code>useQuery</code>, "
         "เช็ค <code>dayjs().isBetween(start, end)</code> &mdash; ความแม่นยำ ±2 วินาที</li>"
         "<li><code>pausePlayData</code> เป็น <strong>ตัวแปรตัวเดียว</strong> &mdash; กรณี nested guaranteed interrupts จะทำให้ creative เดิมหาย "
@@ -426,7 +426,7 @@ def build_page_1(page_id: str) -> str:
         '<tr><td>Scheduling Engine</td><td><code>app/Jobs/PlayScheduleCalculate.ts</code></td><td>สร้าง per-screen jobs ทุก N นาที</td></tr>'
         '<tr><td>Per-screen calc</td><td><code>app/Jobs/PlayScheduleCalculatePerScreen.ts</code></td><td>สร้าง PlaySchedule rows สำหรับ 1 จอ</td></tr>'
         '<tr><td>Player-pull mode</td><td><code>app/Jobs/PlayScheduleRoundCreate.ts</code></td><td>POST /v2/play-schedules/request {amount: N}</td></tr>'
-        '<tr><td>House content rotation</td><td><code>app/Services/PlayScheduleFrequencyService.ts</code></td><td>หมุน creative ของเจ้าของจอ + random jitter</td></tr>'
+        '<tr><td>House content rotation</td><td><code>app/Services/PlayScheduleFrequencyService.ts</code></td><td>หมุนเวียน creative ของเจ้าของจอ + random jitter</td></tr>'
         '<tr><td>Campaign period</td><td><code>app/Services/PlaySchedulePeriodService.ts</code></td><td>Campaign ขายตรง: PER_HOUR/PER_DAY/custom avails</td></tr>'
         '<tr><td>Guaranteed service</td><td><code>app/Services/v2/PlayScheduleExclusiveService.ts</code></td><td>แทรก guaranteed spots ที่ทับ loop window ปัจจุบัน</td></tr>'
         '<tr><td>Guaranteed job</td><td><code>app/Jobs/PlayScheduleCreateByExclusive.ts</code></td><td>On-demand: BullMQ job ทำงานเมื่อ owner approve &rarr; สร้าง PlaySchedule + push ผ่าน Pusher</td></tr>'
@@ -494,7 +494,7 @@ def build_page_2(page_id: str) -> str:
     sections.append("<h3>ตัวอย่าง Daily Schedule</h3>")
     sections.append(info_panel(
         "<p>ตัวอย่าง billboard 1 จอ ตลอดวัน — แสดงสัดส่วนเวลาจริงระหว่าง priority levels ต่างๆ. "
-        "<strong>P1-TK</strong> (แดง) กินเวลา 1 ชั่วโมงเต็ม, <strong>P1-ET</strong> (แดง) เป็น pin-point ตรงเวลา, "
+        "<strong>P1-TK</strong> (แดง) กินเวลา 1 ชั่วโมงเต็ม, <strong>P1-ET</strong> (แดง) เป็น exact-time spot ที่เล่นตรงเวลา, "
         "<strong>P1-G</strong> (ฟ้า) กระจายตลอดวัน, <strong>P2-P4</strong> เติมช่วงที่เหลือ</p>"
     ))
     sections.append(mermaid_diagram(
@@ -1039,8 +1039,8 @@ def build_page_5(page_id: str) -> str:
     # Programmatic Integration Points
     sections.append("<h3>จุดเชื่อมต่อ Programmatic (pDOOH Roadmap)</h3>")
     sections.append(info_panel(
-        "<p><strong>Scale 100-500 จอ:</strong> ยังไม่ต้อง SSP/DSP เต็มรูปแบบ แต่วาง integration points ไว้ "
-        "เพื่อให้ pluggable เมื่อ scale ถึง. ไม่เพิ่ม tech stack ใหม่ &mdash; ใช้ AdonisJS + Redis + BullMQ เดิม.</p>"
+        "<p><strong>Scale 100-500 จอ:</strong> ยังไม่ต้อง SSP/DSP เต็มรูปแบบ แต่เตรียม integration points ไว้ "
+        "ให้ pluggable เมื่อขยาย scale ในอนาคต. ไม่เพิ่ม tech stack ใหม่ &mdash; ใช้ AdonisJS + Redis + BullMQ เดิม.</p>"
     ))
     sections.append(mermaid_diagram(
         load_diagram("06-9-pdooh-integration.mmd"),
@@ -1049,7 +1049,7 @@ def build_page_5(page_id: str) -> str:
     sections.append(
         '<table>'
         '<tr><th>Integration Point</th><th>Current</th><th>pDOOH Extension (Future)</th></tr>'
-        '<tr><td><strong>P3 slot fill</strong></td><td>หมุน spot ภายใน (count-based)</td><td>SSP ad request &rarr; RTB auction &rarr; winning creative หรือ fallback</td></tr>'
+        '<tr><td><strong>P3 slot fill</strong></td><td>หมุนเวียน spot ภายใน (count-based)</td><td>SSP ad request &rarr; RTB auction &rarr; winning creative หรือ fallback</td></tr>'
         '<tr><td><strong>PoP reporting</strong></td><td>POST /v2/play-history</td><td>เพิ่ม: <code>impression_id</code>, <code>campaign_id</code>, <code>creative_id</code>, <code>viewability_score</code></td></tr>'
         '<tr><td><strong>Inventory avails</strong></td><td>N/A</td><td><code>GET /v2/avails?screen_id=X&amp;daypart=Y</code> &mdash; เปิด slot ว่างให้ SSP เห็น</td></tr>'
         '<tr><td><strong>Campaign pacing</strong></td><td>BEP-2998 fix (proportional พื้นฐาน)</td><td>กระจาย impression ให้สม่ำเสมอตลอด flight + จัดสรรตาม SOV</td></tr>'
@@ -1384,7 +1384,7 @@ def build_page_8(page_id: str) -> str:
         '<td><strong>Outbox + Idempotency Key:</strong> Player สร้าง UUID per play event. Backend check Redis <code>idem:{uuid}</code> ก่อน insert</td></tr>'
         '<tr><td>E5</td><td><strong>Partial media download</strong> (internet หลุดกลาง download)</td>'
         '<td>ไฟล์ media ไม่สมบูรณ์</td>'
-        '<td>เดิมมีอยู่แล้ว: <code>fileCleanupService.markDownloading()</code> ป้องกัน cleanup. เพิ่ม: <strong>checksum validation</strong> &mdash; backend ส่ง <code>media.checksum</code> &rarr; สน + re-download</td></tr>'
+        '<td>เดิมมีอยู่แล้ว: <code>fileCleanupService.markDownloading()</code> ป้องกัน cleanup. เพิ่ม: <strong>checksum validation</strong> &mdash; backend ส่ง <code>media.checksum</code> &rarr; ตรวจสอบ + re-download ถ้าไม่ตรง</td></tr>'
         '<tr><td>E6</td><td><strong>SSL certificate expired / DNS failure</strong></td>'
         '<td>fetch fail แต่ internet ยังใช้ได้</td>'
         '<td>Treat เหมือน offline. Player มี Tier 2/3 รองรับ. เพิ่ม <strong>diagnostic log</strong> แยก SSL error จาก network error</td></tr>'
@@ -1431,7 +1431,7 @@ def build_page_8(page_id: str) -> str:
         '<td>ไม่สามารถ pair ได้ (ต้องมี internet สำหรับ register). แสดง splash + "กรุณาเชื่อมต่อ internet". Poll ทุก 5 วิ (เดิม)</td></tr>'
         '<tr><td>E16</td><td><strong>Clock drift</strong> &mdash; offline นาน, NTP ไม่ sync</td>'
         '<td><code>valid_until</code> check ผิดพลาด</td>'
-        '<td>Tauri บน Windows/macOS/Linux มี RTC ที่แม่นยำกว่า RPi. เก็บ <code>last_ntp_sync</code> timestamp. ถ้า drift &gt; 1 ชม. &rarr; log warning แต่ยังเล่น play (better than black screen). <strong>Exclusive</strong> tradeoff</td></tr>'
+        '<td>Tauri บน Windows/macOS/Linux มี RTC ที่แม่นยำกว่า RPi. เก็บ <code>last_ntp_sync</code> timestamp. ถ้า drift &gt; 1 ชม. &rarr; log warning แต่ยังเล่นต่อ (เล่นผิดเวลาดีกว่าจอดำ)</td></tr>'
         '<tr><td>E17</td><td><strong>Disk full</strong> &mdash; media เต็ม storage</td>'
         '<td>Download ใหม่ไม่ได้</td>'
         '<td>เดิมมี cleanup อยู่แล้ว (file-cleanup.service.ts ทุก 24h). เพิ่ม: check disk ก่อน download. ถ้า &lt; 500MB &rarr; trigger emergency cleanup (ลบ media ที่ไม่อยู่ใน Tier 1+2+3). ถ้ายังไม่พอ &rarr; skip download, เล่น ad ถัดไป (ไม่หยุด)</td></tr>'
@@ -1565,7 +1565,7 @@ def build_page_8(page_id: str) -> str:
         '<td>P0 ชนะเสมอ (priority สูงสุด). เวลา TK ที่เสียไป — log สำหรับ billing reconcile manual</td></tr>'
         '<tr><td>TK4</td><td><strong>Player offline ตอน TK_START</strong></td>'
         '<td>ใช้ local clock: TK schedule อยู่ใน Tier 2 พร้อม <code>takeover_id</code>. IC เช็ค local clock กับ TK boundary ที่รอ</td></tr>'
-        '<tr><td>TK5</td><td><strong>จอง TK กระชั้นเกินไป</strong></td>'
+        '<tr><td>TK5</td><td><strong>จอง TK กระชั้นเกินไป (lead time ไม่พอ)</strong></td>'
         '<td>Reject — ใช้ lead time เดียวกับ guaranteed spots (exclusive validation เดิม)</td></tr>'
         '<tr><td>TK6</td><td><strong>TK creative เปลี่ยนหลังจอง</strong></td>'
         '<td>Push <code>device-config-updated</code> ใหม่พร้อม <code>creative_code</code> ใหม่. Player download ก่อน TK_START</td></tr>'
@@ -1615,7 +1615,7 @@ def build_page_8(page_id: str) -> str:
     sections.append(expand_section("SMIL, Xibo, Broadsign, DOOH Billing — มาตรฐาน Priority",
         info_panel(
             "<p><strong>Priority model 5 ระดับ (P0-P4)</strong> ที่เราเสนอ ได้แรงบันดาลใจจากมาตรฐาน industry เหล่านี้. "
-            "หลักการสำคัญ: exclusive/priority scheduling เป็น <em>ปัญหาที่ถูกแก้ไขแล้ว</em> ในวงการ digital signage &mdash; "
+            "หลักการสำคัญ: exclusive/priority scheduling เป็น <em>โจทย์ที่วงการ digital signage แก้ไปแล้ว</em> &mdash; "
             "เรา adapt pattern ที่พิสูจน์แล้วแทนที่จะคิดใหม่ตั้งแต่ต้น.</p>"
         ) +
         '<table>'
@@ -1731,7 +1731,7 @@ def build_page_8(page_id: str) -> str:
     # Build all terminology content, then wrap in a single Expand
     _term_content = (
         info_panel(
-            "<p>ตารางด้านล่างเชื่อมโยงคำศัพท์ <strong>เดิมในระบบ</strong> (codebase + Jira) กับ <strong>คำใหม่</strong> "
+            "<p>ตารางด้านล่างเชื่อมโยง<strong>คำศัพท์เดิมในระบบ</strong> (codebase + Jira) กับ<strong>คำใหม่</strong> "
             "ที่ใช้ใน architecture proposal นี้ ซึ่ง align กับมาตรฐาน DOOH industry<br/>"
             "เพื่อให้คนที่ทำระบบเดิมอยู่ กับคนที่จะทำ version ใหม่ เข้าใจตรงกัน</p>"
         )
@@ -2026,11 +2026,11 @@ def build_page_9(page_id: str) -> str:
         "<li><s><strong>Version gap threshold</strong> &mdash; "
         "gap กี่ version ถึงจะส่ง full playlist แทน delta?</s> "
         "<strong>แก้แล้ว:</strong> gap &gt; 3 versions &rarr; full replace (ดู Section 4: Algorithm)</li>"
-        "<li><strong>ขีดจำกัด Offline</strong> &mdash; "
+        "<li><strong>ระยะเวลา Offline สูงสุด</strong> &mdash; "
         "player ใช้ Tier 3 fallback ได้นานแค่ไหนก่อน content จะ stale? (วัน? สัปดาห์?)</li>"
         "<li><strong>Takeover ทับกัน</strong> &mdash; "
         "ถ้า 2 takeover จองช่วงเวลาทับกันบนจอเดียว? (ปัจจุบัน: block ตอนจอง)</li>"
-        "<li><strong>ความยุติธรรมของ Make-good</strong> &mdash; "
+        "<li><strong>การจัดลำดับ Make-good ให้เท่าเทียม</strong> &mdash; "
         "จัดลำดับ make-good ยังไงเมื่อหลาย ad โดน interrupt ใน TK block เดียว?</li>"
         "<li><strong>ความเสถียรของ Pusher</strong> &mdash; "
         "Pusher เป็น best-effort delivery &mdash; version protocol จัดการ gap ได้ แต่ latency ไม่แน่นอน</li>"
@@ -2106,7 +2106,7 @@ def build_page_10(page_id: str) -> str:
     sections.append("<h3>Process D: Offline และเชื่อมต่อใหม่</h3>")
     sections.append(note_panel(
         "<p><strong>Trigger:</strong> เน็ตหลุด (Pusher disconnect)<br/>"
-        "<strong>ผลลัพธ์:</strong> Degrade ลงอย่างค่อยเป็นค่อยไปผ่าน 3-tier cache แล้ว delta sync ตอนกลับมา online<br/>"
+        "<strong>ผลลัพธ์:</strong> ลดระดับอย่างค่อยเป็นค่อยไป (graceful degradation) ผ่าน 3-tier cache แล้ว delta sync ตอนกลับมา online<br/>"
         "<strong>Policy สำคัญ:</strong> State Machine transitions: ONLINE &rarr; OFFLINE &rarr; FALLBACK &rarr; ONLINE</p>"
     ))
     sections.append(mermaid_diagram(
