@@ -25,15 +25,15 @@ ARCH_PAGE_ID = "165019751"  # The architecture page itself
 PAGE_IDS_FILE = Path(__file__).parent / "architecture-page-ids.json"
 
 SUB_PAGE_TITLES = {
-    "1_problem_current": "1. Problem Statement & Current Architecture",
-    "2_proposed": "2. Proposed Architecture",
-    "3_key_flows": "3. Key Flows",
-    "4_tech_algorithm": "4. Technical Design: Algorithm & Models",
+    "1_problem_current": "1. ปัญหาปัจจุบันและสถาปัตยกรรมเดิม (Problem Statement)",
+    "2_proposed": "2. สถาปัตยกรรมที่เสนอ (Proposed Architecture)",
+    "3_key_flows": "3. Flow หลัก (Key Flows)",
+    "4_tech_algorithm": "4. Technical Design: Algorithm และ Models",
     "5_tech_player": "5. Technical Design: Player Components",
-    "6_interrupt_makegood": "6. Interrupt Controller & Make-Good",
-    "7_events": "7. Event-Driven Architecture",
-    "8_edge_migration": "8. Edge Cases, Migration & Appendix",
-    "9_es_big_picture": "9. Event Storming: Big Picture",
+    "6_interrupt_makegood": "6. Interrupt Controller และระบบ Make-Good",
+    "7_events": "7. สถาปัตยกรรม Event-Driven",
+    "8_edge_migration": "8. Edge Cases, แผนการ Migration และ Appendix",
+    "9_es_big_picture": "9. Event Storming: ภาพรวม (Big Picture)",
     "10_es_process": "10. Event Storming: Process Modelling",
     "11_es_design": "11. Event Storming: Software Design",
 }
@@ -368,28 +368,28 @@ def build_page_1(page_id: str) -> str:
     sections.append(toc())
 
     # ── Problem Statement ──
-    sections.append("<h2>1. Problem Statement</h2>")
+    sections.append("<h2>1. ปัญหาปัจจุบัน (Problem Statement)</h2>")
     sections.append(error_panel(
-        "<p><strong>Smart Player (Scheduling Complexity)</strong></p>"
+        "<p><strong>Smart Player (ความซับซ้อนของ Scheduling)</strong></p>"
         "<ul>"
-        "<li>Player loop-rotates creatives locally (SchedulePlay, TimeSlot, Playlist components)</li>"
-        "<li>Guaranteed spot interrupt logic: <code>calculatePlaySchedules</code> polls every <strong>1 second</strong> via <code>useQuery</code>, "
-        "checks <code>dayjs().isBetween(start, end)</code> &mdash; ±2s timing precision</li>"
-        "<li><code>pausePlayData</code> is a <strong>single variable</strong> &mdash; nested guaranteed interrupts lose the original paused creative "
-        "(SMIL standard uses a pause <em>queue/stack</em> for this)</li>"
-        "<li>Guaranteed spot media missing &rarr; <strong>silent failure</strong>: interrupted creative stays paused indefinitely, no recovery</li>"
-        "<li>Multiple overlapping guaranteed spots &rarr; <code>find()</code> picks first match, no priority logic between them</li>"
-        "<li>2 separate paths create guaranteed PlaySchedules (approval push + loop injection) &mdash; duplicated logic</li>"
-        "<li>Retry queue (max 3 attempts), spot rotation tracking, daypart gate</li>"
-        "<li>Player complexity: <strong>3,500+ lines</strong> scheduling logic in <code>src/components/screen/device/schedule/</code></li>"
+        "<li>Player หมุน creatives เองใน local (SchedulePlay, TimeSlot, Playlist components)</li>"
+        "<li>Guaranteed spot interrupt logic: <code>calculatePlaySchedules</code> poll ทุก <strong>1 วินาที</strong> ผ่าน <code>useQuery</code>, "
+        "เช็ค <code>dayjs().isBetween(start, end)</code> &mdash; ความแม่นยำ ±2 วินาที</li>"
+        "<li><code>pausePlayData</code> เป็น <strong>ตัวแปรตัวเดียว</strong> &mdash; กรณี nested guaranteed interrupts จะทำให้ creative เดิมหาย "
+        "(SMIL standard ใช้ pause <em>queue/stack</em>)</li>"
+        "<li>Guaranteed spot media หาย &rarr; <strong>silent failure</strong>: creative ที่โดน interrupt ค้าง pause ตลอด ไม่มี recovery</li>"
+        "<li>Guaranteed spots ซ้อนกัน &rarr; <code>find()</code> เลือกตัวแรกเจอ ไม่มี priority logic</li>"
+        "<li>มี 2 path แยกกันสร้าง guaranteed PlaySchedules (approval push + loop injection) &mdash; logic ซ้ำซ้อน</li>"
+        "<li>Retry queue (สูงสุด 3 ครั้ง), spot rotation tracking, daypart gate</li>"
+        "<li>ความซับซ้อนของ Player: scheduling logic <strong>3,500+ บรรทัด</strong> ใน <code>src/components/screen/device/schedule/</code></li>"
         "</ul>"
-        "<p><strong>Offline Handling (Current)</strong></p>"
+        "<p><strong>การจัดการ Offline (ปัจจุบัน)</strong></p>"
         "<ul>"
-        "<li>Detect offline: <code>fetch</code> error where <code>err?.message === 'Load failed'</code></li>"
-        "<li>Play from <code>localStorage</code> cache (schedules + playlists)</li>"
-        "<li>No graceful fallback: fresh boot + no internet = <strong>black screen</strong></li>"
-        "<li>No checksum validation on downloaded creative assets</li>"
-        "<li>Guaranteed spot approved while offline &rarr; Pusher push lost, no buffer mechanism</li>"
+        "<li>ตรวจจับ offline: <code>fetch</code> error ที่ <code>err?.message === 'Load failed'</code></li>"
+        "<li>เล่นจาก <code>localStorage</code> cache (schedules + playlists)</li>"
+        "<li>ไม่มี graceful fallback: fresh boot + ไม่มี internet = <strong>จอดำ</strong></li>"
+        "<li>ไม่มี checksum validation สำหรับ creative assets ที่ download</li>"
+        "<li>Guaranteed spot ได้รับ approve ขณะ offline &rarr; Pusher push หาย ไม่มี buffer mechanism</li>"
         "</ul>"
     ))
 
@@ -410,7 +410,7 @@ def build_page_1(page_id: str) -> str:
 
     # ── Current Architecture ──
     sections.append("<hr/>")
-    sections.append("<h2>2. Current Architecture</h2>")
+    sections.append("<h2>2. สถาปัตยกรรมปัจจุบัน (Current Architecture)</h2>")
     sections.append("<h3>2.1 Backend (tathep-platform-api)</h3>")
 
     sections.append(mermaid_diagram(
@@ -418,21 +418,21 @@ def build_page_1(page_id: str) -> str:
         page_id=page_id,
     ))
 
-    sections.append(expand_section("Backend Components (13 files)",
+    sections.append(expand_section("Backend Components (13 ไฟล์)",
         '<table>'
         '<tr><th>Component</th><th>File</th><th>Purpose</th></tr>'
-        '<tr><td>PlaySchedule model</td><td><code>app/Models/PlaySchedule.ts</code></td><td>Status: WAITING&rarr;PLAYING&rarr;PLAYED, Types: guaranteed/ROS/spot-rotation</td></tr>'
-        '<tr><td>Screen model</td><td><code>app/Models/Billboard.ts</code></td><td>ownerTime/platformTime = SOV (Share of Voice) budget (seconds/hour)</td></tr>'
-        '<tr><td>Scheduling Engine</td><td><code>app/Jobs/PlayScheduleCalculate.ts</code></td><td>Enqueue per-screen jobs every N minutes</td></tr>'
-        '<tr><td>Per-screen calc</td><td><code>app/Jobs/PlayScheduleCalculatePerScreen.ts</code></td><td>Generate PlaySchedule rows for 1 screen</td></tr>'
+        '<tr><td>PlaySchedule model</td><td><code>app/Models/PlaySchedule.ts</code></td><td>Status: WAITING&rarr;PLAYING&rarr;PLAYED, ประเภท: guaranteed/ROS/spot-rotation</td></tr>'
+        '<tr><td>Screen model</td><td><code>app/Models/Billboard.ts</code></td><td>ownerTime/platformTime = SOV (Share of Voice) budget (วินาที/ชั่วโมง)</td></tr>'
+        '<tr><td>Scheduling Engine</td><td><code>app/Jobs/PlayScheduleCalculate.ts</code></td><td>สร้าง per-screen jobs ทุก N นาที</td></tr>'
+        '<tr><td>Per-screen calc</td><td><code>app/Jobs/PlayScheduleCalculatePerScreen.ts</code></td><td>สร้าง PlaySchedule rows สำหรับ 1 จอ</td></tr>'
         '<tr><td>Player-pull mode</td><td><code>app/Jobs/PlayScheduleRoundCreate.ts</code></td><td>POST /v2/play-schedules/request {amount: N}</td></tr>'
-        '<tr><td>House content rotation</td><td><code>app/Services/PlayScheduleFrequencyService.ts</code></td><td>House (owner) creative rotation + random jitter</td></tr>'
-        '<tr><td>Campaign period</td><td><code>app/Services/PlaySchedulePeriodService.ts</code></td><td>Direct-sold campaigns: PER_HOUR/PER_DAY/custom avails</td></tr>'
-        '<tr><td>Guaranteed service</td><td><code>app/Services/v2/PlayScheduleExclusiveService.ts</code></td><td>Loop-based: inject guaranteed spots overlapping current loop window</td></tr>'
-        '<tr><td>Guaranteed job</td><td><code>app/Jobs/PlayScheduleCreateByExclusive.ts</code></td><td>On-demand: BullMQ job triggered on owner approval &rarr; create PlaySchedule + Pusher push</td></tr>'
-        '<tr><td>Guaranteed model</td><td><code>app/Models/AdvertisementDisplayExclusive.ts</code></td><td>Avail reservation per screen (startDateTime/endDateTime/timePerSlot)</td></tr>'
-        '<tr><td>Guaranteed time window</td><td><code>app/Models/AdGroupDisplayTimeExclusive.ts</code></td><td>AdGroup-level guaranteed window (start/end/duration) for loop injection</td></tr>'
-        '<tr><td>Reservation check</td><td><code>app/Services/ServiceHelpers/checkIsBillboardsReserved.ts</code></td><td>Prevent double-booking: validate time overlap before creating guaranteed avails</td></tr>'
+        '<tr><td>House content rotation</td><td><code>app/Services/PlayScheduleFrequencyService.ts</code></td><td>หมุน creative ของเจ้าของจอ + random jitter</td></tr>'
+        '<tr><td>Campaign period</td><td><code>app/Services/PlaySchedulePeriodService.ts</code></td><td>Campaign ขายตรง: PER_HOUR/PER_DAY/custom avails</td></tr>'
+        '<tr><td>Guaranteed service</td><td><code>app/Services/v2/PlayScheduleExclusiveService.ts</code></td><td>แทรก guaranteed spots ที่ทับ loop window ปัจจุบัน</td></tr>'
+        '<tr><td>Guaranteed job</td><td><code>app/Jobs/PlayScheduleCreateByExclusive.ts</code></td><td>On-demand: BullMQ job ทำงานเมื่อ owner approve &rarr; สร้าง PlaySchedule + push ผ่าน Pusher</td></tr>'
+        '<tr><td>Guaranteed model</td><td><code>app/Models/AdvertisementDisplayExclusive.ts</code></td><td>จองเวลาต่อจอ (startDateTime/endDateTime/timePerSlot)</td></tr>'
+        '<tr><td>Guaranteed time window</td><td><code>app/Models/AdGroupDisplayTimeExclusive.ts</code></td><td>ช่วงเวลา guaranteed ระดับ AdGroup สำหรับแทรกใน loop</td></tr>'
+        '<tr><td>Reservation check</td><td><code>app/Services/ServiceHelpers/checkIsBillboardsReserved.ts</code></td><td>ป้องกัน double-booking: ตรวจ overlap ก่อนสร้าง guaranteed avails</td></tr>'
         '<tr><td>Pusher service</td><td><code>app/Services/PusherPlayScheduleService.ts</code></td><td>Channel: play-schedule-{deviceCode}</td></tr>'
         '</table>'
     ))
@@ -443,20 +443,20 @@ def build_page_1(page_id: str) -> str:
         page_id=page_id,
     ))
 
-    sections.append(expand_section("Player Features (8 items)",
+    sections.append(expand_section("Player Features (8 รายการ)",
         '<table>'
         '<tr><th>Feature</th><th>Implementation</th><th>File</th></tr>'
-        '<tr><td>Schedule types</td><td><code>exclusive</code> (guaranteed spot), <code>continuous</code> (direct-sold ROS), <code>frequency</code> (spot rotation)</td><td><code>src/constants/schedule.constant.ts</code></td></tr>'
+        '<tr><td>ประเภท Schedule</td><td><code>exclusive</code> (guaranteed spot), <code>continuous</code> (ขายตรง ROS), <code>frequency</code> (หมุนเวียน spot)</td><td><code>src/constants/schedule.constant.ts</code></td></tr>'
         '<tr><td>Loop rotation</td><td><code>(currentIndex + 1) % activeSchedules.length</code></td><td><code>screen.device.schedule.play.timeslot.component.tsx</code></td></tr>'
-        '<tr><td>Guaranteed preempt</td><td><code>calculatePlaySchedules</code> (1s <code>useQuery</code> interval): '
-        '<code>dayjs().isBetween(start, end)</code> &rarr; <code>setPausePlayData(current)</code> &rarr; play guaranteed spot &rarr; '
-        'on finish: restore <code>pausePlayData</code>. Single variable = no nested interrupt support</td>'
+        '<tr><td>Guaranteed preempt</td><td><code>calculatePlaySchedules</code> (poll ทุก 1 วิ ผ่าน <code>useQuery</code>): '
+        '<code>dayjs().isBetween(start, end)</code> &rarr; <code>setPausePlayData(current)</code> &rarr; เล่น guaranteed spot &rarr; '
+        'จบแล้ว restore <code>pausePlayData</code>. ตัวแปรเดียว = ไม่รองรับ nested interrupt</td>'
         '<td><code>screen.device.schedule.play.component.tsx</code></td></tr>'
-        '<tr><td>Retry queue</td><td>Max 3 attempts, stored in localStorage</td><td><code>screen.device.schedule.play.timeslot.component.tsx</code></td></tr>'
-        '<tr><td>Media download</td><td>Tauri <code>plugin-upload</code> (native HTTP), sequential</td><td><code>screen.device.schedule.setup.schedule-download.tsx</code></td></tr>'
-        '<tr><td>File cleanup</td><td>Every 24h during off-hours, LRU-based</td><td><code>src/services/file-cleanup.service.ts</code></td></tr>'
-        '<tr><td>Offline detect</td><td><code>err?.message === "Load failed"</code></td><td><code>screen.device.schedule.component.tsx</code></td></tr>'
-        '<tr><td>PoP (Proof of Play) retry</td><td>Tauri Store (<code>player.history.json</code>), batch 10, every 1 min</td><td><code>player-history.store.ts</code></td></tr>'
+        '<tr><td>Retry queue</td><td>สูงสุด 3 ครั้ง, เก็บใน localStorage</td><td><code>screen.device.schedule.play.timeslot.component.tsx</code></td></tr>'
+        '<tr><td>Media download</td><td>Tauri <code>plugin-upload</code> (native HTTP), ดาวน์โหลดทีละไฟล์</td><td><code>screen.device.schedule.setup.schedule-download.tsx</code></td></tr>'
+        '<tr><td>File cleanup</td><td>ทุก 24 ชม. ช่วง off-hours, ลบแบบ LRU</td><td><code>src/services/file-cleanup.service.ts</code></td></tr>'
+        '<tr><td>ตรวจจับ Offline</td><td><code>err?.message === "Load failed"</code></td><td><code>screen.device.schedule.component.tsx</code></td></tr>'
+        '<tr><td>PoP (Proof of Play) retry</td><td>Tauri Store (<code>player.history.json</code>), batch 10 รายการ, ทุก 1 นาที</td><td><code>player-history.store.ts</code></td></tr>'
         '</table>'
     ))
 
@@ -464,12 +464,12 @@ def build_page_1(page_id: str) -> str:
     sections.append(expand_section("Pusher Events (6 events)",
         '<table>'
         '<tr><th>Event</th><th>Trigger</th><th>Player Action</th></tr>'
-        '<tr><td><code>update-play-schedule</code></td><td>Scheduling engine loop complete</td><td>Re-fetch <code>GET /v2/play-schedules</code></td></tr>'
-        '<tr><td><code>created-play-schedule</code></td><td>Player-pull job complete</td><td>Re-fetch schedules</td></tr>'
-        '<tr><td><code>approved-advertisement-exclusive</code></td><td>Guaranteed spot approved</td><td>Inject immediately (no re-fetch)</td></tr>'
-        '<tr><td><code>stop-advertisement</code></td><td>Creative cancelled</td><td>Remove from local schedule</td></tr>'
-        '<tr><td><code>new/update/delete-play-schedule</code></td><td>Schedule CRUD</td><td>Re-fetch schedules</td></tr>'
-        '<tr><td><code>un-pair-screen</code></td><td>Device unpaired</td><td>Clear all, back to pair screen</td></tr>'
+        '<tr><td><code>update-play-schedule</code></td><td>Scheduling engine loop เสร็จ</td><td>ดึง <code>GET /v2/play-schedules</code> ใหม่</td></tr>'
+        '<tr><td><code>created-play-schedule</code></td><td>Player-pull job เสร็จ</td><td>ดึง schedules ใหม่</td></tr>'
+        '<tr><td><code>approved-advertisement-exclusive</code></td><td>Guaranteed spot ได้รับ approve</td><td>แทรกทันที (ไม่ต้อง re-fetch)</td></tr>'
+        '<tr><td><code>stop-advertisement</code></td><td>Creative ถูกยกเลิก</td><td>ลบออกจาก local schedule</td></tr>'
+        '<tr><td><code>new/update/delete-play-schedule</code></td><td>Schedule CRUD</td><td>ดึง schedules ใหม่</td></tr>'
+        '<tr><td><code>un-pair-screen</code></td><td>Device ถูก unpair</td><td>ล้างทั้งหมด กลับหน้า pair</td></tr>'
         '</table>'
     ))
 
@@ -485,13 +485,13 @@ def build_page_2(page_id: str) -> str:
     sections.append(toc())
 
     # Architecture overview diagram (moved from Executive Summary)
-    sections.append("<h2>Architecture Overview</h2>")
+    sections.append("<h2>ภาพรวมสถาปัตยกรรม (Architecture Overview)</h2>")
     sections.append(mermaid_diagram(
         load_diagram("01-proposed-architecture.mmd"),
         page_id=page_id,
     ))
 
-    sections.append("<h3>Daily Schedule Example</h3>")
+    sections.append("<h3>ตัวอย่าง Daily Schedule</h3>")
     sections.append(info_panel(
         "<p>ตัวอย่าง billboard 1 จอ ตลอดวัน — แสดงสัดส่วนเวลาจริงระหว่าง priority levels ต่างๆ. "
         "<strong>P1-TK</strong> (แดง) กินเวลา 1 ชั่วโมงเต็ม, <strong>P1-ET</strong> (แดง) เป็น pin-point ตรงเวลา, "
@@ -503,46 +503,46 @@ def build_page_2(page_id: str) -> str:
     ))
 
     sections.append("<hr/>")
-    sections.append("<h2>Proposed Architecture: Backend-Driven Player</h2>")
+    sections.append("<h2>สถาปัตยกรรมที่เสนอ: Backend-Driven Player</h2>")
     sections.append(info_panel(
-        "<p><strong>Core Idea:</strong> Backend sends <strong>ordered screen schedule (loop sequence)</strong> instead of a bag of creatives + rules. "
-        "Player just plays <code>sequence[i++]</code> (Dumb Renderer pattern &mdash; standard in DOOH).</p>"
+        "<p><strong>แนวคิดหลัก:</strong> Backend ส่ง <strong>ordered screen schedule (loop sequence)</strong> แทนที่จะส่ง bag of creatives + rules. "
+        "Player แค่เล่น <code>sequence[i++]</code> (Dumb Renderer pattern &mdash; มาตรฐาน DOOH)</p>"
     ))
 
-    sections.append("<h3>What Changes vs What Stays</h3>")
+    sections.append("<h3>สิ่งที่เปลี่ยน vs สิ่งที่คงเดิม</h3>")
     sections.append(
         '<table>'
         '<tr><th>Component</th><th>Current</th><th>Proposed</th><th>Change Type</th></tr>'
-        '<tr><td>Cron job</td><td>PlayScheduleCalculate every 10 min</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>Per-screen job</td><td>Create PlaySchedule rows</td><td>Create PlaySchedule + <strong>ordered ScreenSchedule</strong></td><td>' + status_macro("ADD STEP", "Yellow") + '</td></tr>'
-        '<tr><td>Pusher</td><td>Channel per device</td><td>Same channel + new event <code>schedule-updated</code></td><td>' + status_macro("ADD EVENT", "Yellow") + '</td></tr>'
-        '<tr><td>Player API</td><td>GET /v2/play-schedules + /playlist-advertisements</td><td><strong>GET /v2/screen-schedule</strong> (unified)</td><td>' + status_macro("NEW ENDPOINT", "Blue") + '</td></tr>'
-        '<tr><td>Player scheduling</td><td>Loop rotation + guaranteed interrupt (complex)</td><td><strong>play sequence[i++]</strong> (Dumb Renderer)</td><td>' + status_macro("SIMPLIFY", "Green") + '</td></tr>'
-        '<tr><td>Player storage</td><td>localStorage (separate schedules + playlists)</td><td>Tauri Store (3-tier playlist)</td><td>' + status_macro("MIGRATE", "Yellow") + '</td></tr>'
-        '<tr><td>Media download</td><td>Tauri plugin-upload</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>BullMQ</td><td>Redis queue</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>Auth</td><td>x-device-code header</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>Proof of Play (PoP)</td><td>POST /v2/play-history + retry</td><td>Same + <strong>Outbox pattern</strong> + interrupt fields</td><td>' + status_macro("ENHANCE", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Interrupt Controller</strong></td><td>N/A</td><td><strong>NEW:</strong> Lightweight IC for P0/P1-TK/P1-ET only. P2-P4 wait for creative to finish</td><td>' + status_macro("NEW", "Blue") + '</td></tr>'
-        '<tr><td><strong>TK Booking API</strong></td><td>N/A</td><td><strong>NEW:</strong> Daypart Takeover booking + overlap validation + lead time check</td><td>' + status_macro("NEW", "Blue") + '</td></tr>'
-        '<tr><td><strong>Make-Good System</strong></td><td>N/A</td><td><strong>NEW:</strong> Interrupted ads get compensation slot in next cycle</td><td>' + status_macro("NEW", "Blue") + '</td></tr>'
+        '<tr><td>Cron job</td><td>PlayScheduleCalculate ทุก 10 นาที</td><td>เหมือนเดิม</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
+        '<tr><td>Per-screen job</td><td>สร้าง PlaySchedule rows</td><td>สร้าง PlaySchedule + <strong>ordered ScreenSchedule</strong></td><td>' + status_macro("ADD STEP", "Yellow") + '</td></tr>'
+        '<tr><td>Pusher</td><td>Channel per device</td><td>Channel เดิม + event ใหม่ <code>schedule-updated</code></td><td>' + status_macro("ADD EVENT", "Yellow") + '</td></tr>'
+        '<tr><td>Player API</td><td>GET /v2/play-schedules + /playlist-advertisements</td><td><strong>GET /v2/screen-schedule</strong> (รวมเป็นอันเดียว)</td><td>' + status_macro("NEW ENDPOINT", "Blue") + '</td></tr>'
+        '<tr><td>Player scheduling</td><td>Loop rotation + guaranteed interrupt (ซับซ้อน)</td><td><strong>play sequence[i++]</strong> (Dumb Renderer)</td><td>' + status_macro("SIMPLIFY", "Green") + '</td></tr>'
+        '<tr><td>Player storage</td><td>localStorage (แยก schedules + playlists)</td><td>Tauri Store (3-tier playlist)</td><td>' + status_macro("MIGRATE", "Yellow") + '</td></tr>'
+        '<tr><td>Media download</td><td>Tauri plugin-upload</td><td>เหมือนเดิม</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
+        '<tr><td>BullMQ</td><td>Redis queue</td><td>เหมือนเดิม</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
+        '<tr><td>Auth</td><td>x-device-code header</td><td>เหมือนเดิม</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
+        '<tr><td>Proof of Play (PoP)</td><td>POST /v2/play-history + retry</td><td>เหมือนเดิม + <strong>Outbox pattern</strong> + interrupt fields</td><td>' + status_macro("ENHANCE", "Yellow") + '</td></tr>'
+        '<tr><td><strong>Interrupt Controller</strong></td><td>N/A</td><td><strong>ใหม่:</strong> Lightweight IC สำหรับ P0/P1-TK/P1-ET เท่านั้น. P2-P4 รอ creative เล่นจบ</td><td>' + status_macro("NEW", "Blue") + '</td></tr>'
+        '<tr><td><strong>TK Booking API</strong></td><td>N/A</td><td><strong>ใหม่:</strong> Daypart Takeover booking + ตรวจ overlap + lead time check</td><td>' + status_macro("NEW", "Blue") + '</td></tr>'
+        '<tr><td><strong>Make-Good System</strong></td><td>N/A</td><td><strong>ใหม่:</strong> Ad ที่โดน interrupt ได้ slot ชดเชยใน cycle ถัดไป</td><td>' + status_macro("NEW", "Blue") + '</td></tr>'
         '</table>'
     )
 
-    sections.append("<h3>Infrastructure Mapping</h3>")
+    sections.append("<h3>การ Map Infrastructure</h3>")
     sections.append(
         '<table>'
         '<tr><th>Existing Infrastructure</th><th>Role Today</th><th>Role in Proposed</th><th>Change</th></tr>'
-        '<tr><td><strong>BullMQ + Redis</strong></td><td>Cron job queue (PlayScheduleCalculate)</td><td>Same + enqueue Ad Decisioning Engine after schedule calc</td><td>' + status_macro("REUSE", "Green") + '</td></tr>'
-        '<tr><td><strong>MySQL</strong></td><td>PlaySchedule, Billboard, Advertisement models</td><td>Same + NEW ScreenSchedule, ScreenScheduleItem tables</td><td>' + status_macro("ADD TABLES", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Redis (cache)</strong></td><td>GET/SET string cache (Bentocache)</td><td>Same + idempotency keys (SET with TTL 24h)</td><td>' + status_macro("REUSE", "Green") + '</td></tr>'
-        '<tr><td><strong>Pusher (WebSocket)</strong></td><td>6 event types, channel per device</td><td>Same channel + 5 new typed events (schedule-updated, device-config-updated, takeover-start, takeover-end, p0-emergency)</td><td>' + status_macro("ADD EVENTS", "Yellow") + '</td></tr>'
-        '<tr><td><strong>AdonisJS routes</strong></td><td>Player V2 routes (/play-schedules, /playlist-advertisements)</td><td>Keep existing + add GET /v2/screen-schedule</td><td>' + status_macro("ADD ENDPOINT", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Tauri plugin-upload</strong></td><td>Native HTTP media download</td><td>Same (sequential download with resume)</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td><strong>localStorage</strong></td><td>Schedules, playlists, playData</td><td>Migrate heavy data to Tauri Store; localStorage for small state only</td><td>' + status_macro("MIGRATE", "Yellow") + '</td></tr>'
+        '<tr><td><strong>BullMQ + Redis</strong></td><td>Cron job queue (PlayScheduleCalculate)</td><td>เหมือนเดิม + เพิ่ม Ad Decisioning Engine หลัง schedule calc</td><td>' + status_macro("REUSE", "Green") + '</td></tr>'
+        '<tr><td><strong>MySQL</strong></td><td>PlaySchedule, Billboard, Advertisement models</td><td>เหมือนเดิม + ตาราง ScreenSchedule, ScreenScheduleItem ใหม่</td><td>' + status_macro("ADD TABLES", "Yellow") + '</td></tr>'
+        '<tr><td><strong>Redis (cache)</strong></td><td>GET/SET string cache (Bentocache)</td><td>เหมือนเดิม + idempotency keys (SET TTL 24 ชม.)</td><td>' + status_macro("REUSE", "Green") + '</td></tr>'
+        '<tr><td><strong>Pusher (WebSocket)</strong></td><td>6 event types, channel per device</td><td>Channel เดิม + 5 typed events ใหม่ (schedule-updated, device-config-updated, takeover-start, takeover-end, p0-emergency)</td><td>' + status_macro("ADD EVENTS", "Yellow") + '</td></tr>'
+        '<tr><td><strong>AdonisJS routes</strong></td><td>Player V2 routes (/play-schedules, /playlist-advertisements)</td><td>คง route เดิม + เพิ่ม GET /v2/screen-schedule</td><td>' + status_macro("ADD ENDPOINT", "Yellow") + '</td></tr>'
+        '<tr><td><strong>Tauri plugin-upload</strong></td><td>Native HTTP media download</td><td>เหมือนเดิม (ดาวน์โหลดทีละไฟล์ + resume)</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
+        '<tr><td><strong>localStorage</strong></td><td>Schedules, playlists, playData</td><td>ย้ายข้อมูลหนักไป Tauri Store; localStorage เก็บแค่ small state</td><td>' + status_macro("MIGRATE", "Yellow") + '</td></tr>'
         '<tr><td><strong>Tauri Store</strong></td><td>player.history.json (play history retry)</td><td>+ outbox.json, playlist-cache.json, inbox-state.json</td><td>' + status_macro("EXPAND", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Pusher client (player)</strong></td><td>Subscribe, re-fetch on event</td><td>Same + inbox dedup layer (event_id + version check)</td><td>' + status_macro("WRAP", "Yellow") + '</td></tr>'
-        '<tr><td><strong>x-device-code auth</strong></td><td>Player auth header</td><td>Same</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
+        '<tr><td><strong>Pusher client (player)</strong></td><td>Subscribe, re-fetch on event</td><td>เหมือนเดิม + inbox dedup layer (event_id + version check)</td><td>' + status_macro("WRAP", "Yellow") + '</td></tr>'
+        '<tr><td><strong>x-device-code auth</strong></td><td>Player auth header</td><td>เหมือนเดิม</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
         '</table>'
     )
 
@@ -556,46 +556,46 @@ def build_page_3(page_id: str) -> str:
     sections = []
 
     sections.append(toc())
-    sections.append("<h2>Key Flows</h2>")
+    sections.append("<h2>Flow หลัก (Key Flows)</h2>")
 
-    sections.append("<h3>Flow A: Normal Online Play (Happy Path)</h3>")
+    sections.append("<h3>Flow A: เล่นปกติ Online (Happy Path)</h3>")
     sections.append(mermaid_diagram(
         load_diagram("05-1-flow-normal.mmd"),
         page_id=page_id,
     ))
 
-    sections.append("<h3>Flow B: Network Drop &rarr; Offline &rarr; Reconnect</h3>")
+    sections.append("<h3>Flow B: เน็ตหลุด &rarr; Offline &rarr; เชื่อมต่อใหม่</h3>")
     sections.append(mermaid_diagram(
         load_diagram("05-2-flow-network-drop.mmd"),
         page_id=page_id,
     ))
 
-    sections.append("<h3>Flow C: Guaranteed Spot Interrupt (Online)</h3>")
+    sections.append("<h3>Flow C: Interrupt แบบ Guaranteed Spot (Online)</h3>")
     sections.append(warning_panel(
-        "<p><strong>Current system has 2 paths for guaranteed spots (เดิมเรียก exclusive):</strong></p>"
+        "<p><strong>ระบบเดิมมี 2 เส้นทางสำหรับ guaranteed spots (เดิมเรียก exclusive):</strong></p>"
         "<ul>"
-        "<li><strong>Path 1 (On approval):</strong> Owner approves &rarr; BullMQ <code>PlayScheduleCreateByExclusive</code> job &rarr; "
-        "creates PlaySchedule rows (type=EXCLUSIVE, createdBy=EXCLUSIVE_APPROVED) &rarr; "
-        "Pusher <code>approved-advertisement-exclusive</code> with full payload &rarr; Player injects immediately</li>"
-        "<li><strong>Path 2 (During loop):</strong> <code>PlayScheduleExclusiveService</code> checks <code>AdGroupDisplayTimeExclusive</code> "
-        "overlapping current loop window &rarr; creates PlaySchedule rows (createdBy=PLAYER_REQUEST)</li>"
+        "<li><strong>เส้นทาง 1 (ตอน approve):</strong> Owner approve &rarr; BullMQ <code>PlayScheduleCreateByExclusive</code> job &rarr; "
+        "สร้าง PlaySchedule rows (type=EXCLUSIVE, createdBy=EXCLUSIVE_APPROVED) &rarr; "
+        "Pusher <code>approved-advertisement-exclusive</code> พร้อม payload เต็ม &rarr; Player inject ทันที</li>"
+        "<li><strong>เส้นทาง 2 (ระหว่าง loop):</strong> <code>PlayScheduleExclusiveService</code> เช็ค <code>AdGroupDisplayTimeExclusive</code> "
+        "ที่ overlap กับ loop window ปัจจุบัน &rarr; สร้าง PlaySchedule rows (createdBy=PLAYER_REQUEST)</li>"
         "</ul>"
-        "<p><strong>Proposed simplification:</strong> Ad Decisioning Engine handles both paths &mdash; "
-        "guaranteed spots are pre-injected into the ordered sequence at their exact <code>play_at</code> position. "
-        "Player no longer needs guaranteed interrupt logic.</p>"
+        "<p><strong>ที่เสนอให้ปรับ:</strong> Ad Decisioning Engine จัดการทั้ง 2 เส้นทาง &mdash; "
+        "guaranteed spots ถูก inject เข้า ordered sequence ที่ตำแหน่ง <code>play_at</code> ที่แน่นอนตั้งแต่แรก. "
+        "Player ไม่ต้องมี guaranteed interrupt logic อีกต่อไป.</p>"
     ))
     sections.append(mermaid_diagram(
         load_diagram("05-3-flow-exclusive.mmd"),
         page_id=page_id,
     ))
 
-    sections.append("<h3>Flow D: Fresh Boot (No Cache)</h3>")
+    sections.append("<h3>Flow D: เปิดเครื่องใหม่ ไม่มี Cache (Fresh Boot)</h3>")
     sections.append(mermaid_diagram(
         load_diagram("05-4-flow-fresh-boot.mmd"),
         page_id=page_id,
     ))
 
-    sections.append("<h3>Flow E: Daypart Takeover</h3>")
+    sections.append("<h3>Flow E: เหมาช่วงเวลา (Daypart Takeover)</h3>")
     sections.append(info_panel(
         "<p><strong>Daypart Takeover (เหมา time block):</strong> ลูกค้าซื้อช่วงเวลาทั้งหมด (เช่น 08:00-09:00) "
         "วน ad เดียวไม่หยุด ไม่มี ad อื่นแทรกได้ยกเว้น P0 Emergency. "
@@ -608,7 +608,7 @@ def build_page_3(page_id: str) -> str:
         page_id=page_id,
     ))
 
-    sections.append("<h3>Flow F: Exact-Time Spot</h3>")
+    sections.append("<h3>Flow F: เล่นตรงเวลา (Exact-Time Spot)</h3>")
     sections.append(info_panel(
         "<p><strong>Exact-Time Spot:</strong> Ad ต้องเล่นตรงเวลาที่กำหนด (±5 วินาที). "
         "Interrupt Controller จะหยุด creative ที่กำลังเล่น (P2-P4 เท่านั้น) แล้วเล่น ET spot ทันที. "
@@ -630,39 +630,39 @@ def build_page_4(page_id: str) -> str:
     sections = []
 
     sections.append(toc())
-    sections.append("<h2>Technical Design: Algorithm &amp; Models</h2>")
+    sections.append("<h2>Technical Design: Algorithm และ Models</h2>")
 
     # Ad Decisioning Algorithm
-    sections.append("<h3>Ad Decisioning Algorithm</h3>")
+    sections.append("<h3>Ad Decisioning Algorithm (ขั้นตอนจัดลำดับ Ad)</h3>")
     sections.append(note_panel(
-        "<p><strong>Key insight:</strong> Ad Decisioning Engine runs <em>after</em> existing PlayScheduleCalculatePerScreen. "
-        "It takes the PlaySchedule rows (already calculated) and converts them into an <strong>ordered loop sequence</strong>.</p>"
-        "<p><strong>Guaranteed spots (เดิมเรียก exclusive):</strong> Currently handled by 2 separate paths "
-        "(<code>PlayScheduleCreateByExclusive</code> on approval + <code>PlayScheduleExclusiveService</code> during loops). "
-        "Ad Decisioning Engine <strong>unifies both</strong> &mdash; guaranteed spots are injected at their exact <code>play_at</code> "
-        "position in the sequence. Reservation check (<code>checkIsBillboardsReserved</code>) prevents double-booking. "
-        "Billing uses <code>exclusiveMultiplier</code> (env: <code>ADVERTISEMENT_EXCLUSIVE_MULTIPLIER</code>).</p>"
+        "<p><strong>หลักการสำคัญ:</strong> Ad Decisioning Engine ทำงาน <em>หลัง</em> PlayScheduleCalculatePerScreen ที่มีอยู่เดิม. "
+        "รับ PlaySchedule rows (คำนวณไว้แล้ว) แล้วแปลงเป็น <strong>ordered loop sequence</strong>.</p>"
+        "<p><strong>Guaranteed spots (เดิมเรียก exclusive):</strong> ปัจจุบันจัดการด้วย 2 เส้นทางแยกกัน "
+        "(<code>PlayScheduleCreateByExclusive</code> ตอน approve + <code>PlayScheduleExclusiveService</code> ระหว่าง loop). "
+        "Ad Decisioning Engine <strong>รวมทั้ง 2 เส้นทาง</strong> &mdash; guaranteed spots ถูก inject ที่ตำแหน่ง <code>play_at</code> "
+        "ตรงจุดใน sequence. ตรวจสอบการจองซ้ำด้วย <code>checkIsBillboardsReserved</code>. "
+        "Billing ใช้ <code>exclusiveMultiplier</code> (env: <code>ADVERTISEMENT_EXCLUSIVE_MULTIPLIER</code>).</p>"
     ))
     sections.append(
         '<table>'
         '<tr><th>Priority</th><th>DOOH Type</th><th>Interrupt?</th><th>Scheduling</th><th>Billing</th></tr>'
-        '<tr><td><strong>P0</strong></td><td>Emergency</td><td>' + status_macro("YES — all", "Red") + '</td><td>System alerts, unpair, maintenance</td><td>N/A</td></tr>'
+        '<tr><td><strong>P0</strong></td><td>Emergency</td><td>' + status_macro("YES — all", "Red") + '</td><td>แจ้งเตือนระบบ, unpair, maintenance</td><td>N/A</td></tr>'
         '<tr><td><strong>P1-TK</strong></td><td>Daypart Takeover</td><td>' + status_macro("YES — boundaries", "Red") + '</td><td>เหมา time block วน ad เดียว (TK_START → loop → TK_END)</td><td>CPT (flat/time block)</td></tr>'
         '<tr><td><strong>P1-ET</strong></td><td>Exact-Time Spot</td><td>' + status_macro("YES — P2-P4", "Red") + '</td><td>เล่นตรงเวลา ±5s tolerance</td><td>Flat per spot</td></tr>'
-        '<tr><td><strong>P1-G</strong></td><td>Guaranteed Spot</td><td>' + status_macro("NO — pre-positioned", "Green") + '</td><td>Time-reserved guaranteed spots (<code>play_at</code> exact position in sequence)</td><td><code>exclusiveMultiplier</code></td></tr>'
-        '<tr><td><strong>P2</strong></td><td>Direct-Sold ROS</td><td>' + status_macro("NO", "Green") + '</td><td>Date-range campaign creatives (run-of-schedule)</td><td>Standard rate</td></tr>'
-        '<tr><td><strong>P3</strong></td><td>Spot Buy / Programmatic</td><td>' + status_macro("NO", "Green") + '</td><td>Impression-target creatives (future: RTB via SSP)</td><td>Standard / CPM</td></tr>'
-        '<tr><td><strong>P4</strong></td><td>House / Filler</td><td>' + status_macro("NO", "Green") + '</td><td>Screen owner default content (house loop)</td><td>N/A</td></tr>'
+        '<tr><td><strong>P1-G</strong></td><td>Guaranteed Spot</td><td>' + status_macro("NO — pre-positioned", "Green") + '</td><td>จอง time slot เล่นตรงตำแหน่ง <code>play_at</code> ใน sequence</td><td><code>exclusiveMultiplier</code></td></tr>'
+        '<tr><td><strong>P2</strong></td><td>Direct-Sold ROS</td><td>' + status_macro("NO", "Green") + '</td><td>Campaign creatives ตาม date-range (run-of-schedule)</td><td>Standard rate</td></tr>'
+        '<tr><td><strong>P3</strong></td><td>Spot Buy / Programmatic</td><td>' + status_macro("NO", "Green") + '</td><td>Campaign ตาม impression target (อนาคต: RTB ผ่าน SSP)</td><td>Standard / CPM</td></tr>'
+        '<tr><td><strong>P4</strong></td><td>House / Filler</td><td>' + status_macro("NO", "Green") + '</td><td>Content default ของเจ้าของจอ (house loop)</td><td>N/A</td></tr>'
         '</table>'
     )
     sections.append(note_panel(
-        "<p><strong>Interrupt Rules:</strong></p>"
+        "<p><strong>กฎการ Interrupt:</strong></p>"
         "<ul>"
-        "<li><strong>P0/P1-TK/P1-ET:</strong> Interrupt current creative ทันที → <strong>stop</strong> (ไม่ pause/resume) "
+        "<li><strong>P0/P1-TK/P1-ET:</strong> Interrupt creative ปัจจุบันทันที → <strong>stop</strong> (ไม่ pause/resume) "
         '— แนวคิดจาก <a href="https://xibosignage.com/manual/en/layouts_interrupt">Xibo Interrupt Layout</a></li>'
         "<li><strong>P1-G/P2/P3/P4:</strong> รอ creative ปัจจุบันจบก่อน (no interrupt)</li>"
-        "<li>After interrupt: resume จาก <strong>next item</strong> ใน schedule (ไม่ restart creative ที่โดน interrupt)</li>"
-        "<li>Interrupted ad ได้ <strong>make-good</strong> compensation ใน cycle ถัดไป (partial play ไม่นับ impression)</li>"
+        "<li>หลัง interrupt: resume จาก <strong>next item</strong> ใน schedule (ไม่ restart creative ที่โดน interrupt)</li>"
+        "<li>Ad ที่โดน interrupt ได้ <strong>make-good</strong> compensation ใน cycle ถัดไป (partial play ไม่นับ impression)</li>"
         "<li>Takeover ซ้อนกันไม่ได้ (1 time block = 1 owner)</li>"
         "</ul>"
     ))
@@ -751,7 +751,7 @@ def build_page_4(page_id: str) -> str:
     ))
 
     # New Data Models
-    sections.append("<h3>New Data Models</h3>")
+    sections.append("<h3>Data Models ใหม่</h3>")
     sections.append(tracked_code_block(
         "// NEW: ScreenSchedule model (app/Models/ScreenSchedule.ts)\n"
         "interface ScreenSchedule {\n"
@@ -851,7 +851,7 @@ def build_page_4(page_id: str) -> str:
     ))
 
     # New API Endpoint
-    sections.append("<h3>New API Endpoint</h3>")
+    sections.append("<h3>API Endpoint ใหม่</h3>")
     sections.append(tracked_code_block(
         "// GET /v2/screen-schedule?tier=live&since_version=41\n"
         "// Response:\n"
@@ -915,7 +915,7 @@ def build_page_5(page_id: str) -> str:
     sections.append("<h2>Technical Design: Player Components</h2>")
 
     # 3-Tier Playlist Cache
-    sections.append("<h3>3-Tier Playlist Cache</h3>")
+    sections.append("<h3>ระบบ Cache 3 ชั้น (3-Tier Playlist Cache)</h3>")
     sections.append(mermaid_diagram(
         load_diagram("06-4-three-tier-cache.mmd"),
         page_id=page_id,
@@ -928,16 +928,16 @@ def build_page_5(page_id: str) -> str:
         page_id=page_id,
     ))
     sections.append(warning_panel(
-        "<p><strong>Rules:</strong></p>"
+        "<p><strong>กฎสำคัญ:</strong></p>"
         "<ul>"
-        "<li>Every state MUST have something to display. <strong>Black screen is NEVER acceptable.</strong></li>"
-        "<li><strong>INTERRUPTED</strong> is a transient state — stop current → play interrupt content → resume next item. "
-        "Triggers: P0 emergency, P1-TK boundary, P1-ET ±5s. ดู §6.10 Interrupt Controller</li>"
+        "<li>ทุก state ต้องมีอะไรแสดงเสมอ. <strong>จอดำ (black screen) ยอมรับไม่ได้เด็ดขาด.</strong></li>"
+        "<li><strong>INTERRUPTED</strong> เป็น transient state — หยุด creative ปัจจุบัน → เล่น interrupt content → resume item ถัดไป. "
+        "Trigger: P0 emergency, P1-TK boundary, P1-ET ±5s. ดู §6.10 Interrupt Controller</li>"
         "</ul>"
     ))
 
     # PoP Reporting (Outbox/Inbox)
-    sections.append("<h3>PoP Reporting (Outbox/Inbox)</h3>")
+    sections.append("<h3>ระบบรายงาน PoP (Outbox/Inbox)</h3>")
     sections.append(error_panel(
         "<p><strong>ปัญหา 1 (Player &rarr; Backend): Duplicate PoP (Proof of Play)</strong><br/>"
         "Player POST <code>/v2/play-history</code> &rarr; timeout &rarr; retry &rarr; backend ได้ 2 รายการ สำหรับ creative เดียวกัน</p>"
@@ -947,7 +947,7 @@ def build_page_5(page_id: str) -> str:
         "Pusher ส่ง event ซ้ำ (at-least-once) &rarr; player process ซ้ำ &rarr; fetch ซ้ำ &rarr; เสีย bandwidth</p>"
     ))
     sections.append(info_panel(
-        "<p><strong>Solution:</strong> Outbox (Player&rarr;Backend) + Inbox (Backend&rarr;Player)</p>"
+        "<p><strong>แนวทางแก้:</strong> Outbox (Player&rarr;Backend) + Inbox (Backend&rarr;Player)</p>"
     ))
 
     sections.append("<h4>Player Outbox (PoP Reporting)</h4>")
@@ -1014,7 +1014,7 @@ def build_page_5(page_id: str) -> str:
     ))
 
     # PoP Deduplication
-    sections.append("<h3>PoP Deduplication (Backend Idempotency)</h3>")
+    sections.append("<h3>PoP Deduplication (Idempotency ฝั่ง Backend)</h3>")
     sections.append(tracked_code_block(
         "// Backend: PlayHistoryController\n"
         "async store({ request }: HttpContextContract) {\n"
@@ -1037,9 +1037,9 @@ def build_page_5(page_id: str) -> str:
     ))
 
     # Programmatic Integration Points
-    sections.append("<h3>Programmatic Integration Points (pDOOH Roadmap)</h3>")
+    sections.append("<h3>จุดเชื่อมต่อ Programmatic (pDOOH Roadmap)</h3>")
     sections.append(info_panel(
-        "<p><strong>Scale 100-500 screens:</strong> ยังไม่ต้อง SSP/DSP เต็มรูปแบบ แต่วาง integration points ไว้ "
+        "<p><strong>Scale 100-500 จอ:</strong> ยังไม่ต้อง SSP/DSP เต็มรูปแบบ แต่วาง integration points ไว้ "
         "เพื่อให้ pluggable เมื่อ scale ถึง. ไม่เพิ่ม tech stack ใหม่ &mdash; ใช้ AdonisJS + Redis + BullMQ เดิม.</p>"
     ))
     sections.append(mermaid_diagram(
@@ -1049,12 +1049,12 @@ def build_page_5(page_id: str) -> str:
     sections.append(
         '<table>'
         '<tr><th>Integration Point</th><th>Current</th><th>pDOOH Extension (Future)</th></tr>'
-        '<tr><td><strong>P3 slot fill</strong></td><td>Internal spot rotation (count-based)</td><td>SSP ad request &rarr; RTB auction &rarr; winning creative or fallback</td></tr>'
-        '<tr><td><strong>PoP reporting</strong></td><td>POST /v2/play-history</td><td>Add: <code>impression_id</code>, <code>campaign_id</code>, <code>creative_id</code>, <code>viewability_score</code></td></tr>'
-        '<tr><td><strong>Inventory avails</strong></td><td>N/A</td><td><code>GET /v2/avails?screen_id=X&amp;daypart=Y</code> &mdash; expose available slots to SSP</td></tr>'
-        '<tr><td><strong>Campaign pacing</strong></td><td>BEP-2998 fix (basic proportional)</td><td>Even distribution across flight + SOV-based allocation</td></tr>'
-        '<tr><td><strong>Fill rate tracking</strong></td><td>N/A</td><td>% of P3 avails filled programmatic vs house content</td></tr>'
-        '<tr><td><strong>Audience estimation</strong></td><td>N/A</td><td>Pass <code>audience_est</code> (foot traffic / time-of-day) in ad request</td></tr>'
+        '<tr><td><strong>P3 slot fill</strong></td><td>หมุน spot ภายใน (count-based)</td><td>SSP ad request &rarr; RTB auction &rarr; winning creative หรือ fallback</td></tr>'
+        '<tr><td><strong>PoP reporting</strong></td><td>POST /v2/play-history</td><td>เพิ่ม: <code>impression_id</code>, <code>campaign_id</code>, <code>creative_id</code>, <code>viewability_score</code></td></tr>'
+        '<tr><td><strong>Inventory avails</strong></td><td>N/A</td><td><code>GET /v2/avails?screen_id=X&amp;daypart=Y</code> &mdash; เปิด slot ว่างให้ SSP เห็น</td></tr>'
+        '<tr><td><strong>Campaign pacing</strong></td><td>BEP-2998 fix (proportional พื้นฐาน)</td><td>กระจาย impression ให้สม่ำเสมอตลอด flight + จัดสรรตาม SOV</td></tr>'
+        '<tr><td><strong>Fill rate tracking</strong></td><td>N/A</td><td>% ของ P3 avails ที่เติมด้วย programmatic vs house content</td></tr>'
+        '<tr><td><strong>Audience estimation</strong></td><td>N/A</td><td>ส่ง <code>audience_est</code> (foot traffic / ช่วงเวลา) ใน ad request</td></tr>'
         '</table>'
     )
 
@@ -1068,15 +1068,15 @@ def build_page_6(page_id: str) -> str:
     sections = []
 
     sections.append(toc())
-    sections.append("<h2>Interrupt Controller &amp; Make-Good</h2>")
+    sections.append("<h2>Interrupt Controller และระบบ Make-Good</h2>")
 
     # Interrupt Controller
-    sections.append("<h3>Interrupt Controller</h3>")
+    sections.append("<h3>Interrupt Controller (ตัวควบคุมการ Interrupt)</h3>")
     sections.append(warning_panel(
-        "<p><strong>Design decision: Selective Interrupt.</strong> "
+        "<p><strong>การตัดสินใจออกแบบ: Selective Interrupt.</strong> "
         "Player ยังเป็น Dumb Renderer สำหรับ P1-G/P2/P3/P4 (รอ creative จบก่อน). "
         "แต่มี <strong>lightweight Interrupt Controller (IC)</strong> สำหรับ P0/P1-TK/P1-ET เท่านั้น.</p>"
-        "<p><strong>Industry reference:</strong></p>"
+        "<p><strong>อ้างอิงจาก Industry:</strong></p>"
         "<ul>"
         '<li><a href="https://docs.broadsign.com/broadsign-control/latest/en/settings-section.html">'
         "Broadsign Day Part Switch</a>: configurable interrupt vs wait-for-completion — "
@@ -1094,19 +1094,19 @@ def build_page_6(page_id: str) -> str:
         '<table>'
         '<tr><th>Trigger</th><th>Action</th><th>Resume</th></tr>'
         '<tr><td><strong>P0 Emergency</strong><br/>(Pusher: p0-emergency)</td>'
-        '<td>Stop immediately → play emergency creative</td>'
-        '<td>Resume next item after emergency duration. TK time lost (log for manual billing)</td></tr>'
-        '<tr><td><strong>P1-TK Start</strong><br/>(Pusher: takeover-start OR local clock)</td>'
-        '<td>Stop current → switch to TK creative → loop until TK_END</td>'
-        '<td>TK_END → resume next item in normal schedule + make-good for interrupted ad</td></tr>'
+        '<td>หยุดทันที → เล่น emergency creative</td>'
+        '<td>Resume item ถัดไปหลัง emergency จบ. เวลา TK ที่เสียไป log ไว้สำหรับ billing manual</td></tr>'
+        '<tr><td><strong>P1-TK Start</strong><br/>(Pusher: takeover-start หรือ local clock)</td>'
+        '<td>หยุด creative ปัจจุบัน → สลับไป TK creative → วน loop จนถึง TK_END</td>'
+        '<td>TK_END → resume item ถัดไปใน schedule ปกติ + make-good สำหรับ ad ที่โดน interrupt</td></tr>'
         '<tr><td><strong>P1-ET Trigger</strong><br/>(local clock ±5s)</td>'
-        '<td>Stop current P2-P4 → play ET spot (single play)</td>'
-        '<td>ET done → resume next item + make-good for interrupted ad</td></tr>'
+        '<td>หยุด P2-P4 ปัจจุบัน → เล่น ET spot (เล่นครั้งเดียว)</td>'
+        '<td>ET เสร็จ → resume item ถัดไป + make-good สำหรับ ad ที่โดน interrupt</td></tr>'
         '</table>'
     )
 
     # Make-Good System
-    sections.append("<h3>Make-Good System</h3>")
+    sections.append("<h3>ระบบ Make-Good (ชดเชย Ad ที่โดน Interrupt)</h3>")
     sections.append(info_panel(
         "<p><strong>Make-Good</strong> คือ industry standard สำหรับชดเชย ad ที่โดน interrupt "
         '(<a href="https://www.cjadvertising.com/blog/industry-trends/preempts-makegoods-money-move/">'
@@ -1140,31 +1140,31 @@ def build_page_7(page_id: str) -> str:
     sections = []
 
     sections.append(toc())
-    sections.append("<h2>Event-Driven Architecture</h2>")
+    sections.append("<h2>สถาปัตยกรรม Event-Driven</h2>")
     sections.append(info_panel(
-        "<p><strong>Decision:</strong> Formalize existing event-driven patterns (Pusher + BullMQ) with typed contracts, "
-        "domain events, and clear ownership. <strong>NOT</strong> Event-Sourcing &mdash; scale + team doesn't justify the complexity.</p>"
+        "<p><strong>การตัดสินใจ:</strong> ทำให้ event-driven patterns ที่มีอยู่ (Pusher + BullMQ) ชัดเจนขึ้นด้วย typed contracts, "
+        "domain events, และ ownership ที่ชัดเจน. <strong>ไม่ใช่</strong> Event-Sourcing &mdash; scale + ทีมยังไม่จำเป็นต้อง complex ขนาดนั้น.</p>"
     ))
 
-    sections.append("<h3>What We Already Have (De Facto Event-Driven)</h3>")
+    sections.append("<h3>สิ่งที่มีอยู่แล้ว (De Facto Event-Driven)</h3>")
 
     sections.append(
         '<table>'
         '<tr><th>Component</th><th>Pattern</th><th>Status</th></tr>'
-        '<tr><td>BullMQ cron &rarr; per-screen jobs</td><td>Job queue as event bus</td><td>' + status_macro("EXISTS", "Green") + '</td></tr>'
-        '<tr><td>Pusher events &rarr; Player</td><td>Real-time event delivery</td><td>' + status_macro("EXISTS", "Green") + '</td></tr>'
-        '<tr><td>PoP retry queue</td><td>Outbox-like (player.history.json)</td><td>' + status_macro("EXISTS", "Green") + '</td></tr>'
-        '<tr><td>Typed event contracts</td><td>Explicit interface per event</td><td>' + status_macro("MISSING", "Red") + '</td></tr>'
-        '<tr><td>Domain events in code</td><td>Named events for traceability</td><td>' + status_macro("MISSING", "Red") + '</td></tr>'
-        '<tr><td>Idempotency keys</td><td>Dedup on retry</td><td>' + status_macro("MISSING", "Red") + '</td></tr>'
-        '<tr><td>Version protocol</td><td>Monotonic version per device</td><td>' + status_macro("MISSING", "Red") + '</td></tr>'
+        '<tr><td>BullMQ cron &rarr; per-screen jobs</td><td>Job queue เป็น event bus</td><td>' + status_macro("EXISTS", "Green") + '</td></tr>'
+        '<tr><td>Pusher events &rarr; Player</td><td>ส่ง event แบบ real-time</td><td>' + status_macro("EXISTS", "Green") + '</td></tr>'
+        '<tr><td>PoP retry queue</td><td>คล้าย Outbox (player.history.json)</td><td>' + status_macro("EXISTS", "Green") + '</td></tr>'
+        '<tr><td>Typed event contracts</td><td>Interface ชัดเจนต่อ event</td><td>' + status_macro("MISSING", "Red") + '</td></tr>'
+        '<tr><td>Domain events ใน code</td><td>ตั้งชื่อ event เพื่อ traceability</td><td>' + status_macro("MISSING", "Red") + '</td></tr>'
+        '<tr><td>Idempotency keys</td><td>ป้องกัน duplicate ตอน retry</td><td>' + status_macro("MISSING", "Red") + '</td></tr>'
+        '<tr><td>Version protocol</td><td>เลข version เพิ่มขึ้นเรื่อยๆ ต่อ device</td><td>' + status_macro("MISSING", "Red") + '</td></tr>'
         '</table>'
     )
 
     sections.append("<h3>Typed Pusher Event Contracts</h3>")
     sections.append(note_panel(
-        "<p><strong>Goal:</strong> Every Pusher event has a TypeScript interface shared between backend and player. "
-        "No more <code>any</code> types or implicit contracts.</p>"
+        "<p><strong>เป้าหมาย:</strong> ทุก Pusher event มี TypeScript interface ที่ใช้ร่วมกันระหว่าง backend และ player. "
+        "ไม่มี <code>any</code> types หรือ implicit contracts อีกต่อไป.</p>"
     ))
 
     sections.append(tracked_code_block(
@@ -1264,10 +1264,10 @@ def build_page_7(page_id: str) -> str:
         collapse=True,
     ))
 
-    sections.append("<h3>Domain Events (Internal Code-Level)</h3>")
+    sections.append("<h3>Domain Events (ระดับ Code ภายใน)</h3>")
     sections.append(note_panel(
-        "<p><strong>Goal:</strong> Named domain events inside backend code for traceability. "
-        "NOT persisted as event-sourcing log &mdash; just typed objects passed between services.</p>"
+        "<p><strong>เป้าหมาย:</strong> ตั้งชื่อ domain events ใน backend code เพื่อ traceability. "
+        "ไม่ได้เก็บเป็น event-sourcing log &mdash; แค่ typed objects ที่ส่งระหว่าง services.</p>"
     ))
 
     sections.append(tracked_code_block(
@@ -1348,7 +1348,7 @@ def build_page_7(page_id: str) -> str:
         collapse=True,
     ))
 
-    sections.append("<h3>Event Flow Diagram</h3>")
+    sections.append("<h3>แผนภาพ Event Flow</h3>")
     sections.append(mermaid_diagram(
         load_diagram("07-4-event-flow.mmd"),
         page_id=page_id,
@@ -1364,9 +1364,9 @@ def build_page_8(page_id: str) -> str:
     sections = []
 
     sections.append(toc())
-    sections.append("<h2>Edge Cases &amp; Resilience</h2>")
+    sections.append("<h2>Edge Cases และความทนทาน (Resilience)</h2>")
 
-    sections.append("<h3>Network Issues</h3>")
+    sections.append("<h3>ปัญหาเครือข่าย (Network Issues)</h3>")
     sections.append(expand_section("E1-E6: Network Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
@@ -1391,7 +1391,7 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     ))
 
-    sections.append("<h3>Schedule/Playlist Issues</h3>")
+    sections.append("<h3>ปัญหา Schedule/Playlist</h3>")
     sections.append(expand_section("E7-E13: Schedule/Playlist Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
@@ -1419,7 +1419,7 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     ))
 
-    sections.append("<h3>Device/Storage Issues</h3>")
+    sections.append("<h3>ปัญหา Device/Storage</h3>")
     sections.append(expand_section("E14-E19: Device/Storage Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
@@ -1444,7 +1444,7 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     ))
 
-    sections.append("<h3>Business Logic Issues</h3>")
+    sections.append("<h3>ปัญหา Business Logic</h3>")
     sections.append(expand_section("E20-E24: Business Logic Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
@@ -1466,9 +1466,9 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     ))
 
-    sections.append("<h3>Guaranteed Spot Edge Cases (P1-G — No Interrupt)</h3>")
+    sections.append("<h3>Edge Cases ของ Guaranteed Spot (P1-G — ไม่ Interrupt)</h3>")
     sections.append(warning_panel(
-        "<p><strong>Edge cases specific to P1-G guaranteed spots</strong> (เดิมเรียก exclusive). "
+        "<p><strong>Edge cases เฉพาะ P1-G guaranteed spots</strong> (เดิมเรียก exclusive). "
         "P1-G ยังคง <strong>ไม่ interrupt</strong> — pre-positioned ใน sequence โดย Ad Decisioning Engine. "
         "สำหรับ edge cases ของ P1-TK (Takeover) และ P1-ET (Exact-Time) ที่มี interrupt ดู §8.6</p>"
     ))
@@ -1511,7 +1511,7 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     ))
 
-    sections.append("<h4>Combined Flow Edge Cases (Regular + Exclusive)</h4>")
+    sections.append("<h4>Edge Cases ของ Flow ผสม (Regular + Exclusive)</h4>")
     sections.append(expand_section("CF1-CF5: Combined Flow Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>สิ่งที่เกิดขึ้น</th><th>Solution</th></tr>'
@@ -1539,12 +1539,12 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     ))
 
-    sections.append("<h3>Takeover &amp; Exact-Time Edge Cases (P1-TK / P1-ET)</h3>")
+    sections.append("<h3>Edge Cases ของ Takeover และ Exact-Time (P1-TK / P1-ET)</h3>")
     sections.append(mermaid_diagram(
         load_diagram("08-2-takeover-timeline.mmd"),
         page_id=page_id,
     ))
-    sections.append("<h4>Takeover Interrupt Timeline (Gantt View)</h4>")
+    sections.append("<h4>Timeline การ Interrupt ของ Takeover (Gantt View)</h4>")
     sections.append(info_panel(
         "<p>มุมมองเวลาจริง — เห็นสัดส่วนว่า <strong>TK block 60 นาที</strong> กว้างกว่า normal schedule มาก. "
         "<strong>Milestone</strong> = TK_START / TK_END boundary. "
@@ -1557,27 +1557,27 @@ def build_page_8(page_id: str) -> str:
     sections.append(expand_section("TK1-TK8: Takeover & Exact-Time Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>Solution</th></tr>'
-        '<tr><td>TK1</td><td><strong>Overlapping TK booking</strong> &mdash; 2 owners want same time block</td>'
-        '<td>Reject at booking time — <code>checkIsBillboardsReserved</code> extended for TK. 1 time block = 1 owner only</td></tr>'
-        '<tr><td>TK2</td><td><strong>TK creative not cached at TK_START</strong></td>'
-        '<td>Skip TK → resume normal schedule → alert admin. Pre-stage creative via <code>device-config-updated</code> event at booking time</td></tr>'
-        '<tr><td>TK3</td><td><strong>P0 Emergency during TK</strong></td>'
-        '<td>P0 wins (always highest priority). TK time lost during emergency — log for manual billing reconciliation</td></tr>'
-        '<tr><td>TK4</td><td><strong>Player offline at TK_START</strong></td>'
-        '<td>Local clock fallback: TK schedule pre-staged in Tier 2 with <code>takeover_id</code>. IC checks local clock against pending TK boundaries</td></tr>'
-        '<tr><td>TK5</td><td><strong>TK booking &lt; lead time</strong></td>'
-        '<td>Reject — same lead time constraint as guaranteed spots (existing exclusive validation)</td></tr>'
-        '<tr><td>TK6</td><td><strong>TK creative changes after booking</strong></td>'
-        '<td>Re-push <code>device-config-updated</code> with new <code>creative_code</code>. Player re-downloads before TK_START</td></tr>'
-        '<tr><td>TK7</td><td><strong>Multiple ET spots at same second</strong></td>'
-        '<td>FIFO by <code>created_at</code> — first wins, second gets <code>+duration</code> offset (sequential, not parallel)</td></tr>'
-        '<tr><td>TK8</td><td><strong>Make-good creative expired</strong></td>'
-        '<td>Skip compensation — log for manual reconcile. Campaign <code>valid_until</code> check prevents playing expired ads</td></tr>'
+        '<tr><td>TK1</td><td><strong>TK booking ทับกัน</strong> &mdash; 2 เจ้าของจองช่วงเวลาเดียวกัน</td>'
+        '<td>Reject ตอนจอง — <code>checkIsBillboardsReserved</code> ขยายรองรับ TK. 1 time block = 1 เจ้าของเท่านั้น</td></tr>'
+        '<tr><td>TK2</td><td><strong>TK creative ยังไม่ cache ตอน TK_START</strong></td>'
+        '<td>ข้าม TK → resume schedule ปกติ → แจ้ง admin. Pre-stage creative ผ่าน <code>device-config-updated</code> event ตอนจอง</td></tr>'
+        '<tr><td>TK3</td><td><strong>P0 Emergency ระหว่าง TK</strong></td>'
+        '<td>P0 ชนะเสมอ (priority สูงสุด). เวลา TK ที่เสียไป — log สำหรับ billing reconcile manual</td></tr>'
+        '<tr><td>TK4</td><td><strong>Player offline ตอน TK_START</strong></td>'
+        '<td>ใช้ local clock: TK schedule อยู่ใน Tier 2 พร้อม <code>takeover_id</code>. IC เช็ค local clock กับ TK boundary ที่รอ</td></tr>'
+        '<tr><td>TK5</td><td><strong>จอง TK กระชั้นเกินไป</strong></td>'
+        '<td>Reject — ใช้ lead time เดียวกับ guaranteed spots (exclusive validation เดิม)</td></tr>'
+        '<tr><td>TK6</td><td><strong>TK creative เปลี่ยนหลังจอง</strong></td>'
+        '<td>Push <code>device-config-updated</code> ใหม่พร้อม <code>creative_code</code> ใหม่. Player download ก่อน TK_START</td></tr>'
+        '<tr><td>TK7</td><td><strong>หลาย ET spots ในวินาทีเดียวกัน</strong></td>'
+        '<td>FIFO ตาม <code>created_at</code> — ตัวแรกได้เล่น, ตัวถัดไปขยับ <code>+duration</code> (เรียงต่อกัน ไม่พร้อมกัน)</td></tr>'
+        '<tr><td>TK8</td><td><strong>Make-good creative หมดอายุ</strong></td>'
+        '<td>ข้ามการชดเชย — log สำหรับ reconcile manual. ตรวจ <code>valid_until</code> ป้องกันเล่น ad ที่หมดอายุ</td></tr>'
         '</table>'
     ))
 
     sections.append("<hr/>")
-    sections.append("<h2>Migration Plan (Incremental)</h2>")
+    sections.append("<h2>แผนการ Migration (ทำทีละ Phase)</h2>")
     sections.append(info_panel(
         "<p><strong>Feature flags:</strong></p>"
         "<ul>"
@@ -1607,16 +1607,16 @@ def build_page_8(page_id: str) -> str:
     )
 
     sections.append("<hr/>")
-    sections.append("<h2>Appendix</h2>")
+    sections.append("<h2>ภาคผนวก (Appendix)</h2>")
 
-    sections.append("<h3>Industry Reference</h3>")
+    sections.append("<h3>อ้างอิงจาก Industry</h3>")
 
-    sections.append("<h4>Priority Scheduling Standards (SMIL + DOOH)</h4>")
-    sections.append(expand_section("SMIL, Xibo, Broadsign, DOOH Billing — Priority Standards",
+    sections.append("<h4>มาตรฐาน Priority Scheduling (SMIL + DOOH)</h4>")
+    sections.append(expand_section("SMIL, Xibo, Broadsign, DOOH Billing — มาตรฐาน Priority",
         info_panel(
-            "<p>Our proposed <strong>5-level priority model (P0-P4)</strong> is inspired by these industry standards. "
-            "The key insight: exclusive/priority scheduling is a <em>solved problem</em> in digital signage &mdash; "
-            "we adapt proven patterns rather than inventing from scratch.</p>"
+            "<p><strong>Priority model 5 ระดับ (P0-P4)</strong> ที่เราเสนอ ได้แรงบันดาลใจจากมาตรฐาน industry เหล่านี้. "
+            "หลักการสำคัญ: exclusive/priority scheduling เป็น <em>ปัญหาที่ถูกแก้ไขแล้ว</em> ในวงการ digital signage &mdash; "
+            "เรา adapt pattern ที่พิสูจน์แล้วแทนที่จะคิดใหม่ตั้งแต่ต้น.</p>"
         ) +
         '<table>'
         '<tr><th>Standard/Platform</th><th>Priority Mechanism</th><th>What We Adopt</th></tr>'
@@ -1674,29 +1674,29 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     ))
 
-    sections.append("<h4>Our Architecture vs DOOH Standard</h4>")
-    sections.append(expand_section("DOOH Standard Comparison (14 concepts)",
+    sections.append("<h4>สถาปัตยกรรมเรา vs มาตรฐาน DOOH</h4>")
+    sections.append(expand_section("เปรียบเทียบกับมาตรฐาน DOOH (14 concepts)",
         '<table>'
         '<tr><th>DOOH Concept</th><th>Our Implementation</th><th>Gap</th></tr>'
-        '<tr><td><strong>Ad Server</strong></td><td>Ad Decisioning Engine within Backend (AdonisJS)</td><td>Not separated &mdash; OK for 100-500 screens</td></tr>'
-        '<tr><td><strong>CMS</strong></td><td>Admin panel + owner dashboard</td><td>Standard</td></tr>'
-        '<tr><td><strong>SSP (Supply-Side Platform)</strong></td><td>Not yet &mdash; P3 = future SSP avail</td><td>Phase 6 roadmap</td></tr>'
-        '<tr><td><strong>Impression tracking</strong></td><td>PoP via Outbox pattern</td><td>Add IAB fields (Phase 6)</td></tr>'
-        '<tr><td><strong>Campaign pacing</strong></td><td>BEP-2998 fix + Ad Decisioning Engine</td><td>Basic &mdash; enhance in Phase 6</td></tr>'
-        '<tr><td><strong>SOV allocation</strong></td><td>ownerTime/platformTime ratio</td><td>Renamed to SOV, same logic</td></tr>'
-        '<tr><td><strong>Guaranteed delivery</strong></td><td>P1-G guaranteed spots with reservation check (no interrupt)</td><td>Standard</td></tr>'
-        '<tr><td><strong>Daypart Takeover</strong></td><td>P1-TK time block reservation + Interrupt Controller</td><td>Implemented (Phase 3.5)</td></tr>'
-        '<tr><td><strong>Exact-Time Spot</strong></td><td>P1-ET ±5s tolerance + IC trigger</td><td>Implemented (Phase 3.5)</td></tr>'
-        '<tr><td><strong>Make-Good</strong></td><td>MakeGoodRecord: interrupted → compensate next cycle</td><td>Implemented (Phase 3.5)</td></tr>'
-        '<tr><td><strong>Interrupt handling</strong></td><td>Selective: P0/P1-TK/P1-ET interrupt, P2-P4 wait</td><td>Standard (Broadsign-style configurable)</td></tr>'
-        '<tr><td><strong>Creative management</strong></td><td>Media upload + CDN + checksum validation</td><td>Standard</td></tr>'
-        '<tr><td><strong>Offline resilience</strong></td><td>3-Tier cache (Live/Buffer/Fallback)</td><td>Standard (comparable to Xibo/BrightSign)</td></tr>'
-        '<tr><td><strong>Loop scheduling</strong></td><td>10-min loop via Scheduling Engine (BullMQ)</td><td>Standard</td></tr>'
+        '<tr><td><strong>Ad Server</strong></td><td>Ad Decisioning Engine อยู่ใน Backend (AdonisJS)</td><td>ไม่แยก — OK สำหรับ 100-500 จอ</td></tr>'
+        '<tr><td><strong>CMS</strong></td><td>Admin panel + owner dashboard</td><td>มาตรฐาน</td></tr>'
+        '<tr><td><strong>SSP (Supply-Side Platform)</strong></td><td>ยังไม่มี — P3 = SSP avail ในอนาคต</td><td>Phase 6 roadmap</td></tr>'
+        '<tr><td><strong>Impression tracking</strong></td><td>PoP ผ่าน Outbox pattern</td><td>เพิ่ม IAB fields (Phase 6)</td></tr>'
+        '<tr><td><strong>Campaign pacing</strong></td><td>BEP-2998 fix + Ad Decisioning Engine</td><td>พื้นฐาน — ปรับปรุงใน Phase 6</td></tr>'
+        '<tr><td><strong>SOV allocation</strong></td><td>สัดส่วน ownerTime/platformTime</td><td>เปลี่ยนชื่อเป็น SOV, logic เดิม</td></tr>'
+        '<tr><td><strong>Guaranteed delivery</strong></td><td>P1-G guaranteed spots พร้อม reservation check (ไม่ interrupt)</td><td>มาตรฐาน</td></tr>'
+        '<tr><td><strong>Daypart Takeover</strong></td><td>P1-TK จอง time block + Interrupt Controller</td><td>Implement แล้ว (Phase 3.5)</td></tr>'
+        '<tr><td><strong>Exact-Time Spot</strong></td><td>P1-ET ±5s tolerance + IC trigger</td><td>Implement แล้ว (Phase 3.5)</td></tr>'
+        '<tr><td><strong>Make-Good</strong></td><td>MakeGoodRecord: โดน interrupt → ชดเชย cycle ถัดไป</td><td>Implement แล้ว (Phase 3.5)</td></tr>'
+        '<tr><td><strong>Interrupt handling</strong></td><td>เลือก interrupt: P0/P1-TK/P1-ET interrupt, P2-P4 รอ</td><td>มาตรฐาน (แบบ Broadsign configurable)</td></tr>'
+        '<tr><td><strong>Creative management</strong></td><td>Upload media + CDN + checksum validation</td><td>มาตรฐาน</td></tr>'
+        '<tr><td><strong>Offline resilience</strong></td><td>Cache 3 ชั้น (Live/Buffer/Fallback)</td><td>มาตรฐาน (เทียบเท่า Xibo/BrightSign)</td></tr>'
+        '<tr><td><strong>Loop scheduling</strong></td><td>Loop 10 นาที ผ่าน Scheduling Engine (BullMQ)</td><td>มาตรฐาน</td></tr>'
         '</table>'
     ))
 
-    sections.append("<h4>How Commercial Solutions Handle Offline</h4>")
-    sections.append(expand_section("Xibo, piSignage, BrightSign, info-beamer — Offline Approaches",
+    sections.append("<h4>วิธีจัดการ Offline ของ Platform ชั้นนำ</h4>")
+    sections.append(expand_section("Xibo, piSignage, BrightSign, info-beamer — แนวทาง Offline",
         '<table>'
         '<tr><th>Platform</th><th>Approach</th><th>Buffer</th></tr>'
         '<tr><td>Xibo</td><td>RequiredFiles manifest + MD5 per file + 50MB chunk download</td><td>48h ahead (configurable)</td></tr>'
@@ -1706,8 +1706,8 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     ))
 
-    sections.append("<h4>Open Source References</h4>")
-    sections.append(expand_section("Xibo, piSignage, Anthias — Open Source References",
+    sections.append("<h4>อ้างอิง Open Source</h4>")
+    sections.append(expand_section("Xibo, piSignage, Anthias — อ้างอิง Open Source",
         '<table>'
         '<tr><th>Project</th><th>Repository</th><th>Relevant Pattern</th></tr>'
         '<tr><td>Xibo Player SDK</td><td><a href="https://github.com/xibo-players/xiboplayer">xibo-players/xiboplayer</a></td><td>Cache API + IndexedDB, XMR WebSocket, chunk downloads with MD5, 2-layout preload pool</td></tr>'
@@ -1717,16 +1717,16 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     ))
 
-    sections.append("<h4>Protocol Recommendation</h4>")
+    sections.append("<h4>คำแนะนำเรื่อง Protocol</h4>")
     sections.append(note_panel(
-        "<p><strong>Keep Pusher</strong> (existing) for real-time push. Add <strong>version-based checkpoint</strong> on reconnect via REST. "
-        "Never depend on push for playback &mdash; it only triggers early sync.</p>"
-        "<p><strong>Key insight (from RxDB):</strong> Client can miss events during disconnect. "
-        "Solution: checkpoint mode on reconnect (full schedule compare via REST) + event mode once synced (Pusher for incremental).</p>"
+        "<p><strong>ใช้ Pusher ต่อ</strong> (มีอยู่แล้ว) สำหรับ real-time push. เพิ่ม <strong>version-based checkpoint</strong> ตอน reconnect ผ่าน REST. "
+        "อย่าพึ่ง push สำหรับ playback &mdash; push แค่ trigger sync ให้เร็วขึ้น.</p>"
+        "<p><strong>หลักการสำคัญ (จาก RxDB):</strong> Client อาจพลาด event ตอน disconnect. "
+        "วิธีแก้: checkpoint mode ตอน reconnect (เทียบ schedule ทั้งหมดผ่าน REST) + event mode หลัง sync แล้ว (Pusher สำหรับ incremental).</p>"
     ))
 
     # ─── Terminology Mapping (Old System ↔ DOOH Industry) ───
-    sections.append("<h3>Terminology Mapping: Tathep &harr; DOOH Industry</h3>")
+    sections.append("<h3>ตาราง Mapping คำศัพท์: Tathep &harr; DOOH Industry</h3>")
 
     # Build all terminology content, then wrap in a single Expand
     _term_content = (
@@ -1882,7 +1882,7 @@ def build_page_8(page_id: str) -> str:
         _term_content
     ))
 
-    sections.append("<h3>Decision Record: Why NOT Event-Sourcing</h3>")
+    sections.append("<h3>บันทึกการตัดสินใจ: ทำไมไม่ใช้ Event-Sourcing</h3>")
     sections.append(expand_section("ADR-002: Why Event-Driven, NOT Event-Sourcing",
         warning_panel(
             "<p><strong>ADR-002:</strong> Event-Driven Architecture (NOT Event-Sourcing)</p>"
@@ -1917,9 +1917,9 @@ def build_page_8(page_id: str) -> str:
         '</table>'
     ))
 
-    sections.append("<h3>Implementation Checklist</h3>")
+    sections.append("<h3>Checklist การ Implement</h3>")
     sections.append(success_panel(
-        "<p><strong>What to formalize (ordered by priority):</strong></p>"
+        "<p><strong>สิ่งที่ต้อง formalize (เรียงตาม priority):</strong></p>"
         "<ol>"
         "<li><strong>Typed Pusher event contracts</strong> &mdash; shared interfaces (backend + player)</li>"
         "<li><strong>Version protocol</strong> &mdash; monotonic <code>version</code> per device on every Pusher event</li>"
@@ -1942,19 +1942,19 @@ def _es_legend() -> str:
         '<table>'
         '<tr><th>Element</th><th>Shape</th><th>Meaning</th></tr>'
         '<tr><td><strong>Domain Event</strong></td>'
-        '<td><code>[text]</code> rectangle</td><td>Something that happened (past tense) &mdash; state change in the domain</td></tr>'
+        '<td><code>[text]</code> rectangle</td><td>สิ่งที่เกิดขึ้นแล้ว (past tense) &mdash; state change ใน domain</td></tr>'
         '<tr><td><strong>Command</strong></td>'
-        '<td><code>[text]</code> rectangle</td><td>Action that triggers an event (imperative verb)</td></tr>'
+        '<td><code>[text]</code> rectangle</td><td>Action ที่ trigger event (imperative verb)</td></tr>'
         '<tr><td><strong>Aggregate</strong></td>'
-        '<td><code>[text]</code> rectangle</td><td>Entity/service that processes commands and produces events</td></tr>'
+        '<td><code>[text]</code> rectangle</td><td>Entity/service ที่ประมวลผล command แล้วสร้าง event</td></tr>'
         '<tr><td><strong>Policy</strong></td>'
-        '<td><code>{{text}}</code> hexagon</td><td>Business rule: &ldquo;Whenever X happens, then do Y&rdquo;</td></tr>'
+        '<td><code>{{text}}</code> hexagon</td><td>Business rule: &ldquo;เมื่อ X เกิดขึ้น ให้ทำ Y&rdquo;</td></tr>'
         '<tr><td><strong>Actor</strong></td>'
-        '<td><code>([text])</code> stadium</td><td>Person or system role that initiates a command</td></tr>'
+        '<td><code>([text])</code> stadium</td><td>คนหรือ role ในระบบที่เริ่มต้น command</td></tr>'
         '<tr><td><strong>External System</strong></td>'
-        '<td><code>[(text)]</code> cylinder</td><td>System outside our control (Pusher, CDN, etc.)</td></tr>'
+        '<td><code>[(text)]</code> cylinder</td><td>ระบบภายนอกที่เราควบคุมไม่ได้ (Pusher, CDN, etc.)</td></tr>'
         '<tr><td><strong>Read Model</strong></td>'
-        '<td><code>[/text/]</code> parallelogram</td><td>Information needed to make a decision before issuing a command</td></tr>'
+        '<td><code>[/text/]</code> parallelogram</td><td>ข้อมูลที่ต้องดูก่อนตัดสินใจ ก่อน issue command</td></tr>'
         '</table>'
     )
 
@@ -1966,7 +1966,7 @@ def build_page_9(page_id: str) -> str:
     sections = []
 
     sections.append(toc())
-    sections.append("<h2>Event Storming: Big Picture</h2>")
+    sections.append("<h2>Event Storming: ภาพรวม (Big Picture)</h2>")
     sections.append(info_panel(
         "<p><strong>Event Storming Level 1 &mdash; Big Picture</strong><br/>"
         "ภาพรวม domain events ทั้งระบบ Backend-Driven Player &mdash; "
@@ -1976,11 +1976,11 @@ def build_page_9(page_id: str) -> str:
     ))
 
     # Legend
-    sections.append("<h3>Notation Legend</h3>")
+    sections.append("<h3>สัญลักษณ์ที่ใช้ (Notation Legend)</h3>")
     sections.append(expand_section("ES Notation Legend (8 elements)", _es_legend()))
 
     # Big Picture Timeline
-    sections.append("<h3>Domain Events Timeline</h3>")
+    sections.append("<h3>Timeline ของ Domain Events</h3>")
     sections.append(note_panel(
         "<p>อ่านจาก <strong>ซ้ายไปขวา</strong> ตาม timeline &mdash; "
         "แต่ละ swimlane แสดง flow ของ domain events ที่เกี่ยวข้องกัน<br/>"
@@ -1992,48 +1992,48 @@ def build_page_9(page_id: str) -> str:
     ))
 
     # Actors
-    sections.append("<h3>Actors</h3>")
+    sections.append("<h3>ผู้กระทำ (Actors)</h3>")
     sections.append(
         '<table>'
         '<tr><th>Actor</th><th>Type</th><th>Description</th></tr>'
         '<tr><td><strong>Cron</strong></td><td>System</td>'
-        '<td>BullMQ scheduled job &mdash; triggers schedule calculation every 10 min</td></tr>'
+        '<td>BullMQ scheduled job &mdash; trigger คำนวณ schedule ทุก 10 นาที</td></tr>'
         '<tr><td><strong>Admin</strong></td><td>Human</td>'
-        '<td>Platform admin &mdash; approves takeover, triggers emergency, manages screens</td></tr>'
+        '<td>Admin ของ platform &mdash; approve takeover, trigger emergency, จัดการจอ</td></tr>'
         '<tr><td><strong>Player</strong></td><td>Device</td>'
-        '<td>Tauri desktop app on billboard &mdash; receives schedule, plays creatives, reports PoP</td></tr>'
+        '<td>Tauri desktop app บนจอโฆษณา &mdash; รับ schedule, เล่น creative, รายงาน PoP</td></tr>'
         '</table>'
     )
 
     # External Systems
-    sections.append("<h3>External Systems</h3>")
+    sections.append("<h3>ระบบภายนอก (External Systems)</h3>")
     sections.append(
         '<table>'
         '<tr><th>System</th><th>Role</th><th>Protocol</th></tr>'
-        '<tr><td><strong>Pusher</strong></td><td>Real-time event delivery</td><td>WebSocket</td></tr>'
+        '<tr><td><strong>Pusher</strong></td><td>ส่ง event แบบ real-time</td><td>WebSocket</td></tr>'
         '<tr><td><strong>BullMQ</strong></td><td>Job queue / cron scheduler</td><td>Redis-backed queue</td></tr>'
-        '<tr><td><strong>Redis</strong></td><td>Caching + idempotency dedup</td><td>In-memory store</td></tr>'
-        '<tr><td><strong>CDN</strong></td><td>Creative asset delivery</td><td>HTTPS</td></tr>'
-        '<tr><td><strong>Tauri Store</strong></td><td>Player local persistence</td><td>File-based (device)</td></tr>'
+        '<tr><td><strong>Redis</strong></td><td>Caching + ป้องกัน duplicate</td><td>In-memory store</td></tr>'
+        '<tr><td><strong>CDN</strong></td><td>ส่งไฟล์ creative</td><td>HTTPS</td></tr>'
+        '<tr><td><strong>Tauri Store</strong></td><td>เก็บข้อมูลบน device</td><td>File-based (device)</td></tr>'
         '</table>'
     )
 
     # Hot Spots
-    sections.append("<h3>Hot Spots</h3>")
+    sections.append("<h3>จุดเสี่ยง (Hot Spots)</h3>")
     sections.append(warning_panel(
-        "<p><strong>Known risks and unresolved areas:</strong></p>"
+        "<p><strong>ความเสี่ยงและประเด็นที่ยังไม่ได้แก้:</strong></p>"
         "<ul>"
         "<li><s><strong>Version gap threshold</strong> &mdash; "
-        "how many versions gap before sending full playlist instead of delta?</s> "
-        "<strong>Resolved:</strong> gap &gt; 3 versions &rarr; full replace (see Section 4: Algorithm)</li>"
-        "<li><strong>Offline duration limit</strong> &mdash; "
-        "how long can player run on Tier 3 fallback before content becomes stale? (days? weeks?)</li>"
-        "<li><strong>Takeover overlap</strong> &mdash; "
-        "what happens if 2 takeovers overlap on the same screen? (currently: block at booking)</li>"
-        "<li><strong>Make-good fairness</strong> &mdash; "
-        "how to prioritize make-good when multiple ads were interrupted in one TK block?</li>"
-        "<li><strong>Pusher reliability</strong> &mdash; "
-        "Pusher is best-effort delivery &mdash; version protocol handles gaps, but latency varies</li>"
+        "gap กี่ version ถึงจะส่ง full playlist แทน delta?</s> "
+        "<strong>แก้แล้ว:</strong> gap &gt; 3 versions &rarr; full replace (ดู Section 4: Algorithm)</li>"
+        "<li><strong>ขีดจำกัด Offline</strong> &mdash; "
+        "player ใช้ Tier 3 fallback ได้นานแค่ไหนก่อน content จะ stale? (วัน? สัปดาห์?)</li>"
+        "<li><strong>Takeover ทับกัน</strong> &mdash; "
+        "ถ้า 2 takeover จองช่วงเวลาทับกันบนจอเดียว? (ปัจจุบัน: block ตอนจอง)</li>"
+        "<li><strong>ความยุติธรรมของ Make-good</strong> &mdash; "
+        "จัดลำดับ make-good ยังไงเมื่อหลาย ad โดน interrupt ใน TK block เดียว?</li>"
+        "<li><strong>ความเสถียรของ Pusher</strong> &mdash; "
+        "Pusher เป็น best-effort delivery &mdash; version protocol จัดการ gap ได้ แต่ latency ไม่แน่นอน</li>"
         "</ul>"
     ))
 
@@ -2056,15 +2056,15 @@ def build_page_10(page_id: str) -> str:
     ))
 
     # Legend
-    sections.append("<h3>Notation Legend</h3>")
+    sections.append("<h3>สัญลักษณ์ที่ใช้ (Notation Legend)</h3>")
     sections.append(expand_section("ES Notation Legend (8 elements)", _es_legend()))
 
     # Process A: Schedule Calculation
     sections.append("<hr/>")
-    sections.append("<h3>Process A: Schedule Calculation</h3>")
+    sections.append("<h3>Process A: คำนวณ Schedule</h3>")
     sections.append(note_panel(
-        "<p><strong>Trigger:</strong> Cron fires every 10 minutes<br/>"
-        "<strong>Outcome:</strong> Ordered screen schedule pushed to player via Pusher<br/>"
+        "<p><strong>Trigger:</strong> Cron ทำงานทุก 10 นาที<br/>"
+        "<strong>ผลลัพธ์:</strong> Ordered screen schedule ถูก push ไปยัง player ผ่าน Pusher<br/>"
         "<strong>Grammar:</strong> Cron &rarr; CalculateSchedule &rarr; PlaySchedule &rarr; "
         "ScheduleCalculated &rarr; <em>BuildScreenSchedule</em> &rarr; AdDecisioningService &rarr; "
         "ScreenScheduleBuilt &rarr; <em>PushToPlayer</em> &rarr; Pusher</p>"
@@ -2076,11 +2076,11 @@ def build_page_10(page_id: str) -> str:
 
     # Process B: Normal Playback
     sections.append("<hr/>")
-    sections.append("<h3>Process B: Normal Playback</h3>")
+    sections.append("<h3>Process B: เล่นปกติ (Normal Playback)</h3>")
     sections.append(note_panel(
-        "<p><strong>Trigger:</strong> Player receives schedule-updated event from Pusher<br/>"
-        "<strong>Outcome:</strong> Creative played on screen + PoP (Proof of Play) reported to backend<br/>"
-        "<strong>Key Policy:</strong> Inbox deduplicates by event_id + version check before fetching</p>"
+        "<p><strong>Trigger:</strong> Player ได้รับ schedule-updated event จาก Pusher<br/>"
+        "<strong>ผลลัพธ์:</strong> Creative เล่นบนจอ + PoP (Proof of Play) รายงานกลับ backend<br/>"
+        "<strong>Policy สำคัญ:</strong> Inbox dedup ด้วย event_id + ตรวจ version ก่อน fetch</p>"
     ))
     sections.append(mermaid_diagram(
         load_diagram("10-2-process-normal-play.mmd"),
@@ -2089,12 +2089,12 @@ def build_page_10(page_id: str) -> str:
 
     # Process C: Takeover Interrupt
     sections.append("<hr/>")
-    sections.append("<h3>Process C: Takeover Interrupt (P1-TK)</h3>")
+    sections.append("<h3>Process C: Interrupt จาก Takeover (P1-TK)</h3>")
     sections.append(note_panel(
-        "<p><strong>Trigger:</strong> Admin approves daypart takeover (e.g. brand buys 08:00-09:00)<br/>"
-        "<strong>Outcome:</strong> Current ad interrupted, takeover creative plays for entire block, "
-        "interrupted ad gets make-good compensation<br/>"
-        "<strong>Cross-boundary:</strong> Backend (approve + schedule) &rarr; Pusher &rarr; Player (interrupt + play)</p>"
+        "<p><strong>Trigger:</strong> Admin approve daypart takeover (เช่น brand ซื้อ 08:00-09:00)<br/>"
+        "<strong>ผลลัพธ์:</strong> Ad ปัจจุบันโดน interrupt, takeover creative เล่นตลอด block, "
+        "ad ที่โดน interrupt ได้ make-good compensation<br/>"
+        "<strong>ข้ามขอบเขต:</strong> Backend (approve + schedule) &rarr; Pusher &rarr; Player (interrupt + เล่น)</p>"
     ))
     sections.append(mermaid_diagram(
         load_diagram("10-3-process-takeover.mmd"),
@@ -2103,11 +2103,11 @@ def build_page_10(page_id: str) -> str:
 
     # Process D: Offline & Reconnect
     sections.append("<hr/>")
-    sections.append("<h3>Process D: Offline and Reconnect</h3>")
+    sections.append("<h3>Process D: Offline และเชื่อมต่อใหม่</h3>")
     sections.append(note_panel(
-        "<p><strong>Trigger:</strong> Network drops (Pusher disconnects)<br/>"
-        "<strong>Outcome:</strong> Graceful degradation through 3-tier cache, then delta sync on reconnect<br/>"
-        "<strong>Key Policy:</strong> State Machine transitions: ONLINE &rarr; OFFLINE &rarr; FALLBACK &rarr; ONLINE</p>"
+        "<p><strong>Trigger:</strong> เน็ตหลุด (Pusher disconnect)<br/>"
+        "<strong>ผลลัพธ์:</strong> Degrade ลงอย่างค่อยเป็นค่อยไปผ่าน 3-tier cache แล้ว delta sync ตอนกลับมา online<br/>"
+        "<strong>Policy สำคัญ:</strong> State Machine transitions: ONLINE &rarr; OFFLINE &rarr; FALLBACK &rarr; ONLINE</p>"
     ))
     sections.append(mermaid_diagram(
         load_diagram("10-4-process-offline.mmd"),
@@ -2118,9 +2118,9 @@ def build_page_10(page_id: str) -> str:
     sections.append("<hr/>")
     sections.append("<h3>Process E: Emergency Override (P0)</h3>")
     sections.append(note_panel(
-        "<p><strong>Trigger:</strong> Admin triggers P0 emergency (government alert, crisis, etc.)<br/>"
-        "<strong>Outcome:</strong> Immediate interruption of any content, emergency creative plays, make-good scheduled<br/>"
-        "<strong>Priority:</strong> P0 overrides everything &mdash; including active takeovers</p>"
+        "<p><strong>Trigger:</strong> Admin trigger P0 emergency (ประกาศราชการ, วิกฤต, ฯลฯ)<br/>"
+        "<strong>ผลลัพธ์:</strong> Interrupt content ใดๆ ทันที, เล่น emergency creative, schedule make-good<br/>"
+        "<strong>Priority:</strong> P0 ชนะทุกอย่าง &mdash; รวมถึง takeover ที่กำลังทำงานอยู่</p>"
     ))
     sections.append(mermaid_diagram(
         load_diagram("10-5-process-emergency.mmd"),
@@ -2137,7 +2137,7 @@ def build_page_11(page_id: str) -> str:
     sections = []
 
     sections.append(toc())
-    sections.append("<h2>Event Storming: Software Design</h2>")
+    sections.append("<h2>Event Storming: การออกแบบ Software</h2>")
     sections.append(info_panel(
         "<p><strong>Event Storming Level 3 &mdash; Software Design</strong><br/>"
         "Bounded Contexts, Aggregates, and Context Mapping &mdash; "
@@ -2145,12 +2145,12 @@ def build_page_11(page_id: str) -> str:
     ))
 
     # Legend
-    sections.append("<h3>Notation Legend</h3>")
+    sections.append("<h3>สัญลักษณ์ที่ใช้ (Notation Legend)</h3>")
     sections.append(expand_section("ES Notation Legend (8 elements)", _es_legend()))
 
     # Bounded Context Map
     sections.append("<hr/>")
-    sections.append("<h3>Bounded Context Map</h3>")
+    sections.append("<h3>แผนที่ Bounded Context</h3>")
     sections.append(note_panel(
         "<p>4 Bounded Contexts &mdash; แต่ละ context มี aggregates ที่ทำงานร่วมกัน<br/>"
         "ลูกศรระหว่าง context = event ที่ส่งข้ามขอบเขต (via Pusher หรือ API call)</p>"
@@ -2161,7 +2161,7 @@ def build_page_11(page_id: str) -> str:
     ))
 
     # Aggregates per Context
-    sections.append("<h3>Aggregates per Context</h3>")
+    sections.append("<h3>Aggregate แยกตาม Context</h3>")
 
     # Scheduling Context
     sections.append("<h4>Scheduling Context (Backend)</h4>")
@@ -2169,16 +2169,16 @@ def build_page_11(page_id: str) -> str:
         '<table>'
         '<tr><th>Aggregate</th><th>Responsibility</th><th>Key Invariants</th><th>Events Owned</th></tr>'
         '<tr><td><strong>PlaySchedule</strong></td>'
-        '<td>Raw schedule calculation output (per screen, per cron cycle)</td>'
-        '<td>One active schedule per screen per round</td>'
+        '<td>ผลลัพธ์จากการคำนวณ schedule (ต่อจอ ต่อรอบ cron)</td>'
+        '<td>1 active schedule ต่อจอต่อรอบ</td>'
         '<td>ScheduleCalculated</td></tr>'
         '<tr><td><strong>AdDecisioningService</strong></td>'
-        '<td>Sort by priority, interleave house content, assign sequence_no, version++</td>'
-        '<td>P1-G pre-positioned, P2/P3 by SOV ratio, P4 fills gaps</td>'
+        '<td>จัดลำดับตาม priority, สลับ house content, กำหนด sequence_no, version++</td>'
+        '<td>P1-G pre-positioned, P2/P3 ตาม SOV ratio, P4 เติมช่องว่าง</td>'
         '<td>ScreenScheduleBuilt</td></tr>'
         '<tr><td><strong>ScreenSchedule</strong></td>'
-        '<td>Ordered playlist with versioning (monotonic per device)</td>'
-        '<td>version always increases, previous schedule marked &ldquo;replaced&rdquo;</td>'
+        '<td>Ordered playlist พร้อม versioning (เพิ่มขึ้นเรื่อยๆ ต่อ device)</td>'
+        '<td>version เพิ่มขึ้นเสมอ, schedule เก่าถูก mark &ldquo;replaced&rdquo;</td>'
         '<td>(persisted state)</td></tr>'
         '</table>'
     )
@@ -2189,20 +2189,20 @@ def build_page_11(page_id: str) -> str:
         '<table>'
         '<tr><th>Aggregate</th><th>Responsibility</th><th>Key Invariants</th><th>Events Owned</th></tr>'
         '<tr><td><strong>TakeoverSchedule</strong></td>'
-        '<td>Daypart takeover booking (P1-TK: brand buys time block)</td>'
-        '<td>No overlapping TK on same screen, status lifecycle: booked &rarr; active &rarr; completed</td>'
+        '<td>จอง daypart takeover (P1-TK: brand ซื้อ time block)</td>'
+        '<td>TK ซ้อนกันบนจอเดียวไม่ได้, lifecycle: booked &rarr; active &rarr; completed</td>'
         '<td>TakeoverApproved, TakeoverStateChanged</td></tr>'
         '<tr><td><strong>ExactTimeSpot</strong></td>'
-        '<td>P1-ET: play at exact time with tolerance window</td>'
-        '<td>tolerance default 5s, one spot per play_at per screen</td>'
+        '<td>P1-ET: เล่นตรงเวลาพร้อม tolerance window</td>'
+        '<td>tolerance default 5s, 1 spot ต่อ play_at ต่อจอ</td>'
         '<td>(triggers InterruptController)</td></tr>'
         '<tr><td><strong>InterruptController</strong></td>'
-        '<td>Pause current ad, play interrupt creative, resume after</td>'
-        '<td>Priority order: P0 > P1-TK > P1-ET, nested interrupts queued</td>'
+        '<td>หยุด ad ปัจจุบัน, เล่น interrupt creative, resume หลังจบ</td>'
+        '<td>ลำดับ priority: P0 > P1-TK > P1-ET, nested interrupt เข้าคิว</td>'
         '<td>AdInterrupted</td></tr>'
         '<tr><td><strong>MakeGoodRecord</strong></td>'
-        '<td>Compensation for interrupted ads &mdash; re-insert in next cycle</td>'
-        '<td>One make-good per interruption, skip if campaign expired</td>'
+        '<td>ชดเชย ad ที่โดน interrupt &mdash; ใส่คืนใน cycle ถัดไป</td>'
+        '<td>1 make-good ต่อ 1 interruption, ข้ามถ้า campaign หมดอายุ</td>'
         '<td>MakeGoodScheduled</td></tr>'
         '</table>'
     )
@@ -2213,20 +2213,20 @@ def build_page_11(page_id: str) -> str:
         '<table>'
         '<tr><th>Aggregate</th><th>Responsibility</th><th>Key Invariants</th><th>Events Owned</th></tr>'
         '<tr><td><strong>InboxHandler</strong></td>'
-        '<td>Receive Pusher events, dedup by event_id, version check</td>'
-        '<td>Only process if version > local_version and event_id is new</td>'
+        '<td>รับ Pusher event, dedup ด้วย event_id, ตรวจ version</td>'
+        '<td>ประมวลผลเฉพาะ version > local_version และ event_id ใหม่</td>'
         '<td>ScheduleReceived</td></tr>'
         '<tr><td><strong>3-Tier Cache</strong></td>'
-        '<td>Local storage: Tier 1 (live) &rarr; Tier 2 (buffer) &rarr; Tier 3 (fallback/house)</td>'
-        '<td>Tier 1 always latest version, Tier 3 always available (house loop)</td>'
+        '<td>เก็บบน device: Tier 1 (live) &rarr; Tier 2 (buffer) &rarr; Tier 3 (fallback/house)</td>'
+        '<td>Tier 1 ต้องเป็น version ล่าสุด, Tier 3 พร้อมเสมอ (house loop)</td>'
         '<td>CacheUpdated</td></tr>'
         '<tr><td><strong>StateMachine</strong></td>'
         '<td>BOOT &rarr; CACHED &rarr; SYNC &rarr; ONLINE &rarr; OFFLINE &rarr; FALLBACK</td>'
-        '<td>One state at a time, transitions logged, recovery path defined</td>'
+        '<td>อยู่ได้ 1 state พร้อมกัน, log ทุก transition, กำหนดทาง recovery ไว้</td>'
         '<td>DeviceResynced</td></tr>'
         '<tr><td><strong>Renderer</strong></td>'
-        '<td>Dumb Renderer: play sequence[i++], no scheduling logic</td>'
-        '<td>Plays whatever cache provides, never skips, never reorders</td>'
+        '<td>Dumb Renderer: เล่น sequence[i++], ไม่มี logic จัดลำดับ</td>'
+        '<td>เล่นตาม cache ให้มา, ไม่ข้าม, ไม่สลับลำดับ</td>'
         '<td>CreativePlayed</td></tr>'
         '</table>'
     )
@@ -2237,23 +2237,23 @@ def build_page_11(page_id: str) -> str:
         '<table>'
         '<tr><th>Aggregate</th><th>Responsibility</th><th>Key Invariants</th><th>Events Owned</th></tr>'
         '<tr><td><strong>PoP Outbox</strong></td>'
-        '<td>Store play events locally, flush to backend every 1 min</td>'
-        '<td>pending &rarr; sent &rarr; acked lifecycle, retry &lt; 10 times</td>'
+        '<td>เก็บ play event บน device, flush ไป backend ทุก 1 นาที</td>'
+        '<td>lifecycle: pending &rarr; sent &rarr; acked, retry &lt; 10 ครั้ง</td>'
         '<td>PoPRecorded</td></tr>'
         '<tr><td><strong>PlayHistory</strong></td>'
-        '<td>Backend persistence of PoP records</td>'
-        '<td>Deduplicated by X-Idempotency-Key (UUID)</td>'
+        '<td>เก็บ PoP records ฝั่ง backend</td>'
+        '<td>ป้องกัน duplicate ด้วย X-Idempotency-Key (UUID)</td>'
         '<td>PoPReceived</td></tr>'
         '<tr><td><strong>Idempotency</strong></td>'
-        '<td>Redis-based dedup for PoP endpoint</td>'
-        '<td>TTL-based key expiry (24h), prevents duplicate entries</td>'
-        '<td>(guard, no events)</td></tr>'
+        '<td>ป้องกัน duplicate ผ่าน Redis สำหรับ PoP endpoint</td>'
+        '<td>Key หมดอายุ 24 ชม. (TTL-based), ป้องกันข้อมูลซ้ำ</td>'
+        '<td>(guard, ไม่สร้าง event)</td></tr>'
         '</table>'
     )
 
     # Context Relationships
     sections.append("<hr/>")
-    sections.append("<h3>Context Relationships</h3>")
+    sections.append("<h3>ความสัมพันธ์ระหว่าง Context</h3>")
     sections.append(
         '<table>'
         '<tr><th>From</th><th>To</th><th>Event</th><th>Mechanism</th><th>Relationship Type</th></tr>'
@@ -2272,7 +2272,7 @@ def build_page_11(page_id: str) -> str:
 
     # ACL Diagram
     sections.append("<hr/>")
-    sections.append("<h3>Anti-Corruption Layer: Legacy to New</h3>")
+    sections.append("<h3>Anti-Corruption Layer: ระบบเดิมสู่ระบบใหม่</h3>")
     sections.append(note_panel(
         "<p>ACL (Anti-Corruption Layer) &mdash; translation boundary ระหว่างระบบเดิมกับ architecture ใหม่<br/>"
         "Legacy code จะยังทำงานเหมือนเดิม แต่ output ถูก translate เป็น new domain model ผ่าน ACL<br/>"
@@ -2503,8 +2503,9 @@ def main():
                 save_page_ids(page_ids)
                 print(f"  Created: {pid}")
         content = builder(page_id=pid)
+        title = SUB_PAGE_TITLES.get(key)
         print(f"=== Updating section {section} ===")
-        _update_page(api, pid, content)
+        _update_page(api, pid, content, title)
         return
 
     # ── Legacy: update specific page ──
