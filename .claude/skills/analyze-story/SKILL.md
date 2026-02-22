@@ -29,7 +29,7 @@ argument-hint: "[issue-key]"
 | 5b. QG | `qg_score`, `passed_qg` |
 | 6. Create | `subtask_keys[]` |
 
-> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/ITERATE/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ## Phases
 
@@ -74,7 +74,11 @@ argument-hint: "[issue-key]"
 - Scope: Files from Phase 3
 - ACs: Given/When/Then
 - Use Thai + transliteration
-- **⛔ GATE — DO NOT CREATE** any subtasks without user approval of design + VS alignment.
+- **🔄 ITERATE** — Present subtask design as plan cards (tag, scope files, ACs, OE per subtask). Ask: Approve all / Annotate (specify subtask #) / Major rework.
+  - Annotate → user specifies subtask + notes → revise ONLY annotated subtasks → re-present (max 3 rounds)
+  - Approve → proceed to Alignment Check
+  - Major rework → back to Codebase Exploration
+  - See [Annotation Cycle](../shared-references/workflow-patterns.md#annotation-cycle-iterate-gate)
 
 ### 5. Alignment Check
 

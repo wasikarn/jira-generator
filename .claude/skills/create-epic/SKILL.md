@@ -22,7 +22,7 @@ argument-hint: "[epic-title]"
 | 4. QG | `qg_score`, `passed_qg` |
 | 5. Create | `epic_key`, `epic_doc_id` |
 
-> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/ITERATE/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ## Phases
 
@@ -59,7 +59,11 @@ argument-hint: "[epic-title]"
   - vs2-{rule}: Story C, Story D
 - Define MVP: Which VS are must-have vs nice-to-have?
 - Identify Dependencies and Risks
-- **⛔ GATE — DO NOT PROCEED** without stakeholder approval of scope + VS plan + MVP definition.
+- **🔄 ITERATE** — Present scope + VS plan + MVP as plan cards (stories grouped by VS, in/out scope). Ask: Approve / Annotate / Major rework.
+  - Annotate → stakeholder specifies items to change (add/remove stories, adjust VS, change MVP boundary)
+  - Approve → proceed to Quality Gate
+  - Major rework → back to Discovery
+  - See [Annotation Cycle](../shared-references/workflow-patterns.md#annotation-cycle-iterate-gate)
 
 ### 4. Quality Gate (MANDATORY)
 

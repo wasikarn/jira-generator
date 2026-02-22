@@ -31,7 +31,7 @@ argument-hint: "[issue-key] [changes]"
 | 7. QG | `qg_score`, `passed_qg` |
 | 8. Apply | `applied_keys[]` |
 
-> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/ITERATE/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ## Phases
 
@@ -89,7 +89,11 @@ argument-hint: "[issue-key] [changes]"
 - Update ACs to align
 - New sub-tasks: follow template
 - Generate JSON files
-- **⛔ GATE — DO NOT APPLY** any updates without user approval of all generated changes.
+- **🔄 ITERATE** — Present all generated changes as plan cards (story update + per-subtask changes). Ask: Approve all / Annotate (specify item #) / Major rework.
+  - Annotate → user specifies which updates to change → revise ONLY those → re-present (max 3 rounds)
+  - Approve → proceed to Quality Gate
+  - Major rework → back to Impact Analysis
+  - See [Annotation Cycle](../shared-references/workflow-patterns.md#annotation-cycle-iterate-gate)
 
 ### 7. Quality Gate (MANDATORY)
 

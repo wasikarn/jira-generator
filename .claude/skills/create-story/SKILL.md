@@ -22,7 +22,7 @@ argument-hint: "[story-description]"
 | 4. QG | `qg_score`, `passed_qg` |
 | 5. Create | `story_key` ({{PROJECT_KEY}}-XXX) |
 
-> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/ITERATE/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ## Phases
 
@@ -51,7 +51,11 @@ So that [benefit].
 - Specify Scope (affected services) and DoD
 - **VS Check:** Story delivers end-to-end value? All layers touched? (not shell-only or layer-split)
 - Use Thai + transliteration
-- **🟡 REVIEW** — Present story narrative, ACs, scope to user. Proceed unless user objects.
+- **🔄 ITERATE** — Present story draft as plan card (narrative, ACs, scope, DoD). Ask: Approve / Annotate / Major rework.
+  - Annotate → user specifies items to change → revise ONLY those items → re-present (max 3 rounds)
+  - Approve → proceed to INVEST validation
+  - Major rework → back to Discovery
+  - See [Annotation Cycle](../shared-references/workflow-patterns.md#annotation-cycle-iterate-gate)
 
 ### 3. INVEST + VS Validation
 

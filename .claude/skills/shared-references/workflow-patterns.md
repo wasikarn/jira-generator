@@ -11,6 +11,7 @@
 | **AUTO** | 🟢 | Validate automatically. Pass → proceed. Fail → auto-fix (max 2). Still fail → escalate to user. |
 | **REVIEW** | 🟡 | Present results to user, wait for quick confirmation. Default: proceed unless user objects. |
 | **APPROVAL** | ⛔ | STOP. Wait for explicit user approval before proceeding. |
+| **ITERATE** | 🔄 | Present structured plan → ask user to annotate/approve → if annotated: revise + re-present (max 3 rounds) → if approved: proceed. |
 
 ---
 
@@ -93,6 +94,63 @@ Merge results into context.
 **Validation:** Validate file paths with Glob. If zero real paths found → re-explore (max 2 attempts). Generic paths like `/src/` are REJECTED.
 
 **Conditional:** Skip if format-only changes (no new scope).
+
+---
+
+## Annotation Cycle (ITERATE Gate)
+
+> Iterative plan review — user annotates, Claude revises, loop until approved.
+> Inspired by [Boris Tane's workflow](https://boristane.com/blog/how-i-use-claude-code/): separate thinking from doing.
+
+### Flow
+
+1. Present structured plan (numbered items, not prose)
+2. AskUserQuestion: "Approve" / "Annotate" / "Major rework"
+3. If Annotate → user specifies items to change + notes
+4. Claude revises ONLY annotated items (don't touch approved parts)
+5. Re-present revised plan with diff summary → back to step 2
+6. Max 3 rounds — if still not approved → escalate to user
+
+### Plan Card Formats
+
+**Story:**
+
+| # | Section | Content |
+|---|---------|---------|
+| 1 | Narrative | 📍 context + As a/I want/So that |
+| 2 | AC1 | AC1: [Verb] — [Scenario] |
+| 3 | AC2 | AC2: [Verb] — [Scenario] |
+| N | Scope | Services impacted |
+
+**Subtask Design:**
+
+| # | Subtask | Tag | Scope | ACs | OE |
+|---|---------|-----|-------|-----|-----|
+| 1 | Description | [BE] | 3 files | 2 ACs | 4h |
+| 2 | Description | [FE-Web] | 4 files | 3 ACs | 6h |
+
+### Rules
+
+- **Revise only annotated items** — preserve approved parts unchanged
+- **Show diff** each round (what changed vs previous version)
+- **Max 3 rounds** per ITERATE gate — prevent infinite loops
+- **"Major rework"** = go back to previous phase (re-explore, re-discover)
+- **"Approve"** = proceed to next phase immediately
+
+### AskUserQuestion Template
+
+```text
+AskUserQuestion({
+  question: "Review [Story/Subtask Design] — approve or annotate?",
+  options: [
+    { label: "Approve", description: "Plan looks good — proceed to next phase" },
+    { label: "Annotate", description: "I have notes — specify which items to change" },
+    { label: "Major rework", description: "Needs significant changes — go back" }
+  ]
+})
+```
+
+If user selects "Annotate" → follow up asking which numbered items to change and what notes they have.
 
 ---
 

@@ -38,7 +38,7 @@ argument-hint: "[story-description]"
 | 9. QG Subtasks | `qg_score`, `passed_qg` |
 | 10. Create | `subtask_keys[]` |
 
-> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/ITERATE/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ## Part A: Create Story (Phases 1-4)
 
@@ -65,7 +65,11 @@ So that [benefit].
 - Define ACs, Scope, DoD
 - **AC Naming:** Use `AC{N}: [Verb] — [Scenario Name]` (not just "AC1: Title")
 - **VS Check:** Story delivers e2e value? All layers touched? (not shell-only)
-- **🟡 REVIEW** — Present story narrative, ACs, scope to user. Proceed unless user objects.
+- **🔄 ITERATE** — Present story draft as plan card (narrative, ACs, scope, DoD). Ask: Approve / Annotate / Major rework.
+  - Annotate → user specifies items to change → revise ONLY those items → re-present (max 3 rounds)
+  - Approve → proceed to INVEST validation
+  - Major rework → back to Discovery
+  - See [Annotation Cycle](../shared-references/workflow-patterns.md#annotation-cycle-iterate-gate)
 
 ### 3. INVEST + VS Validation
 
@@ -151,7 +155,11 @@ MCP: jira_update_issue(issue_key="{{PROJECT_KEY}}-XXX", additional_fields={
 - Summary: `[TAG] - Description`
 - Scope: Files from Phase 6
 - ACs: Given/When/Then
-- **⛔ GATE — DO NOT CREATE** any subtasks without user approval of design + VS alignment.
+- **🔄 ITERATE** — Present subtask design as plan cards (tag, scope files, ACs, OE per subtask). Ask: Approve all / Annotate (specify subtask #) / Major rework.
+  - Annotate → user specifies subtask + notes → revise ONLY annotated subtasks → re-present (max 3 rounds)
+  - Approve → proceed to Alignment Check
+  - Major rework → back to Codebase Exploration
+  - See [Annotation Cycle](../shared-references/workflow-patterns.md#annotation-cycle-iterate-gate)
 
 ### 8. Alignment Check
 

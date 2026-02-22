@@ -60,7 +60,7 @@ argument-hint: "[--sprint <id>] [--carry-over-only]"
 | 7. Review | `approved_plan` |
 | 8. Execute | `execution_log[]`, `assigned_keys[]` |
 
-> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
+> **Workflow Patterns:** See [workflow-patterns.md](../shared-references/workflow-patterns.md) for Gate Levels (AUTO/REVIEW/ITERATE/APPROVAL), QG Scoring, Two-Step, and Explore patterns.
 
 ---
 
@@ -275,7 +275,12 @@ Status: 🟢 ≤80% | ⚠️ 80-95% | 🔴 >95%
 | Key | Summary | Reason |
 ```
 
-**⛔ GATE -- DO NOT EXECUTE** any assignments without user approval of the complete sprint plan.
+**🔄 ITERATE** — Present complete sprint plan as structured cards (workload per member, item assignments, risk flags). Ask: Approve / Annotate / Major rework.
+
+- Annotate → user specifies items to reassign, adjust hours, swap priorities → revise ONLY annotated items → re-present (max 3 rounds)
+- Approve → proceed to Execute Assignments
+- Major rework → back to Prioritization (Phase 4)
+- See [Annotation Cycle](../shared-references/workflow-patterns.md#annotation-cycle-iterate-gate)
 
 ### 8. Execute Assignments
 
