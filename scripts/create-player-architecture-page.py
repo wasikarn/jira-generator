@@ -3094,7 +3094,7 @@ def build_page_13(page_id: str) -> str:
 
 
 def build_page_14(page_id: str) -> str:
-    """Page 14: Use Case Catalog — Advertiser Scenarios (rebuild v2)."""
+    """Page 14: Use Case Catalog — Advertiser Scenarios (v3, improved Thai)."""
     global _code_block_count
     _code_block_count = 0
     sections = []
@@ -3102,94 +3102,95 @@ def build_page_14(page_id: str) -> str:
     sections.append(toc())
 
     sections.append(info_panel(
-        "<p><strong>Use Case Catalog (Advertiser):</strong> รวบรวม scenarios ที่ "
-        "<strong>ผู้ลงโฆษณา (advertiser)</strong> จะเจอในแต่ละรูปแบบการลงโฆษณา "
-        "&mdash; ใช้เป็น reference สำหรับทีม Sales, Support, และ QA</p>"
+        "<p><strong>หน้านี้รวบรวม scenarios จากมุมมองของ <em>ผู้ลงโฆษณา</em></strong> "
+        "&mdash; แต่ละ scenario อธิบายว่า &ldquo;ถ้าลงโฆษณาแบบนี้ในช่วงเวลานี้ จะเกิดอะไรขึ้นบ้าง&rdquo;</p>"
         "<p><strong>4 รูปแบบที่ครอบคลุม:</strong> "
-        "(1) Takeover &mdash; ครอง 100% จอ &nbsp;"
-        "(2) Exact Time &mdash; เล่นตรงเวลา &nbsp;"
-        "(3) Guaranteed &mdash; รับประกัน N ครั้ง &nbsp;"
-        "(4) Run of Schedule &mdash; กระจายทั่ว operating hours</p>"
-        "<p><strong>แต่ละ scenario มี:</strong> ขั้นตอน Happy Path + Edge Cases ที่เป็นไปได้ + Diagram แสดง timeline</p>"
+        "(1) Takeover &mdash; ซื้อช่วงเวลาแบบ exclusive &nbsp;"
+        "(2) Exact Time &mdash; กำหนดเวลาเล่นชัดเจน &nbsp;"
+        "(3) Guaranteed &mdash; รับประกันจำนวนครั้ง &nbsp;"
+        "(4) Run of Schedule &mdash; กระจายตลอดวัน</p>"
+        "<p>แต่ละ scenario มี <strong>Happy Path</strong> (กรณีปกติที่ควรเกิด) "
+        "และ <strong>Edge Cases</strong> (กรณีพิเศษที่อาจเกิดขึ้น) พร้อม diagram</p>"
     ))
 
     # ──────────────────────────────────────────────────────────────
     # SECTION 1: Takeover
     # ──────────────────────────────────────────────────────────────
-    sections.append('<h2>1. Takeover &mdash; ครอง 100% จอในช่วงเวลา</h2>')
+    sections.append('<h2>1. Takeover &mdash; ครอง 100% จอในช่วงเวลาที่ซื้อ</h2>')
     sections.append(info_panel(
-        "<p><strong>Takeover</strong> คือการซื้อ <em>exclusive slot</em> บนป้ายโฆษณา &mdash; "
-        "ในช่วงเวลาที่จอง โฆษณาของ advertiser จะเล่น 100% ไม่มีโฆษณาอื่นแทรก</p>"
-        "<p><strong>Code:</strong> <code>activeDisplayTimeType: 'exclusive'</code> &nbsp;&nbsp;"
-        "<strong>Lead time:</strong> ต้องจองล่วงหน้า &ge;5 นาที &nbsp;&nbsp;"
-        "<strong>Conflict rule:</strong> ชน slot อื่นที่จองไว้ &rarr; reject ทันที</p>"
+        "<p><strong>Takeover</strong> คือการซื้อช่วงเวลาแบบ exclusive บนป้ายโฆษณา &mdash; "
+        "ในช่วงที่จอง โฆษณาของลูกค้าจะเล่น 100% ไม่มีโฆษณาอื่นแทรก</p>"
+        "<ul>"
+        "<li><strong>จอง:</strong> ต้องล่วงหน้าอย่างน้อย 5 นาที (ระบบบังคับ), แนะนำ &ge;1 ชั่วโมงเพื่อให้เจ้าของป้ายมีเวลา review</li>"
+        "<li><strong>ถ้าช่วงเวลาทับซ้อน:</strong> ระบบ reject ทันที ต้องเลือกเวลาหรือป้ายอื่น</li>"
+        "<li><strong>Creative:</strong> ต้องได้รับการอนุมัติจากเจ้าของป้ายก่อนถึงเวลา Takeover</li>"
+        "</ul>"
     ))
 
     # ── UC-TK-1 ───────────────────────────────────────────────────
     sections.append('<h3>UC-TK-1: Happy Path &mdash; Takeover สำเร็จ</h3>')
     sections.append("""<table>
-<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
-<tr><td><strong>Advertiser กระทำ</strong></td><td>จอง Takeover ช่วง 12:00&ndash;13:00 บนป้าย A, อัพโหลด creative ล่วงหน้า 1 วัน</td></tr>
-<tr><td><strong>ระบบ (Draft &rarr; Review)</strong></td><td>ส่ง notification ให้ billboard owner อนุมัติ creative</td></tr>
-<tr><td><strong>ระบบ (Approved)</strong></td><td>Status &rarr; <code>waiting-play</code>, schedule lock เวลา 12:00&ndash;13:00</td></tr>
-<tr><td><strong>เวลา 12:00</strong></td><td>Player เปลี่ยนเป็น Takeover mode &mdash; โฆษณา Advertiser เล่น loop 100% ตลอด 1 ชั่วโมง</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Advertiser เห็น PoP report: played = 100% ของ slot ที่ซื้อ, status &rarr; <code>done</code></td></tr>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>ลูกค้าจอง Takeover ช่วง 12:00&ndash;13:00 บนป้าย A พร้อมอัปโหลด creative ล่วงหน้า 1 วัน</td></tr>
+<tr><td><strong>ระบบทำงาน</strong></td><td>ส่ง notification ให้เจ้าของป้ายอนุมัติ &rarr; อนุมัติแล้ว status: <code>waiting-play</code> &rarr; ล็อก slot 12:00&ndash;13:00</td></tr>
+<tr><td><strong>ตอนเล่นจริง</strong></td><td>เวลา 12:00 Player เปลี่ยนเป็น Takeover mode &mdash; โฆษณาลูกค้าเล่น loop ตลอด 1 ชั่วโมง ไม่มีโฆษณาอื่นแทรก</td></tr>
+<tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>PoP report แสดง plays ครบ 100% ของ slot ที่ซื้อ, status เปลี่ยนเป็น <code>done</code> หลัง 13:00</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""gantt
     title UC-TK-1 Takeover Happy Path
     dateFormat HH:mm
     axisFormat %H:%M
     section ก่อน Takeover
-    โฆษณาปกติ (ROS)       :done, pre, 11:00, 60m
+    โฆษณาปกติ ROS         :done, pre, 11:00, 60m
     section Takeover Block 12-00 to 13-00
     TK START               :milestone, tks, 12:00, 0d
     Brand X creative loop  :crit, tk, 12:00, 60m
     TK END                 :milestone, tke, 13:00, 0d
     section หลัง Takeover
-    โฆษณาปกติ (ROS)       :done, post, 13:00, 60m
-    section PoP Events
-    PoP batch at TK END    :milestone, pop, 13:00, 0d""", page_id))
+    โฆษณาปกติ ROS         :done, post, 13:00, 60m
+    section PoP
+    PoP batch ส่ง Server   :milestone, pop, 13:00, 0d""", page_id))
 
     # ── UC-TK-2 ───────────────────────────────────────────────────
-    sections.append('<h3>UC-TK-2: Edge Case &mdash; Slot ชนกัน</h3>')
+    sections.append('<h3>UC-TK-2: Edge Case &mdash; ช่วงเวลาทับซ้อน (Slot Conflict)</h3>')
     sections.append("""<table>
-<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
-<tr><td><strong>สถานการณ์</strong></td><td>Advertiser B พยายามจอง Takeover 12:30&ndash;13:30 บนป้ายเดียวกัน ขณะที่ A จอง 12:00&ndash;13:00 ไว้แล้ว</td></tr>
-<tr><td><strong>ระบบตรวจสอบ</strong></td><td><code>checkIsBillboardsReserved()</code> &rarr; พบ overlap &rarr; error: <code>ADVERTISEMENT_BILLBOARDS_ALREADY_IN_USE</code></td></tr>
-<tr><td><strong>ผลลัพธ์</strong></td><td>Advertiser B ได้รับ error ทันที &mdash; ต้องเลือก slot อื่นหรือป้ายอื่น</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Advertiser A ไม่ถูกกระทบ, Advertiser B ต้องจองใหม่</td></tr>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>ลูกค้า B พยายามจอง Takeover 12:30&ndash;13:30 บนป้ายเดียวกัน ในขณะที่ลูกค้า A จอง 12:00&ndash;13:00 ไว้แล้ว</td></tr>
+<tr><td><strong>ระบบตรวจสอบ</strong></td><td>ระบบพบว่าช่วงเวลาทับซ้อนกัน &rarr; ส่ง error: <code>ADVERTISEMENT_BILLBOARDS_ALREADY_IN_USE</code> กลับทันที</td></tr>
+<tr><td><strong>ผลที่ลูกค้า B เจอ</strong></td><td>การจองล้มเหลว ต้องเลือกช่วงเวลาอื่น (เช่น 13:00&ndash;14:00) หรือเปลี่ยนป้าย</td></tr>
+<tr><td><strong>ผลต่อลูกค้า A</strong></td><td>ไม่ถูกกระทบ Takeover ของ A ยังเล่นตาม schedule ปกติ</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart TD
-    A([Advertiser B: จอง TK 12:30-13:30]) --> B{checkIsBillboardsReserved}
-    B -->|Slot ว่าง| C[สร้าง exclusive booking]
-    B -->|ชน Advertiser A 12:00-13:00| D[BILLBOARDS_ALREADY_IN_USE error]
-    D --> E{Advertiser B เลือก}
-    E -->|เลือก slot ใหม่| F[เลือกเวลาอื่น เช่น 13:00-14:00]
-    E -->|เลือกป้ายอื่น| G[เลือกป้าย B ที่ว่าง]
+    A([ลูกค้า B จอง TK 12:30-13:30]) --> B{ช่วงเวลาว่างไหม?}
+    B -->|ว่าง| C[สร้าง exclusive booking]
+    B -->|ชน slot ของลูกค้า A 12:00-13:00| D[error: BILLBOARDS_ALREADY_IN_USE]
+    D --> E{ลูกค้า B เลือก}
+    E -->|เวลาอื่น| F[เช่น จอง 13:00-14:00 แทน]
+    E -->|ป้ายอื่น| G[เลือกป้ายที่ยังว่าง]
     F --> C
     G --> C
-    C --> H([Booking สำเร็จ])
+    C --> H([จองสำเร็จ])
     style D fill:#f8d7da,stroke:#dc3545
     style H fill:#d4edda,stroke:#28a745""", page_id))
 
     # ── UC-TK-3 ───────────────────────────────────────────────────
-    sections.append('<h3>UC-TK-3: Edge Case &mdash; Creative ไม่ได้รับการอนุมัติก่อนถึงเวลา</h3>')
+    sections.append('<h3>UC-TK-3: Edge Case &mdash; Creative ไม่ผ่าน Review ก่อนถึงเวลา</h3>')
     sections.append("""<table>
-<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
-<tr><td><strong>สถานการณ์</strong></td><td>Advertiser จอง Takeover 15:00 แต่ creative ยังอยู่ใน <code>waiting-approve</code> ถึงเวลา 14:55</td></tr>
-<tr><td><strong>ระบบ</strong></td><td>Takeover slot ผ่านไปโดยที่ <code>status &ne; approved</code> &rarr; Player ไม่ได้รับ Takeover schedule</td></tr>
-<tr><td><strong>ผลลัพธ์</strong></td><td>Takeover miss &mdash; ช่วง 15:00&ndash;16:00 เล่น ROS ปกติ, PoP = 0 plays</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Advertiser ต้องติดต่อ Support เพื่อขอ make-good หรือ refund (manual process)</td></tr>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>ลูกค้าจอง Takeover 15:00 แต่ creative ยังอยู่ในสถานะ <code>waiting-approve</code> จนถึง 14:55</td></tr>
+<tr><td><strong>สิ่งที่เกิดขึ้น</strong></td><td>ถึงเวลา 15:00 แต่ creative ยังไม่ได้รับการอนุมัติ &rarr; Player ไม่มี Takeover schedule &rarr; เล่น ROS ปกติแทน</td></tr>
+<tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>Takeover หาย PoP = 0 plays &mdash; ต้องติดต่อ Support เพื่อขอ make-good หรือคืนเงิน (กระบวนการ manual)</td></tr>
+<tr><td><strong>วิธีป้องกัน</strong></td><td>ส่ง creative ล่วงหน้าอย่างน้อย 1 ชั่วโมง เพื่อให้เจ้าของป้ายมีเวลา review และอนุมัติ</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart LR
-    A([Creative อัพโหลด]) --> B[status: draft]
-    B --> C[Advertiser publish]
+    A([ลูกค้าอัปโหลด Creative]) --> B[status: draft]
+    B --> C[กด Publish]
     C --> D[status: waiting-approve]
-    D --> E{Owner อนุมัติ?}
+    D --> E{เจ้าของป้ายอนุมัติ?}
     E -->|อนุมัติก่อน 15:00| F[status: waiting-play]
     F --> G([Takeover เล่นตาม schedule])
-    E -->|ยังไม่อนุมัติถึงเวลา| H[Takeover slot ผ่านไป]
-    H --> I([PoP = 0, ต้องขอ make-good])
+    E -->|ยังไม่อนุมัติพอถึงเวลา| H[Takeover slot หาย]
+    H --> I([PoP = 0 ต้องขอ make-good])
     style H fill:#f8d7da,stroke:#dc3545
     style I fill:#fff3cd,stroke:#ffc107
     style G fill:#d4edda,stroke:#28a745""", page_id))
@@ -3197,322 +3198,318 @@ def build_page_14(page_id: str) -> str:
     # ──────────────────────────────────────────────────────────────
     # SECTION 2: Exact Time
     # ──────────────────────────────────────────────────────────────
-    sections.append('<h2>2. Exact Time &mdash; เล่นตรงเวลาที่กำหนด</h2>')
+    sections.append('<h2>2. Exact Time &mdash; โฆษณาต้องเล่นตรงเวลาที่กำหนด</h2>')
     sections.append(info_panel(
-        "<p><strong>Exact Time</strong> คือการจอง slot ที่ต้องเล่น <em>ตรงเวลาที่กำหนด</em> เช่น Flash Sale ที่ 12:00:00 "
-        "หรือ Live Event ที่ต้องการ synchronize กับ broadcast &mdash; "
-        "ระบบจะ interrupt ad ที่กำลังเล่นอยู่เมื่อถึง <strong>window ±30 วินาที</strong> รอบเวลาเป้าหมาย</p>"
-        "<p><strong>Code:</strong> <code>activeDisplayTimeType: 'exclusive'</code> (เหมือน Takeover แต่ duration สั้น) &nbsp;&nbsp;"
-        "<strong>Lead time:</strong> &ge;5 นาที &nbsp;&nbsp;"
-        "<strong>Window:</strong> &plusmn;30 วินาที รอบเวลาเป้าหมาย</p>"
+        "<p><strong>Exact Time</strong> เหมาะสำหรับโฆษณาที่ต้องการเล่น <em>ณ เวลาที่แน่นอน</em> "
+        "เช่น เปิดตัว Flash Sale ตอน 12:00 หรือ tie-in กับ live broadcast &mdash; "
+        "ระบบจะเล่นโฆษณาตรงช่วง <strong>window &plusmn;30 วินาที</strong> รอบเวลาเป้าหมาย</p>"
+        "<ul>"
+        "<li><strong>ถ้า ad ที่กำลังเล่นอยู่จบก่อน window ปิด:</strong> Exact Time เล่นทันที</li>"
+        "<li><strong>ถ้า ad ที่กำลังเล่นอยู่ยาวเกิน window:</strong> Exact Time ถูก skip &rarr; ระบบเพิ่ม make-good ใน slot ถัดไป</li>"
+        "</ul>"
     ))
 
     # ── UC-ET-1 ───────────────────────────────────────────────────
     sections.append('<h3>UC-ET-1: Happy Path &mdash; Flash Sale เล่นตรง 12:00</h3>')
     sections.append("""<table>
-<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
-<tr><td><strong>Advertiser กระทำ</strong></td><td>จอง Exact Time ที่ 12:00:00, creative Flash Sale 30 วินาที, อัพโหลดก่อน 1 ชั่วโมง</td></tr>
-<tr><td><strong>ระบบ</strong></td><td>Window เปิด 11:59:30 &mdash; รอ ad ที่กำลังเล่นจบ (หรือ interrupt ถ้าเกิน window)</td></tr>
-<tr><td><strong>เวลา 12:00:00</strong></td><td>ET ad เล่น 30 วินาที &rarr; 12:00:30 กลับ ROS ปกติ</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Flash Sale เล่นตรง 12:00 (&plusmn;30s), PoP บันทึก 1 play</td></tr>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>ลูกค้าจอง Exact Time ที่ 12:00:00 สำหรับ Flash Sale 30 วินาที โดยอัปโหลด creative ล่วงหน้า 1 ชั่วโมง</td></tr>
+<tr><td><strong>ระบบทำงาน</strong></td><td>Window เปิดที่ 11:59:30 &mdash; รอให้ ad ที่กำลังเล่นอยู่จบ หรือ interrupt ถ้าจะเกิน window</td></tr>
+<tr><td><strong>ตอนเล่นจริง</strong></td><td>Flash Sale เล่น 30 วินาที ตั้งแต่ 12:00:00 &rarr; กลับเล่น ROS ปกติตอน 12:00:30</td></tr>
+<tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>โฆษณาเล่นตรงเวลา (&plusmn;30 วินาที), PoP บันทึก 1 play ครบ</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""gantt
-    title UC-ET-1 Exact Time Flash Sale
+    title UC-ET-1 Exact Time Flash Sale at 12-00
     dateFormat HH:mm:ss
     axisFormat %H:%M:%S
     section โฆษณา ROS ก่อนหน้า
-    P2 Ad A 15s            :done, a1, 11:59:30, 15s
+    P2 Ad A 15s              :done, a1, 11:59:30, 15s
     section Exact Time Window
-    Window opens 11-59-30  :milestone, ws, 11:59:30, 0d
-    ET target 12-00-00     :milestone, et, 12:00:00, 0d
-    Window closes 12-00-30 :milestone, we, 12:00:30, 0d
-    section ET Play
-    Flash Sale 30s         :crit, etad, 12:00:00, 30s
-    ET END 12-00-30        :milestone, ee, 12:00:30, 0d
+    Window เปิด 11-59-30     :milestone, ws, 11:59:30, 0d
+    เป้าหมาย 12-00-00        :milestone, et, 12:00:00, 0d
+    Window ปิด 12-00-30      :milestone, we, 12:00:30, 0d
+    section Exact Time Play
+    Flash Sale 30s           :crit, etad, 12:00:00, 30s
+    ET จบ 12-00-30           :milestone, ee, 12:00:30, 0d
     section กลับ ROS
-    P2 Ad B 15s            :done, a2, 12:00:30, 15s""", page_id))
+    P2 Ad B 15s              :done, a2, 12:00:30, 15s""", page_id))
 
     # ── UC-ET-2 ───────────────────────────────────────────────────
-    sections.append('<h3>UC-ET-2: Edge Case &mdash; Ad ที่เล่นอยู่ยาวเกิน Window</h3>')
+    sections.append('<h3>UC-ET-2: Edge Case &mdash; Ad ที่กำลังเล่นอยู่ยาวเกิน Window</h3>')
     sections.append("""<table>
-<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
-<tr><td><strong>สถานการณ์</strong></td><td>P2 ad ที่กำลังเล่นอยู่ยาว 90 วินาที เริ่มที่ 11:59:10 &mdash; จะจบที่ 12:00:40</td></tr>
-<tr><td><strong>ET Window</strong></td><td>Window เปิด 11:59:30 &mdash; ปิด 12:00:30 &mdash; ad ที่เล่นอยู่จบหลัง window ปิด</td></tr>
-<tr><td><strong>ระบบตัดสินใจ</strong></td><td>ET target ผ่านไปแล้ว, ad ที่เล่นจบที่ 12:00:40 &gt; window 12:00:30 &rarr; ET ถูก skip</td></tr>
-<tr><td><strong>Make-good</strong></td><td>ระบบเพิ่ม ET make-good ใน sequence ถัดไป (เล่นหลัง 12:00:40)</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>ET เล่นช้า ~40 วินาที (make-good), Advertiser ได้รับ 1 play แต่ไม่ตรง 12:00:00 พอดี</td></tr>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>มี P2 ad ยาว 90 วินาที เริ่มเล่นตอน 11:59:10 &mdash; จะเล่นจบตอน 12:00:40 ซึ่งเลย window ปิด (12:00:30) ไปแล้ว</td></tr>
+<tr><td><strong>สิ่งที่เกิดขึ้น</strong></td><td>Exact Time ที่ตั้งไว้ถูก skip เพราะ window ปิดไปก่อน ad เดิมจบ</td></tr>
+<tr><td><strong>ระบบชดเชย</strong></td><td>เพิ่ม Exact Time make-good เข้าใน sequence ถัดไป &mdash; โฆษณาจะเล่นหลัง 12:00:40</td></tr>
+<tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>โฆษณาเล่นช้ากว่าเป้าหมายประมาณ 40 วินาที แต่ยังได้ 1 play ครบ</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""gantt
     title UC-ET-2 ET Window Missed - Make-good
     dateFormat HH:mm:ss
     axisFormat %H:%M:%S
-    section P2 Ad ที่กำลังเล่น
-    P2 Ad 90s (start 11-59-10)  :done, a1, 11:59:10, 90s
+    section P2 Ad ที่กำลังเล่นอยู่
+    P2 Ad 90s เริ่ม 11-59-10  :done, a1, 11:59:10, 90s
     section ET Window
-    Window opens 11-59-30    :milestone, ws, 11:59:30, 0d
-    ET target 12-00-00       :milestone, et, 12:00:00, 0d
-    Window closes 12-00-30   :milestone, we, 12:00:30, 0d
+    Window เปิด 11-59-30      :milestone, ws, 11:59:30, 0d
+    เป้าหมาย 12-00-00         :milestone, et, 12:00:00, 0d
+    Window ปิด 12-00-30       :milestone, we, 12:00:30, 0d
     section ผลลัพธ์
-    Ad จบหลัง window         :milestone, ae, 12:00:40, 0d
-    ET skip + make-good      :active, mg, 12:00:40, 30s""", page_id))
+    Ad จบหลัง window          :milestone, ae, 12:00:40, 0d
+    ET make-good 30s          :active, mg, 12:00:40, 30s""", page_id))
 
     # ── UC-ET-3 ───────────────────────────────────────────────────
-    sections.append('<h3>UC-ET-3: Edge Case &mdash; Submit ช้าเกินไป (&lt;5 นาที)</h3>')
+    sections.append('<h3>UC-ET-3: Edge Case &mdash; จองช้าเกินไป (Lead Time &lt;5 นาที)</h3>')
     sections.append("""<table>
-<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
-<tr><td><strong>สถานการณ์</strong></td><td>Advertiser พยายาม publish Exact Time slot ที่ 12:00 แต่ submit ตอน 11:58 (เหลือ 2 นาที)</td></tr>
-<tr><td><strong>ระบบตรวจสอบ</strong></td><td><code>rules.after(5, 'minutes')</code> &rarr; ไม่ผ่าน validation</td></tr>
-<tr><td><strong>ผลลัพธ์</strong></td><td>API return error: เวลาต้องมากกว่าปัจจุบันอย่างน้อย 5 นาที</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Advertiser ต้องเลือกเวลาใหม่ที่ &ge;12:03 หรือ plan ล่วงหน้ามากกว่านี้</td></tr>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>ลูกค้ากด Publish โฆษณาตอน 11:58 แต่ตั้งเวลาเล่นไว้ที่ 12:00 &mdash; เหลือเวลาแค่ 2 นาที</td></tr>
+<tr><td><strong>สิ่งที่เกิดขึ้น</strong></td><td>ระบบตรวจสอบว่าเวลาเป้าหมายต้องอยู่ห่างจากปัจจุบันอย่างน้อย 5 นาที &rarr; ไม่ผ่าน validation</td></tr>
+<tr><td><strong>ผลที่ลูกค้าเจอ</strong></td><td>ระบบแจ้ง error กลับมา &mdash; ต้องตั้งเวลาเล่นใหม่ให้อย่างน้อย 12:03 ขึ้นไป</td></tr>
+<tr><td><strong>วิธีป้องกัน</strong></td><td>Plan และส่ง creative ล่วงหน้าให้มีเวลา review เพียงพอก่อนถึงเวลาเล่น</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart TD
-    A([Advertiser submit ET slot]) --> B{เวลา target >= now + 5 min?}
-    B -->|ใช่ เช่น target 12:00 submit 11:54| C[Validation pass]
+    A([ลูกค้า Publish ET slot]) --> B{เวลาเป้าหมาย >= ปัจจุบัน + 5 นาที?}
+    B -->|ใช่ เช่น จองตอน 11:54 เป้าหมาย 12:00| C[ผ่าน validation]
     C --> D[สร้าง exclusive booking]
-    D --> E[ส่ง notification ให้ owner อนุมัติ]
-    E --> F([รอ approval])
-    B -->|ไม่ใช่ เช่น target 12:00 submit 11:58| G[Validation error]
-    G --> H[rules.after 5 minutes failed]
-    H --> I([Advertiser ต้องเลือกเวลาใหม่])
+    D --> E[ส่ง notification ให้เจ้าของป้าย]
+    E --> F([รอการอนุมัติ])
+    B -->|ไม่ใช่ เช่น จองตอน 11:58 เป้าหมาย 12:00| G[Validation error]
+    G --> H[ต้องตั้งเวลาใหม่]
+    H --> I([เลือกเวลาใหม่ที่ >= 12:03])
     style G fill:#f8d7da,stroke:#dc3545
-    style I fill:#fff3cd,stroke:#ffc107
     style F fill:#d4edda,stroke:#28a745""", page_id))
 
     # ──────────────────────────────────────────────────────────────
-    # SECTION 3: Guaranteed Frequency
+    # SECTION 3: Guaranteed
     # ──────────────────────────────────────────────────────────────
-    sections.append('<h2>3. Guaranteed Frequency &mdash; รับประกัน N ครั้งต่อหน่วยเวลา</h2>')
+    sections.append('<h2>3. Guaranteed &mdash; รับประกันจำนวนครั้งที่เล่น</h2>')
     sections.append(info_panel(
-        "<p><strong>Guaranteed Frequency</strong> คือการกำหนดว่าโฆษณาต้องเล่น <em>อย่างน้อย N ครั้ง</em> "
-        "ต่อ 15 นาที / ชั่วโมง / วัน &mdash; ระบบรับประกัน minimum frequency แม้มี priority อื่นแทรก</p>"
-        "<p><strong>Code:</strong> <code>activeDisplayTimeType: 'period'</code> + "
-        "<code>frequencyType: per_15_minutes | per_hour | per_day</code> &nbsp;&nbsp;"
-        "<strong>Options:</strong> /15 นาที, /ชั่วโมง, /วัน</p>"
+        "<p><strong>Guaranteed</strong> คือการกำหนดว่าโฆษณาต้องเล่น <em>อย่างน้อย N ครั้ง</em> "
+        "ต่อ 15 นาที / ชั่วโมง / วัน &mdash; ระบบจะรับประกัน minimum frequency นั้น "
+        "แม้จะมีโฆษณา priority สูงกว่าแทรกเข้ามา</p>"
+        "<ul>"
+        "<li><strong>ถ้า Takeover หรือ Exact Time เข้ามาขัด:</strong> ระบบจะเพิ่ม make-good plays ในช่วงเวลาถัดไป</li>"
+        "<li><strong>Frequency options:</strong> ต่อ 15 นาที, ต่อชั่วโมง, หรือต่อวัน</li>"
+        "</ul>"
     ))
 
     # ── UC-G-1 ────────────────────────────────────────────────────
-    sections.append('<h3>UC-G-1: Happy Path &mdash; 4 ครั้ง/ชั่วโมง ครบทุก play</h3>')
+    sections.append('<h3>UC-G-1: Happy Path &mdash; 4 ครั้ง/ชั่วโมง ได้ครบทุก play</h3>')
     sections.append("""<table>
-<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
-<tr><td><strong>Advertiser กำหนด</strong></td><td>Frequency = 4 ครั้ง/ชั่วโมง, วันธรรมดา 08:00&ndash;18:00, creative 30 วินาที</td></tr>
-<tr><td><strong>ระบบคำนวณ</strong></td><td>กระจาย 4 plays ในแต่ละชั่วโมง &mdash; ทุก ~15 นาที (interleave กับ P2/P4 ads อื่น)</td></tr>
-<tr><td><strong>ใน 1 ชั่วโมง</strong></td><td>เล่น 4 ครั้งตามที่รับประกัน + P2/P4 fills เวลาที่เหลือ</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>PoP report: 4 plays/hr &times; 10 hrs = 40 plays/day ครบ 100%</td></tr>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>ลูกค้าตั้งค่า frequency = 4 ครั้ง/ชั่วโมง, วันธรรมดา 08:00&ndash;18:00, creative ยาว 30 วินาที</td></tr>
+<tr><td><strong>ระบบทำงาน</strong></td><td>กระจาย 4 plays ในแต่ละชั่วโมง (ทุก ~15 นาที) สลับกับโฆษณาอื่น</td></tr>
+<tr><td><strong>ใน 1 ชั่วโมง</strong></td><td>เล่น 4 ครั้งตามที่รับประกัน ส่วนเวลาที่เหลือเป็น P2/P4 ads</td></tr>
+<tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>PoP report: 4 plays/hr &times; 10 hrs = 40 plays/วัน ครบ 100%</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""gantt
     title UC-G-1 Guaranteed 4 plays per hour
     dateFormat HH:mm
     axisFormat %H:%M
-    section Guaranteed Slots
+    section Guaranteed slots
     G play 1 at 08-00      :crit, g1, 08:00, 1m
     G play 2 at 08-15      :crit, g2, 08:15, 1m
     G play 3 at 08-30      :crit, g3, 08:30, 1m
     G play 4 at 08-45      :crit, g4, 08:45, 1m
-    section P2 ROS Fills
-    P2 fills (remaining)   :done, f1, 08:01, 14m
-    P2 fills (remaining)   :done, f2, 08:16, 14m
-    P2 fills (remaining)   :done, f3, 08:31, 14m
-    P2 fills (remaining)   :done, f4, 08:46, 14m""", page_id))
+    section P2 fills ส่วนที่เหลือ
+    P2 fills               :done, f1, 08:01, 14m
+    P2 fills               :done, f2, 08:16, 14m
+    P2 fills               :done, f3, 08:31, 14m
+    P2 fills               :done, f4, 08:46, 14m""", page_id))
 
     # ── UC-G-2 ────────────────────────────────────────────────────
-    sections.append('<h3>UC-G-2: Edge Case &mdash; Takeover ขัด ทำให้ under-deliver</h3>')
+    sections.append('<h3>UC-G-2: Edge Case &mdash; Takeover เข้ามาขัด ทำให้ได้ไม่ครบ</h3>')
     sections.append("""<table>
-<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
-<tr><td><strong>สถานการณ์</strong></td><td>Guaranteed campaign 4/hr ทับซ้อนกับ Takeover ช่วง 09:00&ndash;09:30 บนป้ายเดียวกัน</td></tr>
-<tr><td><strong>ระบบจัดการ</strong></td><td>Takeover (P1) มี priority สูงกว่า &rarr; G slots ใน 09:00&ndash;09:30 ถูก block</td></tr>
-<tr><td><strong>ผลลัพธ์ชั่วโมง 09:00</strong></td><td>ได้แค่ 2 plays (09:30 และ 09:45) แทน 4 plays</td></tr>
-<tr><td><strong>Make-good</strong></td><td>ระบบเพิ่ม 2 plays พิเศษใน 10:00&ndash;10:30 เพื่อชดเชย</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Guaranteed ยังคงครบ 4 plays/hr เมื่อรวม make-good</td></tr>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>มี Takeover ของลูกค้าอื่นเข้ามาครอง 09:00&ndash;09:30 บนป้ายเดียวกัน ทับซ้อนกับ Guaranteed campaign</td></tr>
+<tr><td><strong>สิ่งที่เกิดขึ้น</strong></td><td>Takeover มี priority สูงกว่า &rarr; Guaranteed slots ที่อยู่ในช่วง 09:00&ndash;09:30 ถูก block &rarr; ได้เล่นแค่ 2 ครั้งในชั่วโมง 09:00 (แทนที่จะได้ 4 ครั้ง)</td></tr>
+<tr><td><strong>ระบบชดเชย</strong></td><td>เพิ่ม make-good 2 plays ต้นชั่วโมง 10:00 เพื่อให้ยอดรวมครบ</td></tr>
+<tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>ยังคงได้ 4 plays/hr เมื่อนับรวม make-good แต่บางครั้งอาจขยับมาอยู่ในชั่วโมงถัดไป</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""gantt
     title UC-G-2 Takeover Blocks Guaranteed Slots
     dateFormat HH:mm
     axisFormat %H:%M
     section ชั่วโมง 09:00
-    TK ครอง 30 นาที         :crit, tk, 09:00, 30m
-    G play 3 at 09-30        :crit, g3, 09:30, 1m
-    G play 4 at 09-45        :crit, g4, 09:45, 1m
+    Takeover ครอง 30 นาที  :crit, tk, 09:00, 30m
+    G play 3 at 09-30       :crit, g3, 09:30, 1m
+    G play 4 at 09-45       :crit, g4, 09:45, 1m
     section Make-good ชั่วโมง 10:00
-    G make-good 1            :active, mg1, 10:00, 1m
-    G make-good 2            :active, mg2, 10:05, 1m
-    G play 3 at 10-15        :crit, g5, 10:15, 1m
-    G play 4 at 10-30        :crit, g6, 10:30, 1m""", page_id))
+    Make-good play 1        :active, mg1, 10:00, 1m
+    Make-good play 2        :active, mg2, 10:05, 1m
+    G play 3 at 10-15       :crit, g5, 10:15, 1m
+    G play 4 at 10-30       :crit, g6, 10:30, 1m""", page_id))
 
     # ──────────────────────────────────────────────────────────────
-    # SECTION 4: Run of Schedule (ROS)
+    # SECTION 4: Run of Schedule
     # ──────────────────────────────────────────────────────────────
     sections.append('<h2>4. Run of Schedule &mdash; กระจายโฆษณาตลอด Operating Hours</h2>')
     sections.append(info_panel(
-        "<p><strong>Run of Schedule (ROS)</strong> คือการลงโฆษณาแบบ <em>กระจายทั่วช่วงเวลา</em> "
-        "ที่กำหนด &mdash; ระบบ interleave กับโฆษณาอื่น ไม่รับประกัน exact timing แต่รับประกัน "
-        "<em>fair share</em> ของ available slots</p>"
-        "<p><strong>Code:</strong> <code>activeDisplayTimeType: 'period'</code> + budget &nbsp;&nbsp;"
-        "<strong>Options:</strong> date range, weekday filter, budget (campaign total หรือ daily) &nbsp;&nbsp;"
-        "<strong>Approval:</strong> draft &rarr; waiting-approve &rarr; approved &rarr; playing</p>"
+        "<p><strong>Run of Schedule (ROS)</strong> คือรูปแบบที่ระบบ <em>กระจายโฆษณา</em> "
+        "ให้สม่ำเสมอตลอดช่วงเวลาที่เปิด &mdash; ไม่รับประกันเวลาเล่นที่แน่นอน "
+        "แต่รับประกัน fair share ของ available slots ตามงบประมาณที่ซื้อ</p>"
+        "<p><strong>Approval flow:</strong> สร้าง campaign &rarr; กด Publish &rarr; เจ้าของป้ายอนุมัติ &rarr; รอถึงวันเริ่ม &rarr; เล่น</p>"
     ))
 
     # ── UC-P2-1 ───────────────────────────────────────────────────
-    sections.append('<h3>UC-P2-1: Happy Path &mdash; Campaign 2 สัปดาห์ กระจาย Balanced</h3>')
+    sections.append('<h3>UC-P2-1: Happy Path &mdash; Campaign 2 สัปดาห์ เล่นต่อเนื่อง</h3>')
     sections.append("""<table>
-<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
-<tr><td><strong>Advertiser กำหนด</strong></td><td>Campaign 14 วัน, วันธรรมดา 07:00&ndash;22:00, เลือก Package "target-reach", creative 15 วินาที</td></tr>
-<tr><td><strong>Approval flow</strong></td><td>Publish &rarr; owner รับ notification &rarr; อนุมัติ &rarr; status: <code>waiting-play</code></td></tr>
-<tr><td><strong>วันที่ 1</strong></td><td>Player ดาวน์โหลด creative &rarr; เริ่มเล่น interleave กับ ads อื่นตามลำดับ priority</td></tr>
-<tr><td><strong>ตลอด 14 วัน</strong></td><td>ระบบ balance โฆษณาตาม SOV (Share of Voice) ที่ซื้อ</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>PoP report แสดง plays ทุกวัน, status &rarr; <code>done</code> เมื่อสิ้นสุด campaign</td></tr>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>ลูกค้าสร้าง campaign 14 วัน, เฉพาะวันธรรมดา 07:00&ndash;22:00, เลือก package "target-reach", creative ยาว 15 วินาที</td></tr>
+<tr><td><strong>ระบบทำงาน</strong></td><td>ส่งให้เจ้าของป้ายอนุมัติ &rarr; อนุมัติแล้ว &rarr; รอถึงวันเริ่ม &rarr; Player ดาวน์โหลด creative และเริ่มเล่น</td></tr>
+<tr><td><strong>ระหว่าง campaign</strong></td><td>โฆษณากระจายสม่ำเสมอ สลับกับโฆษณาอื่นตามลำดับ priority</td></tr>
+<tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>PoP report อัปเดตทุกวัน, status เปลี่ยนเป็น <code>done</code> หลังสิ้นสุด campaign</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart LR
-    A([Advertiser: สร้าง Campaign]) --> B[เลือก Package + อัพโหลด Creative]
-    B --> C[กำหนด date range + weekdays]
-    C --> D[Publish]
-    D --> E[Owner รับ notification]
-    E --> F{Owner อนุมัติ?}
+    A([สร้าง Campaign]) --> B[เลือก Package + อัปโหลด Creative]
+    B --> C[กำหนด date range + วันที่เล่น]
+    C --> D[กด Publish]
+    D --> E[เจ้าของป้ายรับ notification]
+    E --> F{อนุมัติ?}
     F -->|อนุมัติ| G[status: waiting-play]
     F -->|ปฏิเสธ| H[status: rejected]
-    H --> I[Advertiser แก้ creative หรือยกเลิก]
-    G --> J[ถึง start date]
-    J --> K[Player ดาวน์โหลด + เริ่มเล่น]
+    H --> I[แก้ creative หรือยกเลิก]
+    G --> J[ถึงวันเริ่ม campaign]
+    J --> K[Player ดาวน์โหลด + เล่น]
     K --> L([PoP รายงานทุก play])
     style H fill:#f8d7da,stroke:#dc3545
     style L fill:#d4edda,stroke:#28a745""", page_id))
 
     # ── UC-P2-2 ───────────────────────────────────────────────────
-    sections.append('<h3>UC-P2-2: Edge Case &mdash; Creative ถูก Reject ระหว่าง Review</h3>')
+    sections.append('<h3>UC-P2-2: Edge Case &mdash; Creative ถูกปฏิเสธระหว่าง Review</h3>')
     sections.append("""<table>
-<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
-<tr><td><strong>สถานการณ์</strong></td><td>Advertiser ส่ง creative ที่ไม่ตรงกับ spec ของป้าย (เช่น ขนาดผิด หรือเนื้อหาไม่เหมาะสม)</td></tr>
-<tr><td><strong>Owner กระทำ</strong></td><td>Billboard owner ปฏิเสธ creative ผ่านหน้า <code>/owner/advertisement-review</code></td></tr>
-<tr><td><strong>ระบบ</strong></td><td>Status &rarr; <code>rejected</code>, แจ้ง Advertiser ทาง notification</td></tr>
-<tr><td><strong>Advertiser แก้ไข</strong></td><td>ต้องสร้าง campaign ใหม่หรืออัพโหลด creative ใหม่แล้ว publish ใหม่</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Campaign ไม่เล่นจนกว่า creative ใหม่จะผ่าน review</td></tr>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>ลูกค้าส่ง creative ที่ไม่ตรงกับ spec ของป้าย เช่น ขนาดวิดีโอผิด หรือมีเนื้อหาที่เจ้าของป้ายไม่อนุมัติ</td></tr>
+<tr><td><strong>สิ่งที่เกิดขึ้น</strong></td><td>เจ้าของป้ายปฏิเสธ creative &rarr; status เปลี่ยนเป็น <code>rejected</code> &rarr; ระบบแจ้งลูกค้าทาง notification</td></tr>
+<tr><td><strong>ผลที่ลูกค้าเจอ</strong></td><td>Campaign หยุดเล่น &mdash; ต้องอัปโหลด creative ใหม่แล้ว Publish ใหม่อีกครั้ง</td></tr>
+<tr><td><strong>ระหว่างรอ</strong></td><td>ป้ายเล่น house filler แทน ลูกค้าไม่เสีย plays ระหว่างช่วงที่ยังไม่มี creative ผ่าน</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart TD
-    A([Advertiser publish]) --> B[Owner รับ notification]
-    B --> C{Owner ตรวจ creative}
-    C -->|ผ่าน spec| D[status: approved]
+    A([กด Publish]) --> B[เจ้าของป้ายรับ notification]
+    B --> C{ตรวจ creative}
+    C -->|ผ่าน| D[status: approved]
     D --> E([Campaign เล่นตาม schedule])
-    C -->|ไม่ผ่าน spec| F[status: rejected]
-    F --> G[Notification ถึง Advertiser]
-    G --> H{Advertiser เลือก}
-    H -->|แก้ creative| I[อัพโหลด creative ใหม่]
-    H -->|ยกเลิก campaign| J([Campaign cancelled])
+    C -->|ไม่ผ่าน| F[status: rejected]
+    F --> G[แจ้งลูกค้าทาง notification]
+    G --> H{ลูกค้าเลือก}
+    H -->|แก้ creative| I[อัปโหลด creative ใหม่]
+    H -->|ยกเลิก| J([Campaign cancelled])
     I --> K[Publish ใหม่]
     K --> B
     style F fill:#f8d7da,stroke:#dc3545
     style E fill:#d4edda,stroke:#28a745""", page_id))
 
     # ── UC-P2-3 ───────────────────────────────────────────────────
-    sections.append('<h3>UC-P2-3: Edge Case &mdash; Player Offline ระหว่าง Campaign</h3>')
+    sections.append('<h3>UC-P2-3: Edge Case &mdash; ป้ายออฟไลน์ระหว่าง Campaign</h3>')
     sections.append("""<table>
-<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
-<tr><td><strong>สถานการณ์</strong></td><td>ป้ายโฆษณาออฟไลน์ 4 ชั่วโมง ขณะที่ campaign กำลังเล่นอยู่</td></tr>
-<tr><td><strong>ระหว่าง Offline</strong></td><td>Player เล่นต่อจาก Tier 2 (4hr buffer) &rarr; ถ้า &gt;4hr ใช้ Tier 3 (house filler)</td></tr>
-<tr><td><strong>PoP ระหว่าง Offline</strong></td><td>PoP events เก็บใน local queue &mdash; ยังไม่ส่ง Server</td></tr>
-<tr><td><strong>เมื่อกลับ Online</strong></td><td>Player sync PoP batch ทั้งหมดที่ค้างไว้ขึ้น Server</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Advertiser เห็น PoP report ครบ (ส่งหลัง reconnect), แต่ plays ที่เกิด &gt;4hr offline จะเป็น house filler แทน</td></tr>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>ป้ายโฆษณาขาดการเชื่อมต่อ 4 ชั่วโมง ขณะที่ campaign กำลังเล่นอยู่</td></tr>
+<tr><td><strong>ระหว่างออฟไลน์</strong></td><td>ป้ายเล่นต่อจาก cache ที่ดาวน์โหลดไว้ (นาน 4 ชั่วโมง) &mdash; ถ้าออฟไลน์นานกว่านั้น จะสลับเล่น house filler แทน</td></tr>
+<tr><td><strong>PoP ระหว่างออฟไลน์</strong></td><td>ระบบเก็บ play events ไว้ใน queue ก่อน &mdash; ยังไม่ส่งขึ้น server</td></tr>
+<tr><td><strong>หลังกลับ online</strong></td><td>ป้ายส่ง PoP ที่ค้างไว้ทั้งหมดขึ้น server ในครั้งเดียว</td></tr>
+<tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>PoP report อัปเดตหลังป้ายกลับ online &mdash; ช่วงที่ออฟไลน์ &gt;4 ชั่วโมง plays อาจลดลงเพราะเล่น house filler</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""gantt
-    title UC-P2-3 Player Offline During Campaign
+    title UC-P2-3 ป้ายออฟไลน์ระหว่าง Campaign
     dateFormat HH:mm
     axisFormat %H:%M
-    section สัญญาณ Network
-    Online                 :done, n1, 08:00, 60m
-    Offline 4 ชั่วโมง      :crit, n2, 09:00, 240m
-    Online อีกครั้ง         :done, n3, 13:00, 60m
-    section Ads ที่เล่น
-    Campaign ads (cache)   :done, c1, 08:00, 60m
-    Tier 2 buffer ads      :active, c2, 09:00, 240m
-    Campaign ads resume    :done, c3, 13:00, 60m
+    section สัญญาณ
+    Online ปกติ            :done, n1, 08:00, 60m
+    ออฟไลน์ 4 ชั่วโมง      :crit, n2, 09:00, 240m
+    กลับ online            :done, n3, 13:00, 60m
+    section โฆษณาที่เล่น
+    Campaign ads ปกติ      :done, c1, 08:00, 60m
+    Tier 2 cache ads       :active, c2, 09:00, 240m
+    Campaign ads กลับมา   :done, c3, 13:00, 60m
     section PoP Reporting
-    PoP ปกติ               :done, p1, 08:00, 60m
-    PoP queue offline      :active, pq, 09:00, 240m
+    PoP ส่ง server ปกติ   :done, p1, 08:00, 60m
+    PoP queue ใน device    :active, pq, 09:00, 240m
     PoP batch sync         :milestone, ps, 13:00, 0d""", page_id))
 
     # ── UC-P2-4 ───────────────────────────────────────────────────
-    sections.append('<h3>UC-P2-4: Edge Case &mdash; หลาย Creative ใน Campaign เดียว (Rotation)</h3>')
+    sections.append('<h3>UC-P2-4: Edge Case &mdash; ลง Campaign หลาย Creative (Rotation)</h3>')
     sections.append("""<table>
-<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
-<tr><td><strong>สถานการณ์</strong></td><td>Advertiser อัพโหลด 3 creatives ใน campaign เดียว (เช่น ภาษาไทย, ภาษาอังกฤษ, และ version ลด 50%)</td></tr>
-<tr><td><strong>ระบบ</strong></td><td>Player หมุนเวียน creatives ตาม rotation rules &mdash; แต่ละ creative ต้องผ่าน approval ของ owner ก่อน</td></tr>
-<tr><td><strong>กรณี creative หนึ่ง rejected</strong></td><td>Creative ที่ถูก reject หลุดออกจาก rotation &mdash; ที่เหลือยังเล่นต่อ</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>PoP report แยกตาม creative ID &mdash; Advertiser เห็น performance ของแต่ละ version</td></tr>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>ลูกค้าอัปโหลด 3 creatives ใน campaign เดียว เช่น ไทย, อังกฤษ, และเวอร์ชันลด 50%</td></tr>
+<tr><td><strong>ระบบทำงาน</strong></td><td>หมุนเวียน creatives ทั้ง 3 ตาม rotation rules &mdash; แต่ละ creative ต้องผ่าน approval จากเจ้าของป้ายก่อน</td></tr>
+<tr><td><strong>ถ้า creative หนึ่งถูกปฏิเสธ</strong></td><td>creative นั้นหลุดออกจาก rotation &mdash; ที่เหลือยังเล่นต่อได้ตามปกติ</td></tr>
+<tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>PoP report แยก plays ตาม creative ID &mdash; ดูได้ว่า version ไหน performance ดีกว่า</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""gantt
-    title UC-P2-4 Multi-Creative Rotation (1 Hour)
+    title UC-P2-4 Multi-Creative Rotation (1 ชั่วโมง)
     dateFormat HH:mm
     axisFormat %H:%M
-    section Creative A (TH)
+    section Creative A ภาษาไทย
     Creative A play 1      :done, a1, 08:00, 1m
     Creative A play 2      :done, a2, 08:20, 1m
     Creative A play 3      :done, a3, 08:40, 1m
-    section Creative B (EN)
+    section Creative B ภาษาอังกฤษ
     Creative B play 1      :active, b1, 08:07, 1m
     Creative B play 2      :active, b2, 08:27, 1m
     Creative B play 3      :active, b3, 08:47, 1m
-    section Creative C (Sale)
+    section Creative C ลด 50 pct
     Creative C play 1      :crit, c1, 08:14, 1m
     Creative C play 2      :crit, c2, 08:34, 1m
     Creative C play 3      :crit, c3, 08:54, 1m""", page_id))
 
     # ──────────────────────────────────────────────────────────────
-    # SECTION 5: Summary Reference Table
+    # SECTION 5: Summary
     # ──────────────────────────────────────────────────────────────
-    sections.append('<h2>5. สรุปเปรียบเทียบรูปแบบโฆษณา</h2>')
+    sections.append('<h2>5. สรุปเปรียบเทียบ 4 รูปแบบ</h2>')
     sections.append("""<table>
 <tr>
   <th>รูปแบบ</th>
-  <th>Code (system)</th>
-  <th>Lead Time</th>
-  <th>Conflict Rule</th>
-  <th>Guarantee</th>
-  <th>Use Case หลัก</th>
+  <th>เหมาะกับ</th>
+  <th>จองล่วงหน้า</th>
+  <th>ถ้าช่วงเวลาชน</th>
+  <th>การรับประกัน</th>
 </tr>
 <tr>
   <td><strong>Takeover</strong></td>
-  <td><code>exclusive</code></td>
-  <td>&ge;5 นาที (แนะนำ &ge;24 ชั่วโมง)</td>
-  <td>Reject ทันทีถ้า slot ชน</td>
+  <td>Brand campaign, Event tie-in</td>
+  <td>&ge;5 นาที (แนะนำ &ge;1 ชั่วโมง)</td>
+  <td>Reject ทันที &mdash; ต้องเลือกเวลาใหม่</td>
   <td>100% ของ slot ที่ซื้อ</td>
-  <td>Brand awareness, Event tie-in</td>
 </tr>
 <tr>
   <td><strong>Exact Time</strong></td>
-  <td><code>exclusive</code></td>
-  <td>&ge;5 นาที</td>
-  <td>Reject ถ้า slot ชน</td>
-  <td>เล่นตรงเวลา &plusmn;30s (make-good ถ้า miss)</td>
   <td>Flash Sale, Live Event</td>
+  <td>&ge;5 นาที</td>
+  <td>Reject ทันที &mdash; ต้องเลือกเวลาใหม่</td>
+  <td>เล่นตรงเวลา &plusmn;30s (make-good ถ้า miss)</td>
 </tr>
 <tr>
   <td><strong>Guaranteed</strong></td>
-  <td><code>period</code> + frequency</td>
-  <td>ก่อน start date</td>
-  <td>Cap ที่ max frequency ต่อป้าย</td>
-  <td>N plays ต่อ 15min/hr/day (make-good ถ้า miss)</td>
   <td>Brand recall, Consistent presence</td>
+  <td>ก่อนวันเริ่ม campaign</td>
+  <td>ไม่มี conflict &mdash; แต่ถ้า Takeover เข้าขัด จะได้ make-good</td>
+  <td>N plays ต่อ 15 นาที / ชั่วโมง / วัน</td>
 </tr>
 <tr>
   <td><strong>Run of Schedule</strong></td>
-  <td><code>period</code> + budget</td>
-  <td>ก่อน start date</td>
-  <td>ไม่มี (shared pool)</td>
-  <td>Fair share ของ available slots (ไม่ exact)</td>
-  <td>Awareness, Budget-sensitive</td>
+  <td>Awareness, งบประมาณยืดหยุ่น</td>
+  <td>ก่อนวันเริ่ม campaign</td>
+  <td>ไม่มี conflict &mdash; แชร์ pool กับโฆษณาอื่น</td>
+  <td>Fair share ของ available slots</td>
 </tr>
 </table>""")
+
     sections.append(warning_panel(
-        "<p><strong>&#9888; สิ่งที่ Advertiser ต้องรู้ก่อนลงโฆษณา:</strong></p>"
+        "<p><strong>สิ่งสำคัญที่ต้องรู้ก่อนลงโฆษณา</strong></p>"
         "<ul>"
-        "<li><strong>Takeover / Exact Time:</strong> ต้องให้ owner อนุมัติก่อนถึงเวลา &mdash; "
-        "ถ้า creative ยังไม่ approved ถึงเวลา Takeover จะ miss</li>"
-        "<li><strong>Lead time สำหรับ exclusive:</strong> ระบบบังคับ &ge;5 นาที "
-        "แต่ในทางปฏิบัติควรส่งล่วงหน้า <strong>&ge;1 ชั่วโมง</strong> เพื่อให้ owner มีเวลา review</li>"
-        "<li><strong>Creative spec:</strong> ต้องตรงกับ spec ของป้าย &mdash; "
-        "ถ้า resolution ผิด owner จะ reject</li>"
-        "<li><strong>PoP reporting:</strong> Play จะนับเมื่อ ad เล่นครบ <code>duration_ms</code> เท่านั้น "
-        "&mdash; ถ้า interrupt ก่อนจบ ไม่นับ (make-good สร้างให้อัตโนมัติ)</li>"
-        "<li><strong>Player offline:</strong> Plays ระหว่าง offline จะ sync PoP เมื่อกลับ online "
-        "&mdash; ถ้า offline &gt;4 ชั่วโมง อาจเล่น house filler แทน campaign ad</li>"
+        "<li><strong>Takeover / Exact Time:</strong> "
+        "เจ้าของป้ายต้องอนุมัติ creative ก่อนถึงเวลาเล่น &mdash; "
+        "ถ้า creative ยังไม่ผ่าน review ถึงเวลา Takeover จะหายไปเลยโดยไม่ได้เล่น</li>"
+        "<li><strong>การอนุมัติใช้เวลา:</strong> "
+        "แม้ระบบบังคับ lead time แค่ 5 นาที แต่ในทางปฏิบัติควรส่งล่วงหน้า "
+        "<strong>อย่างน้อย 1 ชั่วโมง</strong> เพื่อให้เจ้าของป้ายมีเวลาตรวจสอบ</li>"
+        "<li><strong>Creative spec:</strong> "
+        "ขนาดและ format ต้องตรงกับที่ป้ายรองรับ &mdash; ถ้าไม่ตรง เจ้าของป้ายจะปฏิเสธ</li>"
+        "<li><strong>การนับ PoP:</strong> "
+        "โฆษณาต้องเล่นจบครบทั้งชิ้นจึงจะนับเป็น 1 play &mdash; "
+        "ถ้าถูก interrupt ก่อนจบ ไม่นับ และระบบจะสร้าง make-good ให้อัตโนมัติ</li>"
+        "<li><strong>ป้ายออฟไลน์:</strong> "
+        "ถ้าป้ายออฟไลน์นาน &gt;4 ชั่วโมง อาจเล่น house filler แทน campaign &mdash; "
+        "PoP จะ sync ขึ้นระบบเมื่อป้ายกลับมา online</li>"
         "</ul>"
     ))
 
