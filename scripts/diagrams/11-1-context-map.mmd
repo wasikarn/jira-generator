@@ -1,5 +1,5 @@
 flowchart TD
-    subgraph SC["Scheduling Context<br/>(Backend)"]
+    subgraph SC["Scheduling Context — Backend"]
         direction TB
         SC_PS["PlaySchedule<br/>Aggregate"]
         SC_ADE["AdDecisioningService<br/>Aggregate"]
@@ -8,7 +8,7 @@ flowchart TD
         SC_ADE e6@--> SC_SS
     end
 
-    subgraph IC["Interrupt Context<br/>(Backend + Player)"]
+    subgraph IC["Interrupt Context — Backend + Player"]
         direction TB
         IC_TK["TakeoverSchedule<br/>Aggregate"]
         IC_ET["ExactTimeSpot<br/>Aggregate"]
@@ -19,7 +19,7 @@ flowchart TD
         IC_CTRL e9@--> IC_MG
     end
 
-    subgraph PC["Playback Context<br/>(Player)"]
+    subgraph PC["Playback Context — Player"]
         direction TB
         PC_INBOX["InboxHandler<br/>Aggregate"]
         PC_CACHE["3-Tier Cache<br/>Aggregate"]
@@ -30,7 +30,7 @@ flowchart TD
         PC_SM e12@--> PC_RENDER
     end
 
-    subgraph RC["Reporting Context<br/>(Player to Backend)"]
+    subgraph RC["Reporting Context — Player to Backend"]
         direction TB
         RC_OUTBOX["PoP Outbox<br/>Aggregate"]
         RC_HISTORY["PlayHistory<br/>Aggregate"]
