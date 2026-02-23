@@ -3143,9 +3143,9 @@ def build_page_14(page_id: str) -> str:
     section ก่อน Takeover
     โฆษณาปกติ ROS         :done, pre, 11:00, 60m
     section Takeover Block 12-00 to 13-00
-    TK START               :milestone, tks, 12:00, 0d
+    TK START               :vert, tks, 12:00, 1m
     Brand X creative loop  :crit, tk, 12:00, 60m
-    TK END                 :milestone, tke, 13:00, 0d
+    TK END                 :vert, tke, 13:00, 1m
     section หลัง Takeover
     โฆษณาปกติ ROS         :done, post, 13:00, 60m
     section PoP
@@ -3222,12 +3222,13 @@ def build_page_14(page_id: str) -> str:
     title UC-ET-1 Exact Time Flash Sale at 12-00
     dateFormat HH:mm:ss
     axisFormat %H:%M:%S
+    tickInterval 30second
     section โฆษณา ROS ก่อนหน้า
     P2 Ad A 15s              :done, a1, 11:59:30, 15s
     section Exact Time Window
-    Window เปิด 11-59-30     :milestone, ws, 11:59:30, 0d
+    Window เปิด 11-59-30     :vert, ws, 11:59:30, 1s
     เป้าหมาย 12-00-00        :milestone, et, 12:00:00, 0d
-    Window ปิด 12-00-30      :milestone, we, 12:00:30, 0d
+    Window ปิด 12-00-30      :vert, we, 12:00:30, 1s
     section Exact Time Play
     Flash Sale 30s           :crit, etad, 12:00:00, 30s
     ET จบ 12-00-30           :milestone, ee, 12:00:30, 0d
@@ -3247,12 +3248,13 @@ def build_page_14(page_id: str) -> str:
     title UC-ET-2 ET Window Missed - Make-good
     dateFormat HH:mm:ss
     axisFormat %H:%M:%S
+    tickInterval 30second
     section P2 Ad ที่กำลังเล่นอยู่
     P2 Ad 90s เริ่ม 11-59-10  :done, a1, 11:59:10, 90s
     section ET Window
-    Window เปิด 11-59-30      :milestone, ws, 11:59:30, 0d
+    Window เปิด 11-59-30      :vert, ws, 11:59:30, 1s
     เป้าหมาย 12-00-00         :milestone, et, 12:00:00, 0d
-    Window ปิด 12-00-30       :milestone, we, 12:00:30, 0d
+    Window ปิด 12-00-30       :vert, we, 12:00:30, 1s
     section ผลลัพธ์
     Ad จบหลัง window          :milestone, ae, 12:00:40, 0d
     ET make-good 30s          :active, mg, 12:00:40, 30s""", page_id))
