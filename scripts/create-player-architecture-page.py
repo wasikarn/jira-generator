@@ -699,7 +699,8 @@ def build_page_4(page_id: str) -> str:
         '<tr><td><strong>P1-TK</strong></td><td>Daypart Takeover</td><td>' + status_macro("YES — boundaries", "Red") + '</td><td>เหมา time block วน ad เดียว (TK_START → loop → TK_END)</td><td>CPT (flat/time block)</td></tr>'
         '<tr><td><strong>P1-ET</strong></td><td>Exact-Time Spot</td><td>' + status_macro("YES — P2-P4", "Red") + '</td><td>เล่นตรงเวลา ±5s tolerance</td><td>Flat per spot</td></tr>'
         '<tr><td><strong>P1-G</strong></td><td>Guaranteed Spot</td><td>' + status_macro("NO — pre-positioned", "Green") + '</td><td>จอง time slot เล่นตรงตำแหน่ง <code>play_at</code> ใน sequence</td><td><code>exclusiveMultiplier</code></td></tr>'
-        '<tr><td><strong>P2</strong></td><td>Direct-Sold ROS</td><td>' + status_macro("NO", "Green") + '</td><td>Campaign creatives ตาม date-range (run-of-schedule)</td><td>Standard rate</td></tr>'
+        '<tr><td><strong>P1-DG</strong></td><td>Dayparted Guaranteed</td><td>' + status_macro("NO — pre-positioned", "Green") + '</td><td>Guaranteed N plays กระจายใน <code>DaypartWindow</code> ที่กำหนด (center-offset distribution)</td><td><code>exclusiveMultiplier</code></td></tr>'
+        '<tr><td><strong>P2</strong></td><td>Direct-Sold ROS</td><td>' + status_macro("NO", "Green") + '</td><td>Campaign creatives ตาม date-range (run-of-schedule) รองรับ <code>daypartWindows</code> (เล่นเฉพาะใน windows)</td><td>Standard rate</td></tr>'
         '<tr><td><strong>P3</strong></td><td>Spot Buy / Programmatic</td><td>' + status_macro("NO", "Green") + '</td><td>Campaign ตาม impression target (อนาคต: RTB ผ่าน SSP)</td><td>Standard / CPM</td></tr>'
         '<tr><td><strong>P4</strong></td><td>House / Filler</td><td>' + status_macro("NO", "Green") + '</td><td>Content default ของเจ้าของจอ (house loop)</td><td>N/A</td></tr>'
         '</table>'
@@ -740,6 +741,23 @@ def build_page_4(page_id: str) -> str:
         "  for (const g of guaranteedSchedules.sortBy('startDateTime')) {\n"
         "    if (!g.media?.file_url) { alertAdmin(g); continue }\n"
         "    timeline.reserve(g.play_at, g.duration, { priority: 'P1-G', ...g })\n"
+        "  }\n\n"
+        "Step 1.2 (NEW): Daypart-Aware Distribution (P1-DG + P2 with daypartWindows)\n"
+        "  function distributeEvenlyInWindow(plays, window, creativeLength):\n"
+        "    windowDuration = toSeconds(window.endTime) - toSeconds(window.startTime)\n"
+        "    interval = windowDuration / plays           // gap between plays\n"
+        "    offset   = interval / 2                     // center-offset (not front-loaded)\n"
+        "    return Array.from({ length: plays }, (_, i) =>\n"
+        "      window.startTime + offset + (interval * i)\n"
+        "    )\n"
+        "  // Example: window 10:00-10:30 (1800s), 4 plays, creative 30s\n"
+        "  //   interval=450s, offset=225s → plays at 10:03:45, 10:11:15, 10:18:45, 10:26:15\n"
+        "  for (const dg of daypartGuaranteedSchedules) {\n"
+        "    activeWindows = dg.daypartWindows.filter(w => w.isActiveOn(loopDate))\n"
+        "    playTimes = activeWindows.flatMap(w =>\n"
+        "      distributeEvenlyInWindow(dg.playsPerWindow(w), w, dg.creative_duration)\n"
+        "    )\n"
+        "    playTimes.forEach(t => timeline.reserve(t, dg.creative_duration, { priority: 'P1-DG' }))\n"
         "  }\n\n"
         "Step 1.5 (NEW): Reserve Takeover Blocks (P1-TK)\n"
         "  for (const tk of takeoverSchedules.sortBy('start_time')) {\n"
@@ -858,6 +876,17 @@ def build_page_4(page_id: str) -> str:
         "  interrupt_reason: 'P0_emergency' | 'TK_start' | 'TK_end' | 'P1_exact_time'\n"
         "  compensated: boolean\n"
         "  compensated_at: DateTime | null\n"
+        "}\n\n"
+        "// NEW: DaypartWindow model (app/Models/DaypartWindow.ts)\n"
+        "interface DaypartWindow {\n"
+        "  id: number\n"
+        "  ad_group_code: string\n"
+        "  start_time: string           // HH:mm e.g. '08:00'\n"
+        "  end_time:   string           // HH:mm e.g. '12:00' (must > start_time)\n"
+        "  days_of_week: number[]       // 0=Sun..6=Sat, empty=ทุกวัน\n"
+        "  makegood_preference: 'same_window_only' | 'same_day_flexible' | 'credit_preferred'\n"
+        "  // Validation: end_time > start_time, within billboard operating_hours\n"
+        "  // Production range: 06:00–22:00 (no overnight)\n"
         "}",
         "typescript", "New Models",
         collapse=True,
@@ -1454,6 +1483,30 @@ def build_page_6(page_id: str) -> str:
         '</table>'
     )
 
+    sections.append("<h3>Make-Good Policy: 3-Level (สำหรับ Dayparted Campaigns)</h3>")
+    sections.append(note_panel(
+        "<p>เมื่อ Takeover (P1-TK) preempt Dayparted Guaranteed window ระบบ make-good ทำงาน 3 levels "
+        "(อิงจาก broadcast TV precedent — same daypart &rarr; equivalent &rarr; credit):</p>"
+    ))
+    sections.append(
+        '<table>'
+        '<tr><th>Level</th><th>เงื่อนไข</th><th>ระบบทำ</th></tr>'
+        '<tr><td><strong>Level 1</strong></td><td>Window ยังมีเวลาเหลือหลัง TK จบ</td><td>Repack missed plays ใน window เดิม (center-offset เหมือนเดิม)</td></tr>'
+        '<tr><td><strong>Level 2</strong></td><td>Window หมดแล้ว, วันเดิม</td><td>ย้าย plays ไป equivalent slot ใน operating hours วันเดิม (ต้องอยู่นอก TK blocks)</td></tr>'
+        '<tr><td><strong>Level 3</strong></td><td>Level 2 ทำไม่ได้ (TK ยึดทั้งวัน)</td><td>ออก credit ต่อ campaign — log <code>compensated: false, makegood_tier: 3</code></td></tr>'
+        '</table>'
+    )
+    sections.append(info_panel(
+        "<p><strong>Advertiser เลือก preemption class ตอน booking:</strong></p>"
+        "<ul>"
+        "<li><code>same_window_only</code> — make-good ใน window เดิมเท่านั้น (ถ้าทำไม่ได้ &rarr; Level 3 credit โดยตรง)</li>"
+        "<li><code>same_day_flexible</code> (default) — Level 1 &rarr; 2 &rarr; 3 ตามลำดับ</li>"
+        "<li><code>credit_preferred</code> — ข้าม Level 1/2 ไป Level 3 เลย</li>"
+        "</ul>"
+        "<p><strong>Production operating hours (confirmed):</strong> 06:00–22:00 ทุกป้าย (ไม่มี overnight) "
+        "&mdash; Level 2 always feasible ถ้ายังอยู่ในวันเดียวกัน</p>"
+    ))
+
     return "\n".join(sections)
 
 
@@ -1572,6 +1625,23 @@ def build_page_7(page_id: str) -> str:
         "  creative_url: string\n"
         "  duration_seconds: number\n"
         "}\n\n"
+        "// ─── New Events: Daypart Targeting ───\n\n"
+        "interface DaypartWindowConflictEvent extends PusherEventBase {\n"
+        "  type: 'daypart-window-conflict'\n"
+        "  version: number\n"
+        "  ad_group_code: string\n"
+        "  window_id: number\n"
+        "  conflict_reason: 'takeover_overlap' | 'billboard_offline'\n"
+        "  missed_plays: number         // plays ที่ไม่ได้เล่น\n"
+        "  makegood_tier: 1 | 2 | 3    // make-good level ที่ระบบจะใช้ชดเชย\n"
+        "}\n\n"
+        "interface DaypartMakeGoodTriggeredEvent extends PusherEventBase {\n"
+        "  type: 'daypart-makegood-triggered'\n"
+        "  version: number\n"
+        "  ad_group_code: string\n"
+        "  makegood_tier: 1 | 2 | 3\n"
+        "  rescheduled_at: string | null  // null = Level 3 credit (no reschedule)\n"
+        "}\n\n"
         "// ─── Union Type ───\n"
         "type PusherEvent =\n"
         "  | UpdatePlayScheduleEvent\n"
@@ -1581,9 +1651,11 @@ def build_page_7(page_id: str) -> str:
         "  | UnPairScreenEvent\n"
         "  | ScheduleUpdatedEvent\n"
         "  | DeviceConfigUpdatedEvent\n"
-        "  | TakeoverStartEvent      // v24\n"
-        "  | TakeoverEndEvent         // v24\n"
-        "  | P0EmergencyEvent         // v24",
+        "  | TakeoverStartEvent               // v24\n"
+        "  | TakeoverEndEvent                 // v24\n"
+        "  | P0EmergencyEvent                 // v24\n"
+        "  | DaypartWindowConflictEvent       // v2 Daypart\n"
+        "  | DaypartMakeGoodTriggeredEvent    // v2 Daypart",
         "typescript", "Typed Pusher Event Contracts",
         collapse=True,
     ))
@@ -1666,6 +1738,16 @@ def build_page_7(page_id: str) -> str:
         "  device_code: string\n"
         "  takeover_id: number\n"
         "  state: 'active' | 'completed'\n"
+        "  timestamp: DateTime\n"
+        "}\n\n"
+        "/** Emitted: Daypart window conflict detected (TK preempts guaranteed window) */\n"
+        "interface DaypartWindowConflict {\n"
+        "  type: 'DaypartWindowConflict'\n"
+        "  device_code: string\n"
+        "  ad_group_code: string\n"
+        "  window_id: number\n"
+        "  missed_plays: number\n"
+        "  makegood_tier: 1 | 2 | 3\n"
         "  timestamp: DateTime\n"
         "}",
         "typescript", "Domain Events",
@@ -1952,6 +2034,14 @@ def build_page_8(page_id: str) -> str:
         '<td>FIFO ตาม <code>created_at</code> — ตัวแรกได้เล่น, ตัวถัดไปขยับ <code>+duration</code> (เรียงต่อกัน ไม่พร้อมกัน)</td></tr>'
         '<tr><td>TK8</td><td><strong>Make-good creative หมดอายุ</strong></td>'
         '<td>ข้ามการชดเชย — log สำหรับ reconcile manual. ตรวจ <code>valid_until</code> ป้องกันเล่น ad ที่หมดอายุ</td></tr>'
+        '<tr><td>TK9</td><td><strong>TK ทับ Dayparted Guaranteed window ทั้งหมด</strong></td>'
+        '<td>Daypart plays ในช่วงนั้นถูก block → 3-level make-good: Level 1 (repack ใน window ที่เหลือ) → Level 2 (ย้ายไป equivalent slot วันเดิม) → Level 3 (credit)</td></tr>'
+        '<tr><td>TK10</td><td><strong>TK ทับ Daypart window บางส่วน</strong></td>'
+        '<td>เล่น plays ก่อน TK ตามปกติ → plays ที่อยู่ใน TK block → Level 1 repack ใน window ที่เหลือหลัง TK</td></tr>'
+        '<tr><td>TK11</td><td><strong>Billboard offline ระหว่าง Daypart window</strong></td>'
+        '<td>Repack missed plays ใน window ที่เหลือ (center-offset ปรับใหม่) → ถ้า window หมดก่อน → Level 2 → Level 3 ตาม makegood_preference</td></tr>'
+        '<tr><td>TK12</td><td><strong>Daypart window นอก operating hours</strong></td>'
+        '<td>Reject at booking — validate <code>startTime &ge; billboard.opening_time</code> AND <code>endTime &le; billboard.closing_time</code>. Production range: 06:00–22:00</td></tr>'
         '</table>'
     ))
 
@@ -2173,6 +2263,28 @@ def build_page_8(page_id: str) -> str:
         _term_content
     ))
 
+    sections.append("<hr/>")
+    sections.append("<h2>Edge Cases ของ Daypart Targeting (DP1-DP7)</h2>")
+    sections.append(expand_section("DP1-DP7: Daypart Window Edge Cases",
+        '<table>'
+        '<tr><th>#</th><th>Edge Case</th><th>Solution</th></tr>'
+        '<tr><td>DP1</td><td><strong>Daypart windows ทับซ้อนกัน</strong></td>'
+        '<td>Reject at booking — "windows must not overlap". UI แนะนำให้ merge windows ที่อยู่ติดกัน</td></tr>'
+        '<tr><td>DP2</td><td><strong>Window ข้ามเที่ยงคืน</strong></td>'
+        '<td>Phase 1: ไม่ support — validate <code>endTime &gt; startTime</code>. Production data ยืนยัน: ไม่มีป้ายที่เปิดข้ามคืน (max close: 22:00)</td></tr>'
+        '<tr><td>DP3</td><td><strong>plays × creative_length &gt; window_duration</strong></td>'
+        '<td>Warning (ไม่ reject) — plays ถูก pack แน่นใน window. โฆษณา P2/P3 อื่นอาจถูก squeeze. แจ้ง advertiser ที่ booking confirmation</td></tr>'
+        '<tr><td>DP4</td><td><strong>playsPerHour คำนวณ plays ได้ 0 ใน window</strong></td>'
+        '<td>ตัวอย่าง: 1 play/hr, window 20 นาที → round(1 × 20/60) = 0. Validation: plays_in_window ต้อง &ge; 1 ไม่อนุญาต booking ที่ไม่มี play เลย</td></tr>'
+        '<tr><td>DP5</td><td><strong>ต้องการเปลี่ยน window order/time หลัง approve</strong></td>'
+        '<td>ไม่อนุญาต — ต้อง cancel + rebook. UI แสดง "window locked after approval" warning ก่อน approve</td></tr>'
+        '<tr><td>DP6</td><td><strong>Multi-billboard campaign, window ต่างกันต่อป้าย</strong></td>'
+        '<td>Phase 1: แยก AdGroup ต่อ billboard (industry standard — Broadsign/Xibo/Doohly ทุกเจ้าใช้ pattern นี้). Parent Campaign container สำหรับ aggregate reporting</td></tr>'
+        '<tr><td>DP7</td><td><strong>playsPerHour เปลี่ยนหลังจาก windows ถูก configure</strong></td>'
+        '<td>plays_in_window คำนวณใหม่ทุกครั้ง: <code>round(playsPerHour × windowHours)</code> → แสดง recalculated value ที่ confirm screen ก่อน approve</td></tr>'
+        '</table>'
+    ))
+
     return "\n".join(sections)
 
 
@@ -2334,7 +2446,7 @@ def build_page_10(page_id: str) -> str:
     sections.append("<hr/>")
     sections.append("<h3>Process C: Interrupt จาก Takeover (P1-TK)</h3>")
     sections.append(note_panel(
-        "<p><strong>Trigger:</strong> Admin approve daypart takeover (เช่น brand ซื้อ 08:00-09:00)<br/>"
+        "<p><strong>Trigger:</strong> Admin approve Takeover block (P1-TK: brand จอง exclusive slot เช่น 08:00-09:00)<br/>"
         "<strong>ผลลัพธ์:</strong> Ad ปัจจุบันโดน interrupt, takeover creative เล่นตลอด block, "
         "ad ที่โดน interrupt ได้ make-good compensation<br/>"
         "<strong>ข้ามขอบเขต:</strong> Backend (approve + schedule) &rarr; Pusher &rarr; Player (interrupt + เล่น)</p>"
@@ -2417,7 +2529,7 @@ def build_page_11(page_id: str) -> str:
         '<td>ScheduleCalculated</td></tr>'
         '<tr><td><strong>AdDecisioningService</strong></td>'
         '<td>จัดลำดับตาม priority, สลับ house content, กำหนด sequence_no, version++</td>'
-        '<td>P1-G pre-positioned, P2/P3 ตาม SOV ratio, P4 เติมช่องว่าง</td>'
+        '<td>P1-G pre-positioned, P1-DG center-offset กระจายใน window, P2/P3 ตาม SOV ratio, P4 เติมช่องว่าง</td>'
         '<td>ScreenScheduleBuilt</td></tr>'
         '<tr><td><strong>ScreenSchedule</strong></td>'
         '<td>Ordered playlist พร้อม versioning (เพิ่มขึ้นเรื่อยๆ ต่อ device)</td>'
@@ -2432,7 +2544,7 @@ def build_page_11(page_id: str) -> str:
         '<table>'
         '<tr><th>Aggregate</th><th>Responsibility</th><th>Key Invariants</th><th>Events Owned</th></tr>'
         '<tr><td><strong>TakeoverSchedule</strong></td>'
-        '<td>จอง daypart takeover (P1-TK: brand ซื้อ time block)</td>'
+        '<td>จอง exclusive time block (P1-TK: brand ซื้อ time slot ทั้งหมดบนจอ)</td>'
         '<td>TK ซ้อนกันบนจอเดียวไม่ได้, lifecycle: booked &rarr; active &rarr; completed</td>'
         '<td>TakeoverApproved, TakeoverStateChanged</td></tr>'
         '<tr><td><strong>ExactTimeSpot</strong></td>'
@@ -2849,6 +2961,64 @@ def build_page_12(page_id: str) -> str:
         "Player วน creative ตัวเดียวไม่หยุด, ห้ามแทรกยกเว้น P0, "
         "และ ad ที่โดน interrupt ได้ make-good อัตโนมัติ.</p>"
     ))
+
+    # ─── Section 5: Daypart Targeting ─────────────────────────────────────────
+    sections.append("<hr/>")
+    sections.append("<h2>5. Daypart Targeting — กระจาย Ad เฉพาะช่วงเวลา Peak</h2>")
+    sections.append(info_panel(
+        "<p><strong>Daypart Targeting</strong> = กำหนด <code>DaypartWindow[]</code> บน AdGroup "
+        "เพื่อจำกัดการเล่นเฉพาะช่วงเวลาที่เลือก (เช่น morning peak, evening rush). "
+        "รองรับทั้ง P1-DG (Dayparted Guaranteed) และ P2 ROS with daypart filter.</p>"
+        "<ul>"
+        "<li><strong>P1-DG:</strong> รับประกัน N plays กระจาย <em>เฉพาะใน window</em> (center-offset distribution)</li>"
+        "<li><strong>P2 + daypart:</strong> เล่น N plays/hr แต่เฉพาะช่วงที่กำหนด — ช่วงอื่น = 0</li>"
+        "<li><strong>ไม่ใช่ Takeover:</strong> โฆษณาอื่นยังแทรกได้ใน window (ต่างจาก P1-TK)</li>"
+        "</ul>"
+    ))
+
+    sections.append("<h3>Even Distribution Algorithm (Center-Offset)</h3>")
+    sections.append(
+        '<table>'
+        '<tr><th>Parameter</th><th>Formula</th><th>ตัวอย่าง (4 plays, 10:00-10:30)</th></tr>'
+        '<tr><td><code>windowDuration</code></td><td><code>toSeconds(end) - toSeconds(start)</code></td><td>1800s (30 นาที)</td></tr>'
+        '<tr><td><code>interval</code></td><td><code>windowDuration / plays</code></td><td>450s (7.5 นาที)</td></tr>'
+        '<tr><td><code>offset</code></td><td><code>interval / 2</code></td><td>225s (3.75 นาที)</td></tr>'
+        '<tr><td>play times</td><td><code>start + offset + interval×i</code></td><td>10:03:45 · 10:11:15 · 10:18:45 · 10:26:15</td></tr>'
+        '</table>'
+    )
+    sections.append(note_panel(
+        "<p><strong>ทำไม center-offset?</strong> ถ้าเริ่มตรง 10:00:00 เลย &rarr; รู้สึก front-loaded. "
+        "การ offset ด้วย interval/2 ทำให้การกระจายดูเป็นธรรมชาติและสม่ำเสมอกว่า</p>"
+    ))
+
+    sections.append("<h3>plays_in_window Calculation</h3>")
+    sections.append(
+        '<table>'
+        '<tr><th>Input</th><th>Formula</th><th>ตัวอย่าง</th></tr>'
+        '<tr><td><code>playsPerHour=8</code>, window=10:00-10:30</td><td><code>round(8 × 0.5hr)</code></td><td>4 plays</td></tr>'
+        '<tr><td><code>playsPerHour=20</code>, window=08:00-12:00</td><td><code>round(20 × 4hr)</code></td><td>80 plays</td></tr>'
+        '<tr><td><code>playsPerHour=20</code>, window=17:00-21:00</td><td><code>round(20 × 4hr)</code></td><td>80 plays</td></tr>'
+        '</table>'
+    )
+    sections.append(warning_panel(
+        "<p><strong>สิ่งที่ระบบแสดงที่ booking confirmation:</strong> "
+        '"คุณจะได้ ~4 plays ใน window 10:00-10:30" &mdash; '
+        "ลูกค้าไม่ต้องระบุ plays_per_window เองโดยตรง (rate-based model ตาม Broadsign/Vistar standard)</p>"
+    ))
+
+    sections.append("<h3>Scenario: P2 + Daypart (Peak Hours Only)</h3>")
+    sections.append(
+        '<table>'
+        '<tr><th>Field</th><th>Value</th></tr>'
+        '<tr><td>Ad type</td><td>P2 Direct-Sold ROS + daypartWindows</td></tr>'
+        '<tr><td>playsPerHour</td><td>20 plays/hr</td></tr>'
+        '<tr><td>daypartWindows</td><td>[08:00-12:00, 17:00-21:00]</td></tr>'
+        '<tr><td>plays in Window 1</td><td>20 × 4 = 80 plays (distributed 08:00-12:00)</td></tr>'
+        '<tr><td>plays in Window 2</td><td>20 × 4 = 80 plays (distributed 17:00-21:00)</td></tr>'
+        '<tr><td>plays นอก window</td><td>0 (12:00-17:00 และ 21:00-22:00 ไม่เล่น)</td></tr>'
+        '<tr><td>plays/day รวม</td><td>160 plays (8 ชั่วโมง peak)</td></tr>'
+        '</table>'
+    )
 
     return "\n".join(sections)
 
@@ -3454,9 +3624,87 @@ def build_page_14(page_id: str) -> str:
     Creative C play 3      :crit, c3, 08:54, 1m""", page_id))
 
     # ──────────────────────────────────────────────────────────────
-    # SECTION 5: Summary
+    # SECTION 5: Daypart Targeting
     # ──────────────────────────────────────────────────────────────
-    sections.append('<h2>5. สรุปเปรียบเทียบ 4 รูปแบบ</h2>')
+    sections.append('<h2>5. Daypart Targeting &mdash; กำหนด Time Window สำหรับโฆษณา</h2>')
+    sections.append(info_panel(
+        "<p><strong>Daypart Targeting (P1-DG)</strong> คือรูปแบบที่ลูกค้าระบุว่าโฆษณาต้องเล่น "
+        "<em>เฉพาะในช่วงเวลาที่กำหนด</em> เช่น Morning Peak 08:00&ndash;10:00 หรือ Evening Rush 17:00&ndash;19:00 "
+        "พร้อมรับประกัน minimum frequency ภายใน window นั้น</p>"
+        "<ul>"
+        "<li><strong>Algorithm:</strong> Center-offset distribution &mdash; "
+        "interval = windowDuration / plays, offset = interval / 2 "
+        "&rarr; กระจาย plays สม่ำเสมอตลอด window ไม่กระจุกที่ต้น</li>"
+        "<li><strong>plays_in_window:</strong> ลูกค้าระบุ frequency ต่อชั่วโมง "
+        "&rarr; ระบบคำนวณ round(playsPerHour &times; windowHours)</li>"
+        "<li><strong>Make-good policy:</strong> 3 ระดับ &mdash; "
+        "Level 1 (repack ใน window เดิม) &rarr; Level 2 (ย้าย slot วันเดียวกัน) &rarr; Level 3 (credit คืน)</li>"
+        "</ul>"
+    ))
+
+    # ── UC-DP-1 ────────────────────────────────────────────────────
+    sections.append('<h3>UC-DP-1: Happy Path &mdash; P1-DG 6 plays ใน Morning Peak 08:00&ndash;10:00</h3>')
+    sections.append("""<table>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>ลูกค้าตั้งค่า P1-DG: 3 plays/hour, window 08:00&ndash;10:00 (Morning Peak), creative ยาว 30 วินาที</td></tr>
+<tr><td><strong>ระบบคำนวณ</strong></td><td>3 plays/hr &times; 2 hr = 6 plays &rarr; interval = 120 min / 6 = 20 min, offset = 10 min</td></tr>
+<tr><td><strong>Play times</strong></td><td>08:10, 08:30, 08:50, 09:10, 09:30, 09:50 (ทุก 20 นาที เริ่มจาก offset 10 นาที)</td></tr>
+<tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>PoP: 6 plays ครบใน window &mdash; กระจายสม่ำเสมอ ไม่กระจุกที่ต้น window</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""gantt
+    title UC-DP-1 P1-DG Morning Peak 08:00 to 10:00 (6 plays)
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section Daypart Window
+    Window Open 08-00      :vert, wo, 08:00, 1m
+    Window Close 10-00     :vert, wc, 10:00, 1m
+    section P1-DG plays center-offset ทุก 20 นาที
+    DG play 1 at 08-10     :crit, d1, 08:10, 1m
+    DG play 2 at 08-30     :crit, d2, 08:30, 1m
+    DG play 3 at 08-50     :crit, d3, 08:50, 1m
+    DG play 4 at 09-10     :crit, d4, 09:10, 1m
+    DG play 5 at 09-30     :crit, d5, 09:30, 1m
+    DG play 6 at 09-50     :crit, d6, 09:50, 1m
+    section P2 fills ระหว่าง DG plays
+    P2 fills               :done, f1, 08:00, 10m
+    P2 fills               :done, f2, 08:11, 19m
+    P2 fills               :done, f3, 08:31, 19m
+    P2 fills               :done, f4, 08:51, 19m
+    P2 fills               :done, f5, 09:11, 19m
+    P2 fills               :done, f6, 09:31, 19m
+    P2 fills               :done, f7, 09:51, 9m""", page_id))
+
+    # ── UC-DP-2 ────────────────────────────────────────────────────
+    sections.append('<h3>UC-DP-2: Edge Case &mdash; Takeover เข้าขัด Window ทำให้ต้อง Make-good</h3>')
+    sections.append("""<table>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>Takeover ของลูกค้าอื่นจอง 09:00&ndash;09:30 ทับซ้อนกับ P1-DG window 08:00&ndash;10:00</td></tr>
+<tr><td><strong>สิ่งที่เกิดขึ้น</strong></td><td>P1-TK มี priority สูงกว่า &rarr; DG plays ที่ 09:10 และ 09:30 ถูก block &rarr; เหลือเพียง 4 plays ใน window</td></tr>
+<tr><td><strong>Make-good Level 1</strong></td><td>Window เหลือ 09:30&ndash;10:00 (30 นาที) &rarr; repack 1 play ที่ 09:40 ด้วย center-offset &rarr; รวมเป็น 5 plays</td></tr>
+<tr><td><strong>Make-good Level 2</strong></td><td>ยังขาด 1 play &rarr; ย้ายไป slot เดียวกันในวันเดียวกัน ช่วง 06:00&ndash;22:00 ที่ไม่ใช่ TK block</td></tr>
+<tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>ได้ครบ 6 plays ภายในวันเดียวกัน &mdash; แต่ 1 play อาจอยู่นอก window ต้นทาง</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""gantt
+    title UC-DP-2 Takeover Blocks P1-DG Window - Make-good Level 1
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section Daypart Window 08-00 to 10-00
+    Window Open 08-00      :vert, wo, 08:00, 1m
+    Window Close 10-00     :vert, wc, 10:00, 1m
+    section P1-TK เข้าขัด
+    Takeover Block         :crit, tk, 09:00, 30m
+    section P1-DG plays ที่เล่นได้
+    DG play 1 at 08-10     :crit, d1, 08:10, 1m
+    DG play 2 at 08-30     :crit, d2, 08:30, 1m
+    DG play 3 at 08-50     :crit, d3, 08:50, 1m
+    DG play 4 at 09-50     :crit, d4, 09:50, 1m
+    section Make-good Level 1 repack ใน window
+    Level 1 repack 09-40   :active, mg1, 09:40, 1m""", page_id))
+
+    # ──────────────────────────────────────────────────────────────
+    # SECTION 6: Summary
+    # ──────────────────────────────────────────────────────────────
+    sections.append('<h2>6. สรุปเปรียบเทียบ 5 รูปแบบ</h2>')
     sections.append("""<table>
 <tr>
   <th>รูปแบบ</th>
@@ -3485,6 +3733,13 @@ def build_page_14(page_id: str) -> str:
   <td>ก่อนวันเริ่ม campaign</td>
   <td>ไม่มี conflict &mdash; แต่ถ้า Takeover เข้าขัด จะได้ make-good</td>
   <td>N plays ต่อ 15 นาที / ชั่วโมง / วัน</td>
+</tr>
+<tr>
+  <td><strong>Daypart Targeting</strong></td>
+  <td>Peak hour brand recall, Time-sensitive product</td>
+  <td>ก่อนวันเริ่ม campaign</td>
+  <td>ไม่มี conflict &mdash; แต่ถ้า Takeover เข้าขัด จะได้ make-good 3 ระดับ</td>
+  <td>N plays ภายใน time window ที่กำหนด</td>
 </tr>
 <tr>
   <td><strong>Run of Schedule</strong></td>
