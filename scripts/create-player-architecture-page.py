@@ -495,6 +495,7 @@ def build_page_2(page_id: str) -> str:
     ))
 
     sections.append("<h3>ตัวอย่าง Daily Schedule</h3>")
+    sections.append(expand_section("Gantt Color Legend", _gantt_legend()))
     sections.append(info_panel(
         "<p>ตัวอย่าง billboard 1 จอ ตลอดวัน — แสดงสัดส่วนเวลาจริงระหว่าง priority levels ต่างๆ. "
         "<strong>P1-TK</strong> (แดง) กินเวลา 1 ชั่วโมงเต็ม, <strong>P1-ET</strong> (แดง) เป็น exact-time spot ที่เล่นตรงเวลา, "
@@ -2006,10 +2007,11 @@ def build_page_8(page_id: str) -> str:
         page_id=page_id,
     ))
     sections.append("<h4>Timeline การ Interrupt ของ Takeover (Gantt View)</h4>")
+    sections.append(expand_section("Gantt Color Legend", _gantt_legend()))
     sections.append(info_panel(
         "<p>มุมมองเวลาจริง — เห็นสัดส่วนว่า <strong>TK block 60 นาที</strong> กว้างกว่า normal schedule มาก. "
-        "<strong>Milestone</strong> = TK_START / TK_END boundary. "
-        "<strong>Make-good</strong> (ฟ้า) เล่นชดเชย Ad A ที่โดน interrupt ทันทีหลัง TK จบ</p>"
+        "<strong>TK_START/TK_END</strong> = เส้นขอบเขตสีส้ม (:vert). "
+        "<strong>Make-good</strong> (ฟ้า :active) เล่นชดเชย Ad A ที่โดน interrupt ทันทีหลัง TK จบ</p>"
     ))
     sections.append(mermaid_diagram(
         load_diagram("08-3-takeover-gantt.mmd"),
@@ -2286,6 +2288,36 @@ def build_page_8(page_id: str) -> str:
     ))
 
     return "\n".join(sections)
+
+
+# ─── Gantt Legend (shared across pages with Gantt diagrams: 1, 8, 14) ───
+
+
+def _gantt_legend() -> str:
+    """Gantt chart color/style legend table."""
+    return (
+        '<table>'
+        '<tr><th>Marker</th><th>สี</th><th>ความหมาย</th><th>ตัวอย่างในแผนภาพ</th></tr>'
+        '<tr><td><code>:crit</code></td><td>แดง</td>'
+        '<td>Priority สูง (Exclusive/Guaranteed)</td>'
+        '<td>P1-TK Takeover block, P1-ET Exact Time spot, P1-G Guaranteed play, P1-DG Daypart play</td></tr>'
+        '<tr><td><code>:active</code></td><td>ฟ้า</td>'
+        '<td>Make-good compensation</td>'
+        '<td>Make-good plays ที่ระบบเพิ่มชดเชยเมื่อ P1 ad ถูกขัดหรือ miss window</td></tr>'
+        '<tr><td><code>:done</code></td><td>เทา</td>'
+        '<td>โฆษณาปกติที่ผ่านมาแล้ว</td>'
+        '<td>Normal ROS (P2/P3/P4) ที่เล่นตาม schedule ก่อน/หลัง P1 event</td></tr>'
+        '<tr><td>(ไม่มี marker)</td><td>เขียว</td>'
+        '<td>Normal fills (default)</td>'
+        '<td>ROS ads เติมช่วงว่างระหว่าง priority slots</td></tr>'
+        '<tr><td><code>:vert</code></td><td>ส้ม</td>'
+        '<td>เส้นขอบเขต (boundary line)</td>'
+        '<td>TK_START/TK_END, ET Window open/close, DG Window open/close</td></tr>'
+        '<tr><td><code>:milestone</code></td><td>◆ เพชร</td>'
+        '<td>จุดเหตุการณ์ (0-duration)</td>'
+        '<td>ET target time, PoP batch flush, TK END marker</td></tr>'
+        '</table>'
+    )
 
 
 # ─── Event Storming Legend (shared across pages 9-11) ───
@@ -3274,14 +3306,19 @@ def build_page_14(page_id: str) -> str:
     sections.append(info_panel(
         "<p><strong>หน้านี้รวบรวม scenarios จากมุมมองของ <em>ผู้ลงโฆษณา</em></strong> "
         "&mdash; แต่ละ scenario อธิบายว่า &ldquo;ถ้าลงโฆษณาแบบนี้ในช่วงเวลานี้ จะเกิดอะไรขึ้นบ้าง&rdquo;</p>"
-        "<p><strong>4 รูปแบบที่ครอบคลุม:</strong> "
+        "<p><strong>5 รูปแบบที่ครอบคลุม:</strong> "
         "(1) Takeover &mdash; ซื้อช่วงเวลาแบบ exclusive &nbsp;"
         "(2) Exact Time &mdash; กำหนดเวลาเล่นชัดเจน &nbsp;"
         "(3) Guaranteed &mdash; รับประกันจำนวนครั้ง &nbsp;"
-        "(4) Run of Schedule &mdash; กระจายตลอดวัน</p>"
+        "(4) Run of Schedule &mdash; กระจายตลอดวัน &nbsp;"
+        "(5) Daypart Targeting &mdash; กำหนด time window สำหรับโฆษณา</p>"
         "<p>แต่ละ scenario มี <strong>Happy Path</strong> (กรณีปกติที่ควรเกิด) "
         "และ <strong>Edge Cases</strong> (กรณีพิเศษที่อาจเกิดขึ้น) พร้อม diagram</p>"
     ))
+
+    # Legend for Gantt diagrams
+    sections.append("<h3>สัญลักษณ์ที่ใช้ในแผนภาพ (Diagram Legend)</h3>")
+    sections.append(expand_section("Gantt Color Legend (6 markers)", _gantt_legend()))
 
     # ──────────────────────────────────────────────────────────────
     # SECTION 1: Takeover
