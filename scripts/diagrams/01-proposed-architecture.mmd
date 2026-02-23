@@ -1,3 +1,4 @@
+%%{init: {"flowchart": {"subGraphTitleMargin": {"top": 0, "bottom": 45}}} }%%
 flowchart TD
     subgraph BE["BACKEND (AdonisJS + BullMQ + Redis)"]
         Cron["Scheduling Engine<br/>(BullMQ) every 5m<br/>+ Event-driven"] e4@--> Calc["PlayScheduleCalculate<br/>NO CHANGE"]
