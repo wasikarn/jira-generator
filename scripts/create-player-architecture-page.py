@@ -32,12 +32,12 @@ SUB_PAGE_TITLES = {
     "5_tech_player": "5. Technical Design: Player Components",
     "6_interrupt_makegood": "6. Interrupt Controller และระบบ Make-Good",
     "7_events": "7. สถาปัตยกรรม Event-Driven",
-    "8_edge_migration": "8. Edge Cases, แผนการ Migration และ Appendix",
+    "8_edge_migration": "8. Edge Cases, Migration และ Terminology Reference",
     "9_es_big_picture": "9. Event Storming: ภาพรวม (Big Picture)",
     "10_es_process": "10. Event Storming: Process Modelling",
     "11_es_design": "11. Event Storming: Software Design",
     "12_usecase_distribution": "12. Use Case: การกระจาย Ad และรอบการคำนวณ (Ad Distribution & Scheduling)",
-    "13_usecase_industry": "13. Use Case: เปรียบเทียบกับ Industry (Industry Comparison)",
+    "13_usecase_industry": "13. Industry Context: Standards, Comparison & Design Rationale",
     "14_usecase_catalog": "14. Use Case Catalog: ทุก Scenarios ที่เป็นไปได้",
 }
 
@@ -1678,6 +1678,61 @@ def build_page_7(page_id: str) -> str:
         page_id=page_id,
     ))
 
+    # ─── Architectural Decision Record ───
+    sections.append("<h2>Architectural Decision Record</h2>")
+    sections.append(note_panel(
+        "<p><strong>คำแนะนำเรื่อง Protocol:</strong> ใช้ Pusher ต่อ (มีอยู่แล้ว) สำหรับ real-time push. เพิ่ม <strong>version-based checkpoint</strong> ตอน reconnect ผ่าน REST. "
+        "อย่าพึ่ง push สำหรับ playback &mdash; push แค่ trigger sync ให้เร็วขึ้น.</p>"
+        "<p><strong>หลักการสำคัญ (จาก RxDB):</strong> Client อาจพลาด event ตอน disconnect. "
+        "วิธีแก้: checkpoint mode ตอน reconnect (เทียบ schedule ทั้งหมดผ่าน REST) + event mode หลัง sync แล้ว (Pusher สำหรับ incremental).</p>"
+    ))
+    sections.append(expand_section("ADR-002: Why Event-Driven, NOT Event-Sourcing",
+        warning_panel(
+            "<p><strong>ADR-002:</strong> Event-Driven Architecture (NOT Event-Sourcing)</p>"
+        ) +
+        '<table>'
+        '<tr><th>Aspect</th><th>Details</th></tr>'
+        '<tr><td><strong>Context</strong></td><td>'
+        'ระบบใช้ Pusher + BullMQ + Play history retry ซึ่งเป็น event-driven pattern อยู่แล้ว '
+        'แต่ไม่มี typed contracts, domain events, หรือ idempotency &mdash; ต้อง formalize</td></tr>'
+        '<tr><td><strong>Options Considered</strong></td><td>'
+        '<strong>A) Formalize Event-Driven</strong> &mdash; typed contracts, domain events (in-memory), outbox/inbox dedup<br/>'
+        '<strong>B) Full Event-Sourcing</strong> &mdash; event store (Kafka/EventStoreDB), projections, snapshots, CQRS</td></tr>'
+        '<tr><td><strong>Decision</strong></td><td><strong>Option A: Formalize Event-Driven</strong></td></tr>'
+        '<tr><td><strong>Rationale</strong></td><td>'
+        '<ul>'
+        '<li><strong>Scale:</strong> ~100-500 billboards, ไม่ใช่ millions of events/sec</li>'
+        '<li><strong>Team:</strong> Junior devs 3 คน (fix-heavy, need review) &mdash; event store + projections ซับซ้อนเกินไป</li>'
+        '<li><strong>PlaySchedule model:</strong> CRUD + status (WAITING&rarr;PLAYING&rarr;PLAYED) ใช้งานได้ดี ไม่จำเป็นต้อง replay</li>'
+        '<li><strong>No business need:</strong> ไม่ต้อง replay events ย้อนหลัง, ไม่ต้อง audit trail ระดับ event</li>'
+        '<li><strong>Operational cost:</strong> Event store (Kafka/EventStoreDB) + schema versioning + eventual consistency debugging</li>'
+        '</ul></td></tr>'
+        '<tr><td><strong>Consequences</strong></td><td>'
+        '<ul>'
+        '<li>+ ง่ายต่อ team ในการ maintain</li>'
+        '<li>+ ไม่ต้องเพิ่ม infrastructure (ใช้ Redis + Pusher + BullMQ เดิม)</li>'
+        '<li>+ Typed contracts ป้องกัน runtime error</li>'
+        '<li>+ Domain events เพิ่ม traceability ใน code</li>'
+        '<li>- ไม่สามารถ replay events ได้ (ต้องมี backup/restore แบบ traditional)</li>'
+        '<li>- ถ้า scale ถึง 5,000+ จอ อาจต้อง revisit</li>'
+        '</ul></td></tr>'
+        '<tr><td><strong>Review Date</strong></td><td>Revisit เมื่อ scale &ge; 2,000 billboards หรือ team &ge; 8 devs</td></tr>'
+        '</table>'
+    ))
+
+    sections.append("<h3>Checklist การ Implement</h3>")
+    sections.append(success_panel(
+        "<p><strong>สิ่งที่ต้อง formalize (เรียงตาม priority):</strong></p>"
+        "<ol>"
+        "<li><strong>Typed Pusher event contracts</strong> &mdash; shared interfaces (backend + player)</li>"
+        "<li><strong>Version protocol</strong> &mdash; monotonic <code>version</code> per device on every Pusher event</li>"
+        "<li><strong>PoP Outbox pattern</strong> &mdash; Tauri Store with UUID idempotency key + flush cycle</li>"
+        "<li><strong>Inbox dedup</strong> &mdash; <code>event_id</code> tracking (last 100) + version gap detection</li>"
+        "<li><strong>PoP deduplication</strong> &mdash; Redis <code>idem:{uuid}</code> check on PoP endpoint</li>"
+        "<li><strong>Domain events (in-code)</strong> &mdash; named typed objects, passed between services, logged for observability</li>"
+        "</ol>"
+    ))
+
     return "\n".join(sections)
 
 
@@ -1960,125 +2015,9 @@ def build_page_8(page_id: str) -> str:
     ))
 
     sections.append("<hr/>")
-    sections.append("<h2>ภาคผนวก (Appendix)</h2>")
 
-    sections.append("<h3>อ้างอิงจาก Industry</h3>")
-
-    sections.append("<h4>มาตรฐาน Priority Scheduling (SMIL + DOOH)</h4>")
-    sections.append(expand_section("SMIL, Xibo, Broadsign, DOOH Billing — มาตรฐาน Priority",
-        info_panel(
-            "<p><strong>Priority model 5 ระดับ (P0-P4)</strong> ที่เราเสนอ ได้แรงบันดาลใจจากมาตรฐาน industry เหล่านี้. "
-            "หลักการสำคัญ: exclusive/priority scheduling เป็น <em>โจทย์ที่วงการ digital signage แก้ไปแล้ว</em> &mdash; "
-            "เรา adapt pattern ที่พิสูจน์แล้วแทนที่จะคิดใหม่ตั้งแต่ต้น.</p>"
-        ) +
-        '<table>'
-        '<tr><th>Standard/Platform</th><th>Priority Mechanism</th><th>What We Adopt</th></tr>'
-        '<tr><td><strong>W3C SMIL 3.0</strong><br/><code>&lt;excl&gt;</code> + <code>&lt;priorityClass&gt;</code></td>'
-        '<td><ul>'
-        '<li><code>&lt;excl&gt;</code>: only one child plays at a time (mutual exclusion)</li>'
-        '<li><code>&lt;priorityClass&gt;</code>: assigns priority levels with <code>peers</code> + <code>higher</code> + <code>lower</code> policies</li>'
-        '<li>Policies: <code>stop</code> (kill lower), <code>pause</code> (pause queue/stack), <code>defer</code> (queue for later), <code>never</code> (reject)</li>'
-        '<li>Pause queue: nested interrupts push onto stack &rarr; resume in LIFO order</li>'
-        '</ul></td>'
-        '<td><ul>'
-        '<li><strong>P0-P4 levels</strong> = simplified priorityClass</li>'
-        '<li><strong>Exclusive = P1</strong> with guaranteed slot reservation</li>'
-        '<li>No pause queue needed &mdash; Ad Decisioning Engine resolves at build time (player sees flat sequence)</li>'
-        '<li>SMIL <code>peers=&quot;stop&quot;</code> semantic for overlapping exclusives</li>'
-        '</ul></td></tr>'
-        '<tr><td><strong>Xibo CMS</strong><br/>Interrupt Layout + Priority</td>'
-        '<td><ul>'
-        '<li>Priority number (0 = lowest) per scheduled event</li>'
-        '<li>Interrupt Layout: higher priority event preempts current layout</li>'
-        '<li>Share of Voice: percentage-based time allocation</li>'
-        '<li>Schedule reassessment on criteria change (geo-fence, daypart, priority)</li>'
-        '</ul></td>'
-        '<td><ul>'
-        '<li><strong>Priority number</strong> concept &rarr; our P0-P4 model</li>'
-        '<li><strong>Time allocation</strong> &rarr; Ad Decisioning Engine timeline reservation</li>'
-        '<li>Share of Voice concept applicable for future frequency-based billing</li>'
-        '</ul></td></tr>'
-        '<tr><td><strong>Broadsign Control</strong><br/>'
-        '<a href="https://docs.broadsign.com/broadsign-control/latest/en/settings-section.html">Day Part Switch (verified)</a></td>'
-        '<td><ul>'
-        '<li><strong>Configurable interrupt:</strong> Day Part Switch can interrupt mid-play or wait for completion</li>'
-        '<li>Trigger system: serial/network/XML/touch triggers interrupt current content</li>'
-        '<li>Default: interrupted content restarts after trigger (<code>--truncate_current</code> to skip)</li>'
-        '<li>Revenue-based priority: guaranteed &gt; programmatic</li>'
-        '</ul></td>'
-        '<td><ul>'
-        '<li><strong>Configurable interrupt → our P0/P1 interrupt vs P2-P4 wait</strong></li>'
-        '<li>Day Part Switch → P1-TK Takeover boundary handling</li>'
-        '<li>Restart after interrupt → we chose "resume next" (skip interrupted) + make-good</li>'
-        '</ul></td></tr>'
-        '<tr><td><strong>DOOH Billing Models</strong><br/>'
-        '<a href="https://www.themediaant.com/blog/understanding-dooh-pricing-models/">The Media Ant (verified)</a> + '
-        '<a href="https://www.cjadvertising.com/blog/industry-trends/preempts-makegoods-money-move/">CJ Advertising (verified)</a></td>'
-        '<td><ul>'
-        '<li><strong>CPT (Cost Per Time):</strong> flat rate for time block ownership</li>'
-        '<li><strong>Make-Good:</strong> free replacement slot for preempted ads — industry standard</li>'
-        '<li>CPM, Flat per spot, SOV-based pricing models</li>'
-        '</ul></td>'
-        '<td><ul>'
-        '<li><strong>CPT → P1-TK Takeover billing</strong></li>'
-        '<li><strong>Make-Good → MakeGoodRecord compensation system</strong></li>'
-        '<li>Partial play ≠ impression (ไม่นับ billing)</li>'
-        '</ul></td></tr>'
-        '</table>'
-    ))
-
-    sections.append("<h4>สถาปัตยกรรมเรา vs มาตรฐาน DOOH</h4>")
-    sections.append(expand_section("เปรียบเทียบกับมาตรฐาน DOOH (14 concepts)",
-        '<table>'
-        '<tr><th>DOOH Concept</th><th>Our Implementation</th><th>Gap</th></tr>'
-        '<tr><td><strong>Ad Server</strong></td><td>Ad Decisioning Engine อยู่ใน Backend (AdonisJS)</td><td>ไม่แยก — OK สำหรับ 100-500 จอ</td></tr>'
-        '<tr><td><strong>CMS</strong></td><td>Admin panel + owner dashboard</td><td>มาตรฐาน</td></tr>'
-        '<tr><td><strong>SSP (Supply-Side Platform)</strong></td><td>ยังไม่มี — P3 = SSP avail ในอนาคต</td><td>Phase 6 roadmap</td></tr>'
-        '<tr><td><strong>Impression tracking</strong></td><td>PoP ผ่าน Outbox pattern</td><td>เพิ่ม IAB fields (Phase 6)</td></tr>'
-        '<tr><td><strong>Campaign pacing</strong></td><td>BEP-2998 fix + Ad Decisioning Engine</td><td>พื้นฐาน — ปรับปรุงใน Phase 6</td></tr>'
-        '<tr><td><strong>SOV allocation</strong></td><td>สัดส่วน ownerTime/platformTime</td><td>เปลี่ยนชื่อเป็น SOV, logic เดิม</td></tr>'
-        '<tr><td><strong>Guaranteed delivery</strong></td><td>P1-G guaranteed spots พร้อม reservation check (ไม่ interrupt)</td><td>มาตรฐาน</td></tr>'
-        '<tr><td><strong>Daypart Takeover</strong></td><td>P1-TK จอง time block + Interrupt Controller</td><td>Implement แล้ว (Phase 3.5)</td></tr>'
-        '<tr><td><strong>Exact-Time Spot</strong></td><td>P1-ET ±5s tolerance + IC trigger</td><td>Implement แล้ว (Phase 3.5)</td></tr>'
-        '<tr><td><strong>Make-Good</strong></td><td>MakeGoodRecord: โดน interrupt → ชดเชย cycle ถัดไป</td><td>Implement แล้ว (Phase 3.5)</td></tr>'
-        '<tr><td><strong>Interrupt handling</strong></td><td>เลือก interrupt: P0/P1-TK/P1-ET interrupt, P2-P4 รอ</td><td>มาตรฐาน (แบบ Broadsign configurable)</td></tr>'
-        '<tr><td><strong>Creative management</strong></td><td>Upload media + CDN + checksum validation</td><td>มาตรฐาน</td></tr>'
-        '<tr><td><strong>Offline resilience</strong></td><td>Cache 3 ชั้น (Live/Buffer/Fallback)</td><td>มาตรฐาน (เทียบเท่า Xibo/BrightSign)</td></tr>'
-        '<tr><td><strong>Loop scheduling</strong></td><td>Loop 5 นาที + event-driven ผ่าน Scheduling Engine (BullMQ)</td><td>มาตรฐาน</td></tr>'
-        '</table>'
-    ))
-
-    sections.append("<h4>วิธีจัดการ Offline ของ Platform ชั้นนำ</h4>")
-    sections.append(expand_section("Xibo, piSignage, BrightSign, info-beamer — แนวทาง Offline",
-        '<table>'
-        '<tr><th>Platform</th><th>Approach</th><th>Buffer</th></tr>'
-        '<tr><td>Xibo</td><td>RequiredFiles manifest + MD5 per file + 50MB chunk download</td><td>48h ahead (configurable)</td></tr>'
-        '<tr><td>piSignage</td><td>Default playlist fallback + local media folder + delta sync</td><td>Full campaign window</td></tr>'
-        '<tr><td>BrightSign BSN.Cloud</td><td>Local-first: all media cached, network = sync only</td><td>Content-dependent</td></tr>'
-        '<tr><td>info-beamer</td><td>3-state degradation (Online/Degraded/Offline) + RTC fallback</td><td>All scheduled content</td></tr>'
-        '</table>'
-    ))
-
-    sections.append("<h4>อ้างอิง Open Source</h4>")
-    sections.append(expand_section("Xibo, piSignage, Anthias — อ้างอิง Open Source",
-        '<table>'
-        '<tr><th>Project</th><th>Repository</th><th>Relevant Pattern</th></tr>'
-        '<tr><td>Xibo Player SDK</td><td><a href="https://github.com/xibo-players/xiboplayer">xibo-players/xiboplayer</a></td><td>Cache API + IndexedDB, XMR WebSocket, chunk downloads with MD5, 2-layout preload pool</td></tr>'
-        '<tr><td>Xibo .NET Client</td><td><a href="https://github.com/xibosignage/xibo-dotnetclient">xibosignage/xibo-dotnetclient</a></td><td>ScheduleManager.cs: thread polling, priority resolution, disk-resident schedule, Splash fallback</td></tr>'
-        '<tr><td>piSignage</td><td><a href="https://github.com/colloqi/piSignage">colloqi/piSignage</a></td><td>Node.js + WebSocket, default playlist fallback, local filesystem media</td></tr>'
-        '<tr><td>Anthias (Screenly OSE)</td><td><a href="https://github.com/Screenly/Anthias">Screenly/Anthias</a></td><td>Docker microservices, Redis + SQLite, Celery queue, Qt viewer</td></tr>'
-        '</table>'
-    ))
-
-    sections.append("<h4>คำแนะนำเรื่อง Protocol</h4>")
-    sections.append(note_panel(
-        "<p><strong>ใช้ Pusher ต่อ</strong> (มีอยู่แล้ว) สำหรับ real-time push. เพิ่ม <strong>version-based checkpoint</strong> ตอน reconnect ผ่าน REST. "
-        "อย่าพึ่ง push สำหรับ playback &mdash; push แค่ trigger sync ให้เร็วขึ้น.</p>"
-        "<p><strong>หลักการสำคัญ (จาก RxDB):</strong> Client อาจพลาด event ตอน disconnect. "
-        "วิธีแก้: checkpoint mode ตอน reconnect (เทียบ schedule ทั้งหมดผ่าน REST) + event mode หลัง sync แล้ว (Pusher สำหรับ incremental).</p>"
-    ))
-
-    # ─── Terminology Mapping (Old System ↔ DOOH Industry) ───
+    # ─── Terminology Reference (Old System ↔ DOOH Industry) ───
+    sections.append("<h2>Terminology Reference (Tathep &harr; DOOH)</h2>")
     sections.append("<h3>ตาราง Mapping คำศัพท์: Tathep &harr; DOOH Industry</h3>")
 
     # Build all terminology content, then wrap in a single Expand
@@ -2232,54 +2171,6 @@ def build_page_8(page_id: str) -> str:
     sections.append(expand_section(
         "Terminology Mapping: 5 tables (Core, Backend, Player, Pusher, API)",
         _term_content
-    ))
-
-    sections.append("<h3>บันทึกการตัดสินใจ: ทำไมไม่ใช้ Event-Sourcing</h3>")
-    sections.append(expand_section("ADR-002: Why Event-Driven, NOT Event-Sourcing",
-        warning_panel(
-            "<p><strong>ADR-002:</strong> Event-Driven Architecture (NOT Event-Sourcing)</p>"
-        ) +
-        '<table>'
-        '<tr><th>Aspect</th><th>Details</th></tr>'
-        '<tr><td><strong>Context</strong></td><td>'
-        'ระบบใช้ Pusher + BullMQ + Play history retry ซึ่งเป็น event-driven pattern อยู่แล้ว '
-        'แต่ไม่มี typed contracts, domain events, หรือ idempotency &mdash; ต้อง formalize</td></tr>'
-        '<tr><td><strong>Options Considered</strong></td><td>'
-        '<strong>A) Formalize Event-Driven</strong> &mdash; typed contracts, domain events (in-memory), outbox/inbox dedup<br/>'
-        '<strong>B) Full Event-Sourcing</strong> &mdash; event store (Kafka/EventStoreDB), projections, snapshots, CQRS</td></tr>'
-        '<tr><td><strong>Decision</strong></td><td><strong>Option A: Formalize Event-Driven</strong></td></tr>'
-        '<tr><td><strong>Rationale</strong></td><td>'
-        '<ul>'
-        '<li><strong>Scale:</strong> ~100-500 billboards, ไม่ใช่ millions of events/sec</li>'
-        '<li><strong>Team:</strong> Junior devs 3 คน (fix-heavy, need review) &mdash; event store + projections ซับซ้อนเกินไป</li>'
-        '<li><strong>PlaySchedule model:</strong> CRUD + status (WAITING&rarr;PLAYING&rarr;PLAYED) ใช้งานได้ดี ไม่จำเป็นต้อง replay</li>'
-        '<li><strong>No business need:</strong> ไม่ต้อง replay events ย้อนหลัง, ไม่ต้อง audit trail ระดับ event</li>'
-        '<li><strong>Operational cost:</strong> Event store (Kafka/EventStoreDB) + schema versioning + eventual consistency debugging</li>'
-        '</ul></td></tr>'
-        '<tr><td><strong>Consequences</strong></td><td>'
-        '<ul>'
-        '<li>+ ง่ายต่อ team ในการ maintain</li>'
-        '<li>+ ไม่ต้องเพิ่ม infrastructure (ใช้ Redis + Pusher + BullMQ เดิม)</li>'
-        '<li>+ Typed contracts ป้องกัน runtime error</li>'
-        '<li>+ Domain events เพิ่ม traceability ใน code</li>'
-        '<li>- ไม่สามารถ replay events ได้ (ต้องมี backup/restore แบบ traditional)</li>'
-        '<li>- ถ้า scale ถึง 5,000+ จอ อาจต้อง revisit</li>'
-        '</ul></td></tr>'
-        '<tr><td><strong>Review Date</strong></td><td>Revisit เมื่อ scale &ge; 2,000 billboards หรือ team &ge; 8 devs</td></tr>'
-        '</table>'
-    ))
-
-    sections.append("<h3>Checklist การ Implement</h3>")
-    sections.append(success_panel(
-        "<p><strong>สิ่งที่ต้อง formalize (เรียงตาม priority):</strong></p>"
-        "<ol>"
-        "<li><strong>Typed Pusher event contracts</strong> &mdash; shared interfaces (backend + player)</li>"
-        "<li><strong>Version protocol</strong> &mdash; monotonic <code>version</code> per device on every Pusher event</li>"
-        "<li><strong>PoP Outbox pattern</strong> &mdash; Tauri Store with UUID idempotency key + flush cycle</li>"
-        "<li><strong>Inbox dedup</strong> &mdash; <code>event_id</code> tracking (last 100) + version gap detection</li>"
-        "<li><strong>PoP deduplication</strong> &mdash; Redis <code>idem:{uuid}</code> check on PoP endpoint</li>"
-        "<li><strong>Domain events (in-code)</strong> &mdash; named typed objects, passed between services, logged for observability</li>"
-        "</ol>"
     ))
 
     return "\n".join(sections)
@@ -3090,6 +2981,115 @@ def build_page_13(page_id: str) -> str:
         '</ul>'
     )
 
+    # ─── Section 4: Industry Standards and Design Rationale ───
+    sections.append('<h2>4. มาตรฐาน Industry และ Design Rationale</h2>')
+    sections.append(info_panel(
+        "<p><strong>Priority model 5 ระดับ (P0-P4)</strong> ที่เราเสนอ ได้แรงบันดาลใจจากมาตรฐาน industry เหล่านี้. "
+        "หลักการสำคัญ: exclusive/priority scheduling เป็น <em>โจทย์ที่วงการ digital signage แก้ไปแล้ว</em> &mdash; "
+        "เรา adapt pattern ที่พิสูจน์แล้วแทนที่จะคิดใหม่ตั้งแต่ต้น.</p>"
+    ))
+
+    sections.append('<h3>มาตรฐาน Priority Scheduling (SMIL + DOOH)</h3>')
+    sections.append(expand_section("SMIL, Xibo, Broadsign, DOOH Billing — มาตรฐาน Priority",
+        '<table>'
+        '<tr><th>Standard/Platform</th><th>Priority Mechanism</th><th>What We Adopt</th></tr>'
+        '<tr><td><strong>W3C SMIL 3.0</strong><br/><code>&lt;excl&gt;</code> + <code>&lt;priorityClass&gt;</code></td>'
+        '<td><ul>'
+        '<li><code>&lt;excl&gt;</code>: only one child plays at a time (mutual exclusion)</li>'
+        '<li><code>&lt;priorityClass&gt;</code>: assigns priority levels with <code>peers</code> + <code>higher</code> + <code>lower</code> policies</li>'
+        '<li>Policies: <code>stop</code> (kill lower), <code>pause</code> (pause queue/stack), <code>defer</code> (queue for later), <code>never</code> (reject)</li>'
+        '<li>Pause queue: nested interrupts push onto stack &rarr; resume in LIFO order</li>'
+        '</ul></td>'
+        '<td><ul>'
+        '<li><strong>P0-P4 levels</strong> = simplified priorityClass</li>'
+        '<li><strong>Exclusive = P1</strong> with guaranteed slot reservation</li>'
+        '<li>No pause queue needed &mdash; Ad Decisioning Engine resolves at build time (player sees flat sequence)</li>'
+        '<li>SMIL <code>peers=&quot;stop&quot;</code> semantic for overlapping exclusives</li>'
+        '</ul></td></tr>'
+        '<tr><td><strong>Xibo CMS</strong><br/>Interrupt Layout + Priority</td>'
+        '<td><ul>'
+        '<li>Priority number (0 = lowest) per scheduled event</li>'
+        '<li>Interrupt Layout: higher priority event preempts current layout</li>'
+        '<li>Share of Voice: percentage-based time allocation</li>'
+        '<li>Schedule reassessment on criteria change (geo-fence, daypart, priority)</li>'
+        '</ul></td>'
+        '<td><ul>'
+        '<li><strong>Priority number</strong> concept &rarr; our P0-P4 model</li>'
+        '<li><strong>Time allocation</strong> &rarr; Ad Decisioning Engine timeline reservation</li>'
+        '<li>Share of Voice concept applicable for future frequency-based billing</li>'
+        '</ul></td></tr>'
+        '<tr><td><strong>Broadsign Control</strong><br/>'
+        '<a href="https://docs.broadsign.com/broadsign-control/latest/en/settings-section.html">Day Part Switch (verified)</a></td>'
+        '<td><ul>'
+        '<li><strong>Configurable interrupt:</strong> Day Part Switch can interrupt mid-play or wait for completion</li>'
+        '<li>Trigger system: serial/network/XML/touch triggers interrupt current content</li>'
+        '<li>Default: interrupted content restarts after trigger (<code>--truncate_current</code> to skip)</li>'
+        '<li>Revenue-based priority: guaranteed &gt; programmatic</li>'
+        '</ul></td>'
+        '<td><ul>'
+        '<li><strong>Configurable interrupt → our P0/P1 interrupt vs P2-P4 wait</strong></li>'
+        '<li>Day Part Switch → P1-TK Takeover boundary handling</li>'
+        '<li>Restart after interrupt → we chose "resume next" (skip interrupted) + make-good</li>'
+        '</ul></td></tr>'
+        '<tr><td><strong>DOOH Billing Models</strong><br/>'
+        '<a href="https://www.themediaant.com/blog/understanding-dooh-pricing-models/">The Media Ant (verified)</a> + '
+        '<a href="https://www.cjadvertising.com/blog/industry-trends/preempts-makegoods-money-move/">CJ Advertising (verified)</a></td>'
+        '<td><ul>'
+        '<li><strong>CPT (Cost Per Time):</strong> flat rate for time block ownership</li>'
+        '<li><strong>Make-Good:</strong> free replacement slot for preempted ads — industry standard</li>'
+        '<li>CPM, Flat per spot, SOV-based pricing models</li>'
+        '</ul></td>'
+        '<td><ul>'
+        '<li><strong>CPT → P1-TK Takeover billing</strong></li>'
+        '<li><strong>Make-Good → MakeGoodRecord compensation system</strong></li>'
+        '<li>Partial play ≠ impression (ไม่นับ billing)</li>'
+        '</ul></td></tr>'
+        '</table>'
+    ))
+
+    sections.append('<h3>สถาปัตยกรรมเรา vs มาตรฐาน DOOH (14 concepts)</h3>')
+    sections.append(expand_section("เปรียบเทียบกับมาตรฐาน DOOH (14 concepts)",
+        '<table>'
+        '<tr><th>DOOH Concept</th><th>Our Implementation</th><th>Gap</th></tr>'
+        '<tr><td><strong>Ad Server</strong></td><td>Ad Decisioning Engine อยู่ใน Backend (AdonisJS)</td><td>ไม่แยก — OK สำหรับ 100-500 จอ</td></tr>'
+        '<tr><td><strong>CMS</strong></td><td>Admin panel + owner dashboard</td><td>มาตรฐาน</td></tr>'
+        '<tr><td><strong>SSP (Supply-Side Platform)</strong></td><td>ยังไม่มี — P3 = SSP avail ในอนาคต</td><td>Phase 6 roadmap</td></tr>'
+        '<tr><td><strong>Impression tracking</strong></td><td>PoP ผ่าน Outbox pattern</td><td>เพิ่ม IAB fields (Phase 6)</td></tr>'
+        '<tr><td><strong>Campaign pacing</strong></td><td>BEP-2998 fix + Ad Decisioning Engine</td><td>พื้นฐาน — ปรับปรุงใน Phase 6</td></tr>'
+        '<tr><td><strong>SOV allocation</strong></td><td>สัดส่วน ownerTime/platformTime</td><td>เปลี่ยนชื่อเป็น SOV, logic เดิม</td></tr>'
+        '<tr><td><strong>Guaranteed delivery</strong></td><td>P1-G guaranteed spots พร้อม reservation check (ไม่ interrupt)</td><td>มาตรฐาน</td></tr>'
+        '<tr><td><strong>Daypart Takeover</strong></td><td>P1-TK จอง time block + Interrupt Controller</td><td>Implement แล้ว (Phase 3.5)</td></tr>'
+        '<tr><td><strong>Exact-Time Spot</strong></td><td>P1-ET ±5s tolerance + IC trigger</td><td>Implement แล้ว (Phase 3.5)</td></tr>'
+        '<tr><td><strong>Make-Good</strong></td><td>MakeGoodRecord: โดน interrupt → ชดเชย cycle ถัดไป</td><td>Implement แล้ว (Phase 3.5)</td></tr>'
+        '<tr><td><strong>Interrupt handling</strong></td><td>เลือก interrupt: P0/P1-TK/P1-ET interrupt, P2-P4 รอ</td><td>มาตรฐาน (แบบ Broadsign configurable)</td></tr>'
+        '<tr><td><strong>Creative management</strong></td><td>Upload media + CDN + checksum validation</td><td>มาตรฐาน</td></tr>'
+        '<tr><td><strong>Offline resilience</strong></td><td>Cache 3 ชั้น (Live/Buffer/Fallback)</td><td>มาตรฐาน (เทียบเท่า Xibo/BrightSign)</td></tr>'
+        '<tr><td><strong>Loop scheduling</strong></td><td>Loop 5 นาที + event-driven ผ่าน Scheduling Engine (BullMQ)</td><td>มาตรฐาน</td></tr>'
+        '</table>'
+    ))
+
+    sections.append('<h3>วิธีจัดการ Offline ของ Platform ชั้นนำ</h3>')
+    sections.append(expand_section("Xibo, piSignage, BrightSign, info-beamer — แนวทาง Offline",
+        '<table>'
+        '<tr><th>Platform</th><th>Approach</th><th>Buffer</th></tr>'
+        '<tr><td>Xibo</td><td>RequiredFiles manifest + MD5 per file + 50MB chunk download</td><td>48h ahead (configurable)</td></tr>'
+        '<tr><td>piSignage</td><td>Default playlist fallback + local media folder + delta sync</td><td>Full campaign window</td></tr>'
+        '<tr><td>BrightSign BSN.Cloud</td><td>Local-first: all media cached, network = sync only</td><td>Content-dependent</td></tr>'
+        '<tr><td>info-beamer</td><td>3-state degradation (Online/Degraded/Offline) + RTC fallback</td><td>All scheduled content</td></tr>'
+        '</table>'
+    ))
+
+    sections.append('<h3>อ้างอิง Open Source</h3>')
+    sections.append(expand_section("Xibo, piSignage, Anthias — อ้างอิง Open Source",
+        '<table>'
+        '<tr><th>Project</th><th>Repository</th><th>Relevant Pattern</th></tr>'
+        '<tr><td>Xibo Player SDK</td><td><a href="https://github.com/xibo-players/xiboplayer">xibo-players/xiboplayer</a></td><td>Cache API + IndexedDB, XMR WebSocket, chunk downloads with MD5, 2-layout preload pool</td></tr>'
+        '<tr><td>Xibo .NET Client</td><td><a href="https://github.com/xibosignage/xibo-dotnetclient">xibosignage/xibo-dotnetclient</a></td><td>ScheduleManager.cs: thread polling, priority resolution, disk-resident schedule, Splash fallback</td></tr>'
+        '<tr><td>piSignage</td><td><a href="https://github.com/colloqi/piSignage">colloqi/piSignage</a></td><td>Node.js + WebSocket, default playlist fallback, local filesystem media</td></tr>'
+        '<tr><td>Anthias (Screenly OSE)</td><td><a href="https://github.com/Screenly/Anthias">Screenly/Anthias</a></td><td>Docker microservices, Redis + SQLite, Celery queue, Qt viewer</td></tr>'
+        '</table>'
+    ))
+
     return "\n".join(sections)
 
 
@@ -3116,7 +3116,7 @@ def build_page_14(page_id: str) -> str:
     # ──────────────────────────────────────────────────────────────
     # SECTION 1: Takeover
     # ──────────────────────────────────────────────────────────────
-    sections.append('<h2>1. Takeover &mdash; ครอง 100% จอในช่วงเวลาที่ซื้อ</h2>')
+    sections.append('<h2>1. Takeover &mdash; จอง Time Block ให้โฆษณาเล่น 100% ของเวลา</h2>')
     sections.append(info_panel(
         "<p><strong>Takeover</strong> คือการซื้อช่วงเวลาแบบ exclusive บนป้ายโฆษณา &mdash; "
         "ในช่วงที่จอง โฆษณาของลูกค้าจะเล่น 100% ไม่มีโฆษณาอื่นแทรก</p>"
@@ -3322,7 +3322,7 @@ def build_page_14(page_id: str) -> str:
     sections.append('<h3>UC-G-2: Edge Case &mdash; Takeover เข้ามาขัด ทำให้ได้ไม่ครบ</h3>')
     sections.append("""<table>
 <tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
-<tr><td><strong>สถานการณ์</strong></td><td>มี Takeover ของลูกค้าอื่นเข้ามาครอง 09:00&ndash;09:30 บนป้ายเดียวกัน ทับซ้อนกับ Guaranteed campaign</td></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>มี Takeover ของลูกค้าอื่นจอง 09:00&ndash;09:30 บนป้ายเดียวกัน ทับซ้อนกับ Guaranteed campaign</td></tr>
 <tr><td><strong>สิ่งที่เกิดขึ้น</strong></td><td>Takeover มี priority สูงกว่า &rarr; Guaranteed slots ที่อยู่ในช่วง 09:00&ndash;09:30 ถูก block &rarr; ได้เล่นแค่ 2 ครั้งในชั่วโมง 09:00 (แทนที่จะได้ 4 ครั้ง)</td></tr>
 <tr><td><strong>ระบบชดเชย</strong></td><td>เพิ่ม make-good 2 plays ต้นชั่วโมง 10:00 เพื่อให้ยอดรวมครบ</td></tr>
 <tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>ยังคงได้ 4 plays/hr เมื่อนับรวม make-good แต่บางครั้งอาจขยับมาอยู่ในชั่วโมงถัดไป</td></tr>
@@ -3332,7 +3332,7 @@ def build_page_14(page_id: str) -> str:
     dateFormat HH:mm
     axisFormat %H:%M
     section ชั่วโมง 09:00
-    Takeover ครอง 30 นาที  :crit, tk, 09:00, 30m
+    Takeover Block 30 นาที  :crit, tk, 09:00, 30m
     G play 3 at 09-30       :crit, g3, 09:30, 1m
     G play 4 at 09-45       :crit, g4, 09:45, 1m
     section Make-good ชั่วโมง 10:00
