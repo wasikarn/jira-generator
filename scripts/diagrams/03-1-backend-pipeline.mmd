@@ -1,5 +1,5 @@
 flowchart TD
-    A["Cron (every 10 min)"] e1@--> B["PlayScheduleCalculate<br/>job (BullMQ)"]
+    A["Cron (every 5 min)<br/>+ Event-driven"] e1@--> B["PlayScheduleCalculate<br/>job (BullMQ)"]
     B e2@--> C["PlayScheduleCalculatePerScreen<br/>(per billboard)"]
     C e3@--> D["PlayScheduleFrequencyService<br/>(owner ads)"]
     C e4@--> E["PlaySchedulePeriodService<br/>(paid customer ads)"]

@@ -36,6 +36,8 @@ SUB_PAGE_TITLES = {
     "9_es_big_picture": "9. Event Storming: ภาพรวม (Big Picture)",
     "10_es_process": "10. Event Storming: Process Modelling",
     "11_es_design": "11. Event Storming: Software Design",
+    "12_usecase_distribution": "12. Use Case: การกระจาย Ad และรอบการคำนวณ (Ad Distribution & Scheduling)",
+    "13_usecase_industry": "13. Use Case: เปรียบเทียบกับ Industry (Industry Comparison)",
 }
 
 
@@ -509,40 +511,81 @@ def build_page_2(page_id: str) -> str:
         "Player แค่เล่น <code>sequence[i++]</code> (Dumb Renderer pattern &mdash; มาตรฐาน DOOH)</p>"
     ))
 
-    sections.append("<h3>สิ่งที่เปลี่ยน vs สิ่งที่คงเดิม</h3>")
+    # Version Isolation Strategy
+    sections.append("<h3>Version Isolation Strategy (v1/v2 แยกกันสมบูรณ์)</h3>")
+    sections.append(warning_panel(
+        "<p><strong>Architectural Decision:</strong> v2 เป็น <strong>new modules ใน repo เดิม</strong> "
+        "&mdash; ไม่ reuse business logic จาก v1 เลย ทั้ง Player และ API</p>"
+        "<p><strong>เหตุผล:</strong></p>"
+        "<ul>"
+        "<li><strong>Release isolation:</strong> deploy v2 ได้โดยไม่กระทบ v1 production &mdash; ทั้ง 2 version ทำงานพร้อมกันได้</li>"
+        "<li><strong>Rollback safety:</strong> ถ้า v2 มีปัญหา สลับกลับ v1 ทันที เพราะ code + DB คนละชุด</li>"
+        "<li><strong>Clean architecture:</strong> ไม่ต้อง workaround legacy schema หรือ backward compatibility</li>"
+        "<li><strong>Migration path:</strong> เมื่อ v2 stable แล้วค่อย sunset v1 ทีละป้าย</li>"
+        "</ul>"
+    ))
     sections.append(
         '<table>'
-        '<tr><th>Component</th><th>Current</th><th>Proposed</th><th>Change Type</th></tr>'
-        '<tr><td>Cron job</td><td>PlayScheduleCalculate ทุก 10 นาที</td><td>เหมือนเดิม</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>Per-screen job</td><td>สร้าง PlaySchedule rows</td><td>สร้าง PlaySchedule + <strong>ordered ScreenSchedule</strong></td><td>' + status_macro("ADD STEP", "Yellow") + '</td></tr>'
-        '<tr><td>Pusher</td><td>Channel per device</td><td>Channel เดิม + event ใหม่ <code>schedule-updated</code></td><td>' + status_macro("ADD EVENT", "Yellow") + '</td></tr>'
-        '<tr><td>Player API</td><td>GET /v2/play-schedules + /playlist-advertisements</td><td><strong>GET /v2/screen-schedule</strong> (รวมเป็นอันเดียว)</td><td>' + status_macro("NEW ENDPOINT", "Blue") + '</td></tr>'
-        '<tr><td>Player scheduling</td><td>Loop rotation + guaranteed interrupt (ซับซ้อน)</td><td><strong>play sequence[i++]</strong> (Dumb Renderer)</td><td>' + status_macro("SIMPLIFY", "Green") + '</td></tr>'
-        '<tr><td>Player storage</td><td>localStorage (แยก schedules + playlists)</td><td>Tauri Store (3-tier playlist)</td><td>' + status_macro("MIGRATE", "Yellow") + '</td></tr>'
-        '<tr><td>Media download</td><td>Tauri plugin-upload</td><td>เหมือนเดิม</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>BullMQ</td><td>Redis queue</td><td>เหมือนเดิม</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>Auth</td><td>x-device-code header</td><td>เหมือนเดิม</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td>Proof of Play (PoP)</td><td>POST /v2/play-history + retry</td><td>เหมือนเดิม + <strong>Outbox pattern</strong> + interrupt fields</td><td>' + status_macro("ENHANCE", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Interrupt Controller</strong></td><td>N/A</td><td><strong>ใหม่:</strong> Lightweight IC สำหรับ P0/P1-TK/P1-ET เท่านั้น. P2-P4 รอ creative เล่นจบ</td><td>' + status_macro("NEW", "Blue") + '</td></tr>'
-        '<tr><td><strong>TK Booking API</strong></td><td>N/A</td><td><strong>ใหม่:</strong> Daypart Takeover booking + ตรวจ overlap + lead time check</td><td>' + status_macro("NEW", "Blue") + '</td></tr>'
-        '<tr><td><strong>Make-Good System</strong></td><td>N/A</td><td><strong>ใหม่:</strong> Ad ที่โดน interrupt ได้ slot ชดเชยใน cycle ถัดไป</td><td>' + status_macro("NEW", "Blue") + '</td></tr>'
+        '<tr><th>Layer</th><th>v1 (ปัจจุบัน)</th><th>v2 (ใหม่)</th><th>Shared?</th></tr>'
+        '<tr><td><strong>Player repo</strong></td><td><code>bd-vision-player</code></td><td><code>bd-vision-player</code> (repo เดิม)</td><td>' + status_macro("SAME REPO", "Green") + '</td></tr>'
+        '<tr><td><strong>Player modules</strong></td><td>existing components</td><td><strong>new modules ทั้งหมด</strong></td><td>' + status_macro("NO REUSE", "Red") + '</td></tr>'
+        '<tr><td><strong>API repo</strong></td><td><code>tathep-platform-api</code></td><td><code>tathep-platform-api</code> (repo เดิม)</td><td>' + status_macro("SAME REPO", "Green") + '</td></tr>'
+        '<tr><td><strong>API modules</strong></td><td>existing services/routes</td><td><strong>new services/routes ทั้งหมด</strong></td><td>' + status_macro("NO REUSE", "Red") + '</td></tr>'
+        '<tr><td><strong>Database (API)</strong></td><td>current tables</td><td><strong>new tables/schema แยก</strong></td><td>' + status_macro("NO SHARE", "Red") + '</td></tr>'
+        '<tr><td><strong>Database (Player)</strong></td><td>localStorage + Tauri Store</td><td><strong>new store format แยก</strong></td><td>' + status_macro("NO SHARE", "Red") + '</td></tr>'
+        '<tr><td><strong>S3 Storage</strong></td><td>media files</td><td>media files (เดิม)</td><td>' + status_macro("SHARED", "Green") + '</td></tr>'
+        '<tr><td><strong>Video Processing</strong></td><td><code>tathep-video-processing</code></td><td><code>tathep-video-processing</code> (เดิม)</td><td>' + status_macro("SHARED", "Green") + '</td></tr>'
+        '<tr><td><strong>Infra</strong></td><td>ECS, CDN, Redis, Pusher</td><td>ECS, CDN, Redis, Pusher (เดิม)</td><td>' + status_macro("SHARED", "Green") + '</td></tr>'
+        '</table>'
+    )
+    sections.append(note_panel(
+        "<p><strong>ผลลัพธ์:</strong> v1 ทำงานบน API v1 + DB v1 / v2 ทำงานบน API v2 + DB v2. "
+        "ป้ายแต่ละตัวสามารถเลือกใช้ v1 หรือ v2 ได้อิสระ &mdash; "
+        "rollout ทีละป้าย (canary deployment) แล้ว sunset v1 เมื่อทุกป้ายอยู่บน v2.</p>"
+    ))
+
+    sections.append("<h3>สิ่งที่เปลี่ยน vs สิ่งที่คงเดิม</h3>")
+    sections.append(info_panel(
+        "<p><strong>หมายเหตุ:</strong> ตาม Version Isolation Strategy &mdash; v2 modules เขียนใหม่ทั้งหมด "
+        "แม้ concept จะ <em>คล้าย</em> v1 แต่ <strong>ไม่ reuse code จาก v1</strong>. "
+        "คอลัมน์ &quot;v1 Reference&quot; แสดงไว้เพื่ออ้างอิงแนวคิด ไม่ใช่ code ที่จะ reuse.</p>"
+    ))
+    sections.append(
+        '<table>'
+        '<tr><th>Component</th><th>v1 Reference</th><th>v2 (New Module)</th><th>Change Type</th></tr>'
+        '<tr><td>Scheduling Engine</td><td>PlayScheduleCalculate (cron 5 นาที)</td><td><strong>v2 Scheduling Engine:</strong> new cron + event-driven trigger + Ad Decisioning</td><td>' + status_macro("NEW v2", "Blue") + '</td></tr>'
+        '<tr><td>Per-screen calc</td><td>PlayScheduleCalculatePerScreen</td><td><strong>v2 PerScreenBuilder:</strong> สร้าง ordered ScreenSchedule</td><td>' + status_macro("NEW v2", "Blue") + '</td></tr>'
+        '<tr><td>Pusher events</td><td>6 event types, channel per device</td><td><strong>v2 Event Bus:</strong> typed events + version protocol + dedup</td><td>' + status_macro("NEW v2", "Blue") + '</td></tr>'
+        '<tr><td>Player API</td><td>GET /v2/play-schedules + /playlist-advertisements</td><td><strong>GET /v3/screen-schedule</strong> (new endpoint, new response format)</td><td>' + status_macro("NEW v2", "Blue") + '</td></tr>'
+        '<tr><td>Player scheduling</td><td>Loop rotation + guaranteed interrupt (3,500+ LOC)</td><td><strong>v2 Dumb Renderer:</strong> play <code>sequence[i++]</code></td><td>' + status_macro("NEW v2", "Blue") + '</td></tr>'
+        '<tr><td>Player storage</td><td>localStorage (schedules + playlists)</td><td><strong>v2 Store:</strong> Tauri Store (3-tier playlist cache)</td><td>' + status_macro("NEW v2", "Blue") + '</td></tr>'
+        '<tr><td>Media download</td><td>Tauri plugin-upload (sequential, ไม่แยก SIM/BB)</td><td><strong>v2 Downloader:</strong> parallel download (network-aware: Broadband 5 / SIM 2-3 concurrent) + timeout + integrity check</td><td>' + status_macro("NEW v2", "Blue") + '</td></tr>'
+        '<tr><td>PoP reporting</td><td>POST /v2/play-history + retry queue</td><td><strong>v2 Outbox:</strong> idempotency key + interrupt fields + guaranteed delivery</td><td>' + status_macro("NEW v2", "Blue") + '</td></tr>'
+        '<tr><td>Auth</td><td>x-device-code header</td><td><strong>v2 Auth:</strong> same concept (device code) แต่ new module + version header</td><td>' + status_macro("NEW v2", "Blue") + '</td></tr>'
+        '<tr><td><strong>Interrupt Controller</strong></td><td>N/A (ไม่มีใน v1)</td><td><strong>ใหม่:</strong> Lightweight IC สำหรับ P0/P1-TK/P1-ET</td><td>' + status_macro("NEW v2", "Blue") + '</td></tr>'
+        '<tr><td><strong>TK Booking API</strong></td><td>N/A</td><td><strong>ใหม่:</strong> Daypart Takeover booking + overlap check</td><td>' + status_macro("NEW v2", "Blue") + '</td></tr>'
+        '<tr><td><strong>Make-Good System</strong></td><td>N/A</td><td><strong>ใหม่:</strong> Compensation สำหรับ interrupted ads</td><td>' + status_macro("NEW v2", "Blue") + '</td></tr>'
+        '<tr><td><strong>DB Schema</strong></td><td>v1 tables (PlaySchedule, etc.)</td><td><strong>v2 tables ใหม่ทั้งหมด</strong> (ScreenSchedule, TakeoverSchedule, etc.)</td><td>' + status_macro("NEW v2", "Blue") + '</td></tr>'
         '</table>'
     )
 
-    sections.append("<h3>การ Map Infrastructure</h3>")
+    sections.append("<h3>Shared Infrastructure (v1/v2 ใช้ร่วมกัน)</h3>")
+    sections.append(info_panel(
+        "<p><strong>Infrastructure layer</strong> ใช้ร่วมกันระหว่าง v1 และ v2 &mdash; "
+        "แต่ <strong>application code ที่เรียกใช้ infra เป็น new modules ทั้งหมด</strong> (ไม่ reuse v1 code).</p>"
+    ))
     sections.append(
         '<table>'
-        '<tr><th>Existing Infrastructure</th><th>Role Today</th><th>Role in Proposed</th><th>Change</th></tr>'
-        '<tr><td><strong>BullMQ + Redis</strong></td><td>Cron job queue (PlayScheduleCalculate)</td><td>เหมือนเดิม + เพิ่ม Ad Decisioning Engine หลัง schedule calc</td><td>' + status_macro("REUSE", "Green") + '</td></tr>'
-        '<tr><td><strong>MySQL</strong></td><td>PlaySchedule, Billboard, Advertisement models</td><td>เหมือนเดิม + ตาราง ScreenSchedule, ScreenScheduleItem ใหม่</td><td>' + status_macro("ADD TABLES", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Redis (cache)</strong></td><td>GET/SET string cache (Bentocache)</td><td>เหมือนเดิม + idempotency keys (SET TTL 24 ชม.)</td><td>' + status_macro("REUSE", "Green") + '</td></tr>'
-        '<tr><td><strong>Pusher (WebSocket)</strong></td><td>6 event types, channel per device</td><td>Channel เดิม + 5 typed events ใหม่ (schedule-updated, device-config-updated, takeover-start, takeover-end, p0-emergency)</td><td>' + status_macro("ADD EVENTS", "Yellow") + '</td></tr>'
-        '<tr><td><strong>AdonisJS routes</strong></td><td>Player V2 routes (/play-schedules, /playlist-advertisements)</td><td>คง route เดิม + เพิ่ม GET /v2/screen-schedule</td><td>' + status_macro("ADD ENDPOINT", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Tauri plugin-upload</strong></td><td>Native HTTP media download</td><td>เหมือนเดิม (ดาวน์โหลดทีละไฟล์ + resume)</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
-        '<tr><td><strong>localStorage</strong></td><td>Schedules, playlists, playData</td><td>ย้ายข้อมูลหนักไป Tauri Store; localStorage เก็บแค่ small state</td><td>' + status_macro("MIGRATE", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Tauri Store</strong></td><td>player.history.json (play history retry)</td><td>+ outbox.json, playlist-cache.json, inbox-state.json</td><td>' + status_macro("EXPAND", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Pusher client (player)</strong></td><td>Subscribe, re-fetch on event</td><td>เหมือนเดิม + inbox dedup layer (event_id + version check)</td><td>' + status_macro("WRAP", "Yellow") + '</td></tr>'
-        '<tr><td><strong>x-device-code auth</strong></td><td>Player auth header</td><td>เหมือนเดิม</td><td>' + status_macro("NO CHANGE", "Green") + '</td></tr>'
+        '<tr><th>Infrastructure</th><th>v1 ใช้อย่างไร</th><th>v2 ใช้อย่างไร</th><th>Sharing</th></tr>'
+        '<tr><td><strong>BullMQ + Redis</strong></td><td>v1 cron job queues</td><td>v2 new job queues (แยก queue name)</td><td>' + status_macro("SHARED INFRA", "Green") + '</td></tr>'
+        '<tr><td><strong>MySQL</strong></td><td>v1 tables (PlaySchedule, etc.)</td><td><strong>v2 new tables แยก</strong> (ScreenSchedule, etc.) &mdash; ไม่ share data กับ v1</td><td>' + status_macro("SEPARATE SCHEMA", "Yellow") + '</td></tr>'
+        '<tr><td><strong>Redis (cache)</strong></td><td>v1 cache keys</td><td>v2 cache keys (แยก namespace/prefix)</td><td>' + status_macro("SHARED INFRA", "Green") + '</td></tr>'
+        '<tr><td><strong>Pusher</strong></td><td>v1 event types</td><td>v2 new event types (typed + versioned)</td><td>' + status_macro("SHARED INFRA", "Green") + '</td></tr>'
+        '<tr><td><strong>AdonisJS</strong></td><td>v1/v2 routes (/play-schedules)</td><td>v3 routes (/v3/screen-schedule) &mdash; new controllers + services</td><td>' + status_macro("SAME FRAMEWORK", "Green") + '</td></tr>'
+        '<tr><td><strong>S3 + CDN</strong></td><td>media storage + delivery</td><td>media storage + delivery (เดิม)</td><td>' + status_macro("SHARED", "Green") + '</td></tr>'
+        '<tr><td><strong>Video Processing</strong></td><td>tathep-video-processing</td><td>tathep-video-processing (เดิม)</td><td>' + status_macro("SHARED", "Green") + '</td></tr>'
+        '<tr><td><strong>Tauri runtime</strong></td><td>v1 player app</td><td>v2 player app (new entry point)</td><td>' + status_macro("SAME RUNTIME", "Green") + '</td></tr>'
+        '<tr><td><strong>ECS / Deploy</strong></td><td>v1 containers</td><td>v2 containers (อาจ feature flag หรือ separate service)</td><td>' + status_macro("SHARED INFRA", "Green") + '</td></tr>'
         '</table>'
     )
 
@@ -635,12 +678,17 @@ def build_page_4(page_id: str) -> str:
     # Ad Decisioning Algorithm
     sections.append("<h3>Ad Decisioning Algorithm (ขั้นตอนจัดลำดับ Ad)</h3>")
     sections.append(note_panel(
-        "<p><strong>หลักการสำคัญ:</strong> Ad Decisioning Engine ทำงาน <em>หลัง</em> PlayScheduleCalculatePerScreen ที่มีอยู่เดิม. "
-        "รับ PlaySchedule rows (คำนวณไว้แล้ว) แล้วแปลงเป็น <strong>ordered loop sequence</strong>.</p>"
-        "<p><strong>Guaranteed spots (เดิมเรียก exclusive):</strong> ปัจจุบันจัดการด้วย 2 เส้นทางแยกกัน "
+        "<p><strong>Version Isolation:</strong> ทุก model และ service ในหน้านี้เป็น <strong>v2 new modules</strong> &mdash; "
+        "ไม่ reuse code จาก v1. v1 references (เช่น <code>PlayScheduleCalculatePerScreen</code>) "
+        "แสดงไว้เพื่ออ้างอิงแนวคิดเดิม ไม่ใช่ code ที่จะ extend.</p>"
+    ))
+    sections.append(note_panel(
+        "<p><strong>หลักการสำคัญ:</strong> v2 Ad Decisioning Engine ทำหน้าที่เดียวกับ v1 <code>PlayScheduleCalculatePerScreen</code> "
+        "แต่เขียนใหม่ทั้งหมด &mdash; รับ campaign data แล้วสร้าง <strong>ordered loop sequence</strong> โดยตรง.</p>"
+        "<p><strong>Guaranteed spots (เดิมเรียก exclusive):</strong> v1 จัดการด้วย 2 เส้นทางแยกกัน "
         "(<code>PlayScheduleCreateByExclusive</code> ตอน approve + <code>PlayScheduleExclusiveService</code> ระหว่าง loop). "
-        "Ad Decisioning Engine <strong>รวมทั้ง 2 เส้นทาง</strong> &mdash; guaranteed spots ถูก inject ที่ตำแหน่ง <code>play_at</code> "
-        "ตรงจุดใน sequence. ตรวจสอบการจองซ้ำด้วย <code>checkIsBillboardsReserved</code>. "
+        "v2 Ad Decisioning Engine <strong>รวมทั้ง 2 เส้นทาง</strong> &mdash; guaranteed spots ถูก inject ที่ตำแหน่ง <code>play_at</code> "
+        "ตรงจุดใน sequence. v1 concept <code>checkIsBillboardsReserved</code> ถูก reimplemented ใน v2 overlap checker. "
         "Billing ใช้ <code>exclusiveMultiplier</code> (env: <code>ADVERTISEMENT_EXCLUSIVE_MULTIPLIER</code>).</p>"
     ))
     sections.append(
@@ -679,7 +727,7 @@ def build_page_4(page_id: str) -> str:
         "  - pendingMakeGoods[]: from MakeGoodRecord where compensated=false\n"
         "  - housePlaylist[]: from PlaylistAdvertisement (owner/filler content)\n"
         "  - screen: { ownerTime, platformTime }  // SOV budget (seconds/hour)\n"
-        "  - loopDuration: 600  // seconds (10 min)\n\n"
+        "  - loopDuration: 300  // seconds (5 min cron window)\n\n"
         "Step 0 (NEW): Reserve Exact-Time Spots (P1-ET)\n"
         "  for (const et of exactTimeSpots.sortBy('play_at')) {\n"
         "    timeline.reserveExact(et.play_at, et.tolerance_seconds, {\n"
@@ -687,7 +735,7 @@ def build_page_4(page_id: str) -> str:
         "    })\n"
         "  }\n\n"
         "Step 1: Reserve Guaranteed Slots FIRST (P1-G)\n"
-        "  timeline = createTimeline(loopStart, loopDuration)  // 600s\n"
+        "  timeline = createTimeline(loopStart, loopDuration)  // 300s\n"
         "  for (const g of guaranteedSchedules.sortBy('startDateTime')) {\n"
         "    if (!g.media?.file_url) { alertAdmin(g); continue }\n"
         "    timeline.reserve(g.play_at, g.duration, { priority: 'P1-G', ...g })\n"
@@ -751,7 +799,7 @@ def build_page_4(page_id: str) -> str:
     ))
 
     # New Data Models
-    sections.append("<h3>Data Models ใหม่</h3>")
+    sections.append("<h3>v2 Data Models (New DB Schema — ไม่ share กับ v1)</h3>")
     sections.append(tracked_code_block(
         "// NEW: ScreenSchedule model (app/Models/ScreenSchedule.ts)\n"
         "interface ScreenSchedule {\n"
@@ -851,9 +899,9 @@ def build_page_4(page_id: str) -> str:
     ))
 
     # New API Endpoint
-    sections.append("<h3>API Endpoint ใหม่</h3>")
+    sections.append("<h3>v2 API Endpoint (New Routes — แยกจาก v1)</h3>")
     sections.append(tracked_code_block(
-        "// GET /v2/screen-schedule?tier=live&since_version=41\n"
+        "// GET /v3/screen-schedule?tier=live&since_version=41\n"
         "// Response:\n"
         "{\n"
         '  "version": 42,\n'
@@ -889,7 +937,14 @@ def build_page_4(page_id: str) -> str:
         "    ...\n"
         "  ],\n"
         '  "creative_manifest": [\n'
-        '    { "creative_code": "CR-xxx", "url": "...", "checksum": "...", "size_bytes": 12345 }\n'
+        '    {\n'
+        '      "creative_code": "CR-xxx",\n'
+        '      "url": "https://cdn.../vp/{videoId}/{width}x{height}.mp4",\n'
+        '      "checksum": "a1b2c3d4...",\n'
+        '      "size_bytes": 734003,\n'
+        '      "width": 352,            // billboard actual resolution\n'
+        '      "height": 672\n'
+        '    }\n'
         "  ],\n"
         '  "pending_takeovers": [\n'
         '    { "takeover_id": 42, "start": "08:00:00", "end": "09:00:00", "creative_code": "CR-tk-001" }\n'
@@ -913,6 +968,11 @@ def build_page_5(page_id: str) -> str:
 
     sections.append(toc())
     sections.append("<h2>Technical Design: Player Components</h2>")
+    sections.append(note_panel(
+        "<p><strong>Version Isolation:</strong> ทุก component ในหน้านี้เป็น <strong>v2 player new modules</strong> &mdash; "
+        "เขียนใหม่ทั้งหมดใน <code>bd-vision-player</code> repo เดิม ไม่ reuse code จาก v1. "
+        "v2 player ใช้ <strong>DB schema ใหม่แยก</strong> ทั้งฝั่ง local store และ API.</p>"
+    ))
 
     # 3-Tier Playlist Cache
     sections.append("<h3>ระบบ Cache 3 ชั้น (3-Tier Playlist Cache)</h3>")
@@ -1036,6 +1096,99 @@ def build_page_5(page_id: str) -> str:
         collapse=True,
     ))
 
+    # Media Cache Lifecycle
+    sections.append("<h3>Media Cache Lifecycle (v2 Downloader — แก้ bottleneck จาก v1)</h3>")
+    sections.append(info_panel(
+        "<p><strong>หลักการ:</strong> Player download creative <strong>ครั้งเดียว</strong> แล้วเล่นจาก local cache ตลอด "
+        "&mdash; ไม่ download ซ้ำทุกรอบ ประหยัด bandwidth &gt; 98%</p>"
+    ))
+    sections.append(warning_panel(
+        "<p><strong>v1 Bottleneck ที่ v2 ต้องแก้:</strong></p>"
+        "<ul>"
+        "<li><strong>Sequential download:</strong> v1 ดาวน์โหลดทีละไฟล์ (<code>for...of</code> + <code>await</code>) "
+        "&rarr; v2 ต้องรองรับ <strong>parallel download (3-5 concurrent)</strong></li>"
+        "<li><strong>ไม่มี timeout:</strong> v1 Tauri <code>download()</code> ไม่มี timeout &mdash; download ค้าง = block ทุกอย่าง "
+        "&rarr; v2 ต้องมี <strong>timeout 30s + retry 3 ครั้ง</strong></li>"
+        "<li><strong>ไม่มี integrity check:</strong> v1 ใช้ <code>exists(filePath)</code> เช็คว่ามีไฟล์ &mdash; partial download นับว่ามี "
+        "&rarr; v2 ต้องมี <strong>MD5 checksum validation</strong></li>"
+        "<li><strong>ไม่มี download retry:</strong> v1 download ล้มเหลว = ข้ามเลย รอ schedule refresh "
+        "&rarr; v2 ต้องมี <strong>retry queue ระดับ download</strong></li>"
+        "<li><strong>ไม่รู้จักประเภท network:</strong> v1 ไม่แยก SIM กับ Broadband &mdash; ใช้ strategy เดียวกันทุกสถานที่ "
+        "&rarr; v2 ต้อง <strong>ปรับ concurrency + timeout ตามประเภท internet</strong></li>"
+        "</ul>"
+        "<p><strong>ข้อมูล file size จาก production (Feb 2026):</strong> video avg = <strong>10.1 MB</strong>, "
+        "74% อยู่ในช่วง 0-10 MB, max 99.7 MB</p>"
+    ))
+
+    # Parallel Download & Network Strategy
+    sections.append("<h4>v2 Parallel Download Strategy</h4>")
+    sections.append(info_panel(
+        "<p><strong>หลักการ:</strong> v2 downloader ดาวน์โหลด <strong>หลายไฟล์พร้อมกัน (parallel)</strong> "
+        "แทนที่จะรอทีละไฟล์แบบ v1. จำนวน concurrent downloads ปรับตาม <strong>ประเภท internet ของสถานที่</strong>.</p>"
+    ))
+    sections.append("""<table>
+<tr><th>Network Type</th><th>Bandwidth (ประมาณ)</th><th>Concurrent Downloads</th><th>Timeout/file</th><th>Use Case</th></tr>
+<tr><td><strong>Broadband</strong> (Fiber/Cable)</td><td>50-100+ Mbps</td><td><strong>5 concurrent</strong></td><td>30s</td><td>ป้ายในอาคาร, ห้าง, สำนักงาน</td></tr>
+<tr><td><strong>Net SIM</strong> (4G/5G cellular)</td><td>5-30 Mbps (แปรผัน)</td><td><strong>2-3 concurrent</strong></td><td>60s</td><td>ป้ายริมถนน, จุดที่ไม่มี fixed line</td></tr>
+</table>""")
+
+    sections.append('<h4>Download Time Estimate (ตัวอย่าง 10 ads, avg 10 MB/file)</h4>')
+    sections.append("""<table>
+<tr><th>Scenario</th><th>v1 Sequential</th><th>v2 Parallel (Broadband)</th><th>v2 Parallel (SIM)</th></tr>
+<tr><td>Download 10 files (100 MB total)</td><td>~16s <em>(100Mbps)</em></td><td><strong>~4s</strong> (5 concurrent)</td><td><strong>~12s</strong> (3 concurrent, 20Mbps)</td></tr>
+<tr><td>Download 10 files (100 MB total)</td><td>~80s <em>(10Mbps SIM)</em></td><td>&mdash;</td><td><strong>~28s</strong> (3 concurrent, 10Mbps)</td></tr>
+<tr><td>Fresh boot (ทุกไฟล์ใหม่)</td><td>ต้องรอจนครบ → จอดำนาน</td><td><strong>เล่นได้เร็วกว่า 3-5x</strong></td><td><strong>เล่นได้เร็วกว่า 2-3x</strong></td></tr>
+</table>""")
+    sections.append(note_panel(
+        "<p><strong>Network detection:</strong> Billboard แต่ละตัวจะมี <code>network_type</code> field "
+        "(<code>&apos;broadband&apos;</code> | <code>&apos;sim&apos;</code>) ใน config &mdash; "
+        "v2 downloader อ่านค่านี้ตอน boot แล้วปรับ concurrency + timeout อัตโนมัติ. "
+        "สำหรับ SIM จะใช้ <strong>conservative strategy</strong> เพื่อไม่ให้ saturate link จนกระทบ PoP reporting และ Pusher events.</p>"
+    ))
+
+    sections.append(
+        '<p>เมื่อ Player ได้รับ schedule ใหม่ จะสแกน <code>creative_manifest</code> '
+        'แล้วทำตามขั้นตอนนี้:</p>'
+    )
+    sections.append("""<table>
+<tr><th>ขั้นตอน</th><th>ทำอะไร</th><th>เงื่อนไข</th></tr>
+<tr><td><strong>1. Diff</strong></td><td>เทียบ <code>creative_manifest</code> กับไฟล์ใน local cache</td><td>ทุกครั้งที่ได้ schedule ใหม่</td></tr>
+<tr><td><strong>2. Download</strong></td><td>ดาวน์โหลด <strong>parallel</strong> เฉพาะ creative ที่ยังไม่มีหรือ checksum ไม่ตรง</td><td>concurrency ตาม network type (Broadband: 5, SIM: 2-3)</td></tr>
+<tr><td><strong>3. Verify</strong></td><td>เทียบ MD5 checksum กับ <code>creative_checksum</code> จาก manifest</td><td>ถ้าไม่ตรง &rarr; re-download (retry max 3 ครั้ง)</td></tr>
+<tr><td><strong>4. Play</strong></td><td>เล่นจาก local cache ทุก loop</td><td>ไม่ download ซ้ำ &mdash; เล่นได้ทันทีที่มี file ครบ</td></tr>
+<tr><td><strong>5. Evict</strong></td><td>ลบ creative ที่ไม่อยู่ใน schedule ปัจจุบัน + buffer</td><td>Disk &gt; threshold หรือ cleanup cron 24h</td></tr>
+</table>""")
+
+    sections.append('<h4>กรณีที่ต้อง download ใหม่</h4>')
+    sections.append("""<table>
+<tr><th>กรณี</th><th>เหตุผล</th><th>การทำงาน</th></tr>
+<tr><td>Creative ถูกแก้ไข</td><td>Checksum ไม่ตรงกับ cache</td><td>Download version ใหม่ ลบ version เก่า</td></tr>
+<tr><td>Player boot ใหม่ + cache ถูกลบ</td><td>ไม่มีไฟล์ใน local</td><td>Download ทุกไฟล์ใน manifest</td></tr>
+<tr><td>Disk เต็ม &rarr; eviction ลบไปแล้ว</td><td>Emergency cleanup ลบไฟล์เก่า</td><td>Download ใหม่เมื่อ schedule ต้องการ</td></tr>
+<tr><td>ไฟล์ corrupt (checksum fail)</td><td>Download ไม่สมบูรณ์</td><td>Mark dirty &rarr; re-download next sync</td></tr>
+</table>""")
+
+    sections.append('<h4>Bandwidth Savings</h4>')
+    sections.append(
+        '<p>สมมติ 10 ads เฉลี่ย 10 MB ต่อไฟล์ (production avg), เล่น 75 loops/วัน:</p>'
+    )
+    sections.append("""<table>
+<tr><th>Mode</th><th>คำนวณ</th><th>Bandwidth/วัน</th></tr>
+<tr><td>ไม่มี cache (download ทุกรอบ)</td><td>10 ads &times; 75 loops &times; 10MB</td><td><strong>7.5 GB</strong></td></tr>
+<tr><td><strong>มี cache (download ครั้งเดียว)</strong></td><td>10 ads &times; 1 ครั้ง &times; 10MB</td><td><strong>100 MB</strong></td></tr>
+<tr><td colspan="2"><strong>ประหยัด</strong></td><td><strong>98.7%</strong></td></tr>
+</table>""")
+    sections.append(warning_panel(
+        "<p><strong>ความสำคัญสำหรับ Net SIM:</strong> SIM data plan มีค่าใช้จ่ายต่อ GB สูงกว่า Broadband มาก. "
+        "Cache strategy ช่วยลดจาก 7.5 GB/วัน เหลือ 100 MB/วัน &mdash; "
+        "<strong>ลดค่า data ต่อป้าย ~98%</strong>. "
+        "สำหรับป้ายที่ใช้ SIM เรื่อง bandwidth savings ยิ่งมีค่ามาก เพราะลดต้นทุน operational โดยตรง.</p>"
+    ))
+    sections.append(note_panel(
+        "<p><strong>หมายเหตุ:</strong> ตัวเลขจริงจะต่ำกว่า 100 MB เพราะวันถัดไป creative ส่วนใหญ่ยังอยู่ใน cache "
+        "(checksum เดิม &rarr; ไม่ download ใหม่) จะ download เฉพาะ creative ใหม่ที่เพิ่มเข้ามาเท่านั้น</p>"
+    ))
+
     # Programmatic Integration Points
     sections.append("<h3>จุดเชื่อมต่อ Programmatic (pDOOH Roadmap)</h3>")
     sections.append(info_panel(
@@ -1057,6 +1210,176 @@ def build_page_5(page_id: str) -> str:
         '<tr><td><strong>Audience estimation</strong></td><td>N/A</td><td>ส่ง <code>audience_est</code> (foot traffic / ช่วงเวลา) ใน ad request</td></tr>'
         '</table>'
     )
+
+    # Creative Delivery Pipeline
+    sections.append("<h3>Creative Delivery Pipeline (End-to-End Optimization)</h3>")
+    sections.append(info_panel(
+        "<p><strong>เป้าหมาย:</strong> ส่ง creative ที่ <strong>ขนาดเล็กที่สุดแต่คุณภาพตรงกับจอจริง</strong> ของแต่ละป้าย "
+        "&mdash; ไม่ encode เกินความจำเป็น ไม่ download เกินจำเป็น ไม่เปลือง data โดยเฉพาะป้ายที่ใช้ SIM 4G/5G</p>"
+        "<p><strong>3 layers ทำงานร่วมกัน:</strong></p>"
+        "<ol>"
+        "<li><strong>Resolution-Aware Encoding</strong> &mdash; encode ตาม resolution จริงของป้าย (ไม่ใช่ fixed 1080p เสมอ)</li>"
+        "<li><strong>Encoding Optimization</strong> &mdash; strip audio, slow preset, codec upgrade</li>"
+        "<li><strong>Network-Aware Download</strong> &mdash; parallel + concurrency ตามประเภท internet (อยู่ section ด้านบน)</li>"
+        "</ol>"
+    ))
+
+    # Current pipeline analysis
+    sections.append('<h4>สถานะปัจจุบัน (v1 Video Processing Pipeline)</h4>')
+    sections.append("""<table>
+<tr><th>Parameter</th><th>ค่าปัจจุบัน (runtime)</th><th>Config Source</th><th>v2 เปลี่ยน?</th></tr>
+<tr><td>Codec</td><td>H.264 (<code>libx264</code>), profile high, level 4.1</td><td>Hardcoded</td><td>เหมือนเดิม (P3: ทดสอบ H.265)</td></tr>
+<tr><td>CRF</td><td><strong>28</strong></td><td><code>FFMPEG_CRF</code> env var</td><td>เหมือนเดิม</td></tr>
+<tr><td>Preset</td><td><strong><code>fast</code></strong></td><td><code>FFMPEG_PRESET</code> env var</td><td><strong>เปลี่ยนเป็น <code>slow</code></strong> (-5-10%)</td></tr>
+<tr><td>Audio</td><td>AAC 128kbps <strong>ทุกไฟล์</strong></td><td><code>FFMPEG_AUDIO_BITRATE</code></td><td><strong>Strip (<code>-an</code>)</strong> (-10-20%)</td></tr>
+<tr><td>Resolution</td><td><strong>Fixed per aspect ratio</strong> (16:9 &rarr; 1920&times;1080 เสมอ)</td><td><code>ASPECT_RATIO_RESOLUTIONS</code></td><td><strong>Per-billboard resolution</strong></td></tr>
+<tr><td>FPS</td><td>Cap 30fps (input &gt; 60fps)</td><td><code>OUTPUT_FPS_CAP</code></td><td>เหมือนเดิม</td></tr>
+<tr><td>Variant strategy</td><td>1 variant per aspect ratio (max 5)</td><td><code>requestedAspectRatios</code></td><td><strong>1 variant per unique resolution</strong></td></tr>
+</table>""")
+    sections.append(note_panel(
+        "<p><strong>Key finding:</strong> v1 encode variant ตาม <strong>aspect ratio</strong> (16:9, 9:16, etc.) "
+        "ที่ <strong>fixed resolution</strong> (เช่น 9:16 = 1080&times;1920 เสมอ). "
+        "แต่ป้ายจริง 9:16 อาจจะแค่ 352&times;672 &mdash; ได้ไฟล์ใหญ่เกิน <strong>9 เท่า</strong> "
+        "(1080&times;1920 = ~8 MB vs 352&times;672 = ~0.8 MB) โดยจอจะ downscale อยู่ดี ไม่ได้คุณภาพเพิ่ม.</p>"
+        "<p><strong>S3 path ปัจจุบัน:</strong> <code>s3://bucket/vp/{videoId}/{aspectRatio}.mp4</code> "
+        "(เช่น <code>vp/ADV20251114ABC123/16-9.mp4</code>)</p>"
+    ))
+
+    # Resolution-Aware Encoding
+    sections.append('<h4>v2 Resolution-Aware Encoding (Per-Billboard Variant)</h4>')
+    sections.append(warning_panel(
+        "<p><strong>Architectural Change:</strong> แทนที่จะ encode <strong>fixed resolution per aspect ratio</strong>, "
+        "v2 encode ตาม <strong>resolution จริงของ billboard ที่ active</strong>. "
+        "ป้ายที่ resolution เหมือนกัน share variant เดียวกัน.</p>"
+    ))
+    sections.append("""<table>
+<tr><th>ขั้นตอน</th><th>v1 (ปัจจุบัน)</th><th>v2 (เสนอ)</th></tr>
+<tr><td><strong>1. Upload Creative</strong></td><td>User upload video &rarr; <code>UploadVideo</code> use case</td><td>เหมือนเดิม</td></tr>
+<tr><td><strong>2. Determine Variants</strong></td><td>ใช้ <code>advertisement_aspect_ratios</code> &rarr; fixed resolution map<br/>(16:9 &rarr; 1920&times;1080 เสมอ)</td><td>Query <strong>billboard actual resolutions</strong> จาก <code>billboards</code> table<br/>group by unique resolution &rarr; encode เฉพาะที่ต้องใช้จริง</td></tr>
+<tr><td><strong>3. Encode</strong></td><td>FFmpeg encode 1 file per aspect ratio</td><td>FFmpeg encode <strong>1 file per unique resolution</strong><br/>(strip audio + slow preset)</td></tr>
+<tr><td><strong>4. Store</strong></td><td><code>vp/{videoId}/{ratio}.mp4</code><br/>(e.g. <code>16-9.mp4</code>)</td><td><code>vp/{videoId}/{width}x{height}.mp4</code><br/>(e.g. <code>1920x1080.mp4</code>, <code>352x672.mp4</code>)</td></tr>
+<tr><td><strong>5. Serve</strong></td><td>API ส่ง URL ตาม aspect ratio</td><td>API ส่ง URL <strong>ตาม billboard resolution</strong> ใน <code>creative_manifest</code></td></tr>
+</table>""")
+
+    # Billboard resolution data
+    sections.append('<h4>ข้อมูลป้ายจาก Production DB (Feb 2026)</h4>')
+    sections.append("""<table>
+<tr><th>ป้าย</th><th>Aspect Ratio</th><th>Resolution จริง</th><th>v1 Encode Size</th><th>v2 Encode Size</th><th>ลดได้</th></tr>
+<tr><td>แยกเทพประสิทธิ์, ถ.เทพคุณากร, แลนด์มาร์คราชพฤกษ์, แยกพัทยาเหนือ, สี่แยกชะอำ</td><td>16:9</td><td>1920&times;1080</td><td>~8 MB</td><td>~5.8 MB</td><td><strong>-28%</strong> (audio+preset)</td></tr>
+<tr><td><strong>แยกพงษ์เพชร</strong></td><td>3:2</td><td><strong>1080&times;720</strong></td><td>~8 MB</td><td><strong>~2.5 MB</strong></td><td><strong>-69%</strong></td></tr>
+<tr><td><strong>แยกเดชาติวงศ์</strong></td><td>9:8</td><td><strong>1080&times;960</strong></td><td>~8 MB</td><td><strong>~5.0 MB</strong></td><td><strong>-38%</strong></td></tr>
+<tr><td><strong>แลนด์มาร์คมหาชัย</strong></td><td>9:16 (portrait)</td><td><strong>352&times;672</strong></td><td>~8 MB</td><td><strong>~0.8 MB</strong></td><td><strong>-90%</strong></td></tr>
+<tr><td>ป้าย inactive (4 ตัว)</td><td>ต่างกัน</td><td>null</td><td>ใช้ default</td><td>ใช้ default (aspect ratio map)</td><td>&mdash;</td></tr>
+</table>""")
+    sections.append(note_panel(
+        "<p><strong>Unique resolutions ปัจจุบัน:</strong> 4 resolutions จาก 8 ป้าย active &mdash; "
+        "creative 1 ตัว encode แค่ 4 variants (ไม่ใช่ 5 ตาม aspect ratio map). "
+        "ป้าย 16:9 ทั้ง 5 ตัว <strong>share variant เดียวกัน</strong> (1920&times;1080).</p>"
+    ))
+
+    # Encoding trigger strategy
+    sections.append('<h4>Encoding Trigger Strategy</h4>')
+    sections.append("""<table>
+<tr><th>Event</th><th>Action</th><th>ตัวอย่าง</th></tr>
+<tr><td><strong>Creative Upload</strong></td><td>Encode variants สำหรับทุก unique resolution ของป้ายที่ active + ใช้ creative นี้</td><td>Upload video &rarr; encode 1920x1080, 1080x720, 1080x960, 352x672</td></tr>
+<tr><td><strong>Billboard เปิดใหม่</strong> (resolution ใหม่)</td><td>Queue re-encode ของ creative ที่ยังไม่มี variant สำหรับ resolution นี้</td><td>เพิ่มป้าย 800x600 &rarr; re-encode creative ที่ assign ให้ป้ายนี้</td></tr>
+<tr><td><strong>Billboard เปลี่ยน resolution</strong></td><td>Queue re-encode ถ้า variant ใหม่ยังไม่มี + evict variant เก่า (ถ้าไม่มีป้ายอื่นใช้)</td><td>ป้ายอัพเกรดจอ 720p &rarr; 1080p</td></tr>
+<tr><td><strong>Fallback</strong></td><td>ถ้า exact variant ยังไม่พร้อม &rarr; ใช้ variant ที่ใกล้เคียง (resolution สูงกว่า)</td><td>ป้าย 352x672 variant ยัง encode ไม่เสร็จ &rarr; ใช้ 1080x1920 ชั่วคราว</td></tr>
+</table>""")
+
+    # Combined impact
+    sections.append('<h4>Combined Impact: Resolution + Encoding + Network</h4>')
+    sections.append(
+        '<p>ตัวอย่าง <strong>ป้ายมหาชัย</strong> (352&times;672, SIM 4G, 10 ads):</p>'
+    )
+    sections.append("""<table>
+<tr><th>Layer</th><th>ก่อน</th><th>หลัง</th><th>ลดได้</th></tr>
+<tr><td><strong>1. Resolution-Aware</strong></td><td>1080&times;1920 (~8 MB)</td><td>352&times;672 (~1.0 MB)</td><td><strong>-87%</strong></td></tr>
+<tr><td><strong>2. Strip Audio + Slow Preset</strong></td><td>~1.0 MB</td><td>~0.7 MB</td><td><strong>-30%</strong></td></tr>
+<tr><td><strong>3. 10 ads total download</strong></td><td>80 MB (v1)</td><td><strong>7 MB</strong> (v2)</td><td><strong>-91%</strong></td></tr>
+<tr><td><strong>4. Download time (SIM 10 Mbps, parallel)</strong></td><td>~64s (sequential)</td><td><strong>~2s</strong> (3 concurrent)</td><td><strong>-97%</strong></td></tr>
+<tr><td><strong>5. Data cost/เดือน</strong></td><td>~80 MB &times; 30 = 2.4 GB</td><td>~7 MB &times; 30 = <strong>210 MB</strong></td><td><strong>-91%</strong></td></tr>
+</table>""")
+    sections.append(success_panel(
+        "<p><strong>ผลลัพธ์รวม (มหาชัย):</strong> จาก 8 MB/file &rarr; 0.7 MB/file, "
+        "download 10 ads บน SIM 4G จาก 64 วินาที เหลือ 2 วินาที, "
+        "ค่า data ต่อเดือนจาก 2.4 GB เหลือ 210 MB</p>"
+    ))
+
+    sections.append(
+        '<p>ตัวอย่าง <strong>ป้าย 1080p</strong> (16:9, Broadband, 10 ads) &mdash; ไม่ได้ประโยชน์จาก resolution-aware แต่ได้จาก encoding optimization:</p>'
+    )
+    sections.append("""<table>
+<tr><th>Layer</th><th>ก่อน</th><th>หลัง</th><th>ลดได้</th></tr>
+<tr><td><strong>1. Resolution-Aware</strong></td><td>1920&times;1080 (~8 MB)</td><td>1920&times;1080 (~8 MB)</td><td>ไม่เปลี่ยน</td></tr>
+<tr><td><strong>2. Strip Audio + Slow Preset</strong></td><td>~8 MB</td><td>~5.8 MB</td><td><strong>-28%</strong></td></tr>
+<tr><td><strong>3. 10 ads total download</strong></td><td>80 MB (v1)</td><td><strong>58 MB</strong> (v2)</td><td><strong>-28%</strong></td></tr>
+<tr><td><strong>4. Download time (BB 100 Mbps, parallel)</strong></td><td>~6.4s (sequential)</td><td><strong>~1s</strong> (5 concurrent)</td><td><strong>-84%</strong></td></tr>
+</table>""")
+
+    # API Response integration
+    sections.append('<h4>API Response: creative_manifest (v2)</h4>')
+    sections.append(info_panel(
+        "<p>v2 API ส่ง <code>creative_manifest</code> ที่มี URL ตรงกับ resolution ของป้ายที่ request &mdash; "
+        "Player ไม่ต้องรู้ว่ามี variant อื่น แค่ download URL ที่ได้มา.</p>"
+    ))
+    sections.append(tracked_code_block(
+        '// creative_manifest ใน GET /v3/screen-schedule response\n'
+        '// Billboard: แลนด์มาร์คมหาชัย (352x672)\n'
+        '"creative_manifest": [\n'
+        '  {\n'
+        '    "creative_code": "CR-xxx",\n'
+        '    "url": "https://cdn.../vp/ADV20251114ABC123/352x672.mp4",\n'
+        '    "checksum": "a1b2c3d4...",\n'
+        '    "size_bytes": 734003,      // ~0.7 MB (resolution-aware)\n'
+        '    "width": 352,\n'
+        '    "height": 672\n'
+        '  },\n'
+        '  {\n'
+        '    "creative_code": "CR-yyy",\n'
+        '    "url": "https://cdn.../vp/ADV20251115DEF456/352x672.mp4",\n'
+        '    "checksum": "e5f6g7h8...",\n'
+        '    "size_bytes": 891204,\n'
+        '    "width": 352,\n'
+        '    "height": 672\n'
+        '  }\n'
+        ']\n'
+        '\n'
+        '// เทียบกับ Billboard 1080p (แยกเทพประสิทธิ์):\n'
+        '// "url": "https://cdn.../vp/ADV20251114ABC123/1920x1080.mp4"\n'
+        '// "size_bytes": 5800000  // ~5.8 MB\n'
+        '// Creative เดียวกัน (CR-xxx) แต่คนละ variant ตาม billboard',
+        "json", "creative_manifest per Billboard Resolution",
+        collapse=True,
+    ))
+
+    # Edge cases
+    sections.append('<h4>Edge Cases และข้อจำกัด</h4>')
+    sections.append(warning_panel(
+        "<p><strong>Edge Cases:</strong></p>"
+        "<ul>"
+        "<li><strong>ป้ายทดสอบ (id=23):</strong> <code>resolution_width=0, resolution_height=0</code> "
+        "&rarr; treat เหมือน null (ใช้ default aspect ratio map)</li>"
+        "<li><strong>ป้าย inactive ไม่มี resolution:</strong> ไม่ encode variant &mdash; "
+        "encode เมื่อป้าย activate และกรอก resolution</li>"
+        "<li><strong>ไม่มี <code>hasAudio</code> flag:</strong> ปัจจุบันทุกป้ายไม่มีลำโพง "
+        "&rarr; strip audio ทุกไฟล์ ถ้าอนาคตบางป้ายมีลำโพง ต้องเพิ่ม flag + encode with audio variant</li>"
+        "<li><strong>H.265 (อนาคต):</strong> ลดได้ 40-60% เพิ่ม แต่ต้อง test กับ Tauri player (Chromium รองรับตั้งแต่ Chrome 107)</li>"
+        "<li><strong>Variant ยัง encode ไม่เสร็จ:</strong> Fallback ใช้ variant resolution สูงกว่าที่มี &mdash; "
+        "Player download ไฟล์ใหญ่กว่าชั่วคราว จน exact variant พร้อม (re-download ครั้งเดียว)</li>"
+        "<li><strong>Storage cost:</strong> เพิ่ม variant = เพิ่ม S3 storage แต่ file เล็กลง &mdash; "
+        "4 unique resolutions &times; 4,190 videos = ~16K files (ปัจจุบัน ~4K files)</li>"
+        "</ul>"
+    ))
+
+    sections.append(success_panel(
+        "<p><strong>Quick Win (ไม่ต้องแก้ player):</strong> Strip audio + preset <code>slow</code> "
+        "= ลด file size <strong>~28%</strong> ทุก creative ทุกป้าย &mdash; แก้แค่ video processing config</p>"
+        "<p><strong>Biggest Impact (ต้องแก้ API + video processing):</strong> "
+        "Resolution-Aware encoding สำหรับ แลนด์มาร์คมหาชัย จาก ~8 MB &rarr; ~0.7 MB ต่อ creative (<strong>-91%</strong>)</p>"
+        "<p><strong>Combined (ทุก layer):</strong> ป้าย SIM + resolution ต่ำ ได้ประโยชน์สูงสุด &mdash; "
+        "download เร็วขึ้น 30x, ค่า data ลด 91%</p>"
+    ))
 
     return "\n".join(sections)
 
@@ -1453,7 +1776,7 @@ def build_page_8(page_id: str) -> str:
         '<td><strong>Acceptable tradeoff:</strong> player จะเล่น creative ต่อจน reconnect. เมื่อ reconnect &rarr; sync schedule ใหม่ &rarr; creative หายไป. PoP records ยังถูกต้อง (ส่งทีหลัง reconnect)</td></tr>'
         '<tr><td>E21</td><td><strong>Campaign budget exhausted ขณะเล่น</strong></td>'
         '<td>Player กำลังเล่น ad ของ campaign ที่หมด budget</td>'
-        '<td>Backend ไม่ใส่ ad นี้ใน round ถัดไป. Player round ปัจจุบันเล่นจบปกติ (ยอมรับได้ &mdash; เป็น 1 round = 10 นาที max)</td></tr>'
+        '<td>Backend ไม่ใส่ ad นี้ใน round ถัดไป. Player round ปัจจุบันเล่นจบปกติ (ยอมรับได้ &mdash; เป็น 1 round = 5 นาที max)</td></tr>'
         '<tr><td>E22</td><td><strong>PoP ส่งไม่ได้</strong> &rarr; billing คลาดเคลื่อน</td>'
         '<td>Offline นาน &rarr; PoP outbox queue สะสม</td>'
         '<td><strong>Outbox guarantee:</strong> ไม่มี PoP event หาย (persisted ใน Tauri Store). เมื่อ reconnect &rarr; flush ทั้งหมดตามลำดับ. Backend reconcile by timestamp</td></tr>'
@@ -1577,34 +1900,63 @@ def build_page_8(page_id: str) -> str:
     ))
 
     sections.append("<hr/>")
-    sections.append("<h2>แผนการ Migration (ทำทีละ Phase)</h2>")
+    sections.append("<h2>แผนการ Migration (Parallel Operation Strategy)</h2>")
+    sections.append(warning_panel(
+        "<p><strong>Version Isolation:</strong> v2 เป็น <strong>new modules ทั้งหมด</strong> (ไม่ reuse v1 code) &mdash; "
+        "ทั้ง Player และ API อยู่ใน repo เดิมแต่ modules แยกกัน, DB schema แยก. "
+        "v1 และ v2 ทำงาน <strong>พร้อมกันได้</strong> &mdash; rollout ทีละป้าย (canary), rollback ทันทีถ้ามีปัญหา.</p>"
+    ))
     sections.append(info_panel(
-        "<p><strong>Feature flags:</strong></p>"
+        "<p><strong>Rollout strategy:</strong></p>"
         "<ul>"
-        "<li><code>billboard.player_mode: 'smart' | 'dumb'</code> &mdash; roll out Dumb Renderer per billboard, no big bang</li>"
-        "<li><code>billboard.interrupt_capable: boolean</code> &mdash; Phase 3.5: enable Interrupt Controller (แยกจาก player_mode)</li>"
+        "<li><code>billboard.player_version: 'v1' | 'v2'</code> &mdash; สลับ version per billboard (ไม่ใช่ big bang)</li>"
+        "<li>v1 ป้ายยังทำงานปกติขณะ v2 rollout &mdash; ไม่กระทบกัน</li>"
+        "<li>เมื่อทุกป้ายอยู่บน v2 แล้ว → sunset v1 (Phase 5)</li>"
         "</ul>"
     ))
     sections.append(
         '<table>'
-        '<tr><th>Phase</th><th>Backend</th><th>Player</th><th>Risk</th></tr>'
-        '<tr><td><strong>Phase 0</strong></td><td>Add <code>version</code> field to Pusher payload</td><td>Store version (don\'t use yet)</td><td>' + status_macro("Zero risk", "Green") + '</td></tr>'
-        '<tr><td><strong>Phase 1</strong></td><td>Add Ad Decisioning Engine + ScreenSchedule models + <code>GET /v2/screen-schedule</code></td><td>Read-only testing (no behavior change)</td><td>' + status_macro("Backend only", "Green") + '</td></tr>'
-        '<tr><td><strong>Phase 2</strong></td><td>Add Idempotency Key check in PoP endpoint</td><td>Send <code>X-Idempotency-Key</code> header</td><td>' + status_macro("Backward compat", "Green") + '</td></tr>'
-        '<tr><td><strong>Phase 3</strong></td><td>&mdash;</td><td>Player V2: read ordered screen schedule. <strong>Feature flag per device</strong></td><td>' + status_macro("Gradual rollout", "Yellow") + '</td></tr>'
+        '<tr><th>Phase</th><th>Backend (tathep-platform-api)</th><th>Player (bd-vision-player)</th><th>Risk</th></tr>'
+        '<tr><td><strong>Phase 1</strong></td>'
+        '<td>v2 modules: Ad Decisioning Engine + v2 DB schema (ScreenSchedule, etc.) + <code>GET /v3/screen-schedule</code></td>'
+        '<td>v2 modules: Dumb Renderer + v2 Store + v2 Downloader (parallel, timeout, integrity)</td>'
+        '<td>' + status_macro("v1 untouched", "Green") + '</td></tr>'
+        '<tr><td><strong>Phase 2</strong></td>'
+        '<td>v2 PoP endpoint (idempotency key) + v2 Pusher events (typed + versioned)</td>'
+        '<td>v2 Outbox + Inbox handler</td>'
+        '<td>' + status_macro("v1 untouched", "Green") + '</td></tr>'
+        '<tr><td><strong>Phase 3</strong></td>'
+        '<td>&mdash;</td>'
+        '<td><strong>Canary rollout:</strong> สลับป้ายแรกไป v2. v1 ป้ายอื่นยังทำงานปกติ</td>'
+        '<td>' + status_macro("1 billboard risk", "Yellow") + '</td></tr>'
         '<tr><td><strong>Phase 3.5</strong></td>'
-        '<td>TakeoverSchedule + ExactTimeSpot models, TK Booking API + overlap validation, '
-        'Pusher: takeover-start/end + p0-emergency, MakeGoodRecord + PoP interrupt fields, '
-        'Ad Decisioning v3 (Step 0 + 1.5 + 5.5)</td>'
-        '<td>Interrupt Controller component, local clock TK boundary detection, '
-        'PoP: interrupted + play_duration + make_good</td>'
+        '<td>v2 TakeoverSchedule + ExactTimeSpot + MakeGoodRecord + TK Booking API</td>'
+        '<td>v2 Interrupt Controller + local clock TK boundary + PoP interrupt fields</td>'
         '<td>' + status_macro("Medium risk", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Phase 4</strong></td><td>&mdash;</td><td>3-Tier cache + state machine + checksum validation</td><td>' + status_macro("Full new behavior", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Phase 5</strong></td><td>Remove old schedule endpoints (v1)</td><td>Remove old scheduling code</td><td>' + status_macro("Cleanup", "Grey") + '</td></tr>'
-        '<tr><td><strong>Phase 6</strong></td><td>SSP integration: ad request for P3 avails, impression tracking (IAB fields), <code>GET /v2/avails</code> API</td><td>No change (backend-only pDOOH)</td><td>' + status_macro("Backend only", "Yellow") + '</td></tr>'
-        '<tr><td><strong>Phase 7</strong></td><td>Mediation layer: multi-SSP, floor price, preferred deals</td><td>PoP format upgrade (IAB DOOH standard)</td><td>' + status_macro("Revenue impact", "Red") + '</td></tr>'
+        '<tr><td><strong>Phase 4</strong></td>'
+        '<td>&mdash;</td>'
+        '<td><strong>Full rollout:</strong> สลับทุกป้ายไป v2 ทีละตัว</td>'
+        '<td>' + status_macro("Gradual rollout", "Yellow") + '</td></tr>'
+        '<tr><td><strong>Phase 5</strong></td>'
+        '<td><strong>Sunset v1:</strong> ลบ v1 modules + v1 DB tables + v1 endpoints</td>'
+        '<td><strong>Sunset v1:</strong> ลบ v1 modules + v1 localStorage logic</td>'
+        '<td>' + status_macro("Cleanup", "Grey") + '</td></tr>'
+        '<tr><td><strong>Phase 6</strong></td>'
+        '<td>pDOOH: SSP integration, impression tracking (IAB), <code>GET /v3/avails</code></td>'
+        '<td>No change (backend-only pDOOH)</td>'
+        '<td>' + status_macro("Backend only", "Yellow") + '</td></tr>'
+        '<tr><td><strong>Phase 7</strong></td>'
+        '<td>Mediation layer: multi-SSP, floor price, preferred deals</td>'
+        '<td>PoP format upgrade (IAB DOOH standard)</td>'
+        '<td>' + status_macro("Revenue impact", "Red") + '</td></tr>'
         '</table>'
     )
+    sections.append(note_panel(
+        "<p><strong>Rollback procedure:</strong> ถ้า v2 มีปัญหาบนป้ายใดก็ตาม &mdash; "
+        "เปลี่ยน <code>billboard.player_version</code> กลับเป็น <code>'v1'</code> ทันที. "
+        "v1 code + DB ยังอยู่ครบ ไม่มีอะไรถูกลบจนกว่า Phase 5 (sunset). "
+        "ไม่ต้อง rollback deployment &mdash; แค่สลับ config.</p>"
+    ))
 
     sections.append("<hr/>")
     sections.append("<h2>ภาคผนวก (Appendix)</h2>")
@@ -1691,7 +2043,7 @@ def build_page_8(page_id: str) -> str:
         '<tr><td><strong>Interrupt handling</strong></td><td>เลือก interrupt: P0/P1-TK/P1-ET interrupt, P2-P4 รอ</td><td>มาตรฐาน (แบบ Broadsign configurable)</td></tr>'
         '<tr><td><strong>Creative management</strong></td><td>Upload media + CDN + checksum validation</td><td>มาตรฐาน</td></tr>'
         '<tr><td><strong>Offline resilience</strong></td><td>Cache 3 ชั้น (Live/Buffer/Fallback)</td><td>มาตรฐาน (เทียบเท่า Xibo/BrightSign)</td></tr>'
-        '<tr><td><strong>Loop scheduling</strong></td><td>Loop 10 นาที ผ่าน Scheduling Engine (BullMQ)</td><td>มาตรฐาน</td></tr>'
+        '<tr><td><strong>Loop scheduling</strong></td><td>Loop 5 นาที + event-driven ผ่าน Scheduling Engine (BullMQ)</td><td>มาตรฐาน</td></tr>'
         '</table>'
     ))
 
@@ -1759,7 +2111,7 @@ def build_page_8(page_id: str) -> str:
         '<tr><td><code>ownerTime</code> / <code>platformTime</code></td><td><strong>SOV (Share of Voice)</strong></td>'
         '<td>สัดส่วนเวลา owner vs platform &mdash; logic เดิม rename</td></tr>'
         '<tr><td rowspan="2"><strong>Scheduling</strong></td>'
-        '<td>round (10 min)</td><td><strong>Loop</strong></td>'
+        '<td>round (5 min)</td><td><strong>Loop</strong></td>'
         '<td>DOOH เรียก loop cycle</td></tr>'
         '<tr><td>round-robin</td><td><strong>Loop Rotation</strong></td>'
         '<td>การหมุนเวียน creative ใน loop</td></tr>'
@@ -1788,15 +2140,15 @@ def build_page_8(page_id: str) -> str:
         '<tr><td><code>PlaySchedulePeriodService</code></td><td><strong>Campaign period</strong> (input to ADE)</td>'
         '<td><code>app/Services/PlaySchedulePeriodService.ts</code></td></tr>'
         '<tr><td><code>GET /v2/play-schedules</code> + <code>/playlist-advertisements</code></td>'
-        '<td><strong><code>GET /v2/screen-schedule</code></strong> (unified)</td>'
-        '<td>NEW endpoint</td></tr>'
+        '<td><strong><code>GET /v3/screen-schedule</code></strong> (v2 new endpoint)</td>'
+        '<td>v2 endpoint แยกจาก v1 routes</td></tr>'
         '<tr><td><code>AdvertisementDisplayExclusive</code></td><td>Remains (data source for <strong>guaranteed spots</strong>)</td>'
         '<td><code>app/Models/AdvertisementDisplayExclusive.ts</code></td></tr>'
         '<tr><td><code>AdGroupDisplayTimeExclusive</code></td><td>Remains (data source for <strong>guaranteed time window</strong>)</td>'
         '<td><code>app/Models/AdGroupDisplayTimeExclusive.ts</code></td></tr>'
-        '<tr><td colspan="3"><em>NO CHANGE:</em> <code>PlayScheduleCalculate.ts</code>, '
-        '<code>PlayScheduleCalculatePerScreen.ts</code>, <code>PlaySchedule.ts</code> model, '
-        '<code>checkIsBillboardsReserved.ts</code></td></tr>'
+        '<tr><td colspan="3"><em>v1 references (ไม่ reuse code):</em> <code>PlayScheduleCalculate.ts</code>, '
+        '<code>PlayScheduleCalculatePerScreen.ts</code>, <code>PlaySchedule.ts</code>, '
+        '<code>checkIsBillboardsReserved.ts</code> &mdash; v2 จะเขียนใหม่ทั้งหมด</td></tr>'
         '</table>'
     )
 
@@ -1870,11 +2222,10 @@ def build_page_8(page_id: str) -> str:
     )
 
     _term_content += note_panel(
-        "<p><strong>Code ยังไม่เปลี่ยน:</strong> Mapping นี้คือ <em>terminology</em> ในเอกสาร architecture. "
-        "Code refactor จะทำเป็น phase ตาม Migration Plan &mdash; "
-        "ไม่ต้อง rename ทุกอย่างพร้อมกัน. "
-        "Model เดิม (<code>PlaySchedule</code>, <code>AdvertisementDisplayExclusive</code>, <code>Billboard</code>) "
-        "ยังใช้ชื่อเดิมใน codebase จนกว่าจะ migrate</p>"
+        "<p><strong>Version Isolation:</strong> v2 จะสร้าง modules ใหม่ทั้งหมด &mdash; "
+        "ไม่ rename หรือ refactor v1 code. v1 models (<code>PlaySchedule</code>, <code>AdvertisementDisplayExclusive</code>, etc.) "
+        "ยังคงอยู่ใน codebase เดิมและทำงานปกติจนกว่า v1 จะถูก sunset (Phase 5). "
+        "Mapping นี้แสดง <em>terminology</em> ที่จะใช้ใน v2 modules ใหม่.</p>"
     )
 
     sections.append(expand_section(
@@ -1997,7 +2348,7 @@ def build_page_9(page_id: str) -> str:
         '<table>'
         '<tr><th>Actor</th><th>Type</th><th>Description</th></tr>'
         '<tr><td><strong>Cron</strong></td><td>System</td>'
-        '<td>BullMQ scheduled job &mdash; trigger คำนวณ schedule ทุก 10 นาที</td></tr>'
+        '<td>BullMQ scheduled job &mdash; trigger คำนวณ schedule ทุก 5 นาที + event-driven trigger</td></tr>'
         '<tr><td><strong>Admin</strong></td><td>Human</td>'
         '<td>Admin ของ platform &mdash; approve takeover, trigger emergency, จัดการจอ</td></tr>'
         '<tr><td><strong>Player</strong></td><td>Device</td>'
@@ -2063,7 +2414,7 @@ def build_page_10(page_id: str) -> str:
     sections.append("<hr/>")
     sections.append("<h3>Process A: คำนวณ Schedule</h3>")
     sections.append(note_panel(
-        "<p><strong>Trigger:</strong> Cron ทำงานทุก 10 นาที<br/>"
+        "<p><strong>Trigger:</strong> Cron ทำงานทุก 5 นาที + event-driven trigger<br/>"
         "<strong>ผลลัพธ์:</strong> Ordered screen schedule ถูก push ไปยัง player ผ่าน Pusher<br/>"
         "<strong>Grammar:</strong> Cron &rarr; CalculateSchedule &rarr; PlaySchedule &rarr; "
         "ScheduleCalculated &rarr; <em>BuildScreenSchedule</em> &rarr; AdDecisioningService &rarr; "
@@ -2286,6 +2637,461 @@ def build_page_11(page_id: str) -> str:
     return "\n".join(sections)
 
 
+def build_page_12(page_id: str) -> str:
+    """Page 12: Use Case — Ad Distribution & Scheduling Cycle (2 mermaid, 0 code blocks)."""
+    global _code_block_count
+    _code_block_count = 0
+    sections = []
+
+    sections.append(toc())
+
+    # ─── Intro ───
+    sections.append(info_panel(
+        "<p><strong>Use Case Reference:</strong> หน้านี้อธิบายการทำงานจริงของ Ad Scheduling System "
+        "ผ่าน scenario ที่สมจริง — 10 ads ความยาวต่างกัน, เป้า 5 ครั้ง/hr, "
+        "ป้ายเปิด 07:00-22:00 ทุกวัน</p>"
+    ))
+
+    # ─── Section 1: Ad Distribution ───
+    sections.append('<h2>1. การกระจาย Ad บนป้าย (Ad Distribution)</h2>')
+
+    sections.append('<h3>Scenario</h3>')
+    sections.append(
+        '<p>ป้าย 1 จอ, เปิด 07:00-22:00 (15 ชม.), เป้าหมายแต่ละ ad เล่น '
+        '<strong>5 ครั้ง/hr</strong>, SOV ratio = owner 40% : platform 60%</p>'
+    )
+
+    sections.append('<h3>Ad Mix (10 ads)</h3>')
+    sections.append("""<table>
+<tr><th>Ad</th><th>ลูกค้า (สมมติ)</th><th>Duration</th><th>Priority</th><th>หมายเหตุ</th></tr>
+<tr><td>Ad-A</td><td>แบรนด์ใหญ่ A</td><td><strong>30s</strong></td><td>P2 (Direct-Sold)</td><td>TVC repurpose</td></tr>
+<tr><td>Ad-B</td><td>แบรนด์ใหญ่ B</td><td><strong>20s</strong></td><td>P2 (Direct-Sold)</td><td>Product launch</td></tr>
+<tr><td>Ad-C</td><td>ร้านอาหารใกล้จอ</td><td><strong>15s</strong></td><td>P2 (Direct-Sold)</td><td>Local business</td></tr>
+<tr><td>Ad-D</td><td>แบรนด์ C</td><td><strong>15s</strong></td><td>P2 (Direct-Sold)</td><td>Standard spot</td></tr>
+<tr><td>Ad-E</td><td>Guaranteed client</td><td><strong>15s</strong></td><td><strong>P1-G</strong></td><td>จองตำแหน่งตรงเวลา</td></tr>
+<tr><td>Ad-F</td><td>แบรนด์ D</td><td><strong>10s</strong></td><td>P3 (Spot Buy)</td><td>Short bumper</td></tr>
+<tr><td>Ad-G</td><td>แบรนด์ E</td><td><strong>10s</strong></td><td>P3 (Spot Buy)</td><td>Short bumper</td></tr>
+<tr><td>Ad-H</td><td>แบรนด์ F</td><td><strong>20s</strong></td><td>P2 (Direct-Sold)</td><td>Seasonal promo</td></tr>
+<tr><td>Ad-I</td><td>แบรนด์ G</td><td><strong>15s</strong></td><td>P3 (Spot Buy)</td><td>Impression-based</td></tr>
+<tr><td>Ad-J</td><td>เจ้าของป้าย</td><td><strong>10s</strong></td><td>P4 (House)</td><td>Self-promo filler</td></tr>
+</table>""")
+
+    sections.append('<h3>คำนวณ Loop Duration</h3>')
+    sections.append("""<table>
+<tr><th>Parameter</th><th>Value</th><th>สูตร</th></tr>
+<tr><td>Campaign ads (A-I) รวม</td><td>150s</td><td>30+20+15+15+15+10+10+20+15</td></tr>
+<tr><td>เป้า frequency</td><td>5 ครั้ง/hr</td><td>กำหนดโดยลูกค้า</td></tr>
+<tr><td>Loop duration ที่ต้องการ</td><td><strong>720s (12 นาที)</strong></td><td>3,600 / 5 = 720</td></tr>
+<tr><td>Filler time ต่อ loop</td><td><strong>570s</strong></td><td>720 - 150 = 570</td></tr>
+<tr><td>Filler items ต่อ loop</td><td>~46 items</td><td>570 / avg 12.5s</td></tr>
+<tr><td>Total items ต่อ loop</td><td>~55 items</td><td>9 campaign + 46 filler</td></tr>
+</table>""")
+
+    sections.append('<h3>SOV Interleave</h3>')
+    sections.append(
+        '<p><strong>SOV ratio:</strong> owner 40% : platform 60%</p>'
+        '<p><code>interleaveEvery = Math.round(1 / 0.4) = 3</code> '
+        '&rarr; ทุก 3 campaign ads ใส่ house filler 1 ตัว '
+        '+ filler เพิ่มเติมเพื่อยืด loop ให้ครบ 720s</p>'
+    )
+
+    sections.append('<h3>ตัวอย่าง Ordered Sequence (1 Loop = 720s)</h3>')
+    sections.append(expand_section("ดูตัวอย่าง Sequence เต็ม", """<table>
+<tr><th>Seq</th><th>Ad</th><th>Duration</th><th>Type</th><th>Cumulative Time</th></tr>
+<tr><td>1</td><td>Ad-E (P1-G)</td><td>15s</td><td>Guaranteed</td><td>0:00</td></tr>
+<tr><td>2-4</td><td>Filler 1-3</td><td>10-15s</td><td>House</td><td>0:15-0:40</td></tr>
+<tr><td>5</td><td>Ad-A</td><td>30s</td><td>Campaign</td><td>0:55</td></tr>
+<tr><td>6-8</td><td>Filler 4-6</td><td>10-15s</td><td>House</td><td>1:25-1:50</td></tr>
+<tr><td>9</td><td>Ad-B</td><td>20s</td><td>Campaign</td><td>2:05</td></tr>
+<tr><td>10-12</td><td>Filler 7-9</td><td>10-15s</td><td>House</td><td>2:25-2:50</td></tr>
+<tr><td>13</td><td>Ad-C</td><td>15s</td><td>Campaign</td><td>3:00</td></tr>
+<tr><td>14-16</td><td>Filler 10-12</td><td>10-15s</td><td>House</td><td>3:15-3:40</td></tr>
+<tr><td>17</td><td>Ad-D</td><td>15s</td><td>Campaign</td><td>3:50</td></tr>
+<tr><td>18-20</td><td>Filler 13-15</td><td>10-15s</td><td>House</td><td>4:05-4:30</td></tr>
+<tr><td>21</td><td>Ad-F</td><td>10s</td><td>Campaign</td><td>4:40</td></tr>
+<tr><td>22-23</td><td>Filler 16-17</td><td>10s</td><td>House</td><td>4:50-5:00</td></tr>
+<tr><td>24</td><td>Ad-G</td><td>10s</td><td>Campaign</td><td>5:10</td></tr>
+<tr><td>25-27</td><td>Filler 18-20</td><td>10-15s</td><td>House</td><td>5:20-5:50</td></tr>
+<tr><td>28</td><td>Ad-H</td><td>20s</td><td>Campaign</td><td>6:00</td></tr>
+<tr><td>29-31</td><td>Filler 21-23</td><td>10-15s</td><td>House</td><td>6:20-6:45</td></tr>
+<tr><td>32</td><td>Ad-I</td><td>15s</td><td>Campaign</td><td>6:55</td></tr>
+<tr><td>33-55</td><td>Filler 24-46</td><td>10-15s</td><td>House</td><td>7:10-12:00</td></tr>
+</table>
+<p><strong>หมายเหตุ:</strong> Player เล่น <code>sequence[i++]</code> ตามลำดับ &rarr; วนซ้ำ 5 loops/hr</p>"""))
+
+    sections.append('<h3>สรุปตัวเลขทั้งวัน</h3>')
+    sections.append("""<table>
+<tr><th>Metric</th><th>Per Loop</th><th>Per Hour (x5)</th><th>Per Day (x75)</th></tr>
+<tr><td>Campaign plays</td><td>9</td><td>45</td><td><strong>675</strong></td></tr>
+<tr><td>House/Filler plays</td><td>~46</td><td>~230</td><td><strong>~3,450</strong></td></tr>
+<tr><td>Total plays</td><td>~55</td><td>~280</td><td><strong>~4,125</strong></td></tr>
+<tr><td>Campaign airtime</td><td>150s</td><td>750s</td><td>11,250s (3.1 hr)</td></tr>
+<tr><td>House airtime</td><td>570s</td><td>2,850s</td><td>42,750s (11.9 hr)</td></tr>
+</table>""")
+
+    sections.append(note_panel(
+        "<p><strong>Insight:</strong> Campaign ใช้แค่ ~21% ของ airtime (750/3,600) &rarr; "
+        "79% เป็น filler &mdash; สภาพปกติของป้ายที่ยังขาย inventory ไม่เต็ม "
+        "ยิ่งขาย ads เพิ่ม filler จะลดลง loop สั้นลง frequency เพิ่มอัตโนมัติ</p>"
+    ))
+
+    # ─── Algorithm Diagram ───
+    sections.append('<h3>Algorithm Overview</h3>')
+    sections.append(mermaid_diagram(
+        load_diagram("12-ad-decisioning-steps.mmd"),
+        page_id=page_id,
+    ))
+
+    # ─── Section 2: Calculation Cycle ───
+    sections.append('<h2>2. รอบการคำนวณ Schedule (Calculation Cycle)</h2>')
+
+    sections.append('<h3>3-Tier Cache System</h3>')
+    sections.append("""<table>
+<tr><th>Tier</th><th>Method</th><th>เนื้อหา</th><th>อายุ</th><th>ใช้เมื่อ</th></tr>
+<tr><td><strong>Tier 1 (Live)</strong></td><td><code>buildSchedule()</code></td><td>Campaign + House ตามจริง</td><td>5 นาที</td><td>Online ปกติ</td></tr>
+<tr><td><strong>Tier 2 (Buffer)</strong></td><td><code>buildBufferSchedule(4)</code></td><td>Pre-calc ล่วงหน้า 4 ชม.</td><td>4 ชั่วโมง</td><td>เน็ตหลุด &gt; 5 นาที</td></tr>
+<tr><td><strong>Tier 3 (Fallback)</strong></td><td><code>buildFallbackSchedule()</code></td><td>House content อย่างเดียว</td><td>เปลี่ยนน้อยมาก</td><td>เน็ตหลุด &gt; 4 ชม.</td></tr>
+</table>""")
+
+    sections.append('<h3>Timeline ทั้งวัน (07:00-22:00)</h3>')
+    sections.append(expand_section("ดู Timeline เต็ม", """<table>
+<tr><th>เวลา</th><th>Event</th><th>ทำอะไร</th></tr>
+<tr><td>05:00</td><td>Daily Pre-calc Cron</td><td>Tier 2 (07:00-11:00) + Tier 3 ทั้งวัน + pre-download media</td></tr>
+<tr><td>06:50</td><td>Warm-up</td><td>Player boot &rarr; ดึง Tier 1+2+3, download media</td></tr>
+<tr><td>07:00</td><td>เปิดจอ + Cron Tier 1</td><td>Loop 07:00-07:05 (v1)</td></tr>
+<tr><td>07:05</td><td>Cron Tier 1</td><td>Loop 07:05-07:10 (v2)</td></tr>
+<tr><td>...</td><td>(ทุก 5 นาที)</td><td>Tier 1 update ต่อเนื่อง</td></tr>
+<tr><td>09:00</td><td>Cron rebuild Tier 2</td><td>Buffer 09:00-13:00</td></tr>
+<tr><td>11:00</td><td>Cron rebuild Tier 2</td><td>Buffer 11:00-15:00</td></tr>
+<tr><td>13:00</td><td>Cron rebuild Tier 2</td><td>Buffer 13:00-17:00</td></tr>
+<tr><td>15:00</td><td>Cron rebuild Tier 2</td><td>Buffer 15:00-19:00</td></tr>
+<tr><td>17:00</td><td>Cron rebuild Tier 2</td><td>Buffer 17:00-21:00</td></tr>
+<tr><td>19:00</td><td>Cron rebuild Tier 2</td><td>Buffer 19:00-22:00</td></tr>
+<tr><td>21:55</td><td>Cron Tier 1 สุดท้าย</td><td>Loop 21:55-22:00</td></tr>
+<tr><td>22:00</td><td>ปิดจอ</td><td>&mdash;</td></tr>
+</table>"""))
+
+    sections.append('<h3>สรุปจำนวน Cron Jobs ต่อวัน</h3>')
+    sections.append("""<table>
+<tr><th>Cron Job</th><th>ความถี่</th><th>จำนวน/วัน</th></tr>
+<tr><td>Tier 1 (Live)</td><td>ทุก 5 นาที</td><td><strong>180 ครั้ง</strong></td></tr>
+<tr><td>Tier 2 (Buffer)</td><td>ทุก 2 ชม.</td><td><strong>8 ครั้ง</strong></td></tr>
+<tr><td>Tier 3 (Fallback)</td><td>วันละ 1 ครั้ง</td><td><strong>1 ครั้ง</strong></td></tr>
+<tr><td>Daily Pre-calc</td><td>05:00</td><td><strong>1 ครั้ง</strong></td></tr>
+<tr><td>Event-driven (avg)</td><td>เมื่อมี event</td><td><strong>~5-15 ครั้ง</strong></td></tr>
+<tr><td><strong>รวม</strong></td><td></td><td><strong>~195-205 ครั้ง/วัน/ป้าย</strong></td></tr>
+</table>""")
+
+    sections.append('<h3>Event-Driven Re-calc Triggers</h3>')
+    sections.append("""<table>
+<tr><th>Event</th><th>Trigger</th><th>ความเร่งด่วน</th><th>Lead Time ขั้นต่ำ</th></tr>
+<tr><td>Owner approve ad ใหม่</td><td><code>advertisement.approved</code></td><td>ทันที</td><td><strong>15 นาที</strong></td></tr>
+<tr><td>Campaign แก้ไข creative</td><td><code>campaign.updated</code></td><td>ทันที</td><td>15 นาที</td></tr>
+<tr><td>Guaranteed spot จอง/ยกเลิก</td><td><code>exclusive.approved</code></td><td>ทันที</td><td><strong>1 ชั่วโมง</strong></td></tr>
+<tr><td>Takeover จอง</td><td><code>takeover.booked</code></td><td>ภายใน 5 นาที</td><td><strong>24 ชั่วโมง</strong></td></tr>
+<tr><td>Campaign หมดอายุ/pause</td><td><code>campaign.expired</code></td><td>รอบ cron ถัดไป</td><td>&mdash;</td></tr>
+<tr><td>House content เปลี่ยน</td><td><code>playlist.updated</code></td><td>รอบ cron ถัดไป</td><td>&mdash;</td></tr>
+</table>""")
+
+    sections.append(warning_panel(
+        "<p><strong>Lead Time:</strong> คอขวดจริงไม่ใช่ calculation (~1 วินาที) "
+        "แต่คือ <strong>creative download</strong> &mdash; ดู Distribution Time Breakdown ด้านล่าง</p>"
+    ))
+
+    sections.append('<h3>Distribution Time Breakdown</h3>')
+    sections.append(
+        '<p>เวลาจริงตั้งแต่ ad approved จนเล่นบนจอ:</p>'
+    )
+    sections.append("""<table>
+<tr><th>ขั้นตอน</th><th>เวลา</th><th>หมายเหตุ</th></tr>
+<tr><td>Calculate schedule</td><td>&lt; 1s</td><td>In-memory, per-screen</td></tr>
+<tr><td>Save to DB</td><td>&lt; 500ms</td><td>ScreenSchedule v+1</td></tr>
+<tr><td>Pusher notification</td><td>&lt; 1s</td><td>Push event ไป Player</td></tr>
+<tr><td>Player receives push</td><td>1-3s</td><td>Network latency</td></tr>
+<tr><td><strong>Player downloads creative</strong></td><td><strong>30s - 5 min</strong></td><td><strong>Bottleneck:</strong> ขึ้นกับ file size + network speed</td></tr>
+<tr><td>Apply new schedule</td><td>&lt; 1s</td><td>Switch on next loop</td></tr>
+<tr><td><strong>รวม end-to-end</strong></td><td><strong>~35s - 5 min</strong></td><td>ขึ้นกับ creative size</td></tr>
+</table>""")
+    sections.append(info_panel(
+        "<p><strong>Creative Pre-download:</strong> Player สามารถดาวน์โหลด creative ล่วงหน้า "
+        "ตอนได้รับ push notification ไม่ต้องรอจนถึง play time จริง &mdash; "
+        "ลด latency จาก 5 นาที เหลือ &lt; 30 วินาที สำหรับ ad ที่ creative พร้อมแล้ว</p>"
+    ))
+
+    sections.append('<h3>ทำไมเลือก Cron 5 นาที (ไม่ใช่ 2 นาทีหรือ 10 นาที)?</h3>')
+    sections.append("""<table>
+<tr><th>Cycle</th><th>ข้อดี</th><th>ข้อเสีย</th></tr>
+<tr><td>10 นาที</td><td>Server load ต่ำ, player stable</td><td>Response ช้า ลูกค้ารอนาน</td></tr>
+<tr><td><strong>5 นาที (เลือก)</strong></td><td><strong>Balance ดี, ตรง industry standard</strong></td><td>+2x cron load (ยังรับได้สบาย)</td></tr>
+<tr><td>2 นาที</td><td>เร็วมาก</td><td>+5x load, pacing accuracy ลดลง (sample size เล็ก)</td></tr>
+<tr><td>1 นาที</td><td>Near real-time</td><td>Pacing แทบไม่ work, player เปลี่ยน playlist บ่อยเกินไป</td></tr>
+</table>""")
+    sections.append(note_panel(
+        "<p><strong>Industry Benchmark:</strong> Xibo 5 นาที (default), Broadsign 15 นาที (SLA), "
+        "Vistar Media 15 นาที (programmatic), Scala 5-15 นาที (configurable) &mdash; "
+        "5 นาทีของเราอยู่ในกลุ่มเร็วของ industry</p>"
+    ))
+
+    # ─── Re-calc Sequence Diagram ───
+    sections.append('<h3>Flow: Ad ใหม่เข้าระบบ</h3>')
+    sections.append(mermaid_diagram(
+        load_diagram("12-recalc-sequence.mmd"),
+        page_id=page_id,
+    ))
+
+    # ─── Section 3: Campaign Pacing Filter ───
+    sections.append('<h2>3. Campaign Pacing Filter</h2>')
+
+    sections.append(
+        '<p><strong>หลักการ:</strong> ป้องกัน over-delivery &mdash; '
+        'ถ้า ad ตัวไหนเล่นเกินเป้าแล้ว ก็ถอดออกจาก loop ถัดไป เอา filler มาแทน</p>'
+    )
+
+    sections.append('<h3>ตัวอย่าง: Ad-A (30s) เป้า 40 impressions/day</h3>')
+    sections.append("""<table>
+<tr><th>เวลา</th><th>เล่นไปแล้ว</th><th>เป้า</th><th>เหลือ</th><th>Pacing Rate</th><th>สถานะ</th></tr>
+<tr><td>08:00</td><td>0</td><td>40</td><td>40</td><td>1.0/loop</td><td>เล่นทุก loop</td></tr>
+<tr><td>10:00</td><td>15</td><td>40</td><td>25</td><td>0.83/loop</td><td>เล่นทุก loop</td></tr>
+<tr><td>12:00</td><td>28</td><td>40</td><td>12</td><td>0.6/loop</td><td><strong>ข้าม 2 ใน 5 loops/hr</strong></td></tr>
+<tr><td>14:00</td><td>38</td><td>40</td><td>2</td><td>0.2/loop</td><td><strong>เล่นแค่ 1 ใน 5 loops/hr</strong></td></tr>
+<tr><td>14:24</td><td>40</td><td>40</td><td>0</td><td>0</td><td><strong>ถอดออก &rarr; filler แทน</strong></td></tr>
+</table>""")
+
+    sections.append('<h3>ทำไมต้องมี Pacing Filter?</h3>')
+    sections.append("""<table>
+<tr><th>ปัญหา (ไม่มี filter)</th><th>ผลกระทบ</th></tr>
+<tr><td>Ad เล่นเกินเป้าตอนเช้า</td><td>ช่วงบ่ายไม่มี ad เล่นเลย &rarr; ป้ายว่างเกินไป</td></tr>
+<tr><td>ลูกค้าจ่าย 40 impressions แต่ได้ 60</td><td><strong>Over-delivery = เสียรายได้</strong> (ให้ฟรี 20 impressions)</td></tr>
+<tr><td>Ad สั้น (10s) วนเร็วกว่า ad ยาว (30s)</td><td>Ad สั้น over-deliver ก่อน &rarr; ไม่สม่ำเสมอ</td></tr>
+</table>""")
+
+    sections.append(success_panel(
+        "<p><strong>ผลลัพธ์:</strong> Pacing filter ทำหน้าที่เป็น <strong>throttle</strong> &mdash; "
+        "กระจาย impressions ให้สม่ำเสมอทั้งวัน ไม่กระจุกช่วงเช้า "
+        "ลูกค้าได้ตามเป้าพอดี ไม่มากไม่น้อย</p>"
+    ))
+
+    # ─── Section 4: Daypart Takeover Scenario ───
+    sections.append('<h2>4. Scenario: Daypart Takeover (เหมาช่วงเวลา)</h2>')
+
+    sections.append(info_panel(
+        "<p><strong>Use Case:</strong> ลูกค้าต้องการให้ ad ของตัวเองเล่น <strong>ต่อเนื่องเป็นช่วง ห้ามมี ad อื่นแทรก</strong> "
+        "&mdash; ระบบเรียกว่า <strong>Daypart Takeover (P1-TK)</strong></p>"
+    ))
+
+    sections.append('<h3>ตัวอย่าง Scenario</h3>')
+    sections.append("""<table>
+<tr><th>รายการ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>Spot ของลูกค้า</strong></td><td>30 วินาที</td></tr>
+<tr><td><strong>ช่วงเวลาที่ต้องการ</strong></td><td>เล่นวนต่อเนื่อง <strong>10 นาที</strong> ห้ามมี ad อื่นแทรก</td></tr>
+<tr><td><strong>จำนวนครั้ง/วัน</strong></td><td><strong>10 blocks</strong> กระจายตลอดเวลาเปิด-ปิดป้าย</td></tr>
+<tr><td><strong>ป้าย</strong></td><td>เปิด 07:00-22:00 (15 ชม.)</td></tr>
+<tr><td><strong>การเล่นภายใน block</strong></td><td>spot 30s &times; 20 รอบ = 600s (10 นาทีพอดี)</td></tr>
+<tr><td><strong>เวลา TK รวม/วัน</strong></td><td>10 blocks &times; 10 นาที = <strong>100 นาที (1 ชม. 40 นาที)</strong></td></tr>
+<tr><td><strong>เวลาเล่นปกติ</strong></td><td>15 ชม. - 100 นาที = <strong>13 ชม. 20 นาที</strong></td></tr>
+</table>""")
+
+    sections.append('<h3>การจัดวาง TK Blocks บน Timeline</h3>')
+    sections.append(
+        '<p>กระจาย 10 blocks ให้เท่าๆ กันตลอดวัน (ทุก ~90 นาที):</p>'
+    )
+    sections.append("""<table>
+<tr><th>Block</th><th>เวลา TK</th><th>Spot plays</th><th>ช่วงก่อน TK ถัดไป</th></tr>
+<tr><td>TK-1</td><td><strong>07:00 - 07:10</strong></td><td>20 plays</td><td>80 นาที (เล่นปกติ)</td></tr>
+<tr><td>TK-2</td><td><strong>08:30 - 08:40</strong></td><td>20 plays</td><td>80 นาที</td></tr>
+<tr><td>TK-3</td><td><strong>10:00 - 10:10</strong></td><td>20 plays</td><td>80 นาที</td></tr>
+<tr><td>TK-4</td><td><strong>11:30 - 11:40</strong></td><td>20 plays</td><td>80 นาที</td></tr>
+<tr><td>TK-5</td><td><strong>13:00 - 13:10</strong></td><td>20 plays</td><td>80 นาที</td></tr>
+<tr><td>TK-6</td><td><strong>14:30 - 14:40</strong></td><td>20 plays</td><td>80 นาที</td></tr>
+<tr><td>TK-7</td><td><strong>16:00 - 16:10</strong></td><td>20 plays</td><td>80 นาที</td></tr>
+<tr><td>TK-8</td><td><strong>17:30 - 17:40</strong></td><td>20 plays</td><td>80 นาที</td></tr>
+<tr><td>TK-9</td><td><strong>19:00 - 19:10</strong></td><td>20 plays</td><td>80 นาที</td></tr>
+<tr><td>TK-10</td><td><strong>20:30 - 20:40</strong></td><td>20 plays</td><td>80 นาทีจนปิดจอ</td></tr>
+<tr><td colspan="2"><strong>รวม</strong></td><td><strong>200 plays/วัน</strong></td><td></td></tr>
+</table>""")
+    sections.append(note_panel(
+        "<p><strong>การกระจาย:</strong> ตัวอย่างนี้กระจายทุก ~90 นาที แต่ลูกค้าสามารถเลือกเวลาเองได้ "
+        "(เช่น เน้นช่วง prime time 17:00-21:00) &mdash; ขอแค่ <strong>TK blocks ไม่ซ้อนกัน</strong> "
+        "กับ TK ของลูกค้าคนอื่นบนป้ายเดียวกัน</p>"
+    ))
+
+    sections.append('<h3>ระบบทำงานอย่างไร</h3>')
+    sections.append("""<table>
+<tr><th>ขั้นตอน</th><th>ใคร</th><th>ทำอะไร</th></tr>
+<tr><td><strong>1. Booking</strong></td><td>Sales / Admin</td><td>จอง 10 time blocks ผ่าน <strong>TK Booking API</strong> (lead time 24 ชม.)</td></tr>
+<tr><td><strong>2. Overlap Check</strong></td><td>Backend</td><td><code>checkIsBillboardsReserved()</code> &mdash; ตรวจว่าไม่ซ้อนกับ TK อื่น</td></tr>
+<tr><td><strong>3. Schedule Calc</strong></td><td>Ad Decisioning</td><td>เห็น <code>takeoverSchedules[]</code> &rarr; <code>timeline.reserveTakeover(start, end, {loop: true})</code></td></tr>
+<tr><td><strong>4. TK_START</strong></td><td>Interrupt Controller</td><td>ถึงเวลา TK &rarr; <strong>หยุด</strong> creative ปัจจุบันทันที &rarr; เล่น TK spot</td></tr>
+<tr><td><strong>5. Loop within TK</strong></td><td>Player</td><td>Spot 30s วน <strong>ไม่หยุด</strong> &mdash; ห้ามแทรกยกเว้น P0 Emergency</td></tr>
+<tr><td><strong>6. TK_END</strong></td><td>Interrupt Controller</td><td>ครบ 10 นาที &rarr; <code>TK_END</code> event &rarr; กลับเล่น schedule ปกติ</td></tr>
+<tr><td><strong>7. Make-Good</strong></td><td>Backend</td><td>Ad ปกติที่โดน interrupt ตอน TK_START จะได้ <strong>make-good compensation</strong> ใน cycle ถัดไป</td></tr>
+</table>""")
+
+    sections.append('<h3>ผลกระทบต่อ Schedule ปกติ</h3>')
+    sections.append("""<table>
+<tr><th>Metric</th><th>ไม่มี TK</th><th>มี TK 10 blocks</th><th>ผลกระทบ</th></tr>
+<tr><td>Available time สำหรับ campaign ปกติ</td><td>15 ชม. (900 นาที)</td><td><strong>13 ชม. 20 นาที (800 นาที)</strong></td><td>-11%</td></tr>
+<tr><td>Campaign loops/วัน</td><td>75 loops (5/hr &times; 15hr)</td><td><strong>67 loops</strong> (5/hr &times; 13.3hr)</td><td>-11%</td></tr>
+<tr><td>Campaign impressions/วัน (9 ads)</td><td>675</td><td><strong>~600</strong></td><td>-11%</td></tr>
+<tr><td>TK impressions/วัน</td><td>0</td><td><strong>200</strong> (20/block &times; 10)</td><td>+200</td></tr>
+<tr><td>Total impressions/วัน (ทั้งหมด)</td><td>4,125</td><td><strong>~3,875</strong></td><td>-6%</td></tr>
+</table>""")
+    sections.append(warning_panel(
+        "<p><strong>Trade-off:</strong> TK blocks กิน airtime จาก campaign ปกติ ~11% &mdash; "
+        "campaign ads จะถูก pacing ให้สม่ำเสมอในช่วงที่เหลือ (ไม่กระจุก). "
+        "ถ้าลูกค้า campaign ซื้อ impression guarantee อาจต้อง <strong>ขยาย flight date</strong> "
+        "ให้ชดเชย impressions ที่หายไป.</p>"
+    ))
+
+    sections.append('<h3>Billing</h3>')
+    sections.append("""<table>
+<tr><th>Ad Type</th><th>Billing Model</th><th>ตัวอย่าง</th></tr>
+<tr><td><strong>Daypart Takeover (P1-TK)</strong></td><td><strong>CPT (Cost Per Time)</strong></td><td>10 blocks &times; 10 นาที = 100 นาที &times; rate/นาที</td></tr>
+<tr><td>Campaign ปกติ (P2)</td><td>Standard rate / CPM</td><td>ต่อ impression หรือต่อช่วงเวลา</td></tr>
+<tr><td>Guaranteed (P1-G)</td><td><code>exclusiveMultiplier</code></td><td>Premium rate ต่อ spot</td></tr>
+</table>""")
+
+    sections.append(success_panel(
+        "<p><strong>สรุป:</strong> Daypart Takeover (P1-TK) รองรับ scenario นี้ครบ &mdash; "
+        "block ขนาดใดก็ได้ (10 นาที, 30 นาที, 1 ชม.), จำนวน blocks ไม่จำกัด (แค่ไม่ซ้อนกัน), "
+        "Player วน creative ตัวเดียวไม่หยุด, ห้ามแทรกยกเว้น P0, "
+        "และ ad ที่โดน interrupt ได้ make-good อัตโนมัติ.</p>"
+    ))
+
+    return "\n".join(sections)
+
+
+def build_page_13(page_id: str) -> str:
+    """Page 13: Use Case — Industry Comparison (1 mermaid, 0 code blocks)."""
+    global _code_block_count
+    _code_block_count = 0
+    sections = []
+
+    sections.append(toc())
+
+    sections.append(info_panel(
+        "<p><strong>Use Case Reference:</strong> เปรียบเทียบสถาปัตยกรรม Ad Scheduling "
+        "ของ Tathep กับ 3 models หลักที่ใช้ใน DOOH industry "
+        "เพื่อเข้าใจว่าทำไมเราเลือก Hybrid approach</p>"
+    ))
+
+    # ─── Section 1: 3 Models ───
+    sections.append('<h2>1. สาม Models ที่ Industry ใช้</h2>')
+
+    sections.append('<h3>Model 1: Player-Side Rules (Broadsign, Xibo)</h3>')
+    sections.append(
+        '<p>Server ส่ง <strong>กฎ (loop policy)</strong> ให้ Player &rarr; '
+        'Player สร้าง playlist เองแบบ real-time ทุก loop</p>'
+    )
+    sections.append("""<table>
+<tr><th>ข้อดี</th><th>ข้อเสีย</th></tr>
+<tr><td>Player ปรับตัวได้ทันที</td><td>Player ต้องฉลาด (logic เยอะ)</td></tr>
+<tr><td>ไม่ต้องพึ่ง server ตลอด</td><td>Debug ยาก (playlist ไม่เหมือนกันทุกเครื่อง)</td></tr>
+<tr><td>Offline ทำงานได้เลย</td><td>Pacing accuracy ต่ำ (player ไม่รู้ภาพรวม)</td></tr>
+</table>""")
+    sections.append(
+        '<p><strong>Reference:</strong> '
+        '<a href="https://docs.broadsign.com/broadsign-control/latest/loop-policies.html">'
+        'Broadsign Loop Policies</a> | '
+        '<a href="https://xibosignage.com/docs/developer/player-control/schedule-criteria">'
+        'Xibo Schedule Criteria</a></p>'
+    )
+
+    sections.append('<h3>Model 2: Server-Side Pre-Generated (Signagelive, Scala)</h3>')
+    sections.append(
+        '<p>Server คำนวณ <strong>playlist สำเร็จรูป</strong> &rarr; '
+        'Player แค่เล่นตามลำดับ (Dumb Renderer)</p>'
+    )
+    sections.append("""<table>
+<tr><th>ข้อดี</th><th>ข้อเสีย</th></tr>
+<tr><td>Player เรียบง่าย (แค่เล่น)</td><td>ต้องพึ่ง server สร้าง playlist</td></tr>
+<tr><td>Pacing แม่นยำ (server เห็นภาพรวม)</td><td>Offline = เล่น playlist เดิมซ้ำ</td></tr>
+<tr><td>Debug ง่าย (playlist เหมือนกันทุกที่)</td><td>ไม่ยืดหยุ่น (ต้องรอ server อัพเดท)</td></tr>
+</table>""")
+    sections.append(
+        '<p><strong>Reference:</strong> '
+        '<a href="https://support.signagelive.com/en/articles/137724-how-to-use-the-automatic-playlist-generator">'
+        'Signagelive Playlist Generator</a> | '
+        '<a href="https://scala.com/en/products/software/scala-content-manager/">'
+        'Scala Content Manager</a></p>'
+    )
+
+    sections.append('<h3>Model 3: Hybrid (Tathep Proposed)</h3>')
+    sections.append(
+        '<p>Server สร้าง <strong>ordered sequence</strong> + Player มี '
+        '<strong>Interrupt Controller</strong> สำหรับ premium (P1-TK, P1-ET) '
+        '+ <strong>3-tier cache</strong> สำหรับ offline</p>'
+    )
+    sections.append("""<table>
+<tr><th>ข้อดี</th><th>ข้อเสีย</th></tr>
+<tr><td>Player เรียบง่าย + Interrupt เฉพาะ premium</td><td>Server ต้องคำนวณทุก 5 นาที + event-driven</td></tr>
+<tr><td>Pacing แม่นยำ + offline 4+ ชม.</td><td>ซับซ้อนกว่า Model 2 เล็กน้อย (มี IC)</td></tr>
+<tr><td>รองรับ premium products (Takeover, Exact-Time)</td><td>ต้อง maintain 3-tier cache</td></tr>
+</table>""")
+
+    # ─── Comparison Diagram ───
+    sections.append('<h3>เปรียบเทียบ Data Flow</h3>')
+    sections.append(mermaid_diagram(
+        load_diagram("13-industry-comparison.mmd"),
+        page_id=page_id,
+    ))
+
+    # ─── Section 2: Comparison Table ───
+    sections.append('<h2>2. ตารางเปรียบเทียบ 7 เกณฑ์</h2>')
+
+    sections.append("""<table>
+<tr><th>เกณฑ์</th><th>Player-Side (Broadsign)</th><th>Server-Side (Signagelive)</th><th>Hybrid (Tathep)</th></tr>
+<tr><td><strong>Player complexity</strong></td><td>สูง (สร้าง playlist เอง)</td><td>ต่ำ (เล่นอย่างเดียว)</td><td>ต่ำ + Interrupt Controller</td></tr>
+<tr><td><strong>Pacing accuracy</strong></td><td>ปานกลาง</td><td>สูง</td><td><strong>สูง</strong> (server คำนวณ)</td></tr>
+<tr><td><strong>Offline resilience</strong></td><td>ดี (มี rules อยู่)</td><td>แย่ (playlist เก่า)</td><td><strong>ดี</strong> (3-tier cache)</td></tr>
+<tr><td><strong>Real-time flexibility</strong></td><td>ดี (re-evaluate ทุก loop)</td><td>แย่ (รอ server)</td><td><strong>ดี</strong> (Tier 1 + interrupt)</td></tr>
+<tr><td><strong>Premium products</strong></td><td>ผ่าน rules/priority</td><td>ต้อง re-generate</td><td><strong>Interrupt real-time</strong></td></tr>
+<tr><td><strong>Debug/Audit</strong></td><td>ยาก</td><td>ง่าย</td><td><strong>ง่าย</strong> (server log)</td></tr>
+<tr><td><strong>Server load</strong></td><td>ต่ำ (ส่งแค่ rules)</td><td>สูง</td><td>ปานกลาง (~200/วัน)</td></tr>
+</table>""")
+
+    # ─── Section 3: Industry Trend ───
+    sections.append('<h2>3. Industry Trend (2025-2026)</h2>')
+
+    sections.append(
+        '<p>Industry กำลังเปลี่ยนจาก <strong>loop-based</strong> (ขายรอบ/ชม.) '
+        'ไปเป็น <strong>impression-based</strong> (ขายจำนวนคนเห็น):</p>'
+    )
+
+    sections.append("""<table>
+<tr><th>เดิม (Loop-based)</th><th>ใหม่ (Impression-based)</th></tr>
+<tr><td>ขาย "5 ครั้ง/hr"</td><td>ขาย "10,000 impressions"</td></tr>
+<tr><td>วัดจาก playout count</td><td>วัดจาก audience measurement (กล้อง/sensor)</td></tr>
+<tr><td>ราคาคงที่ต่อ slot</td><td>ราคาผันตาม traffic (programmatic)</td></tr>
+<tr><td>Pre-schedule ล่วงหน้า</td><td>Real-time bidding (RTB)</td></tr>
+</table>""")
+
+    sections.append(success_panel(
+        "<p><strong>Tathep รองรับทั้ง 2 แบบ:</strong> P2 (Direct-Sold) = loop-based ขายรอบ/ชม. | "
+        "P3 (Spot Buy) = impression-based รองรับ programmatic ในอนาคต</p>"
+    ))
+
+    sections.append('<h3>Sources</h3>')
+    sections.append(
+        '<ul>'
+        '<li><a href="https://docs.broadsign.com/broadsign-control/latest/loop-policies.html">'
+        'Broadsign Loop Policies</a></li>'
+        '<li><a href="https://docs.broadsign.com/broadsign-direct/screen-availability-fill-rate.html">'
+        'Broadsign Fill Rate Calculation</a></li>'
+        '<li><a href="https://support.signagelive.com/en/articles/137724-how-to-use-the-automatic-playlist-generator">'
+        'Signagelive Automatic Playlist Generator</a></li>'
+        '<li><a href="https://xibosignage.com/docs/developer/player-control/schedule-criteria">'
+        'Xibo Schedule Criteria</a></li>'
+        '<li><a href="https://help.vistarmedia.com/hc/en-us/articles/360032923692-Integration-health-assessment-guide">'
+        'Vistar Media Integration (15 min SLA)</a></li>'
+        '<li><a href="https://blog.bidswitch.com/whats-new-with-dooh-a-view-of-digital-out-of-home-in-2025">'
+        'DOOH Trends 2025</a></li>'
+        '</ul>'
+    )
+
+    return "\n".join(sections)
+
+
 SECTION_BUILDERS = {
     "parent": ("parent", build_parent_content),
     "1": ("1_problem_current", build_page_1),
@@ -2299,6 +3105,8 @@ SECTION_BUILDERS = {
     "9": ("9_es_big_picture", build_page_9),
     "10": ("10_es_process", build_page_10),
     "11": ("11_es_design", build_page_11),
+    "12": ("12_usecase_distribution", build_page_12),
+    "13": ("13_usecase_industry", build_page_13),
 }
 
 
@@ -2398,7 +3206,7 @@ def main():
         if idx + 1 < len(sys.argv):
             section = sys.argv[idx + 1]
         else:
-            print("Error: --section requires argument (parent, 1-11)")
+            print("Error: --section requires argument (parent, 1-13)")
             sys.exit(1)
 
     # Parse --update PAGE_ID (legacy)
@@ -2448,7 +3256,7 @@ def main():
         _update_page(api, parent_id, content)
 
         # Create sub-pages
-        for sec in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"]:
+        for sec in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"]:
             key, builder = SECTION_BUILDERS[sec]
             title = SUB_PAGE_TITLES[key]
             existing_id = page_ids["pages"].get(key)
@@ -2518,7 +3326,7 @@ def main():
     print("Usage:")
     print("  --dry-run [--section N]     Preview HTML output")
     print("  --create-all                Create/update parent + all sub-pages")
-    print("  --section N                 Update single section (parent, 1-11)")
+    print("  --section N                 Update single section (parent, 1-13)")
     print("  --update PAGE_ID            Legacy: update specific page")
 
 

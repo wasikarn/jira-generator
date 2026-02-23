@@ -1,0 +1,41 @@
+flowchart TD
+    subgraph INPUT["Input Data"]
+        direction TB
+        IN_pad[ ]:::spacer ~~~ PS
+        PS["playSchedules<br/>from PerScreen calc"]
+        GS["guaranteedSchedules<br/>P1-G slots"]
+        TK["takeoverSchedules<br/>P1-TK blocks"]
+        ET["exactTimeSpots<br/>P1-ET spots"]
+        MG["pendingMakeGoods<br/>compensation queue"]
+        HP["housePlaylist<br/>owner filler content"]
+    end
+
+    subgraph ALGO["Ad Decisioning Algorithm v3"]
+        direction TB
+        AL_pad[ ]:::spacer ~~~ S0
+        S0["Step 0: Reserve Exact-Time<br/>P1-ET at play_at +/-5s"]
+        S1["Step 1: Reserve Guaranteed<br/>P1-G at exact position"]
+        S15["Step 1.5: Reserve Takeover<br/>P1-TK block boundaries"]
+        S2["Step 2: Calculate SOV<br/>owner:platform ratio"]
+        S25["Step 2.5: Campaign Pacing<br/>target - delivered = rate"]
+        S3["Step 3: Fill Avails<br/>campaign + house interleave"]
+        S4["Step 4: Fill Gaps<br/>remaining = house filler"]
+        S5["Step 5: Flatten Timeline<br/>ordered sequence"]
+        S55["Step 5.5: Insert Make-Good<br/>compensate interrupted ads"]
+        S6["Step 6: Version + Persist<br/>ScreenSchedule v+1"]
+    end
+
+    subgraph OUTPUT["Output"]
+        OUT_pad[ ]:::spacer ~~~ SS
+        SS["ScreenSchedule v42<br/>ordered items array"]
+        PL["Player: items 0, 1, 2..."]
+    end
+
+    INPUT --> S0
+    S0 --> S1 --> S15 --> S2 --> S25 --> S3 --> S4 --> S5 --> S55 --> S6
+    S6 --> SS --> PL
+
+    classDef spacer fill:none,stroke:none,color:transparent
+    style INPUT fill:#e8f4fd,stroke:#2196F3
+    style ALGO fill:#fff8e1,stroke:#FFC107
+    style OUTPUT fill:#e8f5e9,stroke:#4CAF50

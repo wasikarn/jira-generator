@@ -1,6 +1,7 @@
 flowchart TD
     subgraph BE["BACKEND (AdonisJS + BullMQ + Redis)"]
-        Cron["Scheduling Engine<br/>(BullMQ) every 10m"] e4@--> Calc["PlayScheduleCalculate<br/>NO CHANGE"]
+        BE_pad[ ]:::spacer ~~~ Cron
+        Cron["Scheduling Engine<br/>(BullMQ) every 5m<br/>+ Event-driven"] e4@--> Calc["PlayScheduleCalculate<br/>NO CHANGE"]
         Calc e5@--> Per["PerScreen calc<br/>NO CHANGE"]
         Per e6@-->|"rows"| PB["⭐ Ad Decisioning<br/>Engine v3<br/>Pacing → SOV →<br/>Guaranteed → TK/ET →<br/>Make-Good → Sequence"]
         PB e7@--> DB[("MySQL<br/>NO CHANGE")]
@@ -10,6 +11,7 @@ flowchart TD
     end
     Push e1@-->|"WebSocket"| INB
     subgraph PL["MEDIA PLAYER (Tauri Desktop App)"]
+        PL_pad[ ]:::spacer ~~~ INB
         INB["⭐ Inbox Handler<br/>dedup + version check"]
         INB e10@-->|"fetch"| CACHE["⭐ 3-Tier Cache<br/>LIVE / BUFFER / FALLBACK"]
         CACHE e11@--> SM["⭐ State Machine<br/>BOOT→SYNC→PLAY→OFFLINE"]
@@ -18,6 +20,7 @@ flowchart TD
         OUT["⭐ PoP Outbox<br/>pending → sent → ack<br/>+ interrupted + make_good"]
     end
     subgraph APILAYER["API Endpoints"]
+        API_pad[ ]:::spacer ~~~ API1
         API1["⭐ GET /v2/screen-schedule<br/>ordered spots + manifest"]
         API2["POST /v2/proof-of-play<br/>+ Idempotency Key<br/>+ interrupt fields"]
     end
@@ -36,6 +39,7 @@ flowchart TD
     e11@{ animation: fast }
     e12@{ animation: fast }
     e13@{ animation: fast }
+    classDef spacer fill:none,stroke:none,color:transparent
     style BE fill:#f0f0f0,stroke:#666
     style PL fill:#f0f8ff,stroke:#004085
     style APILAYER fill:#f5f5f5,stroke:#999
