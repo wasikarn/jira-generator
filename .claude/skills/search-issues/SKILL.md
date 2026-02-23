@@ -36,6 +36,26 @@ argument-hint: "[keyword] [--filters]"
 MCP: jira_search(jql: "[generated JQL]", fields: "summary,status,assignee,issuetype,priority", limit: 20)
 ```
 
+### 2.5 Semantic Similarity Check (keyword search only)
+
+**Skip if:** input is issue key (`BEP-123`), uses `--jql`, or uses `--children` flag.
+
+```text
+cache_similar_issues(query: "<keyword>", limit: 5, exclude_keys: [<keys from Phase 2>])
+```
+
+Filter results by distance (cosine distance, 0 = identical):
+
+| Distance | Label | Action |
+| --- | --- | --- |
+| < 0.25 | ⚠️ Likely duplicate | แจ้งเตือนชัดเจน |
+| 0.25–0.45 | 🔍 Possibly related | แสดงไว้อ้างอิง |
+| > 0.45 | (skip) | noise — ไม่แสดง |
+
+Similarity % = `(1 - distance/2) × 100`
+
+If embeddings not available (sqlite-vec not installed) → skip gracefully, no error.
+
 ### 3. Display Results
 
 ```text
@@ -47,7 +67,17 @@ Found: 5 issues
 |-----|------|---------|--------|
 | BEP-123 | Story | Credit feature | In Progress |
 | BEP-124 | Sub-task | [BE] Credit API | To Do |
+
+## 🔍 Semantic Matches (BERT similarity)
+| Key | Summary | Similarity |
+|-----|---------|------------|
+| BEP-120 | [BE] เติมเครดิต wallet | ⚠️ 94% (likely duplicate) |
+| BEP-118 | Credit payment flow | 🔍 72% (possibly related) |
+
+💡 พบ likely duplicate → ยืนยันก่อนสร้าง issue ใหม่
 ```
+
+If no semantic matches above threshold → omit the section entirely.
 
 ---
 
