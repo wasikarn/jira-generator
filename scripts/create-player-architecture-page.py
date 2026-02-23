@@ -3094,7 +3094,7 @@ def build_page_13(page_id: str) -> str:
 
 
 def build_page_14(page_id: str) -> str:
-    """Page 14: Use Case Catalog — All Possible Scenarios with Timeline Diagrams."""
+    """Page 14: Use Case Catalog — Advertiser Scenarios (rebuild v2)."""
     global _code_block_count
     _code_block_count = 0
     sections = []
@@ -3102,970 +3102,418 @@ def build_page_14(page_id: str) -> str:
     sections.append(toc())
 
     sections.append(info_panel(
-        "<p><strong>Use Case Catalog:</strong> รวบรวม <strong>ทุก scenario ที่เป็นไปได้</strong> "
-        "ที่ระบบต้องรองรับ &mdash; ใช้เป็นแหล่งอ้างอิงในการออกแบบ, ทดสอบ, และตรวจสอบความครอบคลุมของระบบ</p>"
-        "<p><strong>5 หมวด:</strong> (1) Playback &amp; Content Delivery &nbsp;"
-        "(2) Ad Scheduling &amp; Priority &nbsp;"
-        "(3) Campaign Lifecycle &nbsp;"
-        "(4) PoP Reporting &amp; Billing &nbsp;"
-        "(5) Player Operations</p>"
-        "<p><strong>Timeline Diagrams:</strong> แต่ละ scenario มี Gantt timeline "
-        "หรือ Flowchart แสดงลำดับเหตุการณ์ที่เกิดขึ้นบนป้ายโฆษณา</p>"
+        "<p><strong>Use Case Catalog (Advertiser):</strong> รวบรวม scenarios ที่ "
+        "<strong>ผู้ลงโฆษณา (advertiser)</strong> จะเจอในแต่ละรูปแบบการลงโฆษณา "
+        "&mdash; ใช้เป็น reference สำหรับทีม Sales, Support, และ QA</p>"
+        "<p><strong>4 รูปแบบที่ครอบคลุม:</strong> "
+        "(1) Takeover &mdash; ครอง 100% จอ &nbsp;"
+        "(2) Exact Time &mdash; เล่นตรงเวลา &nbsp;"
+        "(3) Guaranteed &mdash; รับประกัน N ครั้ง &nbsp;"
+        "(4) Run of Schedule &mdash; กระจายทั่ว operating hours</p>"
+        "<p><strong>แต่ละ scenario มี:</strong> ขั้นตอน Happy Path + Edge Cases ที่เป็นไปได้ + Diagram แสดง timeline</p>"
     ))
 
-    sections.append(warning_panel(
-        "<p><strong>&#9888; duration_ms &mdash; ไม่ใช่ float seconds:</strong> "
-        "จากข้อมูล production (4,273 videos), "
-        "<strong>47.4% (2,026 videos) มีระยะเวลาไม่ใช่ integer seconds</strong> "
-        "&mdash; เกิดจาก video encoder frame-rate artifacts</p>"
-        "<table>"
-        "<tr><th>Duration ที่พบบ่อย (production)</th><th>Count</th><th>% ทั้งหมด</th></tr>"
-        "<tr><td>15s (= 15000ms)</td><td>1,512</td><td>35.4%</td></tr>"
-        "<tr><td>15.02s (= 15020ms)</td><td>81</td><td>1.9%</td></tr>"
-        "<tr><td>30s (= 30000ms)</td><td>290</td><td>6.8%</td></tr>"
-        "<tr><td>90s (= 90000ms)</td><td>151</td><td>3.5%</td></tr>"
-        "<tr><td>15.03s, 15.04s, 14.98s</td><td>~70 each</td><td>~1.6% each</td></tr>"
-        "</table>"
-        "<p><strong>Architecture implications:</strong></p>"
-        "<ul>"
-        "<li>Store <code>duration_ms</code> (integer) &mdash; <strong>never float duration_s</strong></li>"
-        "<li>Loop duration = <code>sum(ad.duration_ms)</code> &mdash; integer ms arithmetic, no floating-point drift</li>"
-        "<li>PoP: <code>played_duration_ms</code> (integer) per play event</li>"
-        "<li>Make-good: replay full <code>duration_ms</code> regardless of interrupt point</li>"
-        "<li>Diagrams below แสดงค่าปัดเศษ &mdash; ค่าจริงใช้ ms เสมอ</li>"
-        "</ul>"
+    # ──────────────────────────────────────────────────────────────
+    # SECTION 1: Takeover
+    # ──────────────────────────────────────────────────────────────
+    sections.append('<h2>1. Takeover &mdash; ครอง 100% จอในช่วงเวลา</h2>')
+    sections.append(info_panel(
+        "<p><strong>Takeover</strong> คือการซื้อ <em>exclusive slot</em> บนป้ายโฆษณา &mdash; "
+        "ในช่วงเวลาที่จอง โฆษณาของ advertiser จะเล่น 100% ไม่มีโฆษณาอื่นแทรก</p>"
+        "<p><strong>Code:</strong> <code>activeDisplayTimeType: 'exclusive'</code> &nbsp;&nbsp;"
+        "<strong>Lead time:</strong> ต้องจองล่วงหน้า &ge;5 นาที &nbsp;&nbsp;"
+        "<strong>Conflict rule:</strong> ชน slot อื่นที่จองไว้ &rarr; reject ทันที</p>"
     ))
 
-    # ─────────────────────────────────────────────────────────
-    # SECTION 1: Playback & Content Delivery
-    # ─────────────────────────────────────────────────────────
-    sections.append('<h2>1. Playback &amp; Content Delivery</h2>')
-
-    # ── SC-01 ──────────────────────────────────────────────
-    sections.append('<h3>SC-01: Normal Playback (Happy Path)</h3>')
+    # ── UC-TK-1 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-TK-1: Happy Path &mdash; Takeover สำเร็จ</h3>')
     sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Player (automated)</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Player online, schedule cached, creatives downloaded</td></tr>
-<tr><td><strong>Trigger</strong></td><td>เวลาถึง <code>valid_from</code> ของ schedule</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>Player เล่น <code>sequence[i++]</code> ตามลำดับ วนซ้ำ loop ไม่หยุด
-&mdash; ใช้ <code>duration_ms</code> (integer) สำหรับทุก timing calculation</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Ad เล่นครบทุก loop, PoP รายงาน, ไม่มีจอดำ</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 3 Flow A, Page 12 §1</td></tr>
+<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
+<tr><td><strong>Advertiser กระทำ</strong></td><td>จอง Takeover ช่วง 12:00&ndash;13:00 บนป้าย A, อัพโหลด creative ล่วงหน้า 1 วัน</td></tr>
+<tr><td><strong>ระบบ (Draft &rarr; Review)</strong></td><td>ส่ง notification ให้ billboard owner อนุมัติ creative</td></tr>
+<tr><td><strong>ระบบ (Approved)</strong></td><td>Status &rarr; <code>waiting-play</code>, schedule lock เวลา 12:00&ndash;13:00</td></tr>
+<tr><td><strong>เวลา 12:00</strong></td><td>Player เปลี่ยนเป็น Takeover mode &mdash; โฆษณา Advertiser เล่น loop 100% ตลอด 1 ชั่วโมง</td></tr>
+<tr><td><strong>Expected Outcome</strong></td><td>Advertiser เห็น PoP report: played = 100% ของ slot ที่ซื้อ, status &rarr; <code>done</code></td></tr>
 </table>""")
     sections.append(mermaid_diagram("""gantt
-    title SC-01 Normal Playback - 1 Loop Example
-    dateFormat HH:mm:ss
-    axisFormat %M:%S
-    section Ad Loop
-    P2 Ad A 15.02s          :done, a1, 00:00:00, 16s
-    P4 House 10s             :done, h1, 00:00:16, 10s
-    P2 Ad B 30.03s           :done, a2, 00:00:26, 31s
-    P2 Ad C 15s              :done, a3, 00:00:57, 15s
-    P4 House 10s             :done, h4, 00:01:12, 10s
-    Loop end 00-01-22        :milestone, lr, 00:01:22, 0d
+    title UC-TK-1 Takeover Happy Path
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section ก่อน Takeover
+    โฆษณาปกติ (ROS)       :done, pre, 11:00, 60m
+    section Takeover Block 12-00 to 13-00
+    TK START               :milestone, tks, 12:00, 0d
+    Brand X creative loop  :crit, tk, 12:00, 60m
+    TK END                 :milestone, tke, 13:00, 0d
+    section หลัง Takeover
+    โฆษณาปกติ (ROS)       :done, post, 13:00, 60m
     section PoP Events
-    PoP batch flush          :milestone, p1, 00:01:22, 0d""", page_id))
-    sections.append('<p><em>* duration_ms ตัวอย่าง: 15.02s = 15020ms, 30.03s = 30030ms &mdash; Gantt แสดงค่าปัดเศษ</em></p>')
+    PoP batch at TK END    :milestone, pop, 13:00, 0d""", page_id))
 
-    # ── SC-02 ──────────────────────────────────────────────
-    sections.append('<h3>SC-02: Fresh Boot &mdash; ไม่มี Cache</h3>')
+    # ── UC-TK-2 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-TK-2: Edge Case &mdash; Slot ชนกัน</h3>')
     sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Player (boot sequence)</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Player เพิ่งติดตั้ง หรือ cache ถูกลบ</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Player boot ครั้งแรก หรือหลัง hard reset</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) ดึง schedule จาก API &rarr; (2) Parallel download (Broadband 5x / SIM 2-3x) &rarr;
-(3) เล่น house filler ระหว่าง download &rarr; (4) Switch เป็น campaign schedule เมื่อ creatives พร้อม</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>ไม่มีจอดำ, campaign เล่นทันทีที่ creative พร้อม (~35s-5min)</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 3 Flow D, Page 5 (Media Cache Lifecycle)</td></tr>
+<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>Advertiser B พยายามจอง Takeover 12:30&ndash;13:30 บนป้ายเดียวกัน ขณะที่ A จอง 12:00&ndash;13:00 ไว้แล้ว</td></tr>
+<tr><td><strong>ระบบตรวจสอบ</strong></td><td><code>checkIsBillboardsReserved()</code> &rarr; พบ overlap &rarr; error: <code>ADVERTISEMENT_BILLBOARDS_ALREADY_IN_USE</code></td></tr>
+<tr><td><strong>ผลลัพธ์</strong></td><td>Advertiser B ได้รับ error ทันที &mdash; ต้องเลือก slot อื่นหรือป้ายอื่น</td></tr>
+<tr><td><strong>Expected Outcome</strong></td><td>Advertiser A ไม่ถูกกระทบ, Advertiser B ต้องจองใหม่</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart TD
-    A([Player Boot]) --> B{Local cache?}
-    B -->|Empty or expired| C[Fetch schedule from API]
-    B -->|Valid under 10min| E[Load Tier 1 cache]
-    C --> D[Start parallel download<br/>Broadband 5x or SIM 2-3x]
-    E --> D
-    D --> F[Play house filler<br/>while downloading]
-    F --> G{All creatives ready?}
-    G -->|Still downloading| F
-    G -->|All ready| H[Switch to campaign schedule]
-    H --> I([Normal playback SC-01])
-    style A fill:#cce5ff,stroke:#004085
-    style I fill:#d4edda,stroke:#28a745""", page_id))
-
-    # ── SC-03 ──────────────────────────────────────────────
-    sections.append('<h3>SC-03: Network Drop &rarr; Offline &rarr; Reconnect</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Network / Player</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Player กำลังเล่น, creatives cached</td></tr>
-<tr><td><strong>Trigger</strong></td><td>เน็ตหลุด (SIM หมด, router ดับ, ฯลฯ)</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>&lt;5 min: Tier 1 cache &rarr; 5min+: Tier 2 buffer (4h) &rarr; 4h+: Tier 3 house &rarr;
-เน็ตกลับ: sync schedule + batch PoP</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>ไม่มีจอดำตลอด, PoP sync เมื่อ online</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 3 Flow B, Page 5 (3-Tier Cache), Page 12 §2</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-03 Network Drop and 3-Tier Cache Fallback
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section Network Status
-    Online                  :done, n1, 08:00, 60m
-    Network drops           :crit, n2, 09:00, 235m
-    Restored                :done, n3, 12:55, 65m
-    section Content on Screen
-    Tier 1 cached schedule  :done, c1, 08:00, 65m
-    Tier 2 buffer 4hr       :active, c2, 09:05, 235m
-    Tier 3 house fallback   :active, c3, 13:00, 55m
-    Campaign resumes        :done, c4, 13:55, 5m
-    section PoP Queue
-    PoP queued offline      :crit, p1, 09:00, 235m
-    Batch sync              :milestone, p2, 12:55, 0d""", page_id))
-
-    # ── SC-04 ──────────────────────────────────────────────
-    sections.append('<h3>SC-04: Creative Download ล้มเหลว (Timeout / Network Error)</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>v2 Downloader</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Schedule ใหม่มาถึง, creative ยังไม่มีใน cache</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Download ล้มเหลว (timeout, HTTP 5xx, connection reset)</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) Retry 3 ครั้ง (exponential backoff: 5s, 30s) &rarr; (2) ล้มเหลวทุกครั้ง: mark unavailable &rarr;
-(3) เล่น filler แทน &rarr; (4) Retry queue ใน cycle ถัดไป (10min)</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>ไม่มีจอดำ, creative ปรากฏใน sequence เมื่อ download สำเร็จ</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 5 (v2 retry queue)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""flowchart LR
-    A[Download request] --> B[Attempt 1]
-    B -->|timeout or HTTP 5xx| C[Backoff 5s]
-    C --> D[Attempt 2]
-    D -->|fail| E[Backoff 30s]
-    E --> F[Attempt 3]
-    F -->|all failed| G[Mark unavailable]
-    G --> H[Skip slot - play filler]
-    H --> I[Retry queue - 10min later]
-    B -->|success| J[Verify hash]
-    D -->|success| J
-    F -->|success| J
-    J -->|mismatch| G
-    J -->|hash ok| K([Cached - ready to play])
-    style G fill:#f8d7da,stroke:#dc3545
-    style K fill:#d4edda,stroke:#28a745""", page_id))
-
-    # ── SC-05 ──────────────────────────────────────────────
-    sections.append('<h3>SC-05: Creative Checksum ไม่ตรง (Corrupt / Partial Download)</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>v2 Downloader</td></tr>
-<tr><td><strong>Precondition</strong></td><td>File อยู่ใน cache แต่ MD5 ไม่ตรงกับ <code>creative_checksum</code></td></tr>
-<tr><td><strong>Trigger</strong></td><td>Verify step หลัง download หรือตอน manifest diff</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) Mark file dirty &rarr; (2) ลบ file เก่า &rarr; (3) Queue re-download &rarr; (4) เล่น filler ระหว่างรอ</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Creative ถูก re-download และเล่นได้ในรอบถัดไป</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 5 (Media Cache Lifecycle &mdash; Verify step)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""flowchart TD
-    A[Creative play scheduled] --> B[Verify file hash]
-    B -->|Match| C([Play normally])
-    B -->|Mismatch| D[Delete corrupt file]
-    D --> E[Log integrity error]
-    E --> F[Play house filler for slot]
-    F --> G[Queue re-download]
-    G --> H{Download success?}
-    H -->|Yes - max 3 tries| B
-    H -->|All failed| I[Remove from sequence]
-    I --> J[Alert platform API]
-    style C fill:#d4edda,stroke:#28a745
-    style I fill:#f8d7da,stroke:#dc3545""", page_id))
-
-    # ── SC-06 ──────────────────────────────────────────────
-    sections.append('<h3>SC-06: Disk เต็ม &rarr; Emergency Eviction</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Cache Manager</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Disk usage เกิน threshold</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Disk &gt; 90% หรือ cleanup cron (24h)</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) ลบ creatives ที่ไม่อยู่ใน schedule (LRU) &rarr; (2) ถ้ายังไม่พอ: ลบ oldest-access &rarr;
-(3) Mark ว่าต้อง re-download</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Disk ว่างขึ้น, creatives ที่จำเป็นถูก re-download อัตโนมัติ</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 5 (Media Cache Lifecycle &mdash; Evict step)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""flowchart TD
-    A{Disk usage check<br/>cron every 24h} -->|Under 90pct| B([Normal operation])
-    A -->|Over 90pct| C[Start LRU eviction]
-    C --> D[Delete creatives not in current schedule]
-    D --> E{Disk OK?}
-    E -->|Yes| F[Mark deleted for re-download]
-    E -->|Still full| G[Delete oldest-access in-schedule files]
-    G --> F
-    F --> H([Re-download on next cycle])
-    style B fill:#d4edda,stroke:#28a745
-    style C fill:#f8d7da,stroke:#dc3545""", page_id))
-
-    # ── SC-07 ──────────────────────────────────────────────
-    sections.append('<h3>SC-07: Player Power Cycle / Restart &rarr; State Recovery</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Player (boot sequence)</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Player ถูก restart (power cut, OS crash, update)</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Player boot หลัง unexpected shutdown</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) โหลด state จาก Tauri persistent store &rarr; (2) ตรวจ schedule validity &rarr;
-(3) Valid + creatives ready: เล่นต่อทันที &rarr; (4) หมดอายุ: fetch schedule ใหม่ &rarr; (5) Sync pending PoP</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Recovery &lt; 30 วินาที, PoP ค้างถูก sync</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 5 (Player State Machine, Version Protocol)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""flowchart TD
-    A([Player restarts]) --> B[Load state from Tauri store]
-    B --> C{Schedule still valid?}
-    C -->|Yes - under 10min old| D{Creatives cached?}
-    C -->|Expired| E[Fetch new schedule from API]
-    D -->|All ready| F([Resume playback - under 30s])
-    D -->|Some missing| G[Download missing creatives]
-    G --> F
-    E --> G
-    F --> H[Sync pending PoP queue]
-    style A fill:#cce5ff,stroke:#004085
-    style F fill:#d4edda,stroke:#28a745""", page_id))
-
-    # ── SC-08 ──────────────────────────────────────────────
-    sections.append('<h3>SC-08: SIM Data Throttled / ช้า</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>v2 Downloader</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Billboard ใช้ SIM 4G, bandwidth ลดลง</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Download timeout (ช้ากว่า threshold)</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) ตรวจ <code>network_type = sim</code> &rarr; concurrency 2-3 (conservative) &rarr;
-(2) Timeout 60s/file &rarr; (3) Priority queue: ดาวน์โหลด creative ที่เล่นเร็วที่สุดก่อน</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>ไม่ saturate SIM link, Pusher events ยังทำงานได้</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 5 (v2 Parallel Download Strategy)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-08 SIM vs Broadband Download - 5 Creatives at 352x672
-    dateFormat HH:mm:ss
-    axisFormat %M:%S
-    section Broadband 5 concurrent
-    C1 0.7MB                :active, b1, 00:00:00, 2s
-    C2 0.5MB                :active, b2, 00:00:00, 2s
-    C3 0.7MB                :active, b3, 00:00:00, 2s
-    C4 0.4MB                :active, b4, 00:00:00, 1s
-    C5 0.6MB                :active, b5, 00:00:00, 2s
-    Done in 2s              :milestone, bm, 00:00:02, 0d
-    section SIM 4G 2 concurrent
-    C1 0.7MB                :crit, s1, 00:00:10, 5s
-    C2 0.5MB                :crit, s2, 00:00:10, 4s
-    C3 0.7MB                :done, s3, 00:00:15, 5s
-    C4 0.4MB                :done, s4, 00:00:20, 3s
-    C5 0.6MB                :done, s5, 00:00:23, 4s
-    Done in 17s             :milestone, sm, 00:00:27, 0d""", page_id))
-
-    # ─────────────────────────────────────────────────────────
-    # SECTION 2: Ad Scheduling & Priority
-    # ─────────────────────────────────────────────────────────
-    sections.append('<h2>2. Ad Scheduling &amp; Priority</h2>')
-
-    sections.append("""<table>
-<tr><th>Priority</th><th>Type</th><th>Interrupt?</th><th>Scenarios</th></tr>
-<tr><td><strong>P0</strong></td><td>Emergency</td><td>ทุก priority</td><td>SC-09, SC-12</td></tr>
-<tr><td><strong>P1-TK</strong></td><td>Daypart Takeover</td><td>P2-P4 ที่ boundary</td><td>SC-10, SC-11, SC-12</td></tr>
-<tr><td><strong>P1-ET</strong></td><td>Exact-Time Spot</td><td>P2-P4 เท่านั้น</td><td>SC-13, SC-14</td></tr>
-<tr><td><strong>P1-G</strong></td><td>Guaranteed Spot</td><td>ไม่ interrupt (pre-positioned)</td><td>SC-15</td></tr>
-<tr><td><strong>P2</strong></td><td>Direct-Sold ROS</td><td>ไม่ interrupt</td><td>SC-16</td></tr>
-<tr><td><strong>P3</strong></td><td>Spot Buy</td><td>ไม่ interrupt</td><td>&mdash;</td></tr>
-<tr><td><strong>P4</strong></td><td>House / Filler</td><td>ไม่ interrupt</td><td>SC-17</td></tr>
-</table>""")
-
-    # ── SC-09 ──────────────────────────────────────────────
-    sections.append('<h3>SC-09: P0 Emergency Broadcast</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>System Admin / Emergency System</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Player ออนไลน์หรือออฟไลน์</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Admin ส่ง P0 emergency broadcast</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) Pusher ส่ง emergency event priority สูงสุด &rarr;
-(2) IC หยุด creative ปัจจุบันทันที (ทุก priority รวม TK) &rarr;
-(3) เล่น emergency content &rarr; (4) Resume จาก next item &rarr; (5) Make-good สำหรับ interrupted ad</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Emergency content แสดงทันที &lt; 3 วินาที บนทุกป้าย</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 4 Priority Table, Page 6 IC</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-09 P0 Emergency - Interrupts All Priorities Including TK
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section Normal Schedule
-    P1-TK Takeover active   :done, tk, 08:00, 60m
-    section P0 Emergency
-    P0 trigger at 08-10     :milestone, em, 08:10, 0d
-    P0 Emergency content    :crit, p0, 08:10, 5m
-    section After P0
-    TK resumes              :done, r1, 08:15, 45m
-    Make-good TK slot       :active, mg, 09:00, 1m""", page_id))
-
-    # ── SC-10 ──────────────────────────────────────────────
-    sections.append('<h3>SC-10: Daypart Takeover &mdash; เล่น Ad วนต่อเนื่อง</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Advertiser (ลูกค้าที่ซื้อ TK)</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Takeover จองล่วงหน้า &ge; 24 ชม., creative พร้อม, ไม่ซ้อน TK อื่น</td></tr>
-<tr><td><strong>Trigger</strong></td><td>ถึงเวลา <code>TK_START</code></td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) IC ส่ง TK_START &rarr; หยุด creative ปัจจุบัน &rarr;
-(2) Player เล่น TK creative วนซ้ำ (ห้ามแทรก ยกเว้น P0) &rarr;
-(3) ถึง TK_END: IC ส่ง TK_END &rarr; (4) กลับ normal schedule &rarr; (5) Make-good สำหรับ interrupted ads</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>TK creative เล่นต่อเนื่องตลอด block, ไม่มี ad อื่นแทรก</td></tr>
-<tr><td><strong>Billing</strong></td><td>CPT (Cost Per Time) &mdash; ต่อนาทีของ block</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 3 Flow E, Page 6 IC, Page 12 §4</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-10 Daypart Takeover Interrupt Timeline
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section Normal Schedule
-    P2 Campaign Ad A 15s    :done, a1, 07:50, 1m
-    P4 House Ad 10s         :done, h1, 07:51, 1m
-    P2 Campaign Ad B 15s    :done, a2, 07:52, 1m
-    P2 Campaign Ad C 15s    :done, a3, 07:53, 1m
-    section P1-TK Takeover Block
-    TK START                :milestone, m1, 08:00, 0d
-    Brand X Creative loop x120  :crit, t1, 08:00, 60m
-    TK END                  :milestone, m2, 09:00, 0d
-    section Resume and Make-Good
-    Make-good Ad A interrupted  :active, r1, 09:00, 1m
-    P2 Campaign Ad D 15s    :active, r2, 09:01, 1m
-    P4 House Ad 10s         :done, r3, 09:02, 1m
-    P2 Campaign Ad E 15s    :done, r4, 09:03, 1m""", page_id))
-
-    # ── SC-11 ──────────────────────────────────────────────
-    sections.append('<h3>SC-11: TK Booking Conflict &mdash; ป้ายเดียว Block ซ้อนกัน</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Sales / Admin</td></tr>
-<tr><td><strong>Precondition</strong></td><td>ป้ายมี TK ที่จองแล้ว</td></tr>
-<tr><td><strong>Trigger</strong></td><td>จอง TK ใหม่ที่เวลาซ้อนกับ TK เดิม</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>ระบบ block การจอง &rarr; แสดง error + alternative slots</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>ไม่มี TK ซ้อนกัน, Sales เห็น available slots</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 4 (Priority Conflict Rules), Page 8 Edge Cases</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""flowchart TD
-    A[Sales books TK 08-00 to 09-00] --> B{Check billboard calendar}
-    B -->|No conflict| C[Confirm booking]
-    B -->|Time slot taken| D[Reject with conflict error]
-    D --> E[Show available alternative slots]
-    C --> F[Add to 24h pre-calc schedule]
-    F --> G[IC enforces TK boundary at runtime]
+    A([Advertiser B: จอง TK 12:30-13:30]) --> B{checkIsBillboardsReserved}
+    B -->|Slot ว่าง| C[สร้าง exclusive booking]
+    B -->|ชน Advertiser A 12:00-13:00| D[BILLBOARDS_ALREADY_IN_USE error]
+    D --> E{Advertiser B เลือก}
+    E -->|เลือก slot ใหม่| F[เลือกเวลาอื่น เช่น 13:00-14:00]
+    E -->|เลือกป้ายอื่น| G[เลือกป้าย B ที่ว่าง]
+    F --> C
+    G --> C
+    C --> H([Booking สำเร็จ])
     style D fill:#f8d7da,stroke:#dc3545
-    style C fill:#d4edda,stroke:#28a745""", page_id))
-
-    # ── SC-12 ──────────────────────────────────────────────
-    sections.append('<h3>SC-12: P0 Emergency ระหว่าง TK Block</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>System Admin / Emergency System</td></tr>
-<tr><td><strong>Precondition</strong></td><td>P1-TK กำลัง active</td></tr>
-<tr><td><strong>Trigger</strong></td><td>P0 emergency ถูกส่งระหว่าง TK block</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>P0 override TK &rarr; emergency plays &rarr; TK resumes หลัง P0 สิ้นสุด</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Emergency content แสดงทันที, TK resumes ต่อเนื่อง</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 4 Priority Table, Page 6 IC</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-12 P0 Emergency During Takeover Block
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section P1-TK Takeover
-    Brand X loop part 1     :done, t1, 08:00, 10m
-    TK paused by P0         :crit, tp, 08:10, 5m
-    Brand X loop part 2     :done, t2, 08:15, 45m
-    section P0 Emergency
-    P0 trigger              :milestone, e0, 08:10, 0d
-    P0 Emergency content    :crit, p0, 08:10, 5m
-    section Make-Good
-    TK creative make-good   :active, mg, 09:00, 1m""", page_id))
-
-    # ── SC-13 ──────────────────────────────────────────────
-    sections.append('<h3>SC-13: P1-ET Exact-Time Spot</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Advertiser (ลูกค้าที่ซื้อ ET)</td></tr>
-<tr><td><strong>Precondition</strong></td><td>ET spot จองเวลาเฉพาะ, lead time &ge; 15min</td></tr>
-<tr><td><strong>Trigger</strong></td><td>ถึงเวลา ET target (e.g. 08:00:00)</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) IC รอ ad boundary ที่ใกล้ target เวลาที่สุด &rarr;
-(2) เล่น ET spot ทันที &rarr; (3) ต้องอยู่ใน tolerance window (e.g. ±30s)</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>ET plays ภายใน tolerance window, PoP รายงาน exact time</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 3 Flow C, Page 4 Algorithm, Page 6 IC</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-13 P1-ET Exact-Time Spot at 08-00-00
-    dateFormat HH:mm:ss
-    axisFormat %M:%S
-    section Normal Schedule
-    P2 Ad B 15s              :done, a2, 07:59:30, 15s
-    P4 House 15s             :done, h1, 07:59:45, 15s
-    section P1-ET Window
-    ET target 08-00-00       :milestone, w1, 08:00:00, 0d
-    section P1-ET Spot
-    Brand X ET 30s           :crit, et, 08:00:00, 30s
-    section After ET
-    P4 House 10s             :done, r1, 08:00:30, 10s
-    P2 Ad C 15s              :done, r2, 08:00:40, 15s""", page_id))
-
-    # ── SC-14 ──────────────────────────────────────────────
-    sections.append('<h3>SC-14: P1-ET Miss Window &mdash; Ad ยาวบล็อก Target</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>IC / Player</td></tr>
-<tr><td><strong>Precondition</strong></td><td>ET spot มี target time 08:00:00, tolerance ±30s</td></tr>
-<tr><td><strong>Trigger</strong></td><td>P2 ad ที่กำลังเล่นยาว 90s เริ่มที่ 07:59:10 &rarr; จบที่ 08:00:40 (เกิน window)</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>Ad boundary เกิน tolerance window &rarr; ET skipped &rarr;
-IC สร้าง MakeGoodRecord &rarr; ET plays ใน loop ถัดไปเป็น make-good</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>ET ไม่ miss (make-good ชดเชย), PoP บันทึกเวลาจริงที่เล่น</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 6 IC (ET Window Logic), Page 8 Edge Cases</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-14 ET Miss Window - 90s Ad Blocks Target Time
-    dateFormat HH:mm:ss
-    axisFormat %M:%S
-    section P2 Long Ad Running
-    P2 Ad 90s               :done, a1, 07:59:10, 90s
-    section ET Window
-    Window opens 07-59-30   :milestone, ws, 07:59:30, 0d
-    ET target 08-00-00      :milestone, w1, 08:00:00, 0d
-    Window closes 08-00-30  :milestone, we, 08:00:30, 0d
-    section Miss and Make-Good
-    Ad ends after window    :milestone, ae, 08:00:40, 0d
-    ET skipped              :crit, em, 08:00:30, 10s
-    ET make-good            :active, mg, 08:00:40, 30s""", page_id))
-
-    # ── SC-15 ──────────────────────────────────────────────
-    sections.append('<h3>SC-15: P1-G Guaranteed Spot &mdash; Pre-Positioned ใน Schedule</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Advertiser (ลูกค้าที่ซื้อ Guaranteed)</td></tr>
-<tr><td><strong>Precondition</strong></td><td>P1-G จองช่วงเวลาเฉพาะ (e.g. :00, :30 ของทุกชั่วโมง)</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Algorithm pre-positions P1-G ใน sequence ระหว่าง pre-calc</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>Algorithm ใส่ P1-G ในตำแหน่งที่ใกล้ target time ที่สุด (&plusmn;5min) &rarr;
-ไม่ interrupt ad ที่กำลังเล่น (pre-positioned)</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>P1-G เล่นตรงเวลา, ไม่มี interrupt, ไม่กระทบ P2 ที่กำลังเล่น</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 4 (Algorithm), Page 12 §1</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-15 P1-G Guaranteed Spots Pre-Positioned Every 30min
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section Day Schedule
-    P2 Ads ROS              :done, p1, 08:00, 30m
-    P1-G at 08-30           :crit, g1, 08:30, 1m
-    P2 Ads ROS              :done, p2, 08:31, 29m
-    P1-G at 09-00           :crit, g2, 09:00, 1m
-    P2 Ads ROS              :done, p3, 09:01, 59m
-    P1-G at 10-00           :crit, g3, 10:00, 1m
-    P2 Ads ROS              :done, p4, 10:01, 119m""", page_id))
-
-    # ── SC-16 ──────────────────────────────────────────────
-    sections.append('<h3>SC-16: P2 Direct-Sold ROS Campaign &mdash; Loop Structure</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Advertiser (P2 Direct-Sold)</td></tr>
-<tr><td><strong>Precondition</strong></td><td>P2 campaign approved, target 5 plays/hr</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Schedule pre-calc ทุกวัน 05:00</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>Algorithm คำนวณ loop interval = 12min &rarr;
-interleave P2 ads ใน loop กับ P4 filler &rarr;
-loop_duration_ms = sum(ad.duration_ms) ทุกตัว</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>5 plays/hr ตรงเป้า, SOV ratio ถูกต้อง</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 12 §1 (Ad Distribution Algorithm)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-16 P2 ROS Campaign - 1 Loop Structure approx 82s
-    dateFormat HH:mm:ss
-    axisFormat %M:%S
-    section 1 Loop
-    P2 Ad A 15.02s          :active, a1, 00:00:00, 16s
-    P2 Ad B 30.03s          :active, a2, 00:00:16, 31s
-    P4 House 10s             :done, h1, 00:00:47, 10s
-    P2 Ad C 15s              :active, a3, 00:00:57, 15s
-    P4 House 10s             :done, h2, 00:01:12, 10s
-    Loop repeats at 00-01-22 :milestone, lr, 00:01:22, 0d""", page_id))
-    sections.append('<p><em>* loop_duration_ms = 15020 + 30030 + 10000 + 15000 + 10000 = 80050ms. Gantt แสดงค่าปัดเศษ</em></p>')
-
-    # ── SC-17 ──────────────────────────────────────────────
-    sections.append('<h3>SC-17: No Eligible Campaigns &rarr; House Content Only</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Scheduling Engine</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Campaign ทั้งหมดหมดอายุ, pause, หรือยังไม่ผ่าน review</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Pre-calc ไม่พบ eligible ad ใดๆ</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>Tier 3 schedule = house content ทั้งวัน &rarr; เล่น filler ไม่หยุด &rarr;
-เมื่อ campaign approved: Tier 1 อัพเดตภายใน 15min</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>ไม่มีจอดำ, house content เล่นต่อเนื่อง</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 5 (3-Tier Cache System)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-17 No Eligible Campaigns - House Filler Active
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section Campaign Status
-    Campaign active         :done, c1, 07:00, 120m
-    Campaign expires        :crit, cx, 09:00, 5m
-    No eligible campaigns   :crit, nc, 09:05, 295m
-    New campaign approved   :done, ca, 14:00, 10m
-    section Screen Content
-    Campaign ads play       :done, s1, 07:00, 120m
-    Tier 3 House filler     :active, s2, 09:05, 295m
-    Campaign resumes        :done, s3, 14:10, 10m""", page_id))
-
-    # ─────────────────────────────────────────────────────────
-    # SECTION 3: Campaign Lifecycle
-    # ─────────────────────────────────────────────────────────
-    sections.append('<h2>3. Campaign Lifecycle</h2>')
-
-    # ── SC-18 ──────────────────────────────────────────────
-    sections.append('<h3>SC-18: Ad ใหม่ผ่านการ Approve &rarr; Schedule Update</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Advertiser / Admin</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Ad submit แล้ว, creative uploaded</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Admin approve ad</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) Check lead time: P2 &ge; 15min, P1-G &ge; 1hr, P1-TK &ge; 24hr &rarr;
-(2) Trigger event-driven re-calc &rarr; (3) Push new schedule &rarr; (4) Player download creative</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Ad เล่นบนป้ายภายใน lead time ที่กำหนด</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 12 §2 (Event-Driven Re-calc)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-18 New Ad Approved - Lead Time and Schedule Update
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section Approval Flow
-    Ad submitted            :done, sub, 10:00, 30m
-    Admin reviews           :done, rev, 10:30, 90m
-    Approved at 12-00       :milestone, app, 12:00, 0d
-    section Re-calculation
-    Schedule re-calc        :active, rc, 12:00, 10m
-    Push to players         :done, push, 12:10, 5m
-    section First Play
-    Player receives update  :milestone, pr, 12:15, 0d
-    First ad play           :crit, fp, 12:15, 1m
-    Normal ROS resumes      :done, rr, 12:16, 44m""", page_id))
-
-    # ── SC-19 ──────────────────────────────────────────────
-    sections.append('<h3>SC-19: Creative Re-upload (แก้ไข Media หลัง Approve)</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Advertiser</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Campaign running หรือ pending</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Advertiser upload creative ใหม่แทนที่เดิม</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) Submit ใหม่เพื่อ review &rarr; (2) Admin approve &rarr;
-(3) Trigger re-encode ทุก resolution &rarr; (4) Update manifest URLs &rarr; (5) Players download</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Creative ใหม่เล่นจาก loop ถัดไป, original ยังเล่นระหว่าง review</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 5 (Creative Delivery Pipeline)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""flowchart TD
-    A[Advertiser re-uploads creative] --> B{Campaign status?}
-    B -->|Running - approved| C[Submit new creative for review]
-    B -->|Pending approval| D[Replace pending creative]
-    C --> E{Admin reviews}
-    E -->|Approved| F[Trigger re-encode at all billboard resolutions]
-    E -->|Rejected| G[Keep original creative running]
-    F --> H[Update creative manifest URLs]
-    H --> I[Players download new variant]
-    I --> J([Play new creative from next loop])
-    style F fill:#cce5ff,stroke:#004085
-    style J fill:#d4edda,stroke:#28a745""", page_id))
-
-    # ── SC-20 ──────────────────────────────────────────────
-    sections.append('<h3>SC-20: Campaign Pause / Resume</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Advertiser / Admin</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Campaign กำลัง active</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Advertiser กด pause หรือ Admin บังคับ pause</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) API ลบ campaign จาก eligible list &rarr;
-(2) Event-driven re-calc &rarr; (3) Player ลบ ad ออกจาก sequence &rarr; (4) House filler แทนที่</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Ad หยุดเล่นภายใน &lt; 15min, resume กลับได้ทันที</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 12 §2 (Event-Driven Triggers)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-20 Campaign Pause and Resume
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section Campaign Ad A
-    Playing normally        :done, a1, 08:00, 60m
-    Paused                  :crit, ap, 09:00, 5m
-    Removed from sequence   :crit, ar, 09:05, 115m
-    Resume requested        :milestone, rr, 11:00, 0d
-    Playing again           :done, a2, 11:05, 55m
-    section House Filler
-    Fills paused slot       :active, hf, 09:05, 115m""", page_id))
-
-    # ── SC-21 ──────────────────────────────────────────────
-    sections.append('<h3>SC-21: Campaign End Date ถึง &rarr; Cleanup</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Scheduling Engine</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Campaign มี end date กำหนด</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Cron ตรวจพบ campaign หมดอายุ</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) Campaign ถูก deactivate &rarr; (2) Re-calc ครั้งสุดท้าย &rarr;
-(3) Player ลบออกจาก sequence &rarr; (4) PoP summary สร้างสำหรับ campaign นั้น</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Campaign หยุดเล่น, final PoP report พร้อม</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 12 §2 (Campaign Lifecycle)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-21 Campaign End Date Reached
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section Campaign
-    Active campaign         :done, c1, 08:00, 240m
-    End date 12-00          :milestone, end, 12:00, 0d
-    Deactivated             :crit, cr, 12:00, 5m
-    section PoP
-    Final PoP summary       :milestone, pop, 12:00, 0d
-    section Screen
-    Campaign plays          :done, s1, 08:00, 240m
-    House filler takes over :active, s2, 12:05, 55m""", page_id))
-
-    # ── SC-22 ──────────────────────────────────────────────
-    sections.append('<h3>SC-22: Over-Delivery &rarr; Pacing Throttle</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Pacing Engine</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Campaign มี target frequency</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Delivered impressions &gt; target (&gt; 110%)</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) Pacing filter ตรวจ delivered vs target &rarr;
-(2) ถ้า over-delivered: ลด frequency ชั่วคราว &rarr; (3) Re-calc interval ให้ hit target ตอน EOD</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Delivery accuracy &plusmn;5% ของ target, ไม่ over-deliver</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 12 §3 (Pacing Filter)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-22 Over-Delivery Throttle - Pacing Filter
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section Delivery vs Target
-    On target 5 per hr      :done, d1, 08:00, 240m
-    Over-delivered 110pct   :crit, d2, 12:00, 60m
-    Throttled to 4 per hr   :active, d3, 13:00, 300m
-    section Screen
-    Normal ad frequency     :done, s1, 08:00, 240m
-    Reduced frequency       :active, s2, 12:00, 360m""", page_id))
-
-    # ── SC-23 ──────────────────────────────────────────────
-    sections.append('<h3>SC-23: Make-Good &mdash; Ad โดน Interrupt กลางคัน</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>IC / Player</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Ad กำลังเล่น (เช่น 8s จาก 30s)</td></tr>
-<tr><td><strong>Trigger</strong></td><td>P0, TK_START, หรือ ET interrupt</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) IC หยุด creative &rarr; (2) <strong>ไม่</strong>สร้าง PoP (partial ไม่นับ) &rarr;
-(3) สร้าง MakeGoodRecord &rarr; (4) Make-good plays ชดเชยเต็ม duration_ms &rarr;
-(5) PoP สร้างเมื่อ make-good เล่นจบ</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Impression count ถูกต้อง (partial ไม่นับ), make-good ชดเชยครบ</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 6 (Make-Good), Page 5 (Outbox)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-23 Make-Good - Ad Interrupted at 8s of 30s
-    dateFormat HH:mm:ss
-    axisFormat %M:%S
-    section Ad Playing
-    P2 Ad A 30s starts      :done, a1, 00:00:00, 8s
-    Interrupt at 8s         :milestone, ti, 00:00:08, 0d
-    section P0 Emergency 30s
-    P0 content              :crit, p0, 00:00:08, 30s
-    section Make-Good
-    Ad A make-good full 30s :active, mg, 00:00:38, 30s
-    PoP recorded            :milestone, pop, 00:01:08, 0d
-    P4 House 10s             :done, h1, 00:01:08, 10s""", page_id))
-    sections.append('<p><em>* duration_ms: Ad A = 30000ms. Played 8000ms before interrupt &rarr; make-good replays full 30000ms</em></p>')
-
-    # ── SC-24 ──────────────────────────────────────────────
-    sections.append('<h3>SC-24: Make-Good Carry Forward &mdash; ชดเชยข้ามวัน</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>IC / Make-Good Engine</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Ad โดน interrupt ใกล้ปิดป้าย (operating hours จบ)</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Make-good queue มี pending record แต่ไม่มีเวลาพอในวันนี้</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) ตรวจ remaining time &rarr; (2) ไม่พอ: carry MakeGoodRecord ไปวันถัดไป &rarr;
-(3) ใส่ priority make-good ต้นวันถัดไป</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Impression ชดเชยครบ ไม่ lost</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 6 (Make-Good — Carry Forward)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""flowchart TD
-    A[Ad interrupted by TK or P0] --> B[Create MakeGoodRecord]
-    B --> C{Time left in today's schedule?}
-    C -->|Yes - over 30min| D[Insert at next available slot today]
-    C -->|No - under 30min| E[Carry forward to next day]
-    D --> F[Make-good plays - PoP recorded]
-    E --> G[Add to tomorrow's schedule priority queue]
-    G --> F
-    F --> H([Close MakeGoodRecord])
-    style E fill:#fff3cd,stroke:#ffc107
     style H fill:#d4edda,stroke:#28a745""", page_id))
 
-    # ─────────────────────────────────────────────────────────
-    # SECTION 4: PoP Reporting & Billing
-    # ─────────────────────────────────────────────────────────
-    sections.append('<h2>4. PoP Reporting &amp; Billing</h2>')
-
-    # ── SC-25 ──────────────────────────────────────────────
-    sections.append('<h3>SC-25: PoP Collection ปกติ (Normal Flow)</h3>')
+    # ── UC-TK-3 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-TK-3: Edge Case &mdash; Creative ไม่ได้รับการอนุมัติก่อนถึงเวลา</h3>')
     sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>IC / Player Outbox</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Ad เล่นจบครบ duration_ms</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Ad play complete event จาก IC</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) IC records: <code>creative_id, start_time, played_duration_ms</code> &rarr;
-(2) สร้าง PoP event ใน Outbox &rarr; (3) Batch upload ทุก N events หรือทุก M วินาที &rarr;
-(4) API ตอบ ack_id &rarr; (5) Mark delivered</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>PoP record ครบถ้วน, ข้อมูล billing ถูกต้อง</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 5 (Player Outbox, Inbox)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""flowchart TD
-    A([Ad play starts]) --> B[IC records start time and creative id]
-    B --> C[Ad plays to completion]
-    C --> D[IC records end time and played duration ms]
-    D --> E[Create PoP event in Outbox]
-    E --> F{Network available?}
-    F -->|Yes| G[Batch upload to API]
-    F -->|No| H[Queue in Tauri Store]
-    H --> I[Retry on reconnect]
-    G --> J[API acks with receipt id]
-    J --> K([PoP marked as delivered])
-    style A fill:#cce5ff,stroke:#004085
-    style K fill:#d4edda,stroke:#28a745""", page_id))
-
-    # ── SC-26 ──────────────────────────────────────────────
-    sections.append('<h3>SC-26: PoP Offline &rarr; Batch Sync เมื่อ Online</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Player Outbox</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Player offline, ad เล่นต่อไป (Tier 2/3)</td></tr>
-<tr><td><strong>Trigger</strong></td><td>เน็ตกลับมา</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) Outbox queue สะสมระหว่าง offline &rarr;
-(2) เน็ตกลับ: flush cycle ส่ง batch &rarr;
-(3) X-Idempotency-Key ป้องกัน duplicate &rarr; (4) All acked</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>PoP sync ครบ ไม่ lost, ไม่ duplicate</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 5 (Player Outbox, Inbox)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-26 Offline PoP Queue and Batch Sync
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section Network
-    Online                  :done, n1, 08:00, 60m
-    Offline                 :crit, n2, 09:00, 240m
-    Restored                :done, n3, 13:00, 60m
-    section PoP Events
-    PoP uploaded normally   :done, p1, 08:00, 60m
-    PoP queued offline      :active, pq, 09:00, 240m
-    Batch sync flush        :milestone, psync, 13:00, 0d
-    Batch uploaded          :done, pu, 13:00, 15m""", page_id))
-
-    # ── SC-27 ──────────────────────────────────────────────
-    sections.append('<h3>SC-27: Duplicate PoP &mdash; Idempotency Key</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Player Outbox / Backend</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Player ส่ง PoP แล้ว timeout (ไม่ได้ ACK)</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Flush cycle ถัดไป retry item ที่ยัง pending</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) Player ส่งซ้ำพร้อม X-Idempotency-Key เดิม &rarr;
-(2) Backend ตรวจ Redis: key มีอยู่แล้ว &rarr;
-(3) Return <code>{status: already_processed}</code> &rarr; (4) Player mark acked</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>PoP record ครั้งเดียว แม้ retry หลายรอบ</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 5 (PoP Deduplication &mdash; Idempotency)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""flowchart TD
-    A[Player sends PoP with X-Idempotency-Key] --> B[API receives request]
-    B --> C{Key in Redis?}
-    C -->|No - first time| D[Process PoP record]
-    D --> E[Store key in Redis 24h TTL]
-    E --> F[Return 200 with ack id]
-    C -->|Yes - duplicate retry| G[Skip - already processed]
-    G --> H[Return already processed status]
-    F --> I([Player marks PoP delivered])
-    H --> I
-    style G fill:#fff3cd,stroke:#ffc107
-    style D fill:#d4edda,stroke:#28a745""", page_id))
-
-    # ── SC-28 ──────────────────────────────────────────────
-    sections.append('<h3>SC-28: Partial Play &mdash; Ad โดน Interrupt กลางคัน (PoP)</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>IC / Player</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Ad กำลังเล่น (เช่น เล่นไป 8s จาก 30s)</td></tr>
-<tr><td><strong>Trigger</strong></td><td>TK_START interrupt</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) IC หยุด &rarr; (2) <strong>ไม่</strong>สร้าง PoP สำหรับ partial &rarr;
-(3) สร้าง MakeGoodRecord &rarr; (4) Make-good เล่นเต็ม duration_ms &rarr; (5) PoP สร้างตอนจบ</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Impression count ถูกต้อง (partial ไม่นับ)</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 6 (Make-Good), Page 5 (Outbox)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-28 Partial Play - TK Interrupts at 8s of 30s Ad
-    dateFormat HH:mm:ss
-    axisFormat %M:%S
-    section Ad Playing
-    P2 Ad A starts 30s      :done, a1, 00:00:00, 8s
-    TK interrupt at 8s      :milestone, ti, 00:00:08, 0d
-    section P1-TK Block
-    TK creative loop 5min   :crit, tk, 00:00:08, 300s
-    TK END                  :milestone, te, 00:05:08, 0d
-    section PoP and Make-Good
-    No PoP for partial play :crit, np, 00:00:08, 1s
-    Ad A make-good full 30s :active, mg, 00:05:08, 30s
-    PoP recorded at end     :milestone, pop, 00:05:38, 0d
-    P2 Ad B 15.02s           :done, b1, 00:05:38, 16s""", page_id))
-    sections.append('<p><em>* duration_ms: Ad A = 30000ms. Played only 8000ms &rarr; no PoP. Make-good plays full 30000ms &rarr; PoP recorded</em></p>')
-
-    # ─────────────────────────────────────────────────────────
-    # SECTION 5: Player Operations
-    # ─────────────────────────────────────────────────────────
-    sections.append('<h2>5. Player Operations</h2>')
-
-    # ── SC-29 ──────────────────────────────────────────────
-    sections.append('<h3>SC-29: Billboard ใหม่เข้าระบบ (New Screen Registration)</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Admin / Installer</td></tr>
-<tr><td><strong>Precondition</strong></td><td>ป้ายใหม่ติดตั้งแล้ว</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Admin สร้าง billboard record + กรอก resolution, network_type, operating hours</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) สร้าง billboard record + device code &rarr;
-(2) Trigger encode creative variants สำหรับ resolution ใหม่ &rarr;
-(3) Player boot ด้วย device code &rarr; Fresh Boot (SC-02)</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>ป้ายเล่น campaign ได้ภายใน &lt; 15min หลัง registration</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 5 (Creative Delivery Pipeline)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""flowchart TD
-    A[Admin creates billboard record] --> B[Set resolution - network type - hours]
-    B --> C[System generates device code]
-    C --> D{Need encoding for new resolution?}
-    D -->|Yes| E[Trigger encoding pipeline]
-    E --> F[Encode variants at new resolution]
-    D -->|Variants exist| G
-    F --> G[Player boots with device code]
-    G --> H[Fresh Boot SC-02]
-    H --> I([First campaign play under 15min])
-    style A fill:#cce5ff,stroke:#004085
-    style I fill:#d4edda,stroke:#28a745""", page_id))
-
-    # ── SC-30 ──────────────────────────────────────────────
-    sections.append('<h3>SC-30: Billboard Resolution เปลี่ยน (Hardware Upgrade)</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Admin</td></tr>
-<tr><td><strong>Precondition</strong></td><td>ป้ายอัพเกรดจอ (เช่น 720p &rarr; 1080p)</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Admin แก้ <code>resolution_width, resolution_height</code> ใน billboard record</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) Trigger encode variant resolution ใหม่สำหรับ creatives ที่ active &rarr;
-(2) ระหว่าง encode: ใช้ fallback variant (resolution ใกล้เคียง) &rarr;
-(3) Manifest อัพเดต URL &rarr; (4) Player download ใหม่</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>ป้ายแสดงผลตรง resolution ใหม่ภายใน ~15-30min</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 5 (Creative Delivery Pipeline)</td></tr>
-</table>""")
-    sections.append(mermaid_diagram("""gantt
-    title SC-30 Billboard Resolution Change Timeline
-    dateFormat HH:mm
-    axisFormat %H:%M
-    section Admin Action
-    Update resolution       :milestone, ar, 10:00, 0d
-    section Encoding Pipeline
-    Encode active creatives :active, enc, 10:00, 15m
-    Encoding complete       :milestone, ec, 10:15, 0d
-    section Player Update
-    Manifest updated        :done, mu, 10:15, 5m
-    Download new resolution :active, dl, 10:20, 15m
-    Playing new resolution  :done, nr, 10:35, 25m""", page_id))
-
-    # ── SC-31 ──────────────────────────────────────────────
-    sections.append('<h3>SC-31: Billboard Operating Hours เปลี่ยน</h3>')
-    sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Admin / Billboard Owner</td></tr>
-<tr><td><strong>Precondition</strong></td><td>ป้ายมี operating hours กำหนดไว้</td></tr>
-<tr><td><strong>Trigger</strong></td><td>เปลี่ยน <code>open_time / close_time</code> ใน billboard record</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) Re-calc Tier 3 &rarr; (2) Daily Pre-calc cron วันถัดไปใช้ hours ใหม่ &rarr;
-(3) Campaign pacing คำนวณใหม่ตาม available hours</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>Scheduling ปรับตาม hours ใหม่ตั้งแต่วันถัดไป</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 12 §2 (Daily Pre-calc Cron)</td></tr>
+<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>Advertiser จอง Takeover 15:00 แต่ creative ยังอยู่ใน <code>waiting-approve</code> ถึงเวลา 14:55</td></tr>
+<tr><td><strong>ระบบ</strong></td><td>Takeover slot ผ่านไปโดยที่ <code>status &ne; approved</code> &rarr; Player ไม่ได้รับ Takeover schedule</td></tr>
+<tr><td><strong>ผลลัพธ์</strong></td><td>Takeover miss &mdash; ช่วง 15:00&ndash;16:00 เล่น ROS ปกติ, PoP = 0 plays</td></tr>
+<tr><td><strong>Expected Outcome</strong></td><td>Advertiser ต้องติดต่อ Support เพื่อขอ make-good หรือ refund (manual process)</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart LR
-    A[Admin changes hours<br/>07-00 to 23-00] --> B[API updates billboard record]
-    B --> C[Invalidate current Tier 3 schedule]
-    C --> D{Effective when?}
-    D -->|Today| E[Re-calc remaining hours]
-    D -->|Tomorrow| F[Daily cron at 05-00 uses new hours]
-    E --> G[Push updated schedule to player]
-    F --> G
-    G --> H[Pacing redistributed<br/>across new 16h window]
-    H --> I([Campaign plays recalculated])
-    style I fill:#d4edda,stroke:#28a745""", page_id))
+    A([Creative อัพโหลด]) --> B[status: draft]
+    B --> C[Advertiser publish]
+    C --> D[status: waiting-approve]
+    D --> E{Owner อนุมัติ?}
+    E -->|อนุมัติก่อน 15:00| F[status: waiting-play]
+    F --> G([Takeover เล่นตาม schedule])
+    E -->|ยังไม่อนุมัติถึงเวลา| H[Takeover slot ผ่านไป]
+    H --> I([PoP = 0, ต้องขอ make-good])
+    style H fill:#f8d7da,stroke:#dc3545
+    style I fill:#fff3cd,stroke:#ffc107
+    style G fill:#d4edda,stroke:#28a745""", page_id))
 
-    # ── SC-32 ──────────────────────────────────────────────
-    sections.append('<h3>SC-32: Player Clock Drift &rarr; Schedule Misalignment</h3>')
+    # ──────────────────────────────────────────────────────────────
+    # SECTION 2: Exact Time
+    # ──────────────────────────────────────────────────────────────
+    sections.append('<h2>2. Exact Time &mdash; เล่นตรงเวลาที่กำหนด</h2>')
+    sections.append(info_panel(
+        "<p><strong>Exact Time</strong> คือการจอง slot ที่ต้องเล่น <em>ตรงเวลาที่กำหนด</em> เช่น Flash Sale ที่ 12:00:00 "
+        "หรือ Live Event ที่ต้องการ synchronize กับ broadcast &mdash; "
+        "ระบบจะ interrupt ad ที่กำลังเล่นอยู่เมื่อถึง <strong>window ±30 วินาที</strong> รอบเวลาเป้าหมาย</p>"
+        "<p><strong>Code:</strong> <code>activeDisplayTimeType: 'exclusive'</code> (เหมือน Takeover แต่ duration สั้น) &nbsp;&nbsp;"
+        "<strong>Lead time:</strong> &ge;5 นาที &nbsp;&nbsp;"
+        "<strong>Window:</strong> &plusmn;30 วินาที รอบเวลาเป้าหมาย</p>"
+    ))
+
+    # ── UC-ET-1 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-ET-1: Happy Path &mdash; Flash Sale เล่นตรง 12:00</h3>')
     sections.append("""<table>
-<tr><th>Attribute</th><th>Detail</th></tr>
-<tr><td><strong>Actor</strong></td><td>Player (time sync)</td></tr>
-<tr><td><strong>Precondition</strong></td><td>Player clock drift จาก server time</td></tr>
-<tr><td><strong>Trigger</strong></td><td>Player time เร็ว/ช้ากว่า server &gt; 30 วินาที</td></tr>
-<tr><td><strong>System Behavior</strong></td><td>(1) Sync time จาก API response header ทุก schedule fetch &rarr;
-(2) IC ใช้ server timestamp สำหรับ P1-ET window calculation &rarr;
-(3) &gt; 300s: force NTP sync + alert</td></tr>
-<tr><td><strong>Expected Outcome</strong></td><td>ET spot เล่นตรงเวลา server แม้ local clock drift</td></tr>
-<tr><td><strong>Reference</strong></td><td>Page 8 Edge Cases</td></tr>
+<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
+<tr><td><strong>Advertiser กระทำ</strong></td><td>จอง Exact Time ที่ 12:00:00, creative Flash Sale 30 วินาที, อัพโหลดก่อน 1 ชั่วโมง</td></tr>
+<tr><td><strong>ระบบ</strong></td><td>Window เปิด 11:59:30 &mdash; รอ ad ที่กำลังเล่นจบ (หรือ interrupt ถ้าเกิน window)</td></tr>
+<tr><td><strong>เวลา 12:00:00</strong></td><td>ET ad เล่น 30 วินาที &rarr; 12:00:30 กลับ ROS ปกติ</td></tr>
+<tr><td><strong>Expected Outcome</strong></td><td>Flash Sale เล่นตรง 12:00 (&plusmn;30s), PoP บันทึก 1 play</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""gantt
+    title UC-ET-1 Exact Time Flash Sale
+    dateFormat HH:mm:ss
+    axisFormat %H:%M:%S
+    section โฆษณา ROS ก่อนหน้า
+    P2 Ad A 15s            :done, a1, 11:59:30, 15s
+    section Exact Time Window
+    Window opens 11-59-30  :milestone, ws, 11:59:30, 0d
+    ET target 12-00-00     :milestone, et, 12:00:00, 0d
+    Window closes 12-00-30 :milestone, we, 12:00:30, 0d
+    section ET Play
+    Flash Sale 30s         :crit, etad, 12:00:00, 30s
+    ET END 12-00-30        :milestone, ee, 12:00:30, 0d
+    section กลับ ROS
+    P2 Ad B 15s            :done, a2, 12:00:30, 15s""", page_id))
+
+    # ── UC-ET-2 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-ET-2: Edge Case &mdash; Ad ที่เล่นอยู่ยาวเกิน Window</h3>')
+    sections.append("""<table>
+<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>P2 ad ที่กำลังเล่นอยู่ยาว 90 วินาที เริ่มที่ 11:59:10 &mdash; จะจบที่ 12:00:40</td></tr>
+<tr><td><strong>ET Window</strong></td><td>Window เปิด 11:59:30 &mdash; ปิด 12:00:30 &mdash; ad ที่เล่นอยู่จบหลัง window ปิด</td></tr>
+<tr><td><strong>ระบบตัดสินใจ</strong></td><td>ET target ผ่านไปแล้ว, ad ที่เล่นจบที่ 12:00:40 &gt; window 12:00:30 &rarr; ET ถูก skip</td></tr>
+<tr><td><strong>Make-good</strong></td><td>ระบบเพิ่ม ET make-good ใน sequence ถัดไป (เล่นหลัง 12:00:40)</td></tr>
+<tr><td><strong>Expected Outcome</strong></td><td>ET เล่นช้า ~40 วินาที (make-good), Advertiser ได้รับ 1 play แต่ไม่ตรง 12:00:00 พอดี</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""gantt
+    title UC-ET-2 ET Window Missed - Make-good
+    dateFormat HH:mm:ss
+    axisFormat %H:%M:%S
+    section P2 Ad ที่กำลังเล่น
+    P2 Ad 90s (start 11-59-10)  :done, a1, 11:59:10, 90s
+    section ET Window
+    Window opens 11-59-30    :milestone, ws, 11:59:30, 0d
+    ET target 12-00-00       :milestone, et, 12:00:00, 0d
+    Window closes 12-00-30   :milestone, we, 12:00:30, 0d
+    section ผลลัพธ์
+    Ad จบหลัง window         :milestone, ae, 12:00:40, 0d
+    ET skip + make-good      :active, mg, 12:00:40, 30s""", page_id))
+
+    # ── UC-ET-3 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-ET-3: Edge Case &mdash; Submit ช้าเกินไป (&lt;5 นาที)</h3>')
+    sections.append("""<table>
+<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>Advertiser พยายาม publish Exact Time slot ที่ 12:00 แต่ submit ตอน 11:58 (เหลือ 2 นาที)</td></tr>
+<tr><td><strong>ระบบตรวจสอบ</strong></td><td><code>rules.after(5, 'minutes')</code> &rarr; ไม่ผ่าน validation</td></tr>
+<tr><td><strong>ผลลัพธ์</strong></td><td>API return error: เวลาต้องมากกว่าปัจจุบันอย่างน้อย 5 นาที</td></tr>
+<tr><td><strong>Expected Outcome</strong></td><td>Advertiser ต้องเลือกเวลาใหม่ที่ &ge;12:03 หรือ plan ล่วงหน้ามากกว่านี้</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart TD
-    A[Player detects clock drift] --> B{Drift magnitude?}
-    B -->|Under 30s| C[Log warning only]
-    B -->|30s to 300s| D[Sync from API response header]
-    B -->|Over 300s| E[Force NTP sync - send alert]
-    D --> F[Adjust IC time reference]
-    E --> F
-    F --> G{P1-ET window affected?}
-    G -->|Yes| H[Re-evaluate ET queue with corrected time]
-    G -->|No| I([Continue with corrected schedule])
-    H --> I
-    style E fill:#f8d7da,stroke:#dc3545
-    style I fill:#d4edda,stroke:#28a745""", page_id))
+    A([Advertiser submit ET slot]) --> B{เวลา target >= now + 5 min?}
+    B -->|ใช่ เช่น target 12:00 submit 11:54| C[Validation pass]
+    C --> D[สร้าง exclusive booking]
+    D --> E[ส่ง notification ให้ owner อนุมัติ]
+    E --> F([รอ approval])
+    B -->|ไม่ใช่ เช่น target 12:00 submit 11:58| G[Validation error]
+    G --> H[rules.after 5 minutes failed]
+    H --> I([Advertiser ต้องเลือกเวลาใหม่])
+    style G fill:#f8d7da,stroke:#dc3545
+    style I fill:#fff3cd,stroke:#ffc107
+    style F fill:#d4edda,stroke:#28a745""", page_id))
 
-    # ─────────────────────────────────────────────────────────
-    # SECTION 6: Summary Coverage Table
-    # ─────────────────────────────────────────────────────────
-    sections.append('<h2>6. สรุป Scenario Coverage</h2>')
+    # ──────────────────────────────────────────────────────────────
+    # SECTION 3: Guaranteed Frequency
+    # ──────────────────────────────────────────────────────────────
+    sections.append('<h2>3. Guaranteed Frequency &mdash; รับประกัน N ครั้งต่อหน่วยเวลา</h2>')
+    sections.append(info_panel(
+        "<p><strong>Guaranteed Frequency</strong> คือการกำหนดว่าโฆษณาต้องเล่น <em>อย่างน้อย N ครั้ง</em> "
+        "ต่อ 15 นาที / ชั่วโมง / วัน &mdash; ระบบรับประกัน minimum frequency แม้มี priority อื่นแทรก</p>"
+        "<p><strong>Code:</strong> <code>activeDisplayTimeType: 'period'</code> + "
+        "<code>frequencyType: per_15_minutes | per_hour | per_day</code> &nbsp;&nbsp;"
+        "<strong>Options:</strong> /15 นาที, /ชั่วโมง, /วัน</p>"
+    ))
 
+    # ── UC-G-1 ────────────────────────────────────────────────────
+    sections.append('<h3>UC-G-1: Happy Path &mdash; 4 ครั้ง/ชั่วโมง ครบทุก play</h3>')
     sections.append("""<table>
-<tr><th>SC</th><th>ชื่อ Scenario</th><th>หมวด</th><th>Priority</th><th>Architecture Page</th><th>Diagram</th></tr>
-<tr><td>SC-01</td><td>Normal Playback</td><td>Playback</td><td>All</td><td>P3, P12</td><td>Gantt</td></tr>
-<tr><td>SC-02</td><td>Fresh Boot</td><td>Playback</td><td>All</td><td>P3, P5</td><td>Flowchart</td></tr>
-<tr><td>SC-03</td><td>Network Drop → Reconnect</td><td>Playback</td><td>All</td><td>P3, P5, P12</td><td>Gantt</td></tr>
-<tr><td>SC-04</td><td>Creative Download Fails</td><td>Playback</td><td>All</td><td>P5</td><td>Flowchart</td></tr>
-<tr><td>SC-05</td><td>Checksum Fail</td><td>Playback</td><td>All</td><td>P5</td><td>Flowchart</td></tr>
-<tr><td>SC-06</td><td>Disk Full → Eviction</td><td>Playback</td><td>All</td><td>P5</td><td>Flowchart</td></tr>
-<tr><td>SC-07</td><td>Power Cycle → Recovery</td><td>Playback</td><td>All</td><td>P5</td><td>Flowchart</td></tr>
-<tr><td>SC-08</td><td>SIM Data Throttled</td><td>Playback</td><td>All</td><td>P5</td><td>Gantt</td></tr>
-<tr><td>SC-09</td><td>P0 Emergency</td><td>Scheduling</td><td>P0</td><td>P4, P6</td><td>Gantt</td></tr>
-<tr><td>SC-10</td><td>Daypart Takeover</td><td>Scheduling</td><td>P1-TK</td><td>P3, P6, P12</td><td>Gantt</td></tr>
-<tr><td>SC-11</td><td>TK Booking Conflict</td><td>Scheduling</td><td>P1-TK</td><td>P4, P8</td><td>Flowchart</td></tr>
-<tr><td>SC-12</td><td>P0 During TK</td><td>Scheduling</td><td>P0 &gt; P1-TK</td><td>P4, P6</td><td>Gantt</td></tr>
-<tr><td>SC-13</td><td>Exact-Time Spot</td><td>Scheduling</td><td>P1-ET</td><td>P3, P4, P6</td><td>Gantt</td></tr>
-<tr><td>SC-14</td><td>ET Miss Window</td><td>Scheduling</td><td>P1-ET</td><td>P6, P8</td><td>Gantt</td></tr>
-<tr><td>SC-15</td><td>Guaranteed Spot</td><td>Scheduling</td><td>P1-G</td><td>P4</td><td>Gantt</td></tr>
-<tr><td>SC-16</td><td>P2 ROS Campaign</td><td>Scheduling</td><td>P2</td><td>P12</td><td>Gantt</td></tr>
-<tr><td>SC-17</td><td>No Campaigns → House Only</td><td>Scheduling</td><td>P4</td><td>P5</td><td>Gantt</td></tr>
-<tr><td>SC-18</td><td>New Ad Approved</td><td>Campaign</td><td>P2</td><td>P12</td><td>Gantt</td></tr>
-<tr><td>SC-19</td><td>Creative Re-upload</td><td>Campaign</td><td>P2</td><td>P5</td><td>Flowchart</td></tr>
-<tr><td>SC-20</td><td>Campaign Pause/Resume</td><td>Campaign</td><td>P2/P3</td><td>P12</td><td>Gantt</td></tr>
-<tr><td>SC-21</td><td>Campaign Expired</td><td>Campaign</td><td>P2/P3</td><td>P12</td><td>Gantt</td></tr>
-<tr><td>SC-22</td><td>Over-Delivery Throttle</td><td>Campaign</td><td>P2/P3</td><td>P12</td><td>Gantt</td></tr>
-<tr><td>SC-23</td><td>Make-Good Interrupted</td><td>Campaign</td><td>P2-P4</td><td>P6</td><td>Gantt</td></tr>
-<tr><td>SC-24</td><td>Make-Good Carry Forward</td><td>Campaign</td><td>P2-P4</td><td>P6</td><td>Flowchart</td></tr>
-<tr><td>SC-25</td><td>PoP Normal Collection</td><td>PoP/Billing</td><td>All</td><td>P5</td><td>Flowchart</td></tr>
-<tr><td>SC-26</td><td>PoP Offline Sync</td><td>PoP/Billing</td><td>All</td><td>P5</td><td>Gantt</td></tr>
-<tr><td>SC-27</td><td>Duplicate PoP Prevention</td><td>PoP/Billing</td><td>All</td><td>P5</td><td>Flowchart</td></tr>
-<tr><td>SC-28</td><td>Partial Play → Make-Good</td><td>PoP/Billing</td><td>P2-P4</td><td>P5, P6</td><td>Gantt</td></tr>
-<tr><td>SC-29</td><td>New Billboard Registration</td><td>Operations</td><td>&mdash;</td><td>P5</td><td>Flowchart</td></tr>
-<tr><td>SC-30</td><td>Resolution Change</td><td>Operations</td><td>&mdash;</td><td>P5</td><td>Gantt</td></tr>
-<tr><td>SC-31</td><td>Operating Hours Change</td><td>Operations</td><td>&mdash;</td><td>P12</td><td>Flowchart</td></tr>
-<tr><td>SC-32</td><td>Clock Drift</td><td>Operations</td><td>P1-ET</td><td>P8</td><td>Flowchart</td></tr>
+<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
+<tr><td><strong>Advertiser กำหนด</strong></td><td>Frequency = 4 ครั้ง/ชั่วโมง, วันธรรมดา 08:00&ndash;18:00, creative 30 วินาที</td></tr>
+<tr><td><strong>ระบบคำนวณ</strong></td><td>กระจาย 4 plays ในแต่ละชั่วโมง &mdash; ทุก ~15 นาที (interleave กับ P2/P4 ads อื่น)</td></tr>
+<tr><td><strong>ใน 1 ชั่วโมง</strong></td><td>เล่น 4 ครั้งตามที่รับประกัน + P2/P4 fills เวลาที่เหลือ</td></tr>
+<tr><td><strong>Expected Outcome</strong></td><td>PoP report: 4 plays/hr &times; 10 hrs = 40 plays/day ครบ 100%</td></tr>
 </table>""")
+    sections.append(mermaid_diagram("""gantt
+    title UC-G-1 Guaranteed 4 plays per hour
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section Guaranteed Slots
+    G play 1 at 08-00      :crit, g1, 08:00, 1m
+    G play 2 at 08-15      :crit, g2, 08:15, 1m
+    G play 3 at 08-30      :crit, g3, 08:30, 1m
+    G play 4 at 08-45      :crit, g4, 08:45, 1m
+    section P2 ROS Fills
+    P2 fills (remaining)   :done, f1, 08:01, 14m
+    P2 fills (remaining)   :done, f2, 08:16, 14m
+    P2 fills (remaining)   :done, f3, 08:31, 14m
+    P2 fills (remaining)   :done, f4, 08:46, 14m""", page_id))
 
-    sections.append(success_panel(
-        "<p><strong>Coverage: 32 scenarios / 5 หมวด &mdash; 14 Gantt timelines + 18 Flowcharts</strong></p>"
-        "<p>ทุก scenario มี architecture ที่ออกแบบรองรับแล้ว (ดู Reference column)</p>"
-        "<p><strong>duration_ms Coverage:</strong> SC-01, SC-16, SC-23, SC-28 &mdash; แสดงผลกระทบของ non-integer durations "
-        "ต่อ loop calculation, PoP reporting, และ make-good logic</p>"
-        "<p><strong>Priority Gaps (ไม่มีใน v2):</strong> "
-        "Audience-based targeting, RTB/SSP no-fill fallback, Geo-fenced campaigns "
-        "&mdash; อยู่ใน pDOOH Roadmap (Page 5 §pDOOH)</p>"
+    # ── UC-G-2 ────────────────────────────────────────────────────
+    sections.append('<h3>UC-G-2: Edge Case &mdash; Takeover ขัด ทำให้ under-deliver</h3>')
+    sections.append("""<table>
+<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>Guaranteed campaign 4/hr ทับซ้อนกับ Takeover ช่วง 09:00&ndash;09:30 บนป้ายเดียวกัน</td></tr>
+<tr><td><strong>ระบบจัดการ</strong></td><td>Takeover (P1) มี priority สูงกว่า &rarr; G slots ใน 09:00&ndash;09:30 ถูก block</td></tr>
+<tr><td><strong>ผลลัพธ์ชั่วโมง 09:00</strong></td><td>ได้แค่ 2 plays (09:30 และ 09:45) แทน 4 plays</td></tr>
+<tr><td><strong>Make-good</strong></td><td>ระบบเพิ่ม 2 plays พิเศษใน 10:00&ndash;10:30 เพื่อชดเชย</td></tr>
+<tr><td><strong>Expected Outcome</strong></td><td>Guaranteed ยังคงครบ 4 plays/hr เมื่อรวม make-good</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""gantt
+    title UC-G-2 Takeover Blocks Guaranteed Slots
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section ชั่วโมง 09:00
+    TK ครอง 30 นาที         :crit, tk, 09:00, 30m
+    G play 3 at 09-30        :crit, g3, 09:30, 1m
+    G play 4 at 09-45        :crit, g4, 09:45, 1m
+    section Make-good ชั่วโมง 10:00
+    G make-good 1            :active, mg1, 10:00, 1m
+    G make-good 2            :active, mg2, 10:05, 1m
+    G play 3 at 10-15        :crit, g5, 10:15, 1m
+    G play 4 at 10-30        :crit, g6, 10:30, 1m""", page_id))
+
+    # ──────────────────────────────────────────────────────────────
+    # SECTION 4: Run of Schedule (ROS)
+    # ──────────────────────────────────────────────────────────────
+    sections.append('<h2>4. Run of Schedule &mdash; กระจายโฆษณาตลอด Operating Hours</h2>')
+    sections.append(info_panel(
+        "<p><strong>Run of Schedule (ROS)</strong> คือการลงโฆษณาแบบ <em>กระจายทั่วช่วงเวลา</em> "
+        "ที่กำหนด &mdash; ระบบ interleave กับโฆษณาอื่น ไม่รับประกัน exact timing แต่รับประกัน "
+        "<em>fair share</em> ของ available slots</p>"
+        "<p><strong>Code:</strong> <code>activeDisplayTimeType: 'period'</code> + budget &nbsp;&nbsp;"
+        "<strong>Options:</strong> date range, weekday filter, budget (campaign total หรือ daily) &nbsp;&nbsp;"
+        "<strong>Approval:</strong> draft &rarr; waiting-approve &rarr; approved &rarr; playing</p>"
+    ))
+
+    # ── UC-P2-1 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-P2-1: Happy Path &mdash; Campaign 2 สัปดาห์ กระจาย Balanced</h3>')
+    sections.append("""<table>
+<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
+<tr><td><strong>Advertiser กำหนด</strong></td><td>Campaign 14 วัน, วันธรรมดา 07:00&ndash;22:00, เลือก Package "target-reach", creative 15 วินาที</td></tr>
+<tr><td><strong>Approval flow</strong></td><td>Publish &rarr; owner รับ notification &rarr; อนุมัติ &rarr; status: <code>waiting-play</code></td></tr>
+<tr><td><strong>วันที่ 1</strong></td><td>Player ดาวน์โหลด creative &rarr; เริ่มเล่น interleave กับ ads อื่นตามลำดับ priority</td></tr>
+<tr><td><strong>ตลอด 14 วัน</strong></td><td>ระบบ balance โฆษณาตาม SOV (Share of Voice) ที่ซื้อ</td></tr>
+<tr><td><strong>Expected Outcome</strong></td><td>PoP report แสดง plays ทุกวัน, status &rarr; <code>done</code> เมื่อสิ้นสุด campaign</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""flowchart LR
+    A([Advertiser: สร้าง Campaign]) --> B[เลือก Package + อัพโหลด Creative]
+    B --> C[กำหนด date range + weekdays]
+    C --> D[Publish]
+    D --> E[Owner รับ notification]
+    E --> F{Owner อนุมัติ?}
+    F -->|อนุมัติ| G[status: waiting-play]
+    F -->|ปฏิเสธ| H[status: rejected]
+    H --> I[Advertiser แก้ creative หรือยกเลิก]
+    G --> J[ถึง start date]
+    J --> K[Player ดาวน์โหลด + เริ่มเล่น]
+    K --> L([PoP รายงานทุก play])
+    style H fill:#f8d7da,stroke:#dc3545
+    style L fill:#d4edda,stroke:#28a745""", page_id))
+
+    # ── UC-P2-2 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-P2-2: Edge Case &mdash; Creative ถูก Reject ระหว่าง Review</h3>')
+    sections.append("""<table>
+<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>Advertiser ส่ง creative ที่ไม่ตรงกับ spec ของป้าย (เช่น ขนาดผิด หรือเนื้อหาไม่เหมาะสม)</td></tr>
+<tr><td><strong>Owner กระทำ</strong></td><td>Billboard owner ปฏิเสธ creative ผ่านหน้า <code>/owner/advertisement-review</code></td></tr>
+<tr><td><strong>ระบบ</strong></td><td>Status &rarr; <code>rejected</code>, แจ้ง Advertiser ทาง notification</td></tr>
+<tr><td><strong>Advertiser แก้ไข</strong></td><td>ต้องสร้าง campaign ใหม่หรืออัพโหลด creative ใหม่แล้ว publish ใหม่</td></tr>
+<tr><td><strong>Expected Outcome</strong></td><td>Campaign ไม่เล่นจนกว่า creative ใหม่จะผ่าน review</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""flowchart TD
+    A([Advertiser publish]) --> B[Owner รับ notification]
+    B --> C{Owner ตรวจ creative}
+    C -->|ผ่าน spec| D[status: approved]
+    D --> E([Campaign เล่นตาม schedule])
+    C -->|ไม่ผ่าน spec| F[status: rejected]
+    F --> G[Notification ถึง Advertiser]
+    G --> H{Advertiser เลือก}
+    H -->|แก้ creative| I[อัพโหลด creative ใหม่]
+    H -->|ยกเลิก campaign| J([Campaign cancelled])
+    I --> K[Publish ใหม่]
+    K --> B
+    style F fill:#f8d7da,stroke:#dc3545
+    style E fill:#d4edda,stroke:#28a745""", page_id))
+
+    # ── UC-P2-3 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-P2-3: Edge Case &mdash; Player Offline ระหว่าง Campaign</h3>')
+    sections.append("""<table>
+<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>ป้ายโฆษณาออฟไลน์ 4 ชั่วโมง ขณะที่ campaign กำลังเล่นอยู่</td></tr>
+<tr><td><strong>ระหว่าง Offline</strong></td><td>Player เล่นต่อจาก Tier 2 (4hr buffer) &rarr; ถ้า &gt;4hr ใช้ Tier 3 (house filler)</td></tr>
+<tr><td><strong>PoP ระหว่าง Offline</strong></td><td>PoP events เก็บใน local queue &mdash; ยังไม่ส่ง Server</td></tr>
+<tr><td><strong>เมื่อกลับ Online</strong></td><td>Player sync PoP batch ทั้งหมดที่ค้างไว้ขึ้น Server</td></tr>
+<tr><td><strong>Expected Outcome</strong></td><td>Advertiser เห็น PoP report ครบ (ส่งหลัง reconnect), แต่ plays ที่เกิด &gt;4hr offline จะเป็น house filler แทน</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""gantt
+    title UC-P2-3 Player Offline During Campaign
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section สัญญาณ Network
+    Online                 :done, n1, 08:00, 60m
+    Offline 4 ชั่วโมง      :crit, n2, 09:00, 240m
+    Online อีกครั้ง         :done, n3, 13:00, 60m
+    section Ads ที่เล่น
+    Campaign ads (cache)   :done, c1, 08:00, 60m
+    Tier 2 buffer ads      :active, c2, 09:00, 240m
+    Campaign ads resume    :done, c3, 13:00, 60m
+    section PoP Reporting
+    PoP ปกติ               :done, p1, 08:00, 60m
+    PoP queue offline      :active, pq, 09:00, 240m
+    PoP batch sync         :milestone, ps, 13:00, 0d""", page_id))
+
+    # ── UC-P2-4 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-P2-4: Edge Case &mdash; หลาย Creative ใน Campaign เดียว (Rotation)</h3>')
+    sections.append("""<table>
+<tr><th>ขั้นตอน</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>Advertiser อัพโหลด 3 creatives ใน campaign เดียว (เช่น ภาษาไทย, ภาษาอังกฤษ, และ version ลด 50%)</td></tr>
+<tr><td><strong>ระบบ</strong></td><td>Player หมุนเวียน creatives ตาม rotation rules &mdash; แต่ละ creative ต้องผ่าน approval ของ owner ก่อน</td></tr>
+<tr><td><strong>กรณี creative หนึ่ง rejected</strong></td><td>Creative ที่ถูก reject หลุดออกจาก rotation &mdash; ที่เหลือยังเล่นต่อ</td></tr>
+<tr><td><strong>Expected Outcome</strong></td><td>PoP report แยกตาม creative ID &mdash; Advertiser เห็น performance ของแต่ละ version</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""gantt
+    title UC-P2-4 Multi-Creative Rotation (1 Hour)
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section Creative A (TH)
+    Creative A play 1      :done, a1, 08:00, 1m
+    Creative A play 2      :done, a2, 08:20, 1m
+    Creative A play 3      :done, a3, 08:40, 1m
+    section Creative B (EN)
+    Creative B play 1      :active, b1, 08:07, 1m
+    Creative B play 2      :active, b2, 08:27, 1m
+    Creative B play 3      :active, b3, 08:47, 1m
+    section Creative C (Sale)
+    Creative C play 1      :crit, c1, 08:14, 1m
+    Creative C play 2      :crit, c2, 08:34, 1m
+    Creative C play 3      :crit, c3, 08:54, 1m""", page_id))
+
+    # ──────────────────────────────────────────────────────────────
+    # SECTION 5: Summary Reference Table
+    # ──────────────────────────────────────────────────────────────
+    sections.append('<h2>5. สรุปเปรียบเทียบรูปแบบโฆษณา</h2>')
+    sections.append("""<table>
+<tr>
+  <th>รูปแบบ</th>
+  <th>Code (system)</th>
+  <th>Lead Time</th>
+  <th>Conflict Rule</th>
+  <th>Guarantee</th>
+  <th>Use Case หลัก</th>
+</tr>
+<tr>
+  <td><strong>Takeover</strong></td>
+  <td><code>exclusive</code></td>
+  <td>&ge;5 นาที (แนะนำ &ge;24 ชั่วโมง)</td>
+  <td>Reject ทันทีถ้า slot ชน</td>
+  <td>100% ของ slot ที่ซื้อ</td>
+  <td>Brand awareness, Event tie-in</td>
+</tr>
+<tr>
+  <td><strong>Exact Time</strong></td>
+  <td><code>exclusive</code></td>
+  <td>&ge;5 นาที</td>
+  <td>Reject ถ้า slot ชน</td>
+  <td>เล่นตรงเวลา &plusmn;30s (make-good ถ้า miss)</td>
+  <td>Flash Sale, Live Event</td>
+</tr>
+<tr>
+  <td><strong>Guaranteed</strong></td>
+  <td><code>period</code> + frequency</td>
+  <td>ก่อน start date</td>
+  <td>Cap ที่ max frequency ต่อป้าย</td>
+  <td>N plays ต่อ 15min/hr/day (make-good ถ้า miss)</td>
+  <td>Brand recall, Consistent presence</td>
+</tr>
+<tr>
+  <td><strong>Run of Schedule</strong></td>
+  <td><code>period</code> + budget</td>
+  <td>ก่อน start date</td>
+  <td>ไม่มี (shared pool)</td>
+  <td>Fair share ของ available slots (ไม่ exact)</td>
+  <td>Awareness, Budget-sensitive</td>
+</tr>
+</table>""")
+    sections.append(warning_panel(
+        "<p><strong>&#9888; สิ่งที่ Advertiser ต้องรู้ก่อนลงโฆษณา:</strong></p>"
+        "<ul>"
+        "<li><strong>Takeover / Exact Time:</strong> ต้องให้ owner อนุมัติก่อนถึงเวลา &mdash; "
+        "ถ้า creative ยังไม่ approved ถึงเวลา Takeover จะ miss</li>"
+        "<li><strong>Lead time สำหรับ exclusive:</strong> ระบบบังคับ &ge;5 นาที "
+        "แต่ในทางปฏิบัติควรส่งล่วงหน้า <strong>&ge;1 ชั่วโมง</strong> เพื่อให้ owner มีเวลา review</li>"
+        "<li><strong>Creative spec:</strong> ต้องตรงกับ spec ของป้าย &mdash; "
+        "ถ้า resolution ผิด owner จะ reject</li>"
+        "<li><strong>PoP reporting:</strong> Play จะนับเมื่อ ad เล่นครบ <code>duration_ms</code> เท่านั้น "
+        "&mdash; ถ้า interrupt ก่อนจบ ไม่นับ (make-good สร้างให้อัตโนมัติ)</li>"
+        "<li><strong>Player offline:</strong> Plays ระหว่าง offline จะ sync PoP เมื่อกลับ online "
+        "&mdash; ถ้า offline &gt;4 ชั่วโมง อาจเล่น house filler แทน campaign ad</li>"
+        "</ul>"
     ))
 
     return "\n".join(sections)
