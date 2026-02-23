@@ -495,7 +495,6 @@ def build_page_2(page_id: str) -> str:
     ))
 
     sections.append("<h3>ตัวอย่าง Daily Schedule</h3>")
-    sections.append(_gantt_legend())
     sections.append(info_panel(
         "<p>ตัวอย่าง billboard 1 จอ ตลอดวัน — แสดงสัดส่วนเวลาจริงระหว่าง priority levels ต่างๆ. "
         "<strong>P1-TK</strong> (แดง) กินเวลา 1 ชั่วโมงเต็ม, <strong>P1-ET</strong> (แดง) เป็น exact-time spot ที่เล่นตรงเวลา, "
@@ -505,6 +504,7 @@ def build_page_2(page_id: str) -> str:
         load_diagram("01-2-daily-schedule.mmd"),
         page_id=page_id,
     ))
+    sections.append(_gantt_legend_mini())
 
     sections.append("<hr/>")
     sections.append("<h2>สถาปัตยกรรมที่เสนอ: Backend-Driven Player</h2>")
@@ -2007,7 +2007,6 @@ def build_page_8(page_id: str) -> str:
         page_id=page_id,
     ))
     sections.append("<h4>Timeline การ Interrupt ของ Takeover (Gantt View)</h4>")
-    sections.append(_gantt_legend())
     sections.append(info_panel(
         "<p>มุมมองเวลาจริง — เห็นสัดส่วนว่า <strong>TK block 60 นาที</strong> กว้างกว่า normal schedule มาก. "
         "<strong>TK_START/TK_END</strong> = เส้นขอบเขตสีส้ม (:vert). "
@@ -2017,6 +2016,7 @@ def build_page_8(page_id: str) -> str:
         load_diagram("08-3-takeover-gantt.mmd"),
         page_id=page_id,
     ))
+    sections.append(_gantt_legend_mini())
     sections.append(expand_section("TK1-TK8: Takeover & Exact-Time Edge Cases",
         '<table>'
         '<tr><th>#</th><th>Edge Case</th><th>Solution</th></tr>'
@@ -2294,41 +2294,29 @@ def build_page_8(page_id: str) -> str:
 
 
 def _gantt_legend_mini() -> str:
-    """Compact one-line Gantt color hint — placed before each gantt diagram."""
-    return note_panel(
-        "<p><strong>สัญลักษณ์:</strong> "
-        "<code>:crit</code> = แดง (P1 Priority: TK/ET/G/DG) &nbsp;&middot;&nbsp; "
-        "<code>:active</code> = ฟ้า (Make-good) &nbsp;&middot;&nbsp; "
-        "<code>:done</code> = เทา (Normal ROS) &nbsp;&middot;&nbsp; "
-        "<code>:vert</code> = น้ำเงินเข้ม (เส้นขอบเขต) &nbsp;&middot;&nbsp; "
-        "<code>:milestone</code> = ◆ (จุดเหตุการณ์)</p>"
+    """Compact inline Gantt legend — plain text with emoji."""
+    return (
+        "<p><strong>Legend:</strong> "
+        "🔴 แดง = P1 Priority (TK/ET/G/DG) &nbsp;&middot;&nbsp; "
+        "🔵 ฟ้า = Make-good &nbsp;&middot;&nbsp; "
+        "⬜ เทา = Normal ROS &nbsp;&middot;&nbsp; "
+        "🟦 น้ำเงินเข้ม = เส้นขอบเขต &nbsp;&middot;&nbsp; "
+        "◆ = Milestone</p>"
     )
 
 
 def _gantt_legend() -> str:
-    """Gantt chart color/style legend table."""
+    """Gantt chart legend — bullet list with emoji."""
     return (
-        '<table>'
-        '<tr><th>Marker</th><th>สี</th><th>ความหมาย</th><th>ตัวอย่างในแผนภาพ</th></tr>'
-        '<tr><td><code>:crit</code></td><td>แดง</td>'
-        '<td>Priority สูง (Exclusive/Guaranteed)</td>'
-        '<td>P1-TK Takeover block, P1-ET Exact Time spot, P1-G Guaranteed play, P1-DG Daypart play</td></tr>'
-        '<tr><td><code>:active</code></td><td>ฟ้า</td>'
-        '<td>Make-good compensation</td>'
-        '<td>Make-good plays ที่ระบบเพิ่มชดเชยเมื่อ P1 ad ถูกขัดหรือ miss window</td></tr>'
-        '<tr><td><code>:done</code></td><td>เทา</td>'
-        '<td>โฆษณาปกติที่ผ่านมาแล้ว</td>'
-        '<td>Normal ROS (P2/P3/P4) ที่เล่นตาม schedule ก่อน/หลัง P1 event</td></tr>'
-        '<tr><td>(ไม่มี marker)</td><td>เขียว</td>'
-        '<td>Normal fills (default)</td>'
-        '<td>ROS ads เติมช่วงว่างระหว่าง priority slots</td></tr>'
-        '<tr><td><code>:vert</code></td><td>น้ำเงินเข้ม</td>'
-        '<td>เส้นขอบเขต (boundary line)</td>'
-        '<td>TK_START/TK_END, ET Window open/close, DG Window open/close</td></tr>'
-        '<tr><td><code>:milestone</code></td><td>◆ เพชร</td>'
-        '<td>จุดเหตุการณ์ (0-duration)</td>'
-        '<td>ET target time, PoP batch flush, TK END marker</td></tr>'
-        '</table>'
+        "<p><strong>Legend:</strong></p>"
+        "<ul>"
+        "<li>🔴 แดง = P1 Priority: TK Takeover / ET Exact Time / G Guaranteed / DG Daypart</li>"
+        "<li>🔵 ฟ้า = Make-good compensation</li>"
+        "<li>⬜ เทา = โฆษณาปกติที่ผ่านมาแล้ว (Normal ROS)</li>"
+        "<li>🟢 เขียว = Normal fills (default)</li>"
+        "<li>🟦 น้ำเงินเข้ม = เส้นขอบเขต (TK_START/END, ET Window, DG Window)</li>"
+        "<li>◆ = จุดเหตุการณ์ (Milestone)</li>"
+        "</ul>"
     )
 
 
@@ -3329,8 +3317,6 @@ def build_page_14(page_id: str) -> str:
     ))
 
     # Legend for Gantt diagrams
-    sections.append("<h3>สัญลักษณ์ที่ใช้ในแผนภาพ (Diagram Legend)</h3>")
-    sections.append(_gantt_legend())
 
     # ──────────────────────────────────────────────────────────────
     # SECTION 1: Takeover
@@ -3355,7 +3341,6 @@ def build_page_14(page_id: str) -> str:
 <tr><td><strong>ตอนเล่นจริง</strong></td><td>เวลา 12:00 Player เปลี่ยนเป็น Takeover mode &mdash; โฆษณาลูกค้าเล่น loop ตลอด 1 ชั่วโมง ไม่มีโฆษณาอื่นแทรก</td></tr>
 <tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>PoP report แสดง plays ครบ 100% ของ slot ที่ซื้อ, status เปลี่ยนเป็น <code>done</code> หลัง 13:00</td></tr>
 </table>""")
-    sections.append(_gantt_legend_mini())
     sections.append(mermaid_diagram("""gantt
     title UC-TK-1 Takeover Happy Path
     dateFormat HH:mm
@@ -3370,6 +3355,7 @@ def build_page_14(page_id: str) -> str:
     โฆษณาปกติ ROS         :done, post, 13:00, 60m
     section PoP
     PoP batch ส่ง Server   :milestone, pop, 13:00, 0d""", page_id))
+    sections.append(_gantt_legend())
 
     # ── UC-TK-2 ───────────────────────────────────────────────────
     sections.append('<h3>UC-TK-2: Edge Case &mdash; ช่วงเวลาทับซ้อน (Slot Conflict)</h3>')
@@ -3438,7 +3424,6 @@ def build_page_14(page_id: str) -> str:
 <tr><td><strong>ตอนเล่นจริง</strong></td><td>Flash Sale เล่น 30 วินาที ตั้งแต่ 12:00:00 &rarr; กลับเล่น ROS ปกติตอน 12:00:30</td></tr>
 <tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>โฆษณาเล่นตรงเวลา (&plusmn;30 วินาที), PoP บันทึก 1 play ครบ</td></tr>
 </table>""")
-    sections.append(_gantt_legend_mini())
     sections.append(mermaid_diagram("""gantt
     title UC-ET-1 Exact Time Flash Sale at 12-00
     dateFormat HH:mm:ss
@@ -3455,6 +3440,7 @@ def build_page_14(page_id: str) -> str:
     ET จบ 12-00-30           :milestone, ee, 12:00:30, 0d
     section กลับ ROS
     P2 Ad B 15s              :done, a2, 12:00:30, 15s""", page_id))
+    sections.append(_gantt_legend())
 
     # ── UC-ET-2 ───────────────────────────────────────────────────
     sections.append('<h3>UC-ET-2: Edge Case &mdash; Ad ที่กำลังเล่นอยู่ยาวเกิน Window</h3>')
@@ -3479,6 +3465,7 @@ def build_page_14(page_id: str) -> str:
     section ผลลัพธ์
     Ad จบหลัง window          :milestone, ae, 12:00:40, 0d
     ET make-good 30s          :active, mg, 12:00:40, 30s""", page_id))
+    sections.append(_gantt_legend())
 
     # ── UC-ET-3 ───────────────────────────────────────────────────
     sections.append('<h3>UC-ET-3: Edge Case &mdash; จองช้าเกินไป (Lead Time &lt;5 นาที)</h3>')
@@ -3524,7 +3511,6 @@ def build_page_14(page_id: str) -> str:
 <tr><td><strong>ใน 1 ชั่วโมง</strong></td><td>เล่น 4 ครั้งตามที่รับประกัน ส่วนเวลาที่เหลือเป็น P2/P4 ads</td></tr>
 <tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>PoP report: 4 plays/hr &times; 10 hrs = 40 plays/วัน ครบ 100%</td></tr>
 </table>""")
-    sections.append(_gantt_legend_mini())
     sections.append(mermaid_diagram("""gantt
     title UC-G-1 Guaranteed 4 plays per hour
     dateFormat HH:mm
@@ -3539,6 +3525,7 @@ def build_page_14(page_id: str) -> str:
     P2 fills               :done, f2, 08:16, 14m
     P2 fills               :done, f3, 08:31, 14m
     P2 fills               :done, f4, 08:46, 14m""", page_id))
+    sections.append(_gantt_legend())
 
     # ── UC-G-2 ────────────────────────────────────────────────────
     sections.append('<h3>UC-G-2: Edge Case &mdash; Takeover เข้ามาขัด ทำให้ได้ไม่ครบ</h3>')
@@ -3562,6 +3549,7 @@ def build_page_14(page_id: str) -> str:
     Make-good play 2        :active, mg2, 10:05, 1m
     G play 3 at 10-15       :crit, g5, 10:15, 1m
     G play 4 at 10-30       :crit, g6, 10:30, 1m""", page_id))
+    sections.append(_gantt_legend())
 
     # ──────────────────────────────────────────────────────────────
     # SECTION 4: Run of Schedule
@@ -3632,7 +3620,6 @@ def build_page_14(page_id: str) -> str:
 <tr><td><strong>หลังกลับ online</strong></td><td>ป้ายส่ง PoP ที่ค้างไว้ทั้งหมดขึ้น server ในครั้งเดียว</td></tr>
 <tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>PoP report อัปเดตหลังป้ายกลับ online &mdash; ช่วงที่ออฟไลน์ &gt;4 ชั่วโมง plays อาจลดลงเพราะเล่น house filler</td></tr>
 </table>""")
-    sections.append(_gantt_legend_mini())
     sections.append(mermaid_diagram("""gantt
     title UC-P2-3 ป้ายออฟไลน์ระหว่าง Campaign
     dateFormat HH:mm
@@ -3649,6 +3636,7 @@ def build_page_14(page_id: str) -> str:
     PoP ส่ง server ปกติ   :done, p1, 08:00, 60m
     PoP queue ใน device    :active, pq, 09:00, 240m
     PoP batch sync         :milestone, ps, 13:00, 0d""", page_id))
+    sections.append(_gantt_legend())
 
     # ── UC-P2-4 ───────────────────────────────────────────────────
     sections.append('<h3>UC-P2-4: Edge Case &mdash; ลง Campaign หลาย Creative (Rotation)</h3>')
@@ -3675,6 +3663,7 @@ def build_page_14(page_id: str) -> str:
     Creative C play 1      :crit, c1, 08:14, 1m
     Creative C play 2      :crit, c2, 08:34, 1m
     Creative C play 3      :crit, c3, 08:54, 1m""", page_id))
+    sections.append(_gantt_legend())
 
     # ──────────────────────────────────────────────────────────────
     # SECTION 5: Daypart Targeting
@@ -3704,7 +3693,6 @@ def build_page_14(page_id: str) -> str:
 <tr><td><strong>Play times</strong></td><td>08:10, 08:30, 08:50, 09:10, 09:30, 09:50 (ทุก 20 นาที เริ่มจาก offset 10 นาที)</td></tr>
 <tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>PoP: 6 plays ครบใน window &mdash; กระจายสม่ำเสมอ ไม่กระจุกที่ต้น window</td></tr>
 </table>""")
-    sections.append(_gantt_legend_mini())
     sections.append(mermaid_diagram("""gantt
     title UC-DP-1 P1-DG Morning Peak 08:00 to 10:00 (6 plays)
     dateFormat HH:mm
@@ -3727,6 +3715,7 @@ def build_page_14(page_id: str) -> str:
     P2 fills               :done, f5, 09:11, 19m
     P2 fills               :done, f6, 09:31, 19m
     P2 fills               :done, f7, 09:51, 9m""", page_id))
+    sections.append(_gantt_legend())
 
     # ── UC-DP-2 ────────────────────────────────────────────────────
     sections.append('<h3>UC-DP-2: Edge Case &mdash; Takeover เข้าขัด Window ทำให้ต้อง Make-good</h3>')
@@ -3754,6 +3743,7 @@ def build_page_14(page_id: str) -> str:
     DG play 4 at 09-50     :crit, d4, 09:50, 1m
     section Make-good Level 1 repack ใน window
     Level 1 repack 09-40   :active, mg1, 09:40, 1m""", page_id))
+    sections.append(_gantt_legend())
 
     # ──────────────────────────────────────────────────────────────
     # SECTION 6: Summary
