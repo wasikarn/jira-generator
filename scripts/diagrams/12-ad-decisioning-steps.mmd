@@ -29,9 +29,22 @@ flowchart TD
         PL["Player: items 0, 1, 2..."]
     end
 
-    INPUT --> S0
-    S0 --> S1 --> S15 --> S2 --> S25 --> S3 --> S4 --> S5 --> S55 --> S6
-    S6 --> SS --> PL
+    INPUT e0@--> S0
+    S0 e1@--> S1 e2@--> S15 e3@--> S2 e4@--> S25 e5@--> S3 e6@--> S4 e7@--> S5 e8@--> S55 e9@--> S6
+    S6 e10@--> SS e11@--> PL
+
+    e0@{ animation: slow }
+    e1@{ animation: fast }
+    e2@{ animation: fast }
+    e3@{ animation: fast }
+    e4@{ animation: fast }
+    e5@{ animation: fast }
+    e6@{ animation: fast }
+    e7@{ animation: fast }
+    e8@{ animation: fast }
+    e9@{ animation: fast }
+    e10@{ animation: fast }
+    e11@{ animation: slow }
 
     style INPUT fill:#e8f4fd,stroke:#2196F3
     style ALGO fill:#fff8e1,stroke:#FFC107

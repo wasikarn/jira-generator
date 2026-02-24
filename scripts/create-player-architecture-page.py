@@ -3371,15 +3371,24 @@ def build_page_14(page_id: str) -> str:
 <tr><td><strong>ผลต่อลูกค้า A</strong></td><td>ไม่ถูกกระทบ Takeover ของ A ยังเล่นตาม schedule ปกติ</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart TD
-    A([ลูกค้า B จอง TK 12:30-13:30]) --> B{ช่วงเวลาว่างไหม?}
-    B -->|ว่าง| C[สร้าง exclusive booking]
-    B -->|ชน slot ของลูกค้า A 12:00-13:00| D[error: BILLBOARDS_ALREADY_IN_USE]
-    D --> E{ลูกค้า B เลือก}
-    E -->|เวลาอื่น| F[เช่น จอง 13:00-14:00 แทน]
-    E -->|ป้ายอื่น| G[เลือกป้ายที่ยังว่าง]
-    F --> C
-    G --> C
-    C --> H([จองสำเร็จ])
+    A([ลูกค้า B จอง TK 12:30-13:30]) e1@--> B{ช่วงเวลาว่างไหม?}
+    B e2@-->|ว่าง| C[สร้าง exclusive booking]
+    B e3@-->|ชน slot ของลูกค้า A 12:00-13:00| D[error: BILLBOARDS_ALREADY_IN_USE]
+    D e4@--> E{ลูกค้า B เลือก}
+    E e5@-->|เวลาอื่น| F[เช่น จอง 13:00-14:00 แทน]
+    E e6@-->|ป้ายอื่น| G[เลือกป้ายที่ยังว่าง]
+    F e7@--> C
+    G e8@--> C
+    C e9@--> H([จองสำเร็จ])
+    e1@{ animation: slow }
+    e2@{ animation: fast }
+    e3@{ animation: slow }
+    e4@{ animation: slow }
+    e5@{ animation: fast }
+    e6@{ animation: fast }
+    e7@{ animation: fast }
+    e8@{ animation: fast }
+    e9@{ animation: fast }
     style D fill:#f8d7da,stroke:#dc3545
     style H fill:#d4edda,stroke:#28a745""", page_id))
 
@@ -3393,14 +3402,22 @@ def build_page_14(page_id: str) -> str:
 <tr><td><strong>วิธีป้องกัน</strong></td><td>ส่ง creative ล่วงหน้าอย่างน้อย 1 ชั่วโมง เพื่อให้เจ้าของป้ายมีเวลา review และอนุมัติ</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart LR
-    A([ลูกค้าอัปโหลด Creative]) --> B[status: draft]
-    B --> C[กด Publish]
-    C --> D[status: waiting-approve]
-    D --> E{เจ้าของป้ายอนุมัติ?}
-    E -->|อนุมัติก่อน 15:00| F[status: waiting-play]
-    F --> G([Takeover เล่นตาม schedule])
-    E -->|ยังไม่อนุมัติพอถึงเวลา| H[Takeover slot หาย]
-    H --> I([PoP = 0 ต้องขอ make-good])
+    A([ลูกค้าอัปโหลด Creative]) e1@--> B[status: draft]
+    B e2@--> C[กด Publish]
+    C e3@--> D[status: waiting-approve]
+    D e4@--> E{เจ้าของป้ายอนุมัติ?}
+    E e5@-->|อนุมัติก่อน 15:00| F[status: waiting-play]
+    F e6@--> G([Takeover เล่นตาม schedule])
+    E e7@-->|ยังไม่อนุมัติพอถึงเวลา| H[Takeover slot หาย]
+    H e8@--> I([PoP = 0 ต้องขอ make-good])
+    e1@{ animation: slow }
+    e2@{ animation: fast }
+    e3@{ animation: fast }
+    e4@{ animation: slow }
+    e5@{ animation: fast }
+    e6@{ animation: fast }
+    e7@{ animation: slow }
+    e8@{ animation: slow }
     style H fill:#f8d7da,stroke:#dc3545
     style I fill:#fff3cd,stroke:#ffc107
     style G fill:#d4edda,stroke:#28a745""", page_id))
@@ -3481,14 +3498,22 @@ def build_page_14(page_id: str) -> str:
 <tr><td><strong>วิธีป้องกัน</strong></td><td>Plan และส่ง creative ล่วงหน้าให้มีเวลา review เพียงพอก่อนถึงเวลาเล่น</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart TD
-    A([ลูกค้า Publish ET slot]) --> B{เวลาเป้าหมาย >= ปัจจุบัน + 5 นาที?}
-    B -->|ใช่ เช่น จองตอน 11:54 เป้าหมาย 12:00| C[ผ่าน validation]
-    C --> D[สร้าง exclusive booking]
-    D --> E[ส่ง notification ให้เจ้าของป้าย]
-    E --> F([รอการอนุมัติ])
-    B -->|ไม่ใช่ เช่น จองตอน 11:58 เป้าหมาย 12:00| G[Validation error]
-    G --> H[ต้องตั้งเวลาใหม่]
-    H --> I([เลือกเวลาใหม่ที่ >= 12:03])
+    A([ลูกค้า Publish ET slot]) e1@--> B{เวลาเป้าหมาย >= ปัจจุบัน + 5 นาที?}
+    B e2@-->|ใช่ เช่น จองตอน 11:54 เป้าหมาย 12:00| C[ผ่าน validation]
+    C e3@--> D[สร้าง exclusive booking]
+    D e4@--> E[ส่ง notification ให้เจ้าของป้าย]
+    E e5@--> F([รอการอนุมัติ])
+    B e6@-->|ไม่ใช่ เช่น จองตอน 11:58 เป้าหมาย 12:00| G[Validation error]
+    G e7@--> H[ต้องตั้งเวลาใหม่]
+    H e8@--> I([เลือกเวลาใหม่ที่ >= 12:03])
+    e1@{ animation: slow }
+    e2@{ animation: fast }
+    e3@{ animation: fast }
+    e4@{ animation: slow }
+    e5@{ animation: slow }
+    e6@{ animation: slow }
+    e7@{ animation: slow }
+    e8@{ animation: slow }
     style G fill:#f8d7da,stroke:#dc3545
     style F fill:#d4edda,stroke:#28a745""", page_id))
 
@@ -3576,17 +3601,28 @@ def build_page_14(page_id: str) -> str:
 <tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>PoP report อัปเดตทุกวัน, status เปลี่ยนเป็น <code>done</code> หลังสิ้นสุด campaign</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart LR
-    A([สร้าง Campaign]) --> B[เลือก Package + อัปโหลด Creative]
-    B --> C[กำหนด date range + วันที่เล่น]
-    C --> D[กด Publish]
-    D --> E[เจ้าของป้ายรับ notification]
-    E --> F{อนุมัติ?}
-    F -->|อนุมัติ| G[status: waiting-play]
-    F -->|ปฏิเสธ| H[status: rejected]
-    H --> I[แก้ creative หรือยกเลิก]
-    G --> J[ถึงวันเริ่ม campaign]
-    J --> K[Player ดาวน์โหลด + เล่น]
-    K --> L([PoP รายงานทุก play])
+    A([สร้าง Campaign]) e1@--> B[เลือก Package + อัปโหลด Creative]
+    B e2@--> C[กำหนด date range + วันที่เล่น]
+    C e3@--> D[กด Publish]
+    D e4@--> E[เจ้าของป้ายรับ notification]
+    E e5@--> F{อนุมัติ?}
+    F e6@-->|อนุมัติ| G[status: waiting-play]
+    F e7@-->|ปฏิเสธ| H[status: rejected]
+    H e8@--> I[แก้ creative หรือยกเลิก]
+    G e9@--> J[ถึงวันเริ่ม campaign]
+    J e10@--> K[Player ดาวน์โหลด + เล่น]
+    K e11@--> L([PoP รายงานทุก play])
+    e1@{ animation: slow }
+    e2@{ animation: slow }
+    e3@{ animation: slow }
+    e4@{ animation: slow }
+    e5@{ animation: slow }
+    e6@{ animation: fast }
+    e7@{ animation: slow }
+    e8@{ animation: slow }
+    e9@{ animation: slow }
+    e10@{ animation: fast }
+    e11@{ animation: slow }
     style H fill:#f8d7da,stroke:#dc3545
     style L fill:#d4edda,stroke:#28a745""", page_id))
 
@@ -3600,17 +3636,28 @@ def build_page_14(page_id: str) -> str:
 <tr><td><strong>ระหว่างรอ</strong></td><td>ป้ายเล่น house filler แทน ลูกค้าไม่เสีย plays ระหว่างช่วงที่ยังไม่มี creative ผ่าน</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart TD
-    A([กด Publish]) --> B[เจ้าของป้ายรับ notification]
-    B --> C{ตรวจ creative}
-    C -->|ผ่าน| D[status: approved]
-    D --> E([Campaign เล่นตาม schedule])
-    C -->|ไม่ผ่าน| F[status: rejected]
-    F --> G[แจ้งลูกค้าทาง notification]
-    G --> H{ลูกค้าเลือก}
-    H -->|แก้ creative| I[อัปโหลด creative ใหม่]
-    H -->|ยกเลิก| J([Campaign cancelled])
-    I --> K[Publish ใหม่]
-    K --> B
+    A([กด Publish]) e1@--> B[เจ้าของป้ายรับ notification]
+    B e2@--> C{ตรวจ creative}
+    C e3@-->|ผ่าน| D[status: approved]
+    D e4@--> E([Campaign เล่นตาม schedule])
+    C e5@-->|ไม่ผ่าน| F[status: rejected]
+    F e6@--> G[แจ้งลูกค้าทาง notification]
+    G e7@--> H{ลูกค้าเลือก}
+    H e8@-->|แก้ creative| I[อัปโหลด creative ใหม่]
+    H e9@-->|ยกเลิก| J([Campaign cancelled])
+    I e10@--> K[Publish ใหม่]
+    K e11@--> B
+    e1@{ animation: slow }
+    e2@{ animation: slow }
+    e3@{ animation: fast }
+    e4@{ animation: fast }
+    e5@{ animation: slow }
+    e6@{ animation: slow }
+    e7@{ animation: slow }
+    e8@{ animation: fast }
+    e9@{ animation: slow }
+    e10@{ animation: fast }
+    e11@{ animation: slow }
     style F fill:#f8d7da,stroke:#dc3545
     style E fill:#d4edda,stroke:#28a745""", page_id))
 
@@ -3846,17 +3893,28 @@ def build_page_14(page_id: str) -> str:
 <tr><td><strong>Privacy</strong></td><td>Avails API ไม่เปิดเผยว่า slot ถูกจองโดยใคร &mdash; แสดงเพียง &ldquo;available&rdquo; หรือ &ldquo;unavailable&rdquo; เท่านั้น</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart TD
-    A([C ต้องการ 5 Block x 1hr Takeover]) --> B[Avails API Query]
-    B --> C[สแกน operating hours 06-00 to 22-00]
-    C --> D{ตรวจ Priority Tier<br/>ทุก 1hr window}
-    D --> E[08-00, 10-00, 14-00, 16-00, 19-00<br/>ว่างทั้งหมด]
-    E --> F[5/5 slots available]
-    F --> G[แสดง Preview Timeline และราคา]
-    G --> H{C confirm}
-    H -->|ยืนยัน| I[Lock 5 Takeover blocks]
-    H -->|ขอปรับเวลา| C
-    I --> J[Pusher push schedule ไปยัง Players]
-    J --> K([Booking สำเร็จ])
+    A([C ต้องการ 5 Block x 1hr Takeover]) e1@--> B[Avails API Query]
+    B e2@--> C[สแกน operating hours 06-00 to 22-00]
+    C e3@--> D{ตรวจ Priority Tier<br/>ทุก 1hr window}
+    D e4@--> E[08-00, 10-00, 14-00, 16-00, 19-00<br/>ว่างทั้งหมด]
+    E e5@--> F[5/5 slots available]
+    F e6@--> G[แสดง Preview Timeline และราคา]
+    G e7@--> H{C confirm}
+    H e8@-->|ยืนยัน| I[Lock 5 Takeover blocks]
+    H e9@-->|ขอปรับเวลา| C
+    I e10@--> J[Pusher push schedule ไปยัง Players]
+    J e11@--> K([Booking สำเร็จ])
+    e1@{ animation: slow }
+    e2@{ animation: slow }
+    e3@{ animation: fast }
+    e4@{ animation: fast }
+    e5@{ animation: fast }
+    e6@{ animation: slow }
+    e7@{ animation: slow }
+    e8@{ animation: fast }
+    e9@{ animation: slow }
+    e10@{ animation: slow }
+    e11@{ animation: fast }
     style K fill:#d4edda,stroke:#28a745
     style I fill:#d4edda,stroke:#28a745""", page_id))
     sections.append('<h4>Timeline: C Takeover Blocks + A/B ROS (วัน 1 มีค.)</h4>')
@@ -3903,23 +3961,48 @@ def build_page_14(page_id: str) -> str:
 <tr><td><strong>ผลลัพธ์รวม</strong></td><td>C ได้ 5 blocks (08-09, 10-11, 14-15, 16-17, 19-20), D ได้ 5 blocks (07-08, 09-10, 12-13, 15-16, 17-18) &mdash; A/B ROS เล่นใน 6 ชั่วโมงที่เหลือ (06, 11, 13, 18, 20, 21)</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart TD
-    A([D ต้องการ 5 Block x 1hr - slots เดียวกับ C]) --> B[Avails API Query]
-    B --> C{ตรวจ Priority Tier<br/>ทุก slot ที่ D ขอ}
-    C -->|08-00 to 09-00| D1[C Takeover - CONFLICT]
-    C -->|10-00 to 11-00| D2[C Takeover - CONFLICT]
-    C -->|14-00 to 15-00| D3[C Takeover - CONFLICT]
-    C -->|16-00 to 17-00| D4[C Takeover - CONFLICT]
-    C -->|19-00 to 20-00| D5[C Takeover - CONFLICT]
-    D1 & D2 & D3 & D4 & D5 --> E[0/5 slots available]
-    E --> F[Auto-suggest triggered]
-    F --> G[สแกน Takeover-free windows<br/>11 slots เหลือจาก 16]
-    G --> H[Even distribution<br/>แบ่ง 5 zones กระจายตลอดวัน]
-    H --> I[Suggest: 07-00, 09-00, 12-00, 15-00, 17-00]
-    I --> J{D เลือก}
-    J -->|confirm ทั้งหมด| K[Lock 5 alternative Takeover]
-    J -->|ปรับ slots บางช่วง| L[D เลือก subset และเพิ่มเอง]
-    L --> K
-    K --> M([Booking สำเร็จ - ไม่ชน C เลย])
+    A([D ต้องการ 5 Block x 1hr - slots เดียวกับ C]) e1@--> B[Avails API Query]
+    B e2@--> C{ตรวจ Priority Tier<br/>ทุก slot ที่ D ขอ}
+    C e3@-->|08-00 to 09-00| D1[C Takeover - CONFLICT]
+    C e4@-->|10-00 to 11-00| D2[C Takeover - CONFLICT]
+    C e5@-->|14-00 to 15-00| D3[C Takeover - CONFLICT]
+    C e6@-->|16-00 to 17-00| D4[C Takeover - CONFLICT]
+    C e7@-->|19-00 to 20-00| D5[C Takeover - CONFLICT]
+    D1 e8@--> E[0/5 slots available]
+    D2 e9@--> E
+    D3 e10@--> E
+    D4 e11@--> E
+    D5 e12@--> E
+    E e13@--> F[Auto-suggest triggered]
+    F e14@--> G[สแกน Takeover-free windows<br/>11 slots เหลือจาก 16]
+    G e15@--> H[Even distribution<br/>แบ่ง 5 zones กระจายตลอดวัน]
+    H e16@--> I[Suggest: 07-00, 09-00, 12-00, 15-00, 17-00]
+    I e17@--> J{D เลือก}
+    J e18@-->|confirm ทั้งหมด| K[Lock 5 alternative Takeover]
+    J e19@-->|ปรับ slots บางช่วง| L[D เลือก subset และเพิ่มเอง]
+    L e20@--> K
+    K e21@--> M([Booking สำเร็จ - ไม่ชน C เลย])
+    e1@{ animation: slow }
+    e2@{ animation: slow }
+    e3@{ animation: slow }
+    e4@{ animation: slow }
+    e5@{ animation: slow }
+    e6@{ animation: slow }
+    e7@{ animation: slow }
+    e8@{ animation: fast }
+    e9@{ animation: fast }
+    e10@{ animation: fast }
+    e11@{ animation: fast }
+    e12@{ animation: fast }
+    e13@{ animation: fast }
+    e14@{ animation: fast }
+    e15@{ animation: fast }
+    e16@{ animation: fast }
+    e17@{ animation: slow }
+    e18@{ animation: fast }
+    e19@{ animation: slow }
+    e20@{ animation: fast }
+    e21@{ animation: fast }
     style M fill:#d4edda,stroke:#28a745
     style E fill:#f8d7da,stroke:#dc3545
     style F fill:#fff3cd,stroke:#ffc107
@@ -3969,21 +4052,36 @@ def build_page_14(page_id: str) -> str:
 <tr><td><strong>Option 3</strong></td><td>Waitlist &mdash; แจ้ง notification เมื่อมี cancellation เปิด slot ว่าง</td></tr>
 </table>""")
     sections.append(mermaid_diagram("""flowchart TD
-    A([E ต้องการ 5 Block x 1hr - วันเดียวกัน]) --> B[Avails API Query]
-    B --> C[C มี 5 + D มี 5 = 10 slots locked]
-    C --> D[เหลือ 6 slots ว่างจาก 16]
-    D --> E{Auto-suggest 5 จาก 6}
-    E --> F[Suggest: 06-00, 11-00, 13-00, 18-00, 20-00]
-    F --> G{E เลือก}
-    G -->|จอง 5 slots ที่ suggest| H[Lock 5 slots วันนี้]
-    G -->|ต้องการมากกว่า 6| I{slots ไม่เพียงพอ}
-    I -->|Partial + วันอื่น| J[Lock N วันนี้ + query วันถัดไป]
-    I -->|ทั้งหมดวันอื่น| K[Avails API query วันอื่น]
-    I -->|Waitlist| L[Queue - แจ้งเมื่อมี cancellation]
-    H --> M([Booking สำเร็จ 5 slots])
-    J --> N([Partial booking + follow-up])
-    K --> O([Booking เต็ม วันอื่น])
-    L --> P([Waitlist active])
+    A([E ต้องการ 5 Block x 1hr - วันเดียวกัน]) e1@--> B[Avails API Query]
+    B e2@--> C[C มี 5 + D มี 5 = 10 slots locked]
+    C e3@--> D[เหลือ 6 slots ว่างจาก 16]
+    D e4@--> E{Auto-suggest 5 จาก 6}
+    E e5@--> F[Suggest: 06-00, 11-00, 13-00, 18-00, 20-00]
+    F e6@--> G{E เลือก}
+    G e7@-->|จอง 5 slots ที่ suggest| H[Lock 5 slots วันนี้]
+    G e8@-->|ต้องการมากกว่า 6| I{slots ไม่เพียงพอ}
+    I e9@-->|Partial + วันอื่น| J[Lock N วันนี้ + query วันถัดไป]
+    I e10@-->|ทั้งหมดวันอื่น| K[Avails API query วันอื่น]
+    I e11@-->|Waitlist| L[Queue - แจ้งเมื่อมี cancellation]
+    H e12@--> M([Booking สำเร็จ 5 slots])
+    J e13@--> N([Partial booking + follow-up])
+    K e14@--> O([Booking เต็ม วันอื่น])
+    L e15@--> P([Waitlist active])
+    e1@{ animation: slow }
+    e2@{ animation: slow }
+    e3@{ animation: fast }
+    e4@{ animation: fast }
+    e5@{ animation: fast }
+    e6@{ animation: slow }
+    e7@{ animation: fast }
+    e8@{ animation: slow }
+    e9@{ animation: slow }
+    e10@{ animation: slow }
+    e11@{ animation: slow }
+    e12@{ animation: fast }
+    e13@{ animation: fast }
+    e14@{ animation: slow }
+    e15@{ animation: fast }
     style M fill:#d4edda,stroke:#28a745
     style I fill:#fff3cd,stroke:#ffc107
     style E fill:#cce5ff,stroke:#004085""", page_id))
