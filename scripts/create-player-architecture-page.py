@@ -3306,12 +3306,13 @@ def build_page_14(page_id: str) -> str:
     sections.append(info_panel(
         "<p><strong>หน้านี้รวบรวม scenarios จากมุมมองของ <em>ผู้ลงโฆษณา</em></strong> "
         "&mdash; แต่ละ scenario อธิบายว่า &ldquo;ถ้าลงโฆษณาแบบนี้ในช่วงเวลานี้ จะเกิดอะไรขึ้นบ้าง&rdquo;</p>"
-        "<p><strong>5 รูปแบบที่ครอบคลุม:</strong> "
+        "<p><strong>6 รูปแบบที่ครอบคลุม:</strong> "
         "(1) Takeover &mdash; ซื้อช่วงเวลาแบบ exclusive &nbsp;"
         "(2) Exact Time &mdash; กำหนดเวลาเล่นชัดเจน &nbsp;"
         "(3) Guaranteed &mdash; รับประกันจำนวนครั้ง &nbsp;"
         "(4) Run of Schedule &mdash; กระจายตลอดวัน &nbsp;"
-        "(5) Daypart Targeting &mdash; กำหนด time window สำหรับโฆษณา</p>"
+        "(5) Daypart Targeting &mdash; กำหนด time window สำหรับโฆษณา &nbsp;"
+        "(6) Cancel &amp; Override &mdash; ยกเลิกโฆษณากลางคัน</p>"
         "<p>แต่ละ scenario มี <strong>Happy Path</strong> (กรณีปกติที่ควรเกิด) "
         "และ <strong>Edge Cases</strong> (กรณีพิเศษที่อาจเกิดขึ้น) พร้อม diagram</p>"
     ))
@@ -3746,9 +3747,74 @@ def build_page_14(page_id: str) -> str:
     sections.append(_gantt_legend())
 
     # ──────────────────────────────────────────────────────────────
-    # SECTION 6: Summary
+    # SECTION 6: Cancel & Override
     # ──────────────────────────────────────────────────────────────
-    sections.append('<h2>6. สรุปเปรียบเทียบ 5 รูปแบบ</h2>')
+    sections.append('<h2>6. Cancel &amp; Override &mdash; ยกเลิกโฆษณากลางคัน</h2>')
+    sections.append(info_panel(
+        "<p><strong>Cancel</strong> เกิดขึ้นได้ 2 สถานการณ์ มีกฎสิทธิ์ที่ต่างกัน:</p>"
+        "<ul>"
+        "<li><strong>ก่อนเล่น (UC-CX-1):</strong> ลูกค้า, admin หรือเจ้าของป้ายยกเลิกได้ &mdash; "
+        "Backend push <code>stop-advertisement</code> → Player ลบออกจาก local schedule → ROS fills เข้ามาแทน</li>"
+        "<li><strong>ขณะเล่น (UC-CX-2):</strong> <strong>เฉพาะ Admin หรือเจ้าของป้ายเท่านั้น</strong> ที่ cancel ได้ "
+        "&mdash; ลูกค้าไม่มีสิทธิ์ cancel ad ที่เริ่มเล่นแล้ว &mdash; "
+        "เหตุผลหลัก: การละเมิดลิขสิทธิ์ / คำสั่งระงับการเผยแพร่ &rarr; <strong>หยุดทันที (hard stop)</strong> "
+        "ไม่รอจบ clip → house filler เล่นแทนทันที</li>"
+        "</ul>"
+    ))
+
+    # ── UC-CX-1 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-CX-1: Happy Path &mdash; Cancel ก่อนถึงเวลาเล่น</h3>')
+    sections.append("""<table>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>ลูกค้าจอง P2 campaign เริ่ม 10:00 แต่ตัดสินใจยกเลิกตอน 09:30 (ก่อนถึงเวลาเล่น)</td></tr>
+<tr><td><strong>ระบบทำงาน</strong></td><td>Backend เปลี่ยน status → <code>cancelled</code> แล้ว push Pusher event <code>stop-advertisement {ad_code, reason: 'cancelled', version++}</code> ไปยังทุก Player ที่มี ad นี้อยู่</td></tr>
+<tr><td><strong>Player ทำงาน</strong></td><td>รับ event → ลบ ad ออกจาก Tier 1 schedule ทันที → version bump → slot 10:00 เปิดว่าง → ADE re-fill ด้วย ROS ในรอบ sync ถัดไป</td></tr>
+<tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>Ad ไม่เล่น, PoP = 0 plays ตั้งแต่ cancel &mdash; slot ถูก fill ด้วย ROS ads ของเจ้าของป้ายแทน</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""gantt
+    title UC-CX-1 Cancel ก่อนถึงเวลาเล่น
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section Schedule เดิม (ก่อน cancel)
+    P2 Campaign X (scheduled)  :crit, orig, 10:00, 60m
+    section Cancel Event at 09-30
+    stop-advertisement push    :milestone, ev, 09:30, 0d
+    Player ลบจาก schedule     :milestone, rm, 09:31, 0d
+    section หลัง Cancel
+    ROS fills แทน slot ว่าง   :done, ros, 10:00, 60m
+    section PoP
+    0 plays (cancelled)        :milestone, pop, 10:00, 0d""", page_id))
+    sections.append(_gantt_legend())
+
+    # ── UC-CX-2 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-CX-2: Edge Case &mdash; Cancel ขณะ Ad กำลังเล่นอยู่ (Hard Stop)</h3>')
+    sections.append("""<table>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>Ad 30 วินาทีกำลังเล่นอยู่ ถูก admin ระงับตอนที่เล่นไป 15 วินาที เนื่องจาก ad ละเมิดลิขสิทธิ์และมีคำสั่งให้ระงับการเผยแพร่ทันที</td></tr>
+<tr><td><strong>ผู้มีสิทธิ์ cancel</strong></td><td><strong>Admin หรือเจ้าของป้ายเท่านั้น</strong> &mdash; ลูกค้าไม่สามารถ cancel ad ที่เริ่มเล่นแล้วได้</td></tr>
+<tr><td><strong>เหตุผล</strong></td><td>การละเมิดลิขสิทธิ์, เนื้อหาไม่เหมาะสม, คำสั่งทางกฎหมายให้ระงับการเผยแพร่</td></tr>
+<tr><td><strong>Player ทำงาน</strong></td><td>รับ <code>stop-advertisement</code> event → <strong>หยุดทันที (hard stop)</strong> ไม่รอให้จบ clip → สลับเป็น house filler ทันที ห้ามจอดำ</td></tr>
+<tr><td><strong>PoP บันทึก</strong></td><td>Play ที่เล่น <strong>จบก่อน</strong> cancel event = นับ &mdash; Play ที่กำลังเล่นอยู่ตอนถูก interrupt (15s ใน 30s) = <strong>ไม่นับ</strong> (partial play)</td></tr>
+<tr><td><strong>ผลที่ลูกค้าได้รับ</strong></td><td>Ad ถูกลบจาก schedule ทั้งหมดทันที &mdash; PoP = เฉพาะ plays ที่เล่นจบก่อน event เท่านั้น &mdash; ไม่มี make-good เนื่องจากเป็น policy violation</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""gantt
+    title UC-CX-2 Cancel ขณะเล่น - Hard Stop at 10-00-15 (Ad 30s)
+    dateFormat HH:mm:ss
+    axisFormat %M:%S
+    section Ad กำลังเล่น
+    Campaign X ad 30s           :active, playing, 10:00:00, 15s
+    section Hard Stop at 10-00-15
+    stop-advertisement received :milestone, ev, 10:00:15, 0d
+    section หลัง Hard Stop
+    House Filler ทันที          :done, fill, 10:00:15, 45s
+    section PoP
+    Partial play ไม่นับ         :milestone, pop, 10:00:15, 0d""", page_id))
+    sections.append(_gantt_legend())
+
+    # ──────────────────────────────────────────────────────────────
+    # SECTION 7: Summary
+    # ──────────────────────────────────────────────────────────────
+    sections.append('<h2>7. สรุปเปรียบเทียบ 5 รูปแบบ</h2>')
     sections.append("""<table>
 <tr>
   <th>รูปแบบ</th>
