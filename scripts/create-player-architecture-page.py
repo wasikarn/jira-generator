@@ -3315,6 +3315,9 @@ def build_page_14(page_id: str) -> str:
         "(6) Cancel &amp; Override &mdash; ยกเลิกโฆษณากลางคัน</p>"
         "<p>แต่ละ scenario มี <strong>Happy Path</strong> (กรณีปกติที่ควรเกิด) "
         "และ <strong>Edge Cases</strong> (กรณีพิเศษที่อาจเกิดขึ้น) พร้อม diagram</p>"
+        "<p><strong>Section 7: Avails &amp; Smart Booking</strong> &mdash; "
+        "ระบบจองหลาย Block อัจฉริยะด้วย Avails API + Auto-suggest "
+        "สำหรับ scenario ที่มีหลาย advertiser จองพร้อมกัน</p>"
     ))
 
     # Legend for Gantt diagrams
@@ -3812,9 +3815,183 @@ def build_page_14(page_id: str) -> str:
     sections.append(_gantt_legend())
 
     # ──────────────────────────────────────────────────────────────
-    # SECTION 7: Summary
+    # SECTION 7: Avails & Smart Booking
     # ──────────────────────────────────────────────────────────────
-    sections.append('<h2>7. สรุปเปรียบเทียบ 5 รูปแบบ</h2>')
+    sections.append('<h2>7. Avails &amp; Smart Booking &mdash; จองหลาย Block อัจฉริยะ</h2>')
+    sections.append(info_panel(
+        "<p><strong>ปัญหาของการจอง Takeover หลาย Block:</strong> ถ้าระบบรอให้ user submit แล้วค่อย reject "
+        "เมื่อ slot ชน &mdash; นั่นคือ &ldquo;reject-at-submit&rdquo; ซึ่ง industry ถือว่า UX แย่ที่สุด "
+        "(Broadsign, Xibo, Signagelive ทุกเจ้าหลีกเลี่ยง) &mdash; ทางออกคือ 3 Layer:</p>"
+        "<ol>"
+        "<li><strong>Priority Tier</strong> &mdash; กฎว่าใครชนะใครเมื่อ conflict (TK &gt; G &gt; Daypart &gt; ROS)</li>"
+        "<li><strong>Avails API</strong> &mdash; ตรวจ availability จริงก่อน submit &mdash; "
+        "แสดงว่า slot ไหน &ldquo;ว่าง&rdquo; หรือ &ldquo;ไม่ว่าง&rdquo; "
+        "(ไม่เปิดเผยว่าใครจอง &mdash; privacy)</li>"
+        "<li><strong>Auto-suggest</strong> &mdash; ถ้า slot ที่ต้องการไม่ว่าง ระบบเสนอ alternatives "
+        "กระจายสม่ำเสมอตลอดวัน ไม่ให้ user ต้อง trial-and-error เอง</li>"
+        "</ol>"
+        "<p>Scenario: <strong>C จอง 5 x 1hr Takeover</strong> (UC-AV-1) แล้ว "
+        "<strong>D ต้องการ 5 x 1hr เช่นกัน</strong> (UC-AV-2) &mdash; "
+        "ระบบ handle conflict โดยที่ทั้งคู่ได้ครบ 5 slots ไม่ชนกันเลย</p>"
+    ))
+
+    # ── UC-AV-1 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-AV-1: Happy Path &mdash; C จอง 5 x 1hr Takeover ผ่าน Avails API</h3>')
+    sections.append("""<table>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>C ต้องการลง ad ต่อเนื่อง 1 ชั่วโมง 5 รอบ/วัน บนป้าย A &mdash; ป้ายมี A และ B ลง ROS อยู่ก่อนแล้ว</td></tr>
+<tr><td><strong>Avails API ทำงาน</strong></td><td>C query <code>GET /v2/avails?screen_id=A&amp;date=2026-03-01&amp;duration=60m&amp;type=takeover&amp;count=5</code> &mdash; ระบบสแกน operating hours 06:00&ndash;22:00 ตรวจทุก 1hr window ว่ามี Takeover อื่นชนไหม</td></tr>
+<tr><td><strong>ผลลัพธ์</strong></td><td>08:00, 10:00, 14:00, 16:00, 19:00 ว่างทั้งหมด (A/B มีแค่ ROS ซึ่ง Takeover ชนะ) &mdash; ระบบแสดง preview timeline + C confirm &rarr; Lock 5 blocks ทันที</td></tr>
+<tr><td><strong>ผลต่อ A และ B</strong></td><td>ROS (P4): ถูก displace ช่วง Takeover ทั้ง 5 blocks &mdash; ไม่มี make-good (ROS = best effort). ถ้า A/B มี Guaranteed: ระบบสร้าง make-good อัตโนมัติ</td></tr>
+<tr><td><strong>Privacy</strong></td><td>Avails API ไม่เปิดเผยว่า slot ถูกจองโดยใคร &mdash; แสดงเพียง &ldquo;available&rdquo; หรือ &ldquo;unavailable&rdquo; เท่านั้น</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""flowchart TD
+    A([C ต้องการ 5 Block x 1hr Takeover]) --> B[Avails API Query]
+    B --> C[สแกน operating hours 06-00 to 22-00]
+    C --> D{ตรวจ Priority Tier<br/>ทุก 1hr window}
+    D --> E[08-00, 10-00, 14-00, 16-00, 19-00<br/>ว่างทั้งหมด]
+    E --> F[5/5 slots available]
+    F --> G[แสดง Preview Timeline และราคา]
+    G --> H{C confirm}
+    H -->|ยืนยัน| I[Lock 5 Takeover blocks]
+    H -->|ขอปรับเวลา| C
+    I --> J[Pusher push schedule ไปยัง Players]
+    J --> K([Booking สำเร็จ])
+    style K fill:#d4edda,stroke:#28a745
+    style I fill:#d4edda,stroke:#28a745""", page_id))
+    sections.append('<h4>Timeline: C Takeover Blocks + A/B ROS (วัน 1 มีค.)</h4>')
+    sections.append(mermaid_diagram("""gantt
+    title UC-AV-1 C จอง 5 Takeover Block 1hr
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section A and B ROS
+    A and B ROS fill        :done, ab0, 06:00, 120m
+    A and B ROS fill        :done, ab1, 09:00, 60m
+    A and B ROS fill        :done, ab2, 11:00, 180m
+    A and B ROS fill        :done, ab3, 15:00, 60m
+    A and B ROS fill        :done, ab4, 17:00, 120m
+    A and B ROS fill        :done, ab5, 20:00, 120m
+    section C Takeover 5 Blocks
+    C Block 1 Takeover 1hr  :crit, c1, 08:00, 60m
+    C Block 2 Takeover 1hr  :crit, c2, 10:00, 60m
+    C Block 3 Takeover 1hr  :crit, c3, 14:00, 60m
+    C Block 4 Takeover 1hr  :crit, c4, 16:00, 60m
+    C Block 5 Takeover 1hr  :crit, c5, 19:00, 60m
+    section Booking Events
+    C ยืนยัน booking        :milestone, m1, 07:55, 0d
+    5 slots locked           :milestone, m2, 07:56, 0d""", page_id))
+    sections.append(_gantt_legend())
+    sections.append('<h4>Avails API: โครงสร้าง Response</h4>')
+    sections.append("""<table>
+<tr><th>Field</th><th>Type</th><th>ความหมาย</th><th>ตัวอย่าง</th></tr>
+<tr><td><code>requested</code></td><td>Window[]</td><td>slots ที่ user ขอ (ถ้า specify)</td><td><code>[{start:"08:00", duration:60}]</code></td></tr>
+<tr><td><code>available</code></td><td>Window[]</td><td>slots ที่ว่างจริง พร้อม lock ได้ทันที</td><td><code>[{start:"08:00"}, {start:"10:00"}, ...]</code></td></tr>
+<tr><td><code>conflicts</code></td><td>Conflict[]</td><td>slots ที่ไม่ว่าง &mdash; ไม่ระบุว่าใครจอง (privacy)</td><td><code>[{start:"13:00", reason:"unavailable"}]</code></td></tr>
+<tr><td><code>suggestions</code></td><td>Suggestion[]</td><td>auto-suggest เรียงตาม distribution score</td><td><code>[{start:"07:00", score:0.95}, ...]</code></td></tr>
+<tr><td><code>total_requested</code></td><td>number</td><td>จำนวน slots ที่ขอ</td><td><code>5</code></td></tr>
+<tr><td><code>total_available</code></td><td>number</td><td>จำนวน slots ที่ว่างจริง</td><td><code>5</code> (UC-AV-1) / <code>0</code> (UC-AV-2)</td></tr>
+</table>""")
+
+    # ── UC-AV-2 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-AV-2: D จองแบบเดียวกัน หลัง C &mdash; Auto-suggest หา Alternatives</h3>')
+    sections.append("""<table>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>D ต้องการ 5 x 1hr Takeover บนป้ายเดียวกัน วันเดียวกัน &mdash; C ล็อก 08:00, 10:00, 14:00, 16:00, 19:00 ไปแล้ว</td></tr>
+<tr><td><strong>Avails API ตรวจ</strong></td><td>ทุก slot ที่ D ต้องการชนกับ C Takeover ทั้งหมด (Takeover vs Takeover = hard reject) &mdash; <code>total_available: 0</code> &rarr; trigger Auto-suggest ทันที</td></tr>
+<tr><td><strong>Auto-suggest ทำงาน</strong></td><td>สแกน Takeover-free windows ที่เหลือ 11 slots &rarr; แบ่งวัน 5 zones &rarr; เลือก 1 slot/zone ที่ห่างจาก C's blocks มากที่สุด &rarr; เสนอ 07:00, 09:00, 12:00, 15:00, 17:00</td></tr>
+<tr><td><strong>D เลือก</strong></td><td>Confirm ทั้ง 5 suggestions หรือปรับบางช่วงได้ &mdash; Lock สำเร็จ ไม่มี overlap กับ C แม้แต่นาทีเดียว</td></tr>
+<tr><td><strong>ผลลัพธ์รวม</strong></td><td>C ได้ 5 blocks (08-09, 10-11, 14-15, 16-17, 19-20), D ได้ 5 blocks (07-08, 09-10, 12-13, 15-16, 17-18) &mdash; A/B ROS เล่นใน 6 ชั่วโมงที่เหลือ (06, 11, 13, 18, 20, 21)</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""flowchart TD
+    A([D ต้องการ 5 Block x 1hr - slots เดียวกับ C]) --> B[Avails API Query]
+    B --> C{ตรวจ Priority Tier<br/>ทุก slot ที่ D ขอ}
+    C -->|08-00 to 09-00| D1[C Takeover - CONFLICT]
+    C -->|10-00 to 11-00| D2[C Takeover - CONFLICT]
+    C -->|14-00 to 15-00| D3[C Takeover - CONFLICT]
+    C -->|16-00 to 17-00| D4[C Takeover - CONFLICT]
+    C -->|19-00 to 20-00| D5[C Takeover - CONFLICT]
+    D1 & D2 & D3 & D4 & D5 --> E[0/5 slots available]
+    E --> F[Auto-suggest triggered]
+    F --> G[สแกน Takeover-free windows<br/>11 slots เหลือจาก 16]
+    G --> H[Even distribution<br/>แบ่ง 5 zones กระจายตลอดวัน]
+    H --> I[Suggest: 07-00, 09-00, 12-00, 15-00, 17-00]
+    I --> J{D เลือก}
+    J -->|confirm ทั้งหมด| K[Lock 5 alternative Takeover]
+    J -->|ปรับ slots บางช่วง| L[D เลือก subset และเพิ่มเอง]
+    L --> K
+    K --> M([Booking สำเร็จ - ไม่ชน C เลย])
+    style M fill:#d4edda,stroke:#28a745
+    style E fill:#f8d7da,stroke:#dc3545
+    style F fill:#fff3cd,stroke:#ffc107
+    style I fill:#cce5ff,stroke:#004085""", page_id))
+    sections.append('<h4>Auto-suggest Algorithm: Even Distribution</h4>')
+    sections.append("""<table>
+<tr><th>Step</th><th>การทำงาน</th><th>ผลลัพธ์</th></tr>
+<tr><td><strong>1. Load operating hours</strong></td><td>06:00&ndash;22:00 = 16 possible 1hr windows</td><td>[06:00, 07:00, ..., 21:00]</td></tr>
+<tr><td><strong>2. Remove locked Takeovers</strong></td><td>C: 08:00, 10:00, 14:00, 16:00, 19:00 ถูกหัก</td><td>11 slots remaining</td></tr>
+<tr><td><strong>3. Zone division</strong></td><td>แบ่ง day เป็น 5 zones: Early (06-08), Morning (08-11), Midday (11-14), Afternoon (14-18), Evening (18-22)</td><td>แต่ละ zone เลือก best available slot</td></tr>
+<tr><td><strong>4. Score by gap</strong></td><td>slot ที่ห่างจาก Takeover blocks ข้างเคียงมากที่สุด = score สูง &mdash; หลีกเลี่ยง slot ที่ติดกับ Takeover อยู่แล้ว</td><td>07:00(0.95), 09:00(0.92), 12:00(0.88), 15:00(0.90), 17:00(0.87)</td></tr>
+<tr><td><strong>5. Return sorted</strong></td><td>เรียง chronologically ให้ D เห็น timeline ชัด</td><td>07:00, 09:00, 12:00, 15:00, 17:00</td></tr>
+</table>""")
+    sections.append('<h4>Timeline: Final Daily Schedule — C + D + A/B (วัน 1 มีค.)</h4>')
+    sections.append(mermaid_diagram("""gantt
+    title UC-AV-2 Final Daily Schedule - C and D and A/B
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section A and B ROS
+    A and B ROS fill        :done, ab1, 06:00, 60m
+    A and B ROS fill        :done, ab2, 11:00, 60m
+    A and B ROS fill        :done, ab3, 13:00, 60m
+    A and B ROS fill        :done, ab4, 18:00, 60m
+    A and B ROS fill        :done, ab5, 20:00, 120m
+    section C Takeover
+    C Block 1               :crit, c1, 08:00, 60m
+    C Block 2               :crit, c2, 10:00, 60m
+    C Block 3               :crit, c3, 14:00, 60m
+    C Block 4               :crit, c4, 16:00, 60m
+    C Block 5               :crit, c5, 19:00, 60m
+    section D Takeover Auto-suggested
+    D Block 1               :active, d1, 07:00, 60m
+    D Block 2               :active, d2, 09:00, 60m
+    D Block 3               :active, d3, 12:00, 60m
+    D Block 4               :active, d4, 15:00, 60m
+    D Block 5               :active, d5, 17:00, 60m""", page_id))
+    sections.append(_gantt_legend())
+
+    # ── UC-AV-3 ───────────────────────────────────────────────────
+    sections.append('<h3>UC-AV-3: Edge Case &mdash; Slots ไม่เพียงพอ (E จองหลัง C และ D)</h3>')
+    sections.append("""<table>
+<tr><th>หัวข้อ</th><th>รายละเอียด</th></tr>
+<tr><td><strong>สถานการณ์</strong></td><td>E ต้องการ 5 x 1hr Takeover วันเดียวกัน หลังจาก C และ D จองครบแล้ว &mdash; C 5 blocks + D 5 blocks = 10 จาก 16 slots ถูกล็อก เหลือเพียง 6 slots ว่าง</td></tr>
+<tr><td><strong>Auto-suggest เสนอ</strong></td><td>เสนอได้สูงสุด 5 จาก 6 ที่เหลือ (06:00, 11:00, 13:00, 18:00, 20:00) &mdash; ถ้า E ต้องการ &gt;6 slots: ระบบแจ้ง &ldquo;available: 6, requested: N&rdquo; พร้อมแสดง options</td></tr>
+<tr><td><strong>Option 1</strong></td><td>จอง slots ที่มีวันนี้ก่อน + Avails query วันถัดไปสำหรับ slots ที่ขาด</td></tr>
+<tr><td><strong>Option 2</strong></td><td>เลือกวันอื่นที่มี slots ว่างครบ 5 (ระบบ suggest วันที่ดีที่สุดอัตโนมัติ)</td></tr>
+<tr><td><strong>Option 3</strong></td><td>Waitlist &mdash; แจ้ง notification เมื่อมี cancellation เปิด slot ว่าง</td></tr>
+</table>""")
+    sections.append(mermaid_diagram("""flowchart TD
+    A([E ต้องการ 5 Block x 1hr - วันเดียวกัน]) --> B[Avails API Query]
+    B --> C[C มี 5 + D มี 5 = 10 slots locked]
+    C --> D[เหลือ 6 slots ว่างจาก 16]
+    D --> E{Auto-suggest 5 จาก 6}
+    E --> F[Suggest: 06-00, 11-00, 13-00, 18-00, 20-00]
+    F --> G{E เลือก}
+    G -->|จอง 5 slots ที่ suggest| H[Lock 5 slots วันนี้]
+    G -->|ต้องการมากกว่า 6| I{slots ไม่เพียงพอ}
+    I -->|Partial + วันอื่น| J[Lock N วันนี้ + query วันถัดไป]
+    I -->|ทั้งหมดวันอื่น| K[Avails API query วันอื่น]
+    I -->|Waitlist| L[Queue - แจ้งเมื่อมี cancellation]
+    H --> M([Booking สำเร็จ 5 slots])
+    J --> N([Partial booking + follow-up])
+    K --> O([Booking เต็ม วันอื่น])
+    L --> P([Waitlist active])
+    style M fill:#d4edda,stroke:#28a745
+    style I fill:#fff3cd,stroke:#ffc107
+    style E fill:#cce5ff,stroke:#004085""", page_id))
+
+    # ──────────────────────────────────────────────────────────────
+    # SECTION 8: Summary
+    # ──────────────────────────────────────────────────────────────
+    sections.append('<h2>8. สรุปเปรียบเทียบ 5 รูปแบบ</h2>')
     sections.append("""<table>
 <tr>
   <th>รูปแบบ</th>
