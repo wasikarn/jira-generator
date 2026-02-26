@@ -51,6 +51,12 @@ def hr6_get_pending(session_id: str) -> set[str]:
     return set(_load(session_id).get("hr6_pending", []))
 
 
+def hr6_clear_all_pending(session_id: str) -> None:
+    state = _load(session_id)
+    state["hr6_pending"] = []
+    _save(session_id, state)
+
+
 # ── HR7: Sprint lookup tracking ───────────────────────
 
 

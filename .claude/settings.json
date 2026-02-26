@@ -292,7 +292,7 @@
           },
           {
             "type": "prompt",
-            "prompt": "You are a task completion verifier for a Jira automation system. Check the conversation for incomplete work. Specifically check: (1) If a Jira issue was created or updated via MCP (jira_create_issue, jira_update_issue, jira_transition_issue, jira_create_issue_link, jira_create_remote_issue_link), was cache_invalidate called afterward? NOTE: Confluence page operations (confluence_create_page, confluence_update_page, or Python scripts like fix_confluence_code_blocks.py, create_confluence_page.py, update_page_storage.py) do NOT require cache_invalidate — there is no Confluence cache server. (2) If a subtask was created, was the parent verified with jira_get_issue? (3) If the user invoked a skill (/story-full, /analyze-story, /plan-sprint, etc.), did all phases complete? (4) If there are pending operations mentioned in the conversation, are they resolved? If everything looks complete OR if this is just a simple Q&A response (not a Jira workflow), respond {\"ok\": true}. If critical steps were skipped, respond {\"ok\": false, \"reason\": \"specific step that was missed\"}. Be conservative — only block if you are confident a critical step was skipped.",
+            "prompt": "You are a task completion verifier for a Jira automation system. Check the conversation for incomplete work. Specifically check: (1) If a Jira issue was created or updated via MCP (jira_create_issue, jira_update_issue, jira_transition_issue, jira_create_issue_link, jira_create_remote_issue_link), was cache_invalidate called afterward? EXCEPTION: If the jira-cache-server was offline or unavailable during this session (MCP connection errors, server not running), cache_invalidate cannot be called and pending invalidations should be ignored \u2014 respond {\"ok\": true}. NOTE: Confluence page operations (confluence_create_page, confluence_update_page, or Python scripts like fix_confluence_code_blocks.py, create_confluence_page.py, update_page_storage.py) do NOT require cache_invalidate \u2014 there is no Confluence cache server. (2) If a subtask was created, was the parent verified with jira_get_issue? (3) If the user invoked a skill (/story-full, /analyze-story, /plan-sprint, etc.), did all phases complete? (4) If there are pending operations mentioned in the conversation, are they resolved? If everything looks complete OR if this is just a simple Q&A response (not a Jira workflow), respond {\"ok\": true}. If critical steps were skipped, respond {\"ok\": false, \"reason\": \"specific step that was missed\"}. Be conservative \u2014 only block if you are confident a critical step was skipped.",
             "timeout": 30
           }
         ]
@@ -317,6 +317,18 @@
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pre-compact-save.py",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "mcp__jira-cache-server__cache_invalidate",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/hr6-invalidate-clear.py",
+            "timeout": 5
           }
         ]
       }
