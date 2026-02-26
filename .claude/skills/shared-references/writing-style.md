@@ -156,7 +156,10 @@ Team will **scan before reading** — design content to be scannable in 5 second
 | **Story** | Narrative | 3-4 lines (⚡ optional 📍 context + As a / I want / So that) |
 | | AC panels | max 5 panels — if >5, split story |
 | | Each AC | 3 bullets (Given/When/Then) + optional And |
+| | Out of Scope | ⚡ optional — เพิ่มเมื่อมี adjacent feature ที่ developer อาจ assume ว่าต้องทำ |
 | | Reference | ⚡ skip if no Figma/external link |
+| **Task** | Context/Objective | 1-2 lines |
+| | Out of Scope | ⚡ optional — เพิ่มเมื่อ task มี adjacent scope ที่อาจสับสน (refactor/spike) |
 | **Sub-task** | Objective | 1 sentence |
 | | Scope table | only files that change, max 10 rows |
 | | AC panels | max 3 panels |

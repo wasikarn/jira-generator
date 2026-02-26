@@ -97,8 +97,18 @@
           ]}
         ]
       },
+      {
+        "type": "panel",
+        "attrs": {"panelType": "warning"},
+        "content": [
+          {"type": "paragraph", "content": [
+            {"type": "text", "text": "⛔ Out of Scope: ", "marks": [{"type": "strong"}]},
+            {"type": "text", "text": "[สิ่งที่ไม่ต้องทำในรอบนี้] (จะ implement ใน [TICKET-XXX])"}
+          ]}
+        ]
+      },
       {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "6. 🔗 Reference"}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "7. 🔗 Reference"}]},
       {
         "type": "table",
         "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
@@ -143,7 +153,8 @@
 
 1. `1. 🎯 Objective` — panel(info): task objective
 2. `2. 📋 Tasks` — panel(note): bulletList with ⬜ checkboxes
-3. `3. 🔗 Reference` — purple table
+3. `3. ⚡ Out of Scope` — panel(warning): optional, เพิ่มเมื่อ task มี adjacent scope ที่อาจสับสน
+4. `4. 🔗 Reference` — purple table
 
 ## spike Template
 
@@ -157,4 +168,5 @@
 3. `3. 🔍 Investigation Areas` — bulletList: topics to study
 4. `4. 📝 Findings` — panel(note): *[To be filled after research]*
 5. `5. 💡 Recommendations` — panel(success): *[To be filled after research]*
-6. `6. 🔗 Reference` — purple table
+6. `6. ⚡ Out of Scope` — panel(warning): optional, เพิ่มเมื่อ spike มี adjacent area ที่ชัดเจนว่าไม่ investigate
+7. `7. 🔗 Reference` — purple table

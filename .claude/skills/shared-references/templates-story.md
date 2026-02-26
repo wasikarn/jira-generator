@@ -122,6 +122,16 @@ Additional: Workflow Steps | CRUD | User Roles | Complexity (manual vs automated
           ]}
         ]
       },
+      {
+        "type": "panel",
+        "attrs": {"panelType": "warning"},
+        "content": [
+          {"type": "paragraph", "content": [
+            {"type": "text", "text": "⛔ Out of Scope: ", "marks": [{"type": "strong"}]},
+            {"type": "text", "text": "[สิ่งที่ไม่ต้องทำในรอบนี้] (จะ implement ใน [TICKET-XXX])"}
+          ]}
+        ]
+      },
       {"type": "rule"},
       {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔗 Reference"}]},
       {
