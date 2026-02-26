@@ -28,3 +28,4 @@ tasks/
 !/CLAUDE.md
 .claude/skills/jira-cache-server/.coverage
 /.idea/
+/tmp/
