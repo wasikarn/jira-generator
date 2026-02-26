@@ -58,12 +58,10 @@
 
 **Density rules:**
 
-- Objective: **1 sentence** — what + why only
-- ⏱️ Estimation: **Size (XS/S/M/L) + Estimated Hours** — required for sprint capacity tracking
-- ⚡ Event context (optional): `Handles: [Command] → emits: [Event]` — use when parent Epic has Domain Model
-- Scope table: only files that change, **max 10 rows** — if >10, split sub-task
-- AC: **max 3 panels** — sub-task should be smaller than story
-- Reference: ⚡ **skip** if parent story has all links
+- Objective: **1 sentence** — Thai narrative, English technical terms
+- Scope table: `Action | File` single table, **max 10 rows** — CREATE/MODIFY/REF, ≥1 REF required
+- AC: **max 3 panels** — all `panelType: "success"`, Given/When/Then with specific method names + HTTP codes
+- Reference section: ⚡ **skip** if parent story has all links
 
 > ⚠️ **CRITICAL:** `acli jira workitem create` does not support the `parent` field!
 >
@@ -87,6 +85,12 @@ jira_create_issue({
 
 > Used with `acli jira workitem edit --from-json ... --yes`
 
+**Scope table Action values:**
+
+- `CREATE` — new file to create from scratch
+- `MODIFY` — existing file to add/change code
+- `REF` — existing file to read as pattern (developer follows the pattern, does NOT change the file)
+
 ```json
 {
   "issues": ["BEP-YYY"],
@@ -94,93 +98,58 @@ jira_create_issue({
     "type": "doc",
     "version": 1,
     "content": [
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🎯 Objective"}]},
-      {"type": "paragraph", "content": [{"type": "text", "text": "[What and why - 1-2 sentences]  ⚡ Handles: [Command] → emits: [Event]"}]},
-      {
-        "type": "panel",
-        "attrs": {"panelType": "note"},
-        "content": [
-          {"type": "paragraph", "content": [
-            {"type": "text", "text": "⏱️ Estimation: ", "marks": [{"type": "strong"}]},
-            {"type": "text", "text": "Size [XS/S/M/L] · [N] hours"}
-          ]}
-        ]
-      },
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "1. Objective"}]},
+      {"type": "paragraph", "content": [
+        {"type": "text", "text": "[Thai sentence describing what and why — e.g., สร้าง LineNotificationChannel ที่ส่ง push message ผ่าน LINE Messaging API]"}
+      ]},
       {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "📁 Scope"}]},
-      {"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": "Files (New)"}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "2. Scope"}]},
       {
         "type": "table",
         "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
         "content": [
           {"type": "tableRow", "content": [
-            {"type": "tableHeader", "attrs": {"background": "#e3fcef"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "File Path"}]}]},
-            {"type": "tableHeader", "attrs": {"background": "#e3fcef"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Description"}]}]}
+            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Action"}]}]},
+            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "File"}]}]}
           ]},
           {"type": "tableRow", "content": [
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "src/pages/feature/index.tsx", "marks": [{"type": "code"}]}]}]},
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Main page for the feature"}]}]}
-          ]}
-        ]
-      },
-      {"type": "heading", "attrs": {"level": 3}, "content": [{"type": "text", "text": "Files (Modify)"}]},
-      {
-        "type": "table",
-        "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
-        "content": [
-          {"type": "tableRow", "content": [
-            {"type": "tableHeader", "attrs": {"background": "#fffae6"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "File Path"}]}]},
-            {"type": "tableHeader", "attrs": {"background": "#fffae6"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Changes"}]}]}
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "CREATE"}]}]},
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "app/Services/Feature/NewService.ts", "marks": [{"type": "code"}]}]}]}
           ]},
           {"type": "tableRow", "content": [
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "src/services/auth.service.ts", "marks": [{"type": "code"}]}]}]},
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Add API calls"}]}]}
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "MODIFY"}]}]},
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "app/Services/Existing/RegisterService.ts", "marks": [{"type": "code"}]}]}]}
+          ]},
+          {"type": "tableRow", "content": [
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "REF"}]}]},
+            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
+              {"type": "text", "text": "app/Services/Similar/ExistingChannel.ts", "marks": [{"type": "code"}]},
+              {"type": "text", "text": " (pattern reference)"}
+            ]}]}
           ]}
         ]
       },
       {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "✅ Acceptance Criteria"}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "3. Acceptance Criteria"}]},
       {
         "type": "panel",
         "attrs": {"panelType": "success"},
         "content": [
-          {"type": "paragraph", "content": [{"type": "text", "text": "AC1: [Happy Path]", "marks": [{"type": "strong"}]}]},
+          {"type": "paragraph", "content": [{"type": "text", "text": "AC1: [Verb] — [Scenario]", "marks": [{"type": "strong"}]}]},
           {"type": "bulletList", "content": [
             {"type": "listItem", "content": [{"type": "paragraph", "content": [
               {"type": "text", "text": "Given: ", "marks": [{"type": "strong"}]},
-              {"type": "text", "text": "[precondition]"}
+              {"type": "text", "text": "[precondition — specific state, e.g., user มี LINE accounts ที่ is_enabled = true]"}
             ]}]},
             {"type": "listItem", "content": [{"type": "paragraph", "content": [
               {"type": "text", "text": "When: ", "marks": [{"type": "strong"}]},
-              {"type": "text", "text": "[action]"}
+              {"type": "text", "text": "[action — reference real method/endpoint, e.g., channel "},
+              {"type": "text", "text": "notify()", "marks": [{"type": "code"}]},
+              {"type": "text", "text": " ถูกเรียก]"}
             ]}]},
             {"type": "listItem", "content": [{"type": "paragraph", "content": [
               {"type": "text", "text": "Then: ", "marks": [{"type": "strong"}]},
-              {"type": "text", "text": "[result]"}
-            ]}]}
-          ]}
-        ]
-      },
-      {"type": "rule"},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "🔗 Reference"}]},
-      {
-        "type": "table",
-        "attrs": {"isNumberColumnEnabled": false, "layout": "default"},
-        "content": [
-          {"type": "tableRow", "content": [
-            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Type"}]}]},
-            {"type": "tableHeader", "attrs": {"background": "#eae6ff"}, "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Link"}]}]}
-          ]},
-          {"type": "tableRow", "content": [
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "User Story"}]}]},
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
-              {"type": "text", "text": "{{PROJECT_KEY}}-XXX", "marks": [{"type": "link", "attrs": {"href": "https://{{JIRA_SITE}}/browse/BEP-XXX"}}]}
-            ]}]}
-          ]},
-          {"type": "tableRow", "content": [
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Figma"}]}]},
-            {"type": "tableCell", "content": [{"type": "paragraph", "content": [
-              {"type": "text", "text": "Design", "marks": [{"type": "link", "attrs": {"href": "[Figma URL]"}}]}
+              {"type": "text", "text": "[result — specify HTTP status code, exact UI message, or observable behavior]"}
             ]}]}
           ]}
         ]

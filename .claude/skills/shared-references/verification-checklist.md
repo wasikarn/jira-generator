@@ -178,19 +178,22 @@
 ### ST2: Scope & Files
 
 ```text
-□ File paths are real (not generic)
-□ Paths verified against codebase
-□ Dependencies listed
-□ Related components mentioned
+□ File paths are real (not generic — Glob-validated)
+□ Scope table uses Action|File format (CREATE / MODIFY / REF)
+□ At least 1 REF row exists (pattern reference for developer)
+□ Config/enum MODIFY included if new value is added
+□ No orphan scope item (every file must appear in at least 1 AC)
 ```
 
 ### ST3: Acceptance Criteria
 
 ```text
 □ Given/When/Then format
-□ Specific expected behavior
-□ Error handling covered
-□ Edge cases mentioned
+□ References real method names or endpoints (not generic "call API")
+□ HTTP status codes specified where applicable (201, 409, 403, 204...)
+□ Error UI specified (toast color + exact message text)
+□ Auth middleware documented if new route added
+□ Data contract specified for API subtasks
 ```
 
 ### ST4: Tag & Summary

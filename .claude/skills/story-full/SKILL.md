@@ -148,13 +148,61 @@ MCP: jira_update_issue(issue_key="{{PROJECT_KEY}}-XXX", additional_fields={
 > [Parallel Explore](../shared-references/workflow-patterns.md#parallel-explore): Launch 2-3 agents (Backend/Frontend/Shared) IN PARALLEL.
 > Validate paths with Glob. Generic paths REJECTED. Re-explore max 2 attempts.
 
+**What each agent MUST discover:**
+
+| Agent | Must Find |
+|-------|-----------|
+| Backend | Models/Migrations path, Controllers pattern, Routes file, Config enums (any enum to extend?), Auth middleware on similar routes, Existing similar implementation as REF |
+| Frontend | Page dir structure, Service base pattern (`ApiBaseService`?), OAuth/auth lib, Shared UI components (dialogs, icons, layouts) with exact filenames |
+| Shared/Config | `.env` variables consumed by feature, Types/interfaces, Error handling patterns |
+
+**Critical validation:**
+
+- Validate every filename with Glob — don't assume (typos exist in real codebases)
+- Config enums that need new values → include as MODIFY in scope
+- Auth middleware: which routes require `auth:publicApi`? Which are public?
+- Find at least 1 REF pattern per subtask to guide developer
+
 ### 7. Design Sub-tasks
 
-- 1 sub-task per service
-- **VS Integrity:** Each subtask contributes to VS completion (not horizontal)
+**Tech Lead Decomposition — dependency ordering:**
+
+```
+1. Data layer (migration + model)   ← foundation, blocks everything
+2. Auth/OAuth (if new auth flow)    ← must exist before API validates identity
+3. Backend API (endpoints + routes) ← FE service contract depends on this
+4. Backend service/channel          ← business logic, depends on model
+5. FE service layer                 ← depends on BE API contract
+6. FE component/page                ← depends on FE service
+7. FE interactions/events           ← depends on FE component + FE service
+```
+
+**Scope table format per subtask** (single Action | File table):
+
+- `CREATE` — new file to create from scratch
+- `MODIFY` — existing file to add/change code
+- `REF` — existing file developer reads as pattern guide (no changes — just follow the pattern)
+- **Minimum 1 REF row per subtask** — never leave developer without a pattern reference
+
+**AC specificity requirements (Tech Lead level):**
+
+- Reference actual method names from Phase 6: e.g., `LineAuthStrategy.handleCallback()`
+- Specify exact HTTP endpoints + status codes: `POST /v2/notification/line-accounts → 201 or 409`
+- Specify data contracts: `{ line_uid, display_name, avatar_url, access_token }`
+- Specify error UI: toast color + exact error message text
+- Specify env vars if consumed by new code
+
+**Config/enum awareness:**
+
+- New feature type → check if config enum needs a new value (add as MODIFY to scope)
+- New unique constraint → specify explicitly in migration AC
+- Middleware → document which middleware applies to each new route in AC
+
+- 1 sub-task per service boundary (split only if complexity warrants)
+- **VS Integrity:** Each subtask contributes to VS completion (not horizontal layer)
 - Summary: `[TAG] - Description`
-- Scope: Files from Phase 6
-- ACs: Given/When/Then
+- ACs: Thai narrative + English technical terms
+
 - **🔄 ITERATE** — Present subtask design as plan cards (tag, scope files, ACs, OE per subtask). Ask: Approve all / Annotate (specify subtask #) / Major rework.
   - Annotate → user specifies subtask + notes → revise ONLY annotated subtasks → re-present (max 3 rounds)
   - Approve → proceed to Alignment Check
