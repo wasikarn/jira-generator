@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import get_issue_key
 from hooks_state import cache_mark_checked
 
 
@@ -22,13 +23,7 @@ def main() -> None:
         return
 
     session_id = data.get("session_id", "")
-    tool_input = data.get("tool_input", {})
-
-    issue_key = None
-    for field in ("issue_key", "issue_key_or_id", "key"):
-        if field in tool_input:
-            issue_key = str(tool_input[field]).upper()
-            break
+    issue_key = get_issue_key(data.get("tool_input", {}))
 
     if issue_key:
         cache_mark_checked(session_id, issue_key)

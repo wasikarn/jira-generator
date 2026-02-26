@@ -15,10 +15,8 @@ import re
 import sys
 from pathlib import Path
 
-ACLI_RE = re.compile(
-    r"acli\s+jira\s+workitem\s+(?:create|edit)\s+"
-    r"(?:.*\s)?--from-json\s+[\"']?([^\s\"']+)[\"']?"
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import ACLI_FROM_JSON_RE, detect_issue_type
 
 # Required headings by issue type (normalized lowercase, emoji-stripped)
 REQUIRED_HEADINGS = {
@@ -27,14 +25,6 @@ REQUIRED_HEADINGS = {
     "subtask": ["objective"],
     "qa": ["test objective", "test cases"],
     "task": [],
-}
-
-TYPE_KEYWORDS = {
-    "epic": re.compile(r"epic", re.I),
-    "story": re.compile(r"story", re.I),
-    "subtask": re.compile(r"subtask|sub[-_]", re.I),
-    "qa": re.compile(r"qa|testplan|test[-_]plan", re.I),
-    "task": re.compile(r"task|migration|spike|chore|tech[-_]debt", re.I),
 }
 
 
@@ -58,18 +48,6 @@ def has_panel(content: list) -> bool:
     return any(node.get("type") == "panel" for node in content)
 
 
-def detect_type(file_path: Path, data: dict) -> str:
-    type_val = str(data.get("type", "")).lower()
-    for itype, pattern in TYPE_KEYWORDS.items():
-        if pattern.search(type_val):
-            return itype
-    name = file_path.stem.lower()
-    for itype, pattern in TYPE_KEYWORDS.items():
-        if pattern.search(name):
-            return itype
-    return "subtask"
-
-
 raw = sys.stdin.read()
 try:
     data = json.loads(raw)
@@ -80,7 +58,7 @@ if data.get("tool_name") != "Bash":
     sys.exit(0)
 
 cmd = data.get("tool_input", {}).get("command", "")
-match = ACLI_RE.search(cmd)
+match = ACLI_FROM_JSON_RE.search(cmd)
 if not match:
     sys.exit(0)
 
@@ -109,7 +87,7 @@ if not content:
     print("ADF STRUCTURE ERROR: description.content is empty", file=sys.stderr)
     sys.exit(2)
 
-issue_type = detect_type(json_path, adf_data)
+issue_type = detect_issue_type(adf_data, json_path)
 headings = extract_headings(content)
 heading_normalized = [normalize(h) for h in headings]
 

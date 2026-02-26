@@ -10,24 +10,15 @@ Exit codes: 0 = allow, 2 = deny
 import json
 import re
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
-LOG_DIR = Path.home() / ".claude" / "hooks-logs"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import log_event
+
+_HOOK = "hr2-jql-order-by-guard"
 
 PARENT_RE = re.compile(r"\bparent\s*(?:=|in\b)", re.I)
 ORDER_BY_RE = re.compile(r"\bORDER\s+BY\b", re.I)
-
-
-def log_event(level: str, data: dict) -> None:
-    try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(UTC)
-        entry = {"ts": now.isoformat(), "hook": "hr2-jql-order-by-guard", "level": level, **data}
-        with open(LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl", "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except Exception:
-        pass
 
 
 def main() -> None:
@@ -54,17 +45,11 @@ def main() -> None:
             f"Remove ORDER BY when using parent= or parent in (...).\n"
             f"JQL: {jql[:200]}"
         )
-        log_event(
-            "BLOCKED",
-            {
-                "jql": jql[:500],
-                "session_id": data.get("session_id", ""),
-            },
-        )
+        log_event(_HOOK, "BLOCKED", {"jql": jql[:500], "session_id": data.get("session_id", "")})
         print(reason, file=sys.stderr)
         sys.exit(2)
 
-    log_event("ALLOWED", {"session_id": data.get("session_id", "")})
+    log_event(_HOOK, "ALLOWED", {"session_id": data.get("session_id", "")})
     print("{}")
 
 

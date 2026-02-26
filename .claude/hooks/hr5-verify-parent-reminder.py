@@ -11,29 +11,13 @@ Exit codes: 0 (always — PostToolUse cannot block)
 import json
 import sqlite3
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
-LOG_DIR = Path.home() / ".claude" / "hooks-logs"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import inject_context, log_event
+
+_HOOK = "hr5-verify-parent"
 CACHE_DB = Path.home() / ".cache" / "jira-generator" / "jira.db"
-
-
-def log_event(level: str, data: dict) -> None:
-    """Append JSON log entry."""
-    try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(UTC)
-        log_file = LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl"
-        entry = {
-            "ts": now.isoformat(),
-            "hook": "hr5-verify-parent",
-            "level": level,
-            **data,
-        }
-        with open(log_file, "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except Exception:
-        pass
 
 
 def extract_parent(tool_input: dict) -> str | None:
@@ -96,13 +80,12 @@ def main() -> None:
 
     # If no key returned, creation failed — nothing to verify
     if not issue_key:
-        log_event("SKIP", {"reason": "no_issue_key_in_response", "parent_key": parent_key})
+        log_event(_HOOK, "SKIP", {"reason": "no_issue_key_in_response", "parent_key": parent_key})
         print("{}")
         return
 
     # Save to state for blocker + auto-clear hooks
     try:
-        sys.path.insert(0, str(Path(__file__).parent))
         from hooks_state import hr5_add_known_subtask, hr5_add_pending
 
         hr5_add_pending(session_id, issue_key, parent_key)
@@ -122,29 +105,15 @@ def main() -> None:
     except Exception:
         pass
 
-    log_event(
-        "REMIND",
-        {
-            "issue_key": issue_key,
-            "parent_key": parent_key,
-            "session_id": session_id,
-        },
+    log_event(_HOOK, "REMIND", {"issue_key": issue_key, "parent_key": parent_key, "session_id": session_id})
+    inject_context(
+        f"HR5 REQUIRED: Verify parent link for {issue_key}. "
+        f"Expected parent: {parent_key}. "
+        f"Run: jira_get_issue(issue_key='{issue_key}', fields='parent,summary') "
+        f"and confirm parent.key == '{parent_key}'. "
+        f"MCP may silently ignore the parent field — if missing, "
+        f"the subtask is orphaned (HR5 violation)."
     )
-
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PostToolUse",
-            "additionalContext": (
-                f"HR5 REQUIRED: Verify parent link for {issue_key}. "
-                f"Expected parent: {parent_key}. "
-                f"Run: jira_get_issue(issue_key='{issue_key}', fields='parent,summary') "
-                f"and confirm parent.key == '{parent_key}'. "
-                f"MCP may silently ignore the parent field — if missing, "
-                f"the subtask is orphaned (HR5 violation)."
-            ),
-        }
-    }
-    print(json.dumps(output))
 
 
 if __name__ == "__main__":

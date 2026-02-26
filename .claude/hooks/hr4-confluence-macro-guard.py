@@ -11,10 +11,12 @@ Exit codes: 0 = allow, 2 = deny
 import json
 import re
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
-LOG_DIR = Path.home() / ".claude" / "hooks-logs"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import log_event
+
+_HOOK = "hr4-confluence-macro-guard"
 
 MACRO_PATTERNS = [
     re.compile(r"<ac:structured-macro", re.I),
@@ -23,17 +25,6 @@ MACRO_PATTERNS = [
     re.compile(r"<ac:plain-text-body", re.I),
     re.compile(r"ac:name=", re.I),
 ]
-
-
-def log_event(level: str, data: dict) -> None:
-    try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(UTC)
-        entry = {"ts": now.isoformat(), "hook": "hr4-confluence-macro-guard", "level": level, **data}
-        with open(LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl", "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except Exception:
-        pass
 
 
 def has_macros(content: str) -> bool:
@@ -50,28 +41,23 @@ def main() -> None:
         return
 
     tool_input = data.get("tool_input", {})
+    sid = data.get("session_id", "")
 
     # Check all string fields for macro content
     for field in ("content", "body", "value"):
         content = tool_input.get(field, "")
         if isinstance(content, str) and has_macros(content):
             page_id = tool_input.get("page_id", "?")
+            log_event(_HOOK, "BLOCKED", {"page_id": str(page_id), "session_id": sid})
             reason = (
                 f"HR4 BLOCKED: Confluence macro detected in MCP update for page {page_id}.\n"
                 f"MCP HTML-escapes macros → page renders raw XML.\n"
                 f"Use: python3 .claude/skills/atlassian-scripts/update_page_storage.py instead."
             )
-            log_event(
-                "BLOCKED",
-                {
-                    "page_id": str(page_id),
-                    "session_id": data.get("session_id", ""),
-                },
-            )
             print(reason, file=sys.stderr)
             sys.exit(2)
 
-    log_event("ALLOWED", {"session_id": data.get("session_id", "")})
+    log_event(_HOOK, "ALLOWED", {"session_id": sid})
     print("{}")
 
 

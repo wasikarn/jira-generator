@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import get_issue_key
 from hooks_state import cache_is_checked
 
 
@@ -26,22 +27,13 @@ def main() -> None:
         print("{}")
         return
 
-    tool_name = data.get("tool_name", "")
-
     # Only intercept jira_get_issue
-    if "jira_get_issue" not in tool_name:
+    if "jira_get_issue" not in data.get("tool_name", ""):
         print("{}")
         return
 
     session_id = data.get("session_id", "")
-    tool_input = data.get("tool_input", {})
-
-    # Extract issue key
-    issue_key = None
-    for field in ("issue_key", "issue_key_or_id", "key"):
-        if field in tool_input:
-            issue_key = str(tool_input[field]).upper()
-            break
+    issue_key = get_issue_key(data.get("tool_input", {}))
 
     if not issue_key:
         print("{}")

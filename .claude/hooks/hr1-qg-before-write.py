@@ -12,70 +12,20 @@ Exit codes: 0 = allow (or not an acli command), 2 = deny (QG < 90%)
 """
 
 import json
-import re
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
 # ── Paths ──────────────────────────────────────────────
 SCRIPTS_DIR = Path(__file__).resolve().parent.parent / "skills" / "atlassian-scripts"
-LOG_DIR = Path.home() / ".claude" / "hooks-logs"
 
-# ── Regex: match acli write commands ───────────────────
-ACLI_FROM_JSON_RE = re.compile(
-    r"acli\s+jira\s+workitem\s+(?:create|edit)\s+"
-    r"(?:.*\s)?--from-json\s+[\"']?([^\s\"']+)[\"']?"
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import ACLI_FROM_JSON_RE, detect_issue_type, log_event
 
-# ── Issue type inference from filename ─────────────────
-TYPE_PATTERNS = [
-    ("story", re.compile(r"story", re.I)),
-    ("subtask", re.compile(r"subtask|sub[-_]", re.I)),
-    ("epic", re.compile(r"epic", re.I)),
-    ("qa", re.compile(r"qa|testplan|test[-_]plan", re.I)),
-    ("task", re.compile(r"task|migration|spike|chore|tech[-_]debt", re.I)),
-]
+_HOOK = "hr1-qg-before-write"
 
 
-def log_event(level: str, data: dict) -> None:
-    """Append JSON log entry."""
-    try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(UTC)
-        log_file = LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl"
-        entry = {
-            "ts": now.isoformat(),
-            "hook": "hr1-qg-before-write",
-            "level": level,
-            **data,
-        }
-        with open(log_file, "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except Exception:
-        pass
-
-
-def detect_issue_type(file_path: Path, data: dict) -> str:
-    """Detect issue type from CREATE format type field or filename."""
-    # 1. Try CREATE format explicit type field
-    type_val = str(data.get("type", "")).lower()
-    if "story" in type_val:
-        return "story"
-    if "sub" in type_val:
-        return "subtask"
-    if "epic" in type_val:
-        return "epic"
-    if "task" in type_val and "sub" not in type_val:
-        return "task"  # Task has its own checks (no narrative required)
-
-    # 2. Try filename inference
-    name = file_path.stem.lower()
-    for issue_type, pattern in TYPE_PATTERNS:
-        if pattern.search(name):
-            return issue_type
-
-    # 3. Default to subtask (most common, strictest checks)
-    return "subtask"
+def _log(level: str, data: dict) -> None:
+    log_event(_HOOK, level, data)
 
 
 def main() -> None:
@@ -106,7 +56,7 @@ def main() -> None:
 
     if not json_path.exists():
         # File not found — let acli handle the error
-        log_event("SKIP", {"reason": "file_not_found", "file": str(json_path)})
+        _log("SKIP", {"reason": "file_not_found", "file": str(json_path)})
         print("{}")
         return
 
@@ -115,7 +65,7 @@ def main() -> None:
         with open(json_path) as f:
             adf_data = json.load(f)
     except (json.JSONDecodeError, OSError) as e:
-        log_event("ERROR", {"reason": str(e), "file": str(json_path)})
+        _log("ERROR", {"reason": str(e), "file": str(json_path)})
         print("{}")
         return
 
@@ -124,19 +74,19 @@ def main() -> None:
         sys.path.insert(0, str(SCRIPTS_DIR))
         from lib.adf_validator import AdfValidator, detect_format
     except ImportError as e:
-        log_event("ERROR", {"reason": f"import_failed: {e}"})
+        _log("ERROR", {"reason": f"import_failed: {e}"})
         print("{}")
         return
 
     # Detect format and extract ADF
     fmt, adf = detect_format(adf_data)
     if not adf or not isinstance(adf, dict):
-        log_event("SKIP", {"reason": "no_adf", "format": fmt, "file": str(json_path)})
+        _log("SKIP", {"reason": "no_adf", "format": fmt, "file": str(json_path)})
         print("{}")
         return
 
     wrapper = adf_data if fmt in ("create", "edit") else None
-    issue_type = detect_issue_type(json_path, adf_data)
+    issue_type = detect_issue_type(adf_data, json_path)
 
     # Validate
     validator = AdfValidator()
@@ -152,7 +102,7 @@ def main() -> None:
     }
 
     if report.passed:
-        log_event("ALLOWED", log_data)
+        _log("ALLOWED", log_data)
         print("{}")
     else:
         # Build failure details
@@ -164,7 +114,7 @@ def main() -> None:
             f"Top issues:\n{issues_text}\n"
             f"Fix the ADF JSON and re-validate before writing to Jira."
         )
-        log_event("BLOCKED", log_data)
+        _log("BLOCKED", log_data)
         print(reason, file=sys.stderr)
         sys.exit(2)
 

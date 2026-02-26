@@ -9,24 +9,13 @@ Exit codes: 0 (always — PostToolUse cannot block)
 
 import json
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import inject_context, log_event
 from hooks_state import search_is_done
 
-LOG_DIR = Path.home() / ".claude" / "hooks-logs"
-
-
-def log_event(level: str, data: dict) -> None:
-    try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(UTC)
-        entry = {"ts": now.isoformat(), "hook": "search-before-create", "level": level, **data}
-        with open(LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl", "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except Exception:
-        pass
+_HOOK = "search-before-create"
 
 
 def main() -> None:
@@ -52,20 +41,13 @@ def main() -> None:
             resp = {}
     issue_key = resp.get("key", "?") if isinstance(resp, dict) else "?"
 
-    log_event("WARN", {"issue_key": issue_key, "session_id": session_id})
-
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PostToolUse",
-            "additionalContext": (
-                f"DEDUP WARNING: {issue_key} created without prior search in this session. "
-                f"Verify no duplicates exist. Use /search-issues or "
-                f"jira_search(jql='project = BEP AND summary ~ \"keyword\"') "
-                f"before creating issues."
-            ),
-        }
-    }
-    print(json.dumps(output))
+    log_event(_HOOK, "WARN", {"issue_key": issue_key, "session_id": session_id})
+    inject_context(
+        f"DEDUP WARNING: {issue_key} created without prior search in this session. "
+        f"Verify no duplicates exist. Use /jira-search-issues or "
+        f"jira_search(jql='project = BEP AND summary ~ \"keyword\"') "
+        f"before creating issues."
+    )
 
 
 if __name__ == "__main__":

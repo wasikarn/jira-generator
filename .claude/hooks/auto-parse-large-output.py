@@ -12,32 +12,16 @@ import json
 import re
 import subprocess
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
-LOG_DIR = Path.home() / ".claude" / "hooks-logs"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import inject_context, log_event
+
+_HOOK = "auto-parse-large-output"
 PARSER_SCRIPT = Path(__file__).resolve().parent.parent.parent / "scripts" / "parse-mcp-output.py"
 
 # Max lines to inject back into context (avoid flooding)
 MAX_OUTPUT_LINES = 60
-
-
-def log_event(level: str, data: dict) -> None:
-    """Append JSON log entry."""
-    try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(UTC)
-        log_file = LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl"
-        entry = {
-            "ts": now.isoformat(),
-            "hook": "auto-parse-large-output",
-            "level": level,
-            **data,
-        }
-        with open(log_file, "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except Exception:
-        pass
 
 
 def extract_saved_file_path(response_text: str) -> str | None:
@@ -78,7 +62,7 @@ def run_parser(file_path: str) -> str | None:
 
             return result.stdout.strip() + f"\n{count_line}"
     except (subprocess.TimeoutExpired, OSError) as e:
-        log_event("ERROR", {"error": str(e), "file": file_path})
+        log_event(_HOOK, "ERROR", {"error": str(e), "file": file_path})
         return None
 
     return None
@@ -107,7 +91,7 @@ def main() -> None:
     # Extract file path
     file_path = extract_saved_file_path(response)
     if not file_path or not Path(file_path).exists():
-        log_event("WARN", {"reason": "file_path not found", "response": response[:200]})
+        log_event(_HOOK, "WARN", {"reason": "file_path not found", "response": response[:200]})
         print("{}")
         return
 
@@ -116,31 +100,17 @@ def main() -> None:
     parsed = run_parser(file_path)
 
     if not parsed:
-        log_event("WARN", {"reason": "parser failed", "file": file_path})
+        log_event(_HOOK, "WARN", {"reason": "parser failed", "file": file_path})
         print("{}")
         return
 
-    log_event(
-        "PARSED",
-        {
-            "tool": tool_name,
-            "file": file_path,
-            "lines": parsed.count("\n") + 1,
-        },
+    log_event(_HOOK, "PARSED", {"tool": tool_name, "file": file_path, "lines": parsed.count("\n") + 1})
+    inject_context(
+        f"AUTO-PARSED large output from {tool_name}:\n\n"
+        f"{parsed}\n\n"
+        f"Raw file: {file_path}\n"
+        f'Filter: python3 scripts/parse-mcp-output.py "{file_path}" --status "In Progress" --assignee joakim'
     )
-
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PostToolUse",
-            "additionalContext": (
-                f"AUTO-PARSED large output from {tool_name}:\n\n"
-                f"{parsed}\n\n"
-                f"Raw file: {file_path}\n"
-                f'Filter: python3 scripts/parse-mcp-output.py "{file_path}" --status "In Progress" --assignee joakim'
-            ),
-        }
-    }
-    print(json.dumps(output))
 
 
 if __name__ == "__main__":

@@ -10,25 +10,14 @@ Exit codes: 0 = allow, 2 = deny
 
 import json
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import log_event
 from hooks_state import hr7_is_lookup_done
 
-LOG_DIR = Path.home() / ".claude" / "hooks-logs"
+_HOOK = "hr7-sprint-id-guard"
 SPRINT_FIELD = "customfield_10020"
-
-
-def log_event(level: str, data: dict) -> None:
-    try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(UTC)
-        entry = {"ts": now.isoformat(), "hook": "hr7-sprint-id-guard", "level": level, **data}
-        with open(LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl", "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except Exception:
-        pass
 
 
 def has_sprint_field(obj: object) -> bool:
@@ -58,17 +47,17 @@ def main() -> None:
         return
 
     if hr7_is_lookup_done(session_id):
-        log_event("ALLOWED", {"session_id": session_id})
+        log_event(_HOOK, "ALLOWED", {"session_id": session_id})
         print("{}")
         return
 
     issue_key = tool_input.get("issue_key", "new")
+    log_event(_HOOK, "BLOCKED", {"issue_key": issue_key, "session_id": session_id})
     reason = (
         f"HR7 BLOCKED: Sprint ID detected for {issue_key} but no sprint lookup in this session.\n"
         f"Run: jira_get_sprints_from_board(board_id=2, state='active') first.\n"
         f"HR7: Never hardcode sprint IDs — they change every sprint."
     )
-    log_event("BLOCKED", {"issue_key": issue_key, "session_id": session_id})
     print(reason, file=sys.stderr)
     sys.exit(2)
 

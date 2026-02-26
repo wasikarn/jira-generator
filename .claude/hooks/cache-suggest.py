@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import get_issue_key, inject_context
 from hooks_state import cache_is_checked, cache_mark_checked
 
 
@@ -29,24 +30,12 @@ def main() -> None:
 
     # Handle jira_get_issue — mark as checked + suggest
     if "jira_get_issue" in tool_name:
-        issue_key = None
-        for field in ("issue_key", "issue_key_or_id", "key"):
-            if field in tool_input:
-                issue_key = str(tool_input[field]).upper()
-                break
-
+        issue_key = get_issue_key(tool_input)
         if issue_key and not cache_is_checked(session_id, issue_key):
             cache_mark_checked(session_id, issue_key)
-            # Gentle reminder for next time
-            print(
-                json.dumps(
-                    {
-                        "additionalContext": (
-                            f"Cache-first reminder: You used jira_get_issue directly for {issue_key}. "
-                            f"Next time, try cache_get_issue first for faster reads."
-                        )
-                    }
-                )
+            inject_context(
+                f"Cache-first reminder: You used jira_get_issue directly for {issue_key}. "
+                f"Next time, try cache_get_issue first for faster reads."
             )
             return
 
@@ -55,15 +44,9 @@ def main() -> None:
         jql = tool_input.get("jql", "")
         # Only suggest for simple key-based or parent-based queries
         if any(kw in jql.lower() for kw in ("key =", "key in", "parent =", "parent in")):
-            print(
-                json.dumps(
-                    {
-                        "additionalContext": (
-                            "Cache-first reminder: For key/parent-based JQL, consider using "
-                            "cache_search(jql=...) first for faster results."
-                        )
-                    }
-                )
+            inject_context(
+                "Cache-first reminder: For key/parent-based JQL, consider using "
+                "cache_search(jql=...) first for faster results."
             )
             return
 

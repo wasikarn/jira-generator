@@ -9,29 +9,13 @@ Exit codes: 0 = allow, 2 = deny
 
 import json
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
-LOG_DIR = Path.home() / ".claude" / "hooks-logs"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import log_event
+
+_HOOK = "hr3-block-mcp-assignee"
 ASSIGNEE_KEYS = {"assignee", "assignee_id", "assignee_account_id"}
-
-
-def log_event(level: str, data: dict) -> None:
-    """Append JSON log entry (same format as existing hooks)."""
-    try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(UTC)
-        log_file = LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl"
-        entry = {
-            "ts": now.isoformat(),
-            "hook": "hr3-block-mcp-assignee",
-            "level": level,
-            **data,
-        }
-        with open(log_file, "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except Exception:
-        pass  # logging must never break the hook
 
 
 def has_assignee(obj: object) -> bool:
@@ -54,30 +38,19 @@ def main() -> None:
         return
 
     tool_input = data.get("tool_input", {})
+    issue_key = tool_input.get("issue_key", "?")
+    sid = data.get("session_id", "")
 
     if has_assignee(tool_input):
-        issue_key = tool_input.get("issue_key", "?")
+        log_event(_HOOK, "BLOCKED", {"issue_key": issue_key, "session_id": sid})
         reason = (
             f"HR3 BLOCKED: MCP assignee silently fails for {issue_key}. "
             'Use: acli jira workitem assign -k "KEY" -a "email" -y'
         )
-        log_event(
-            "BLOCKED",
-            {
-                "issue_key": issue_key,
-                "session_id": data.get("session_id", ""),
-            },
-        )
         print(reason, file=sys.stderr)
         sys.exit(2)
 
-    log_event(
-        "ALLOWED",
-        {
-            "issue_key": tool_input.get("issue_key", "?"),
-            "session_id": data.get("session_id", ""),
-        },
-    )
+    log_event(_HOOK, "ALLOWED", {"issue_key": issue_key, "session_id": sid})
     print("{}")
 
 

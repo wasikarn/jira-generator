@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import inject_context
 from hooks_state import hr6_add_pending
 
 # Patterns that indicate a Jira write via acli
@@ -69,19 +70,12 @@ def main() -> None:
     invalidate_calls = " + ".join(
         f"cache_invalidate(issue_key='{k}', auto_refresh=true)" for k in unique_keys
     )
-
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PostToolUse",
-            "additionalContext": (
-                f"HR6 REQUIRED (acli): Run {invalidate_calls} "
-                f"before any subsequent read of {keys_str}. "
-                f"acli commands bypass MCP hooks — cache invalidation is still required. "
-                f"Stale cache causes silent data corruption."
-            ),
-        }
-    }
-    print(json.dumps(output))
+    inject_context(
+        f"HR6 REQUIRED (acli): Run {invalidate_calls} "
+        f"before any subsequent read of {keys_str}. "
+        f"acli commands bypass MCP hooks — cache invalidation is still required. "
+        f"Stale cache causes silent data corruption."
+    )
 
 
 if __name__ == "__main__":

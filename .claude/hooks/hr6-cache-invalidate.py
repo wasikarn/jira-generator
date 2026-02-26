@@ -16,31 +16,13 @@ Exit codes: 0 (always — PostToolUse cannot block)
 
 import json
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import inject_context, log_event
 from hooks_state import hr6_add_pending
 
-LOG_DIR = Path.home() / ".claude" / "hooks-logs"
-
-
-def log_event(level: str, data: dict) -> None:
-    """Append JSON log entry."""
-    try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(UTC)
-        log_file = LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl"
-        entry = {
-            "ts": now.isoformat(),
-            "hook": "hr6-cache-invalidate",
-            "level": level,
-            **data,
-        }
-        with open(log_file, "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except Exception:
-        pass
+_HOOK = "hr6-cache-invalidate"
 
 
 def extract_issue_keys(data: dict) -> list[str]:
@@ -104,38 +86,24 @@ def main() -> None:
         print("{}")
         return
 
-    # Track pending invalidation in session state
     session_id = data.get("session_id", "")
     tool_name = data.get("tool_name", "unknown")
 
     for key in issue_keys:
         hr6_add_pending(session_id, key)
 
-    log_event(
-        "REMIND",
-        {
-            "issue_keys": issue_keys,
-            "tool": tool_name,
-            "session_id": session_id,
-        },
-    )
+    log_event(_HOOK, "REMIND", {"issue_keys": issue_keys, "tool": tool_name, "session_id": session_id})
 
     keys_str = ", ".join(issue_keys)
     invalidate_calls = " + ".join(
         f"cache_invalidate(issue_key='{k}', auto_refresh=true)" for k in issue_keys
     )
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "PostToolUse",
-            "additionalContext": (
-                f"HR6 REQUIRED: Run {invalidate_calls} "
-                f"before any subsequent read of {keys_str}. "
-                f"auto_refresh=true fetches fresh data in the same call (saves 1 MCP round-trip). "
-                f"Stale cache causes silent data corruption."
-            ),
-        }
-    }
-    print(json.dumps(output))
+    inject_context(
+        f"HR6 REQUIRED: Run {invalidate_calls} "
+        f"before any subsequent read of {keys_str}. "
+        f"auto_refresh=true fetches fresh data in the same call (saves 1 MCP round-trip). "
+        f"Stale cache causes silent data corruption."
+    )
 
 
 if __name__ == "__main__":

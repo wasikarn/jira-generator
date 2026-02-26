@@ -15,20 +15,19 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import ACLI_FROM_JSON_RE as ACLI_RE
 from hooks_state import event_get_all_events
-
-ACLI_RE = re.compile(
-    r"acli\s+jira\s+workitem\s+(?:create|edit)\s+"
-    r"(?:.*\s)?--from-json\s+[\"']?([^\s\"']+)[\"']?"
-)
 
 # Event-based AC: PascalCase multi-word = domain event (e.g. CouponCollected)
 # vs verb-based: single word (Display, Validate, Handle)
 EVENT_AC_RE = re.compile(r"AC\d+:\s*([A-Z][a-z]+(?:[A-Z][a-z]+)+)")
 
 raw = sys.stdin.read()
-data = json.loads(raw)
+try:
+    data = json.loads(raw)
+except json.JSONDecodeError:
+    sys.exit(0)
 
 if data.get("tool_name") != "Bash":
     sys.exit(0)

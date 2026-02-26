@@ -9,24 +9,13 @@ Exit codes: 0 (always — PostToolUse cannot block)
 
 import json
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hooks_lib import get_issue_key, log_event
 from hooks_state import hr6_remove_pending
 
-LOG_DIR = Path.home() / ".claude" / "hooks-logs"
-
-
-def log_event(level: str, data: dict) -> None:
-    try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        now = datetime.now(UTC)
-        entry = {"ts": now.isoformat(), "hook": "hr6-invalidate-clear", "level": level, **data}
-        with open(LOG_DIR / f"{now.strftime('%Y-%m-%d')}.jsonl", "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except Exception:
-        pass
+_HOOK = "hr6-invalidate-clear"
 
 
 def main() -> None:
@@ -38,21 +27,14 @@ def main() -> None:
         return
 
     session_id = data.get("session_id", "")
-    tool_input = data.get("tool_input", {})
-
-    # Extract issue key from cache_invalidate call
-    issue_key = None
-    for field in ("issue_key", "key"):
-        if field in tool_input:
-            issue_key = str(tool_input[field])
-            break
+    issue_key = get_issue_key(data.get("tool_input", {}))
 
     if not issue_key:
         print("{}")
         return
 
     hr6_remove_pending(session_id, issue_key)
-    log_event("CLEARED", {"issue_key": issue_key, "session_id": session_id})
+    log_event(_HOOK, "CLEARED", {"issue_key": issue_key, "session_id": session_id})
     print("{}")
 
 
