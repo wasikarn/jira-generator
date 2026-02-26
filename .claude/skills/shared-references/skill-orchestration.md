@@ -1,67 +1,27 @@
 # Skill Orchestration
 
-> Intent-to-skill mapping, Tresor team collaboration, quality gates, and decision trees.
+> Intent-to-skill mapping, quality gates, and decision trees.
 > Read this before creating/editing Jira issues.
 
 ## Intent-to-Skill Map
 
-| Intent | Skill Chain | Tresor Team | Gate |
-| --- | --- | --- | --- |
-| Create epic | `/search-issues` → `/create-epic` → verify | `product/management/product-manager` | ≥ 90% |
-| Create story | `/search-issues` → `/story-full` → verify | `product/management/requirements-generator` | ≥ 90% |
-| Create task | `/search-issues` → `/create-task` → verify | — | ≥ 90% |
-| Analyze story | `/analyze-story` → verify `--with-subtasks` | `engineering/backend/backend-architect` | ≥ 90% |
-| Test plan | `/create-testplan` → verify | `core/test-engineer` | ≥ 90% |
-| Update single | `/update-{epic,story,task,subtask}` → verify | — | ≥ 90% |
-| Update cascade | `/story-cascade` → verify `--with-subtasks` | — | ≥ 90% |
-| Sync all | `/sync-alignment` → verify `--with-subtasks` | — | ≥ 90% |
-| Plan sprint | `/plan-sprint` → `/dependency-chain` | `product/management/sprint-prioritizer` | N/A |
+| Intent | Skill Chain | Gate |
+| --- | --- | --- |
+| Create epic | `/search-issues` → `/create-epic` → verify | ≥ 90% |
+| Create story | `/search-issues` → `/story-full` → verify | ≥ 90% |
+| Create task | `/search-issues` → `/create-task` → verify | ≥ 90% |
+| Analyze story | `/analyze-story` → verify `--with-subtasks` | ≥ 90% |
+| Test plan | `/create-testplan` → verify | ≥ 90% |
+| Update single | `/update-{epic,story,task,subtask}` → verify | ≥ 90% |
+| Update cascade | `/story-cascade` → verify `--with-subtasks` | ≥ 90% |
+| Sync all | `/sync-alignment` → verify `--with-subtasks` | ≥ 90% |
+| Plan sprint | `/plan-sprint` → `/dependency-chain` | N/A |
 
 **Rules:**
 
 - Always `/search-issues` before creating (dedup)
 - Always `/verify-issue` after creating/editing
 - Prefer `/story-full` over separate `/create-story` + `/analyze-story`
-
-## Tresor Cross-Team Collaboration
-
-When to invoke 2+ teams together:
-
-| Scenario | Product | Engineering | Core | Design |
-| --- | --- | --- | --- | --- |
-| **Epic creation** | `product-manager` scope+RICE | `backend-architect` feasibility | — | `ui-ux-analyst` if UI |
-| **Story refinement** | `requirements-generator` ACs | `backend-architect` tech approach | — | `ui-ux-analyst` if UI |
-| **Technical analysis** | — | `backend-architect` design | `test-engineer` test strategy | — |
-| **Sprint planning** | `sprint-prioritizer` priority | — | — | — |
-| **Auth/Payment** | `product-manager` | `backend-architect` | `security-auditor` MANDATORY | — |
-| **Pre-launch** | `project-shipper` | — | `security-auditor` + `performance-tuner` | — |
-| **Post-launch** | `feedback-synthesizer` | `root-cause-analyzer` if issues | — | — |
-| **Tech debt** | — | `backend-architect` | `refactor-expert` + `test-engineer` | — |
-
-### Tresor Decision Rules
-
-- **Always** for epic creation → `product-manager` + `backend-architect`
-- **Always** for sprint planning → `sprint-prioritizer`
-- **If** story labels include `auth`, `payment`, `security`, `sensitive-data` → MUST `security-auditor`
-- **If** story has UI components → `ui-ux-analyst`
-- **If** high technical complexity → `backend-architect` for analyze-story
-
-### Subagent Invocation
-
-Tresor agents live at `~/.claude/subagents/{team}/{sub}/{name}/agent.md`
-
-```text
-Task(subagent_type="Explore") with context from agent.md
-```
-
-Key paths:
-
-- `product/management/sprint-prioritizer/agent.md`
-- `product/management/product-manager/agent.md`
-- `engineering/backend/backend-architect/agent.md`
-- `core/test-engineer/agent.md` (also available as Task agent)
-- `core/security-auditor/agent.md` (also available as Task agent)
-- `design/ui-ux/ui-ux-analyst/agent.md`
 
 ## HARD RULES
 
@@ -171,19 +131,19 @@ Separate /create-story + /analyze-story
 
 ## Pre/Post Conditions
 
-| Skill | Pre-condition | Post-condition | Tresor Review |
-| --- | --- | --- | --- |
-| `/create-epic` | `/search-issues` | `/verify-issue` >= 90% | `product-manager` scope |
-| `/create-story` | `/search-issues` | `/verify-issue` >= 90% | — |
-| `/story-full` | `/search-issues` | `/verify-issue --with-subtasks` >= 90% | `backend-architect` if complex |
-| `/analyze-story` | Story exists | `/verify-issue --with-subtasks` >= 90% | `test-engineer` coverage |
-| `/create-testplan` | Story exists | `/verify-issue` >= 90% | `test-engineer` comprehensive |
-| `/create-task` | `/search-issues` | `/verify-issue` >= 90% | — |
-| `/update-{type}` | Issue exists | `/verify-issue` >= 90% | — |
-| `/story-cascade` | Story changed | `/verify-issue --with-subtasks` >= 90% | — |
-| `/sync-alignment` | Artifacts exist | `/verify-issue --with-subtasks` >= 90% | — |
-| `/plan-sprint` | Sprint exists | — | `sprint-prioritizer` always |
-| `/dependency-chain` | Sprint planned | — | — |
+| Skill | Pre-condition | Post-condition |
+| --- | --- | --- |
+| `/create-epic` | `/search-issues` | `/verify-issue` >= 90% |
+| `/create-story` | `/search-issues` | `/verify-issue` >= 90% |
+| `/story-full` | `/search-issues` | `/verify-issue --with-subtasks` >= 90% |
+| `/analyze-story` | Story exists | `/verify-issue --with-subtasks` >= 90% |
+| `/create-testplan` | Story exists | `/verify-issue` >= 90% |
+| `/create-task` | `/search-issues` | `/verify-issue` >= 90% |
+| `/update-{type}` | Issue exists | `/verify-issue` >= 90% |
+| `/story-cascade` | Story changed | `/verify-issue --with-subtasks` >= 90% |
+| `/sync-alignment` | Artifacts exist | `/verify-issue --with-subtasks` >= 90% |
+| `/plan-sprint` | Sprint exists | — |
+| `/dependency-chain` | Sprint planned | — |
 
 ## Repomix Context Packs
 

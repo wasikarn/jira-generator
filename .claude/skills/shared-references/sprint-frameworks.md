@@ -1,6 +1,6 @@
 # Sprint Planning Frameworks
 
-> Source: Adapted from Tresor sprint-prioritizer + BEP project experience
+> Source: BEP project experience
 > Used by: `/plan-sprint` skill (Phase 3-6 strategy analysis)
 
 ## RICE Scoring

@@ -31,41 +31,41 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 
 | Command | Description |
 | --- | --- |
-| `/create-epic` | Create Epic from product vision + Epic Doc |
-| `/create-story` | Create User Story from requirements |
-| `/create-task` | Create Task (tech-debt, bug, chore, spike) |
-| `/analyze-story {{PROJECT_KEY}}-XXX` | Analyze Story → Sub-tasks + Technical Note |
-| `/create-testplan {{PROJECT_KEY}}-XXX` | Create Test Plan → [QA] Sub-task |
-| `/create-doc` | Create Confluence page (tech-spec, adr, parent) |
-| `/update-{epic,story,task,subtask}` | Edit single issue — scope, AC, format |
-| `/update-doc PAGE-ID` | Update/Move Confluence page |
-| `/story-full` | Create Story + Sub-tasks in one go (preferred) |
-| `/story-cascade {{PROJECT_KEY}}-XXX` | Update Story + cascade to Sub-tasks |
-| `/sync-alignment {{PROJECT_KEY}}-XXX` | Sync all artifacts bidirectional |
-| `/assign {{PROJECT_KEY}}-XXX name` | Quick assign issue (HR3-safe, uses acli) |
-| `/plan-sprint` | Sprint planning: carry-over + capacity + assign |
-| `/dependency-chain` | Dependency analysis, critical path, swim lanes |
-| `/search-issues` | Search before creating (dedup) |
-| `/verify-issue {{PROJECT_KEY}}-XXX` | Verify quality (ADF, INVEST, language) |
-| `/activity-report` | Generate activity report from claude-mem |
+| `/jira-create-epic` | Create Epic from product vision + Epic Doc |
+| `/jira-create-story` | Create User Story from requirements |
+| `/jira-create-task` | Create Task (tech-debt, bug, chore, spike) |
+| `/jira-analyze-story {{PROJECT_KEY}}-XXX` | Analyze Story → Sub-tasks + Technical Note |
+| `/jira-create-testplan {{PROJECT_KEY}}-XXX` | Create Test Plan → [QA] Sub-task |
+| `/confluence-create-doc` | Create Confluence page (tech-spec, adr, parent) |
+| `/jira-update-{epic,story,task,subtask}` | Edit single issue — scope, AC, format |
+| `/confluence-update-doc PAGE-ID` | Update/Move Confluence page |
+| `/jira-story-full` | Create Story + Sub-tasks in one go (preferred) |
+| `/jira-story-cascade {{PROJECT_KEY}}-XXX` | Update Story + cascade to Sub-tasks |
+| `/jira-sync-alignment {{PROJECT_KEY}}-XXX` | Sync all artifacts bidirectional |
+| `/jira-assign {{PROJECT_KEY}}-XXX name` | Quick assign issue (HR3-safe, uses acli) |
+| `/jira-plan-sprint` | Sprint planning: carry-over + capacity + assign |
+| `/jira-dependency-chain` | Dependency analysis, critical path, swim lanes |
+| `/jira-search-issues` | Search before creating (dedup) |
+| `/jira-verify-issue {{PROJECT_KEY}}-XXX` | Verify quality (ADF, INVEST, language) |
+| `/jira-activity-report` | Generate activity report from claude-mem |
 | `/optimize-context` | Audit + compress CLAUDE.md |
 
-`/verify-issue` flags: `--with-subtasks` (batch) | `--fix` (auto-fix) | `--dry-run` (report only)
+`/jira-verify-issue` flags: `--with-subtasks` (batch) | `--fix` (auto-fix) | `--dry-run` (report only)
 
 ## Workflow Chain
 
 | Phase | Flow | Notes |
 | --- | --- | --- |
-| **Search first** | `/search-issues` | Always run before creating (dedup) |
-| **Create** | PM `/create-epic` → PO `/create-story` → TA `/analyze-story` → QA `/create-testplan` | QA optional |
-| **Combined** | `/story-full` = `/create-story` + `/analyze-story` in one go | Preferred |
-| **Update single** | `/update-{epic,story,task,subtask}` | One issue |
-| **Update cascade** | `/story-cascade` = Story + Sub-tasks | `/sync-alignment` if Confluence too |
-| **Standalone** | `/create-task`, `/create-doc`, `/update-doc` | |
-| **Planning** | `/plan-sprint` | Reads Jira, assigns work |
-| **Verify** | `/verify-issue` | Always run after creating/updating |
+| **Search first** | `/jira-search-issues` | Always run before creating (dedup) |
+| **Create** | PM `/jira-create-epic` → PO `/jira-create-story` → TA `/jira-analyze-story` → QA `/jira-create-testplan` | QA optional |
+| **Combined** | `/jira-story-full` = `/jira-create-story` + `/jira-analyze-story` in one go | Preferred |
+| **Update single** | `/jira-update-{epic,story,task,subtask}` | One issue |
+| **Update cascade** | `/jira-story-cascade` = Story + Sub-tasks | `/jira-sync-alignment` if Confluence too |
+| **Standalone** | `/jira-create-task`, `/confluence-create-doc`, `/confluence-update-doc` | |
+| **Planning** | `/jira-plan-sprint` | Reads Jira, assigns work |
+| **Verify** | `/jira-verify-issue` | Always run after creating/updating |
 
-**Full orchestration + Tresor teams:** `shared-references/skill-orchestration.md`
+**Full orchestration:** `shared-references/skill-orchestration.md`
 
 ## Tool Selection
 
@@ -108,7 +108,7 @@ Full config (team, fields, services, environments): @.claude/project-config.json
 | `project_key_or_id` → error | Use `project_key` |
 | `limit > 50` → error | Max 50, use pagination `start_at` |
 | Sibling tool call errored | One parallel MCP call failed → all cancelled. Fix failing call first |
-| Prefer `/story-full` | `/search-issues` → `/story-full` → `/verify-issue` |
+| Prefer `/jira-story-full` | `/jira-search-issues` → `/jira-story-full` → `/jira-verify-issue` |
 | Mermaid diagram not rendering | Need BOTH: code block (`language=mermaid`) + Forge `ac:adf-extension`. `mermaid_diagram()` wraps code block in Expand macro + Forge renderer outside. `guest-params > index` counts ALL code blocks on page (including inside Expand macros) |
 | Mermaid source code visible | `collapse=true` does NOT work on Mermaid code blocks — use Expand macro (`ac:name="expand"`) to wrap code block. `mermaid_diagram()` does this automatically |
 | Mermaid parse error on Confluence | Task names/labels must NOT contain `×` `±` `:` (time) `()` — use ASCII equivalents (`x`, `+-`, `-`, remove parens). Applies to ALL diagram types, not just Gantt |
@@ -124,7 +124,7 @@ Key shared references (loaded by skills on demand):
 - Tools: @.claude/skills/shared-references/tools.md
 - Troubleshooting: @.claude/skills/shared-references/troubleshooting.md
 
-Other refs: `.claude/skills/shared-references/CLAUDE.md` (full index of 20 docs) | **Scripts:** `atlassian-scripts/SKILL.md` | **Tresor:** `~/.claude/subagents/` (133 agents)
+Other refs: `.claude/skills/shared-references/CLAUDE.md` (full index of 20 docs) | **Scripts:** `atlassian-scripts/SKILL.md`
 - Mermaid diagrams: @.claude/skills/shared-references/mermaid-guide.md
 
 ## Core Principles

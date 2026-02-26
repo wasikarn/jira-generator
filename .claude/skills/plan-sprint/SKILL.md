@@ -3,12 +3,9 @@ name: plan-sprint
 disable-model-invocation: true
 context: fork
 description: |
-  Sprint Planning with Tresor Strategy + Jira Execution using an 8-phase workflow
+  Sprint Planning using an 8-phase workflow
 
   Phases: Discovery → Capacity → Carry-over → Prioritize → Distribute → Risk → Review → Execute
-
-  ⭐ Hybrid: Tresor sprint-prioritizer handles strategy (Phase 3-6) + MCP handles execution (Phase 1,2,8)
-  🔗 Tresor Agent: ~/.claude/subagents/product/management/sprint-prioritizer/agent.md
 
   Triggers: "plan sprint", "sprint planning"
 argument-hint: "[--sprint <id>] [--carry-over-only]"
@@ -16,7 +13,7 @@ argument-hint: "[--sprint <id>] [--carry-over-only]"
 
 # /plan-sprint
 
-**Role:** Scrum Master + Sprint Planner (Tresor-powered)
+**Role:** Scrum Master + Sprint Planner
 **Output:** Sprint plan with assignments executed in Jira
 
 ## Dynamic Context
@@ -134,13 +131,10 @@ Use **complexity-adjusted throughput** (from team-capacity.md) instead of raw th
 
 ---
 
-## Part B: Strategy Analysis (Phases 3-6) — Tresor Layer
+## Part B: Strategy Analysis (Phases 3-6)
 
 > **Phase Tracking:** Use TodoWrite to mark each phase `in_progress` → `completed` as you work.
-> **🟢 AUTO** — Phases 3-6 delegate to Tresor sprint-prioritizer. All automated. Escalate only if Tresor agent returns incomplete data.
-
-> Phases 3-6 delegate to Tresor sprint-prioritizer via Task agent
-> Agent reads: team-capacity.md + sprint-frameworks.md + sprint data from Phase 1
+> **🟢 AUTO** — Phases 3-6 run via Task agent. All automated. Escalate only on incomplete data.
 
 ```text
 Task(subagent_type: "general-purpose", prompt: """
@@ -148,9 +142,6 @@ You are a sprint planning strategist. Read and apply the frameworks from:
 - .claude/skills/shared-references/sprint-frameworks.md (RICE, Impact/Effort, carry-over model)
 - .claude/skills/shared-references/team-capacity.md (capacity model, skill matrix, focus factor, throughput)
 - .claude/project-config.json → team.members[] (skill_profile, focus_factor, avg_throughput)
-
-Also reference Tresor sprint-prioritizer methodology from:
-- ~/.claude/subagents/product/management/sprint-prioritizer/agent.md
 
 ## Sprint Data
 [Insert Phase 1 data: source sprint items, target sprint items, statuses, assignees]
@@ -362,5 +353,4 @@ Subtask alignment: [X checked, Y fixed]
 
 - [Team Capacity](../shared-references/team-capacity.md) - Team roster, capacity model, skill mapping
 - [Sprint Frameworks](../shared-references/sprint-frameworks.md) - RICE, Impact/Effort, carry-over model
-- [Tresor Sprint Prioritizer](~/.claude/subagents/product/management/sprint-prioritizer/agent.md) - Strategy methodology
 - [Tool Selection](../shared-references/tools.md) - MCP vs acli decision rules

@@ -13,9 +13,7 @@ Claude Code ──skills──> acli (ADF JSON) ──> Jira Cloud
     │                              └─> Jira REST API v3
     ├──MCP──> Confluence, Figma, GitHub
     │
-    ├──Python──> atlassian-scripts/lib/ (REST API)
-    │
-    └──subagents──> Tresor Teams (133 agents: product, eng, core, design)
+    └──Python──> atlassian-scripts/lib/ (REST API)
 ```
 
 **Key design decisions:**
@@ -101,7 +99,7 @@ cd jira-generator
 This will:
 
 1. Install `sync-skills` CLI to `~/.local/bin/`
-2. Sync skills to `~/.claude/skills/` (via symlinks)
+2. Sync skills → `~/.claude/skills/` and agents → `~/.claude/agents/` (via symlinks)
 3. Add Atlassian config to `~/.claude/CLAUDE.md`
 
 > If `~/.local/bin` is not in your PATH: `export PATH="$HOME/.local/bin:$PATH"`
@@ -130,40 +128,11 @@ Then add to MCP settings:
 }
 ```
 
-### 6. Install Tresor Agents (Recommended)
-
-133 specialized subagents for cross-team review and collaboration at each workflow stage.
-
-| Team | Key Agents | Used In |
-| ---- | ---------- | ------- |
-| Product (9) | `sprint-prioritizer`, `product-manager` | Sprint planning, Epic creation |
-| Engineering (54) | `backend-architect`, `frontend-developer` | Story analysis, Technical review |
-| Core (8) | `test-engineer`, `security-auditor` | Test plans, Security review |
-| Design (7) | `ui-ux-analyst` | UI story review |
-
-**Full install:**
-
-```bash
-git clone https://github.com/alirezarezvani/claude-code-tresor ~/.claude/subagents
-cd ~/.claude/subagents && ./scripts/install.sh
-```
-
-**Minimum for Jira workflow:**
-
-```bash
-cd ~/.claude/subagents
-./scripts/install.sh --category product     # sprint-prioritizer, product-manager
-./scripts/install.sh --core                 # test-engineer, security-auditor
-./scripts/install.sh --category engineering # backend-architect
-```
-
-Agents are auto-invoked per `shared-references/skill-orchestration.md` orchestration rules.
-
 ### Verify Setup
 
 ```bash
 # Check skills synced
-ls ~/.claude/skills/ | grep -E "create-story|plan-sprint|verify-issue"
+ls ~/.claude/skills/ | grep -E "jira-|confluence-"
 
 # Check acli
 acli jira project list --server https://your-site.atlassian.net
@@ -174,7 +143,10 @@ acli jira project list --server https://your-site.atlassian.net
 ### Sync Skills After Updates
 
 ```bash
-sync-skills
+sync-skills                  # sync skills + agents
+sync-skills --dry-run        # preview changes without applying
+sync-skills --remove         # remove all jira-generator symlinks
+sync-skills --remove --dry-run  # preview remove
 ```
 
 ---
@@ -183,53 +155,53 @@ sync-skills
 
 Open Claude Code in this project and type `/command`.
 
-### Issue Creation
+### Jira — Issue Creation
 
 | Command | Description |
 | ------- | ----------- |
-| `/story-full` | Create Story + Sub-tasks in one go (PO + TA combined) |
-| `/create-epic` | Create Epic + Confluence Epic Doc with RICE scoring |
-| `/create-story` | Create User Story from requirements (5-phase PO workflow) |
-| `/create-task` | Create Task: `tech-debt`, `bug`, `chore`, or `spike` |
-| `/analyze-story {{PROJECT_KEY}}-XXX` | Read Story → explore codebase → create Sub-tasks |
-| `/create-testplan {{PROJECT_KEY}}-XXX` | Create Test Plan + [QA] Sub-tasks from Story |
+| `/jira-story-full` | Create Story + Sub-tasks in one go (PO + TA combined) |
+| `/jira-create-epic` | Create Epic + Confluence Epic Doc with RICE scoring |
+| `/jira-create-story` | Create User Story from requirements (5-phase PO workflow) |
+| `/jira-create-task` | Create Task: `tech-debt`, `bug`, `chore`, or `spike` |
+| `/jira-analyze-story {{PROJECT_KEY}}-XXX` | Read Story → explore codebase → create Sub-tasks |
+| `/jira-create-testplan {{PROJECT_KEY}}-XXX` | Create Test Plan + [QA] Sub-tasks from Story |
 
-### Issue Updates
-
-| Command | Description |
-| ------- | ----------- |
-| `/update-story {{PROJECT_KEY}}-XXX` | Edit Story — add/edit ACs, scope |
-| `/update-epic {{PROJECT_KEY}}-XXX` | Edit Epic — adjust scope, RICE, metrics |
-| `/update-task {{PROJECT_KEY}}-XXX` | Edit Task — migrate format, add details |
-| `/update-subtask {{PROJECT_KEY}}-XXX` | Edit Sub-task — format, content |
-| `/story-cascade {{PROJECT_KEY}}-XXX` | Update Story + cascade to all Sub-tasks |
-
-### Sync & Quality
+### Jira — Issue Updates
 
 | Command | Description |
 | ------- | ----------- |
-| `/sync-alignment {{PROJECT_KEY}}-XXX` | Sync all artifacts bidirectional (Jira + Confluence) |
-| `/verify-issue {{PROJECT_KEY}}-XXX` | Check ADF format, INVEST criteria, language |
-| `/search-issues` | Search before creating (prevent duplicates) |
+| `/jira-update-story {{PROJECT_KEY}}-XXX` | Edit Story — add/edit ACs, scope |
+| `/jira-update-epic {{PROJECT_KEY}}-XXX` | Edit Epic — adjust scope, RICE, metrics |
+| `/jira-update-task {{PROJECT_KEY}}-XXX` | Edit Task — migrate format, add details |
+| `/jira-update-subtask {{PROJECT_KEY}}-XXX` | Edit Sub-task — format, content |
+| `/jira-story-cascade {{PROJECT_KEY}}-XXX` | Update Story + cascade to all Sub-tasks |
 
-`/verify-issue` flags: `--with-subtasks` (batch check), `--fix` (auto-fix), `--dry-run` (report only)
-
-### Planning & Analysis
-
-| Command | Description |
-| ------- | ----------- |
-| `/plan-sprint` | Sprint planning: carry-over + capacity + assign |
-| `/dependency-chain` | Dependency graph, critical path, swim lanes |
-| `/activity-report` | Generate work activity report from claude-mem |
-
-`/plan-sprint` options: `--sprint 123` (target sprint), `--carry-over-only` (analysis only)
-
-### Documentation
+### Jira — Sync & Quality
 
 | Command | Description |
 | ------- | ----------- |
-| `/create-doc` | Create Confluence page: `tech-spec`, `adr`, `parent` |
-| `/update-doc` | Update or move a Confluence page |
+| `/jira-sync-alignment {{PROJECT_KEY}}-XXX` | Sync all artifacts bidirectional (Jira + Confluence) |
+| `/jira-verify-issue {{PROJECT_KEY}}-XXX` | Check ADF format, INVEST criteria, language |
+| `/jira-search-issues` | Search before creating (prevent duplicates) |
+
+`/jira-verify-issue` flags: `--with-subtasks` (batch check), `--fix` (auto-fix), `--dry-run` (report only)
+
+### Jira — Planning & Analysis
+
+| Command | Description |
+| ------- | ----------- |
+| `/jira-plan-sprint` | Sprint planning: carry-over + capacity + assign |
+| `/jira-dependency-chain` | Dependency graph, critical path, swim lanes |
+| `/jira-activity-report` | Generate work activity report from claude-mem |
+
+`/jira-plan-sprint` options: `--sprint 123` (target sprint), `--carry-over-only` (analysis only)
+
+### Confluence — Documentation
+
+| Command | Description |
+| ------- | ----------- |
+| `/confluence-create-doc` | Create Confluence page: `tech-spec`, `adr`, `parent` |
+| `/confluence-update-doc` | Update or move a Confluence page |
 | `/optimize-context` | Audit + compress CLAUDE.md passive context |
 
 ---
@@ -239,19 +211,19 @@ Open Claude Code in this project and type `/command`.
 ### Create a Full Feature (End-to-End)
 
 ```text
-/search-issues          → Check no duplicates exist
-/create-epic            → Create Epic + Confluence doc
-/story-full             → Create Story + Sub-tasks in one go
-/create-testplan        → Create [QA] Sub-tasks (optional)
-/verify-issue {{PROJECT_KEY}}-XXX  → Verify quality
+/jira-search-issues          → Check no duplicates exist
+/jira-create-epic            → Create Epic + Confluence doc
+/jira-story-full             → Create Story + Sub-tasks in one go
+/jira-create-testplan        → Create [QA] Sub-tasks (optional)
+/jira-verify-issue {{PROJECT_KEY}}-XXX   → Verify quality
 ```
 
-**Example:** `/story-full` → "Build a coupon system for admin — create, edit, delete coupons" → Claude asks for details, then auto-generates Story + Sub-tasks `[BE]`, `[FE-Admin]`
+**Example:** `/jira-story-full` → "Build a coupon system for admin — create, edit, delete coupons" → Claude asks for details, then auto-generates Story + Sub-tasks `[BE]`, `[FE-Admin]`
 
 ### Plan a Sprint
 
 ```text
-/plan-sprint            → 8 phases: Discovery → Capacity → Carry-over →
+/jira-plan-sprint       → 8 phases: Discovery → Capacity → Carry-over →
                           Prioritize → Distribute → Risk → Review → Execute
 ```
 
@@ -260,15 +232,15 @@ Claude will fetch sprint data, calculate capacity, analyze carry-over, prioritiz
 ### Update + Cascade Changes
 
 ```text
-/update-story {{PROJECT_KEY}}-XXX       → Edit Story only
-/story-cascade {{PROJECT_KEY}}-XXX      → + cascade to Sub-tasks
-/sync-alignment {{PROJECT_KEY}}-XXX     → + sync Confluence docs
+/jira-update-story {{PROJECT_KEY}}-XXX      → Edit Story only
+/jira-story-cascade {{PROJECT_KEY}}-XXX     → + cascade to Sub-tasks
+/jira-sync-alignment {{PROJECT_KEY}}-XXX    → + sync Confluence docs
 ```
 
 ### Analyze Dependencies
 
 ```text
-/dependency-chain            → Build dependency graph from sprint
+/jira-dependency-chain       → Build dependency graph from sprint
                                Identify critical path + parallel execution plan
                                Generate Mermaid diagrams + swim lanes per member
 ```
@@ -285,7 +257,7 @@ Claude will fetch sprint data, calculate capacity, analyze carry-over, prioritiz
 ├── story-full/                     <- Composite: PO + TA in one workflow
 ├── story-cascade/                  <- Update + cascade to sub-tasks
 ├── sync-alignment/                 <- Bidirectional sync (Jira + Confluence)
-├── plan-sprint/                    <- Tresor strategy + Jira execution
+├── plan-sprint/                    <- Sprint planning: carry-over + capacity + assign
 ├── dependency-chain/               <- Critical path + swim lane analysis
 ├── search-issues/
 ├── verify-issue/
@@ -312,7 +284,7 @@ scripts/
 ├── configure-project.py            <- Manual placeholder ↔ real value converter
 ├── fix-table-format.py             <- Markdown table formatter
 ├── update-sprint-goals.py          <- Sprint goals updater
-├── sync-skills                     <- Sync skills to ~/.claude/skills/
+├── sync-skills                     <- Sync skills+agents to ~/.claude/ (supports --dry-run, --remove)
 ├── clear-sprint-dates.py           <- Batch clear start/due dates from sprint
 ├── sprint-set-fields.py            <- Set SP/OE from Size field for sprint
 ├── sprint-rank-by-date.py          <- Re-rank sprint issues by date
@@ -382,11 +354,10 @@ vi .claude/project-config.json
 
 ## Tips
 
-- **Always search first:** `/search-issues` before creating to prevent duplicates
-- **Always verify after:** `/verify-issue {{PROJECT_KEY}}-XXX` after creating/updating
+- **Always search first:** `/jira-search-issues` before creating to prevent duplicates
+- **Always verify after:** `/jira-verify-issue {{PROJECT_KEY}}-XXX` after creating/updating
 - **Language:** Thai + English transliteration for technical terms (endpoint, API, component)
 - **Format:** Jira descriptions use ADF format — Claude handles this via `acli --from-json`
-- **Codebase first:** `/analyze-story` always explores codebase before creating Sub-tasks
-- **Sync skills:** After adding/removing skills, run `sync-skills`
+- **Codebase first:** `/jira-analyze-story` always explores codebase before creating Sub-tasks
+- **Sync skills:** After adding/removing skills or agents, run `sync-skills` (or `--remove` to undo)
 - **Cache server:** Use `cache_sprint_issues` before sprint planning for 80%+ token savings
-- **Tresor teams:** Install subagents for auto-review at each workflow stage (see Setup step 6)
